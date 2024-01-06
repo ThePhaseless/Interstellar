@@ -1,0 +1,14 @@
+http:
+  routers:
+    redirect-router:
+      rule: 'HostRegexp(`.* `)'
+      entryPoints:
+        - web
+      middlewares:
+        - redirect
+  middlewares:
+    redirect:
+      redirectRegex:
+        regex: '^(.*)'
+        replacement: '$${1}'
+        permanent: true
