@@ -29,6 +29,9 @@ fi
 ## For root
 sudo ./general/setup_zsh.sh
 
+# Redirect HOSTNAME to tailscale IP
+./redirect_hostname.sh
+
 # Install Tailscale
 ./general/setup_tailscale.sh
 
