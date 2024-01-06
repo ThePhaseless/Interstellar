@@ -11,16 +11,14 @@ services:
     container_name: traefik
     # The official v2 Traefik docker image
     image: traefik:latest
+    network_mode: host
     # Enables the web UI and tells Traefik to listen to docker
     command:
-      #[http.middlewares]
-      # [http.middlewares.blog-redirect.redirectRegex]
-      #   regex = "^(https?://)(.*).example.com/(.*)$"
-      #   replacement = "${1}example.com/${2}/${3}"
-      #   permanent = true
       - "--api=true"
       - "--api.dashboard=true"
       - "--api.insecure=true"
+      - "--providers.file.directory=/conf/"
+      - "--providers.file.watch=true"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
@@ -56,10 +54,10 @@ services:
       - "traefik.http.routers.traefik.middlewares=authelia"
       - "traefik.http.routers.traefik.tls.certresolver=cloudflare"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.middlewares.redirect-to-host.redirectRegex.regex=^(https?://)(.*).${PUBLIC_HOSTNAME}/(.*)$$"
-      - "traefik.http.middlewares.redirect-to-host.redirectRegex.replacement=$${1}${PUBLIC_HOSTNAME}/$${2}/$${3}"
+      - "traefik.http.middlewares.redirect-to-host.redirectRegex.regex=^.*$"
+      - "traefik.http.middlewares.redirect-to-host.redirectRegex.replacement=$${1}"
       - "traefik.http.middlewares.redirect-to-host.redirectRegex.permanent=true"
-      - "traefik.http.routers.litwave.rule=HostRegexp(`.*^${PUBLIC_HOSTNAME}$`)"
+      - "traefik.http.routers.litwave.rule=HostRegexp(`.*$`)"
       - "traefik.http.routers.litwave.entrypoints=websecure"
       - "traefik.http.routers.litwave.middlewares=authelia, redirect-to-host"
       - "traefik.http.routers.litwave.tls.certresolver=cloudflare"
