@@ -17,7 +17,7 @@ services:
       - "--api=true"
       - "--api.dashboard=true"
       - "--api.insecure=true"
-      - "--providers.file.directory=/conf/"
+      - "--providers.file.directory=/conf"
       - "--providers.file.watch=true"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.address=:80"
