@@ -3,6 +3,17 @@ read -p "What is the IP of the server (from Tailscale)? (e.g. 100.123.123.123): 
 # Ask what is the hostname of server
 read -p "What is the hostname of the server? (e.g. example.com): " SERVER_HOSTNAME
 
+# Disable systemd-resolved
+echo "Disabling systemd-resolved..."
+sudo systemctl disable systemd-resolved
+sudo systemctl stop systemd-resolved
+echo "Done..."
+
+# Remove symlink for resolv.conf
+echo "Removing symlink for resolv.conf..."
+sudo unlink /etc/resolv.conf
+echo "Done..."
+
 # Install DnsMasq
 echo "Installing DnsMasq..."
 sudo apt install -y dnsmasq
