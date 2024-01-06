@@ -17,8 +17,8 @@ echo "Done..."
 # Add DnsMasq to resolv.conf as first nameserver
 echo "Adding DnsMasq to resolv.conf..."
 sudo touch /etc/resolv.conf
-sudo sed -i '1s/^/nameserver 1.1.1.1\n/' /etc/resolv.conf
-sudo sed -i '1s/^/nameserver 127.0.0.1\n/' /etc/resolv.conf
+sudo bash -c "echo \"nameserver 127.0.0.1\" > /etc/resolv.conf"
+sudo bash -c "echo \"nameserver 1.1.1.1\" >> /etc/resolv.conf"
 echo "Done..."
 
 # Install DnsMasq
