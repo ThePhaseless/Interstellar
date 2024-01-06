@@ -3,6 +3,15 @@ read -r -p "What is the IP of the server (from Tailscale)? (e.g. 100.123.123.123
 # Ask what is the hostname of server
 read -r -p "What is the hostname of the server? (e.g. example.com): " SERVER_HOSTNAME
 
+# Check if SERVER_IP is reachable
+echo "Checking if $SERVER_IP is reachable..."
+if ping -c 1 "$SERVER_IP" &> /dev/null; then
+    echo "$SERVER_IP is reachable..."
+else
+    echo "$SERVER_IP is not reachable, please check if Tailscale is installed and running on the server."
+    exit
+fi
+
 # Disable systemd-resolved
 echo "Disabling systemd-resolved..."
 sudo systemctl disable systemd-resolved

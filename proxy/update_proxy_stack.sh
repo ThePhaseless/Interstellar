@@ -13,7 +13,9 @@ fi
 
 # Check if proxy.env exists
 if [ ! -f ./.env ]; then
-    echo "proxy.env does not exist, please create it and run the script again."
+    echo ".env does not exist, creating..."
+    cp ./.env.example ./.env
+    echo "Change the values in .env and run this script again."
     exit
 fi
 
