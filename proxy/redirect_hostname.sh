@@ -1,7 +1,7 @@
 # Ask what is the ip of server
-read -p "What is the IP of the server (from Tailscale)? (e.g. 100.123.123.123): " SERVER_IP
+read -r -p "What is the IP of the server (from Tailscale)? (e.g. 100.123.123.123): " SERVER_IP
 # Ask what is the hostname of server
-read -p "What is the hostname of the server? (e.g. example.com): " SERVER_HOSTNAME
+read -r -p "What is the hostname of the server? (e.g. example.com): " SERVER_HOSTNAME
 
 # Disable systemd-resolved
 echo "Disabling systemd-resolved..."
@@ -16,6 +16,7 @@ echo "Done..."
 
 # Add DnsMasq to resolv.conf as first nameserver
 echo "Adding DnsMasq to resolv.conf..."
+sudo touch /etc/resolv.conf
 sudo sed -i '1s/^/nameserver 1.1.1.1\n/' /etc/resolv.conf
 sudo sed -i '1s/^/nameserver 127.0.0.1\n/' /etc/resolv.conf
 echo "Done..."
