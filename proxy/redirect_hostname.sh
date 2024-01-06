@@ -14,6 +14,12 @@ echo "Removing symlink for resolv.conf..."
 sudo unlink /etc/resolv.conf
 echo "Done..."
 
+# Add DnsMasq to resolv.conf as first nameserver
+echo "Adding DnsMasq to resolv.conf..."
+sudo sed -i '1s/^/nameserver 1.1.1.1\n/' /etc/resolv.conf
+sudo sed -i '1s/^/nameserver 127.0.0.1\n/' /etc/resolv.conf
+echo "Done..."
+
 # Install DnsMasq
 echo "Installing DnsMasq..."
 sudo apt install -y dnsmasq
@@ -32,12 +38,6 @@ echo "Done..."
 # Add DnsMasq to startup
 echo "Adding DnsMasq to startup..."
 sudo systemctl enable dnsmasq
-echo "Done..."
-
-# Add DnsMasq to resolv.conf as first nameserver
-echo "Adding DnsMasq to resolv.conf..."
-sudo sed -i '1s/^/nameserver 1.1.1.1\n/' /etc/resolv.conf
-sudo sed -i '1s/^/nameserver 127.0.0.1\n/' /etc/resolv.conf
 echo "Done..."
 
 # Add DnsMasq to dhclient.conf
