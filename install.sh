@@ -3,7 +3,7 @@
 # ----------------------------------
 
 # Ask if this is a host or a proxy
-sudo chmod +x ./* -R
+sudo chmod +x ./*.sh -R
 echo "Is this a host or a proxy?"
 echo "1. Host"
 echo "2. Proxy"
