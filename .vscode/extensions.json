@@ -4,6 +4,8 @@
         "shakram02.bash-beautify",
         "rogalmic.bash-debug",
         "foxundermoon.shell-format",
-        "jeff-hykin.better-shellscript-syntax"
+		"jeff-hykin.better-shellscript-syntax",
+		"ms-azuretools.vscode-docker",
+		"redhat.vscode-yaml"
     ]
 }
