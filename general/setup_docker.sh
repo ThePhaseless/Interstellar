@@ -2,7 +2,7 @@ echo "Installing Docker and Docker Compose..."
 
 # Remove old versions of Docker
 echo "Removing old versions of Docker..."
-sudo apt docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
+sudo apt remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
 
 # Install Docker
 # Add Docker's official GPG key:
@@ -15,9 +15,9 @@ sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
 # Add the repository to Apt sources:
 echo \
-"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+	"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
 $(. /etc/os-release && echo "$VERSION_CODENAME") stable" |
-sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+	sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
 sudo apt-get update
 
 # Install Docker Engine:
