@@ -7,19 +7,6 @@
 # Date:   January 1, 2024
 #
 
-# Check if upload_acme is in crontab, if not add it
-echo "Checking if upload_acme.sh is in crontab..."
-if crontab -l | grep -q 'upload_acme.sh'; then
-	echo "upload_acme.sh already in crontab..."
-else
-	echo "Adding upload_acme.sh to crontab..."
-	(
-		crontab -l 2>/dev/null
-		echo "0 4 * * * $PWD/upload_acme.sh"
-	) | crontab -
-	echo "Done..."
-fi
-
 # Install VS Code
 ./general/setup_vscode.sh
 
