@@ -12,6 +12,12 @@
 sudo apt update
 sudo apt upgrade -y
 
+# Ask if user wants to change password
+read -r -p "Do you want to change the password? [y/N] " response
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
+	sudo passwd "$USER"
+fi
+
 # Install VS Code
 ./general/setup_vscode.sh
 
