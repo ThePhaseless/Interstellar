@@ -1,24 +1,5 @@
 #!/bin/bash
 
-lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT
-echo "Which disks should be used with STORAGE? RAID10 requires at least 4 disks. (e.g. sdb sdc sdd sde)"
-read -r -p "Disks: " DISKS
-if [ "$DISKS" = "none" ]; then
-	echo "Skipping STORAGE setup..."
-	exit 0
-fi
-# Check if disks are specified
-if [ -z "$DISKS" ]; then
-	echo "No disks specified..."
-	exit 1
-fi
-
-# Check if 4 disks are specified
-if [ "$(echo "$DISKS" | wc -w)" -lt 4 ]; then
-	echo "RAID10 requires at least 4 disks..."
-	exit 1
-fi
-
 # Check if STORAGE_PATH is set
 if [ -z "$STORAGE_PATH" ]; then
 	echo "STORAGE_PATH = $STORAGE_PATH"
@@ -30,6 +11,26 @@ if [ -z "$STORAGE_PATH" ]; then
 		echo "STORAGE_PATH not set, skipping STORAGE setup..."
 		exit 0
 	fi
+fi
+
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT
+echo "Which disks should be used with STORAGE? RAID10 requires at least 4 disks. (e.g. sdb sdc sdd sde)"
+read -r -p "Disks: " DISKS
+if [ "$DISKS" = "none" ]; then
+	echo "Skipping STORAGE setup..."
+	exit 0
+fi
+
+# Check if disks are specified
+if [ -z "$DISKS" ]; then
+	echo "No disks specified..."
+	exit 1
+fi
+
+# Check if 4 disks are specified
+if [ "$(echo "$DISKS" | wc -w)" -lt 4 ]; then
+	echo "RAID10 requires at least 4 disks..."
+	exit 1
 fi
 
 # Install mdadm
