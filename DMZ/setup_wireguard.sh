@@ -18,6 +18,13 @@ fi
 nano ./wireguard.env
 source ./wireguard.env
 
+# Ask if user wants to continue
+read -r -p "Do you want to continue? [y/N] " response
+if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
+	echo "Aborting..."
+	exit 1
+fi
+
 # Install Wireguard
 sudo apt install software-properties-common
 sudo apt install wireguard -y
