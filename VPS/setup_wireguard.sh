@@ -2,6 +2,8 @@
 # Stop on error
 set -e
 
+echo "Installing Wireguard for VPS..."
+
 # Generate a key pair for Wireguard
 echo "Generating Wireguard key pair..."
 wg genkey | tee ./privatekey | wg pubkey | tee ./publickey
@@ -40,6 +42,7 @@ sudo systemctl enable wg-quick@wg0
 sudo systemctl start wg-quick@wg0
 
 # Configure UFW
+echo "Configuring firewall..."
 ## Check which interface is the default
 default_interface=$(ip route | grep default | awk '{print $5}')
 
