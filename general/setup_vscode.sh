@@ -34,6 +34,7 @@ rm vscode_cli.tar.gz
 # Move to bin
 echo "Moving VSCode CLI to /usr/local/bin..."
 sudo mv ./code /usr/local/bin/code
+sudo rm -rf ./code
 
 # Enable execution by all users
 echo "Enabling execution by all users..."
