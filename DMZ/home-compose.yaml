@@ -1,0 +1,93 @@
+services:
+  httpd:
+    image: httpd:latest
+    container_name: httpd
+    ports:
+      - "81:80"
+    volumes:
+      - ${CONFIG_PATH}/Home/httpd:/usr/local/apache2/htdocs
+    restart: unless-stopped
+
+  homepage:
+    image: ghcr.io/benphelps/homepage:latest
+    container_name: homepage
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+    ports:
+      - 4000:3000
+    volumes:
+      - ${CONFIG_PATH}/Home/Homepage:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # access host from within container
+
+  pufferpanel:
+    container_name: pufferpanel
+    ports:
+      - "8080:8080" # HTTP
+      - "5657:5657" # Daemon
+      - "25565:25565" # Minecraft
+    volumes:
+      - "${CONFIG_PATH}/Home/PufferPanel:/etc/pufferpanel"
+      - "${CONFIG_PATH}/Home/PufferPanelServers:/var/lib/pufferpanel"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    restart: unless-stopped
+    image: "pufferpanel/pufferpanel:java"
+
+  sggwbot:
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+    restart: unless-stopped
+    container_name: sggwbot
+    image: thephaseless/sggwbot:main
+
+  filebrowser:
+    container_name: filebrowser
+    command: "--auth.method='none'"
+    volumes:
+      - "/public:/srv"
+    ports:
+      - "900:80"
+    image: filebrowser/filebrowser
+
+  adguardhome:
+    container_name: adguardhome
+    image: adguard/adguardhome
+    restart: unless-stopped
+    volumes:
+      - "${CONFIG_PATH}/Home/AdGuard/work:/opt/adguardhome/work"
+      - "${CONFIG_PATH}/Home/AdGuard/conf:/opt/adguardhome/conf"
+    ports:
+      - "53:53/tcp" # DNS
+      - "53:53/udp" # DNS
+      - "82:80" # WebUI
+      - "3000:3000/tcp" # Setup
+
+  scanservjs:
+    container_name: scanservjs-container
+    image: "sbs20/scanservjs:latest"
+    ports:
+      - "5555:8080"
+    volumes:
+      - "/var/run/dbus:/var/run/dbus"
+      - "${MEDIA_PATH}/Scans:/app/data/output"
+      - "${CONFIG_PATH}/Home/Scanservjs:/app/config"
+    restart: unless-stopped
+    devices:
+      - "/dev/bus/usb:/dev/bus/usb"
+    privileged: true
+
+  wolweb:
+    container_name: wolweb
+    image: "ghcr.io/sameerdhoot/wolweb"
+    restart: unless-stopped
+    volumes:
+      - ${CONFIG_PATH}/Home/WakeOnLAN/devices.json:/devices.json
+    network_mode: host
+    environment:
+      WOLWEBHOST: "0.0.0.0"
+      WOLWEBPORT: "6666"
+      WOLWEBVDIR: "/"
+      WOLWEBBCASTIP: "192.168.1.255:9"
