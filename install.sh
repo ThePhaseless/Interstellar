@@ -5,15 +5,17 @@
 # Ask if this is a host or a proxy
 find . -type f -iname "*.sh" -exec chmod +x {} \;
 echo "Is this a host or a proxy?"
-echo "1. Host"
-echo "2. Proxy"
+echo "1. DMZ"
+echo "2. VPS"
 read -r -p "Enter your choice: " choice
 case $choice in
 [1]*)
-	./host/install.sh
+	cd DMZ || exit
+	./install.sh
 	;;
 [2]*)
-	./proxy/install.sh
+	cd VPS || exit
+	./install.sh
 	;;
 *)
 	echo "Invalid choice"
