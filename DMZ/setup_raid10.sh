@@ -1,3 +1,5 @@
+#!/bin/bash
+
 lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT
 echo "Which disks should be used with STORAGE? RAID10 requires at least 4 disks. (e.g. sdb sdc sdd sde)"
 read -r -p "Disks: " DISKS

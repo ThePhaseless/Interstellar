@@ -57,11 +57,11 @@ sudo ../Scripts/setup_zsh.sh
 # Install VS Code
 ../General/setup_vscode.sh
 
-# Install Docker and Docker Compose
-../setup_docker.sh
-
 # Setup samba
 ./setup_samba.sh
 
 # Setup Tailscale
 ../General/setup_tailscale.sh
+
+# Install Docker and Docker Compose
+../setup_docker.sh

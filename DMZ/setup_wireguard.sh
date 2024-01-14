@@ -2,6 +2,8 @@
 # Stop on error
 set -e
 
+echo "Settings up Wireguard for DMZ..."
+
 # Generate a key pair for Wireguard
 echo "Generating Wireguard key pair..."
 wg genkey | tee ./privatekey | wg pubkey | tee ./publickey

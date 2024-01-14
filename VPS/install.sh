@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Post-Installation Proxy Script
 # ------------------------

@@ -1,5 +1,7 @@
-# Preparing SAMBA
-echo "Preparing SAMBA..."
+#!/bin/bash
+
+# Install SAMBA
+echo "Installing SAMBA..."
 sudo apt install samba wsdd -y
 
 # Copy the SAMBA configuration file
