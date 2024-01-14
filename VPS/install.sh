@@ -7,6 +7,10 @@
 # Date:   January 1, 2024
 #
 
+# Update the package list and upgrade existing packages
+sudo apt update
+sudo apt upgrade -y
+
 # Install VS Code
 ./general/setup_vscode.sh
 
@@ -19,5 +23,5 @@ sudo ./general/setup_zsh.sh
 # Install Tailscale
 ./general/setup_tailscale.sh
 
-# Install Docker and Docker Compose
-./general/setup_docker.sh
+# Make a tunnel with wireguard to DNS server
+./setup_wireguard.sh
