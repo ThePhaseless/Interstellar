@@ -10,13 +10,9 @@ echo "Updating SAMBA configuration file..."
 sed -i "s|STORAGE_PATH|$STORAGE_PATH|g" ./shares.conf
 sed -i "s|SSD_PATH|$SSD_PATH|g" ./shares.conf
 
-# Copy the SAMBA configuration file
-echo "Copying SAMBA configuration file..."
-sudo cp ./shares.conf /etc/samba/
-
 # Include the SAMBA configuration file
 echo "Including SAMBA configuration file..."
-"include = /etc/samba/shares.conf" | sudo tee -a /etc/samba/smb.conf >/dev/null
+"include = $PWD/shares.conf" | sudo tee -a /etc/samba/smb.conf
 
 echo "Restarting SAMBA..."
 sudo systemctl restart smbd
