@@ -55,12 +55,15 @@ comment1="DMZ to VPS"
 comment2="VPS to DMZ"
 
 # Get the rule numbers with the specified comments
-rule_numbers=$(iptables -L -n --line-numbers | grep -E "($comment1|$comment2)" | awk '{print $1}')
+rule_numbers=$(sudo iptables -L -n --line-numbers | grep -E "($comment1|$comment2)" | awk '{print $1}')
 
 # Remove the rules based on their numbers
 for rule_number in $rule_numbers; do
 	iptables -D INPUT "$rule_number"
 	iptables -D OUTPUT "$rule_number"
+	iptables -D FORWARD "$rule_number"
+	iptables -t nat -D PREROUTING "$rule_number"
+	iptables -t nat -D POSTROUTING "$rule_number"
 done
 
 echo "Rules with comments '$comment1' or '$comment2' have been removed."
@@ -71,23 +74,23 @@ sudo iptables -P FORWARD DROP
 
 ## Allow forwarding from the default interface to the Wireguard interface on ports 80 and 443
 echo "Allowing forwarding from the default interface to the Wireguard interface on ports 80 and 443..."
-sudo iptables -A FORWARD -i "$default_interface" -o wg0 -p tcp --syn --dport 80 -m conntrack --ctstate NEW -j ACCEPT --comment "VPS to DMZ"
-sudo iptables -A FORWARD -i "$default_interface" -o wg0 -p tcp --syn --dport 443 -m conntrack --ctstate NEW -j ACCEPT --comment "VPS to DMZ"
+sudo iptables -A FORWARD -i "$default_interface" -o wg0 -p tcp --syn --dport 80 -m conntrack --ctstate NEW -j ACCEPT -m comment --comment "VPS to DMZ"
+sudo iptables -A FORWARD -i "$default_interface" -o wg0 -p tcp --syn --dport 443 -m conntrack --ctstate NEW -j ACCEPT -m comment --comment "VPS to DMZ"
 
 ## Allow established and related connections to pass through
 echo "Allowing established and related connections to pass through..."
-sudo iptables -A FORWARD -i "$default_interface" -o wg0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT --comment "VPS to DMZ"
-sudo iptables -A FORWARD -i wg0 -o "$default_interface" -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT --comment "DMZ to VPS"
+sudo iptables -A FORWARD -i "$default_interface" -o wg0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT -m comment --comment "VPS to DMZ"
+sudo iptables -A FORWARD -i wg0 -o "$default_interface" -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT -m comment --comment "DMZ to VPS"
 
 ## Redirect traffic from the default interface to the Wireguard interface on ports 80 and 443 to the DMZ
 echo "Redirecting traffic from the default interface to the Wireguard interface on ports 80 and 443 to the DMZ..."
-sudo iptables -t nat -A PREROUTING -i "$default_interface" -p tcp --dport 80 -j DNAT --to-destination "$WIREGUARD_DMZ_IP" --comment "VPS to DMZ"
-sudo iptables -t nat -A PREROUTING -i "$default_interface" -p tcp --dport 443 -j DNAT --to-destination "$WIREGUARD_DMZ_IP" --comment "VPS to DMZ"
+sudo iptables -t nat -A PREROUTING -i "$default_interface" -p tcp --dport 80 -j DNAT --to-destination "$WIREGUARD_DMZ_IP" -m comment --comment "VPS to DMZ"
+sudo iptables -t nat -A PREROUTING -i "$default_interface" -p tcp --dport 443 -j DNAT --to-destination "$WIREGUARD_DMZ_IP" -m comment --comment "VPS to DMZ"
 
 ## Redirect returning traffic from the Wireguard interface to the default interface on ports 80 and 443
 echo "Redirecting returning traffic from the Wireguard interface to the default interface on ports 80 and 443..."
-sudo iptables -t nat -A POSTROUTING -o wg0 -p tcp --dport 80 -d "$WIREGUARD_DMZ_IP" -j SNAT --to-source "$WIREGUARD_VPS_IP" --comment "DMZ to VPS"
-sudo iptables -t nat -A POSTROUTING -o wg0 -p tcp --dport 443 -d "$WIREGUARD_DMZ_IP" -j SNAT --to-source "$WIREGUARD_VPS_IP" --comment "DMZ to VPS"
+sudo iptables -t nat -A POSTROUTING -o wg0 -p tcp --dport 80 -d "$WIREGUARD_DMZ_IP" -j SNAT --to-source "$WIREGUARD_VPS_IP" -m comment --comment "DMZ to VPS"
+sudo iptables -t nat -A POSTROUTING -o wg0 -p tcp --dport 443 -d "$WIREGUARD_DMZ_IP" -j SNAT --to-source "$WIREGUARD_VPS_IP" -m comment --comment "DMZ to VPS"
 
 ## Save the rules
 echo "Saving the rules..."
