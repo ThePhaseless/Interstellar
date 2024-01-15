@@ -5,7 +5,7 @@ if [ -x "$(command -v code)" ]; then
 	echo "VSCode CLI is already installed..."
 	echo "Updating VSCode CLI..."
 	sudo code update
-	exit
+	exit 0
 fi
 
 echo "Downloading VSCode CLI..."
@@ -24,7 +24,7 @@ elif [ "$(uname -m)" = "aarch64" ]; then
 
 else
 	echo "Architecture is not supported..."
-	exit
+	exit 1
 fi
 
 curl -o vscode_cli.tar.gz "$(curl -s -L -I -o /dev/null -w '%{url_effective}' "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-$architecture")"
