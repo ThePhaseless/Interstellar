@@ -28,10 +28,16 @@ sudo apt install wireguard -y
 sudo rm -f /etc/wireguard/wg0.conf
 (umask 077 && printf "[Interface]\nPrivateKey = " | sudo tee /etc/wireguard/wg0.conf >/dev/null)
 sudo cat ./privatekey | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
-append="ListenPort = $WIREGUARD_PORT \nAddress = $WIREGUARD_VPS_IP/24 \n\n[Peer]\nPublicKey = $WIREGUARD_DMZ_PUBLIC_KEY\nAllowedIPs = $WIREGUARD_DMZ_IP/32\n"
+append="
+ListenPort = $WIREGUARD_PORT
+Address = $WIREGUARD_VPS_IP/24
+
+[Peer]
+PublicKey = $WIREGUARD_DMZ_PUBLIC_KEY
+AllowedIPs = $WIREGUARD_DMZ_IP/32"
 
 # Add the following to the end of the file
-$append | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
+echo "$append" | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
 
 # Enable Wireguard
 sudo systemctl enable wg-quick@wg0
