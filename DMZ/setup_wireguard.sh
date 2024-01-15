@@ -3,6 +3,8 @@
 set -e
 
 echo "Settings up Wireguard for DMZ..."
+sudo apt update
+sudo apt install wireguard -y
 
 # Generate a key pair for Wireguard
 echo "Generating Wireguard key pair..."
