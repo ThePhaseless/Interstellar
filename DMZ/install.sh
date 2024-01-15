@@ -26,9 +26,6 @@ source ./.env
 # Ask the user if envs are correct
 read -r -p "Continue? (Y/n): " input
 case $input in
-[yY][eE][sS] | [yY])
-	echo "Continuing..."
-	;;
 [nN][oO] | [nN])
 	echo "Exiting..."
 	exit 1
