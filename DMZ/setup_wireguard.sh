@@ -39,10 +39,10 @@ nano ./wireguard.env
 source ./wireguard.env
 
 # Ask if user wants to continue
-read -r -p "Do you want to continue? [y/N] " response
-if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
-	echo "Aborting..."
-	exit 1
+read -r -p "Do you want to continue? [Y/n] " response
+if [[ "$response" =~ ^([nN][oO]|[nN])+$ ]]; then
+echo "Exiting..."
+	exit 0
 fi
 
 # Install Wireguard
@@ -84,6 +84,5 @@ sudo systemctl start wg-quick@wg0
 # Wait untill wireguard is up
 echo "Waiting for Wireguard to come up..."
 while ! ping -c 1 -W 1 "$WIREGUARD_VPS_IP"; do
-	echo "Waiting for Wireguard to come up..."
 	sleep 1
 done
