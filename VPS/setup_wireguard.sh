@@ -47,8 +47,7 @@ sudo apt install wireguard -y
 sudo rm -f /etc/wireguard/wg0.conf
 (umask 077 && printf "[Interface]\nPrivateKey = " | sudo tee /etc/wireguard/wg0.conf >/dev/null)
 sudo cat ./privatekey | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
-append="
-ListenPort = $WIREGUARD_PORT
+append="ListenPort = $WIREGUARD_PORT
 Address = $WIREGUARD_VPS_IP/24
 
 [Peer]

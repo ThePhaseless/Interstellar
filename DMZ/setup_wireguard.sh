@@ -53,8 +53,7 @@ sudo apt install wireguard -y
 sudo rm -f /etc/wireguard/wg0.conf
 (umask 077 && printf "[Interface]\nPrivateKey = " | sudo tee /etc/wireguard/wg0.conf >/dev/null)
 sudo cat ./privatekey | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
-append="
-Address = $WIREGUARD_DMZ_IP/32
+append="Address = $WIREGUARD_DMZ_IP/32
 
 [Peer]
 PublicKey = $WIREGUARD_DMZ_PUBLIC_KEY
@@ -64,6 +63,9 @@ PersistentKeepalive = 25"
 
 # Add the following to the end of the file
 echo "$append" | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
+
+# Convert DOS to UNIX format
+sudo sed -i 's/\r$//' /etc/wireguard/wg0.conf
 
 # Enable Wireguard
 sudo systemctl enable wg-quick@wg0
