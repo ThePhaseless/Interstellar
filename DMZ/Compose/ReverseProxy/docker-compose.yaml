@@ -51,6 +51,8 @@ services:
     container_name: whoami
 
   authelia:
+    depends_on:
+      - lldap
     container_name: authelia
     image: authelia/authelia:latest
     ports:
@@ -70,13 +72,28 @@ services:
       - AUTHELIA_DEFAULT_REDIRECTION_URL=https://${PUBLIC_HOSTNAME}
       - AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_ENCRYPTION_KEY}
       - AUTHELIA_STORAGE_LOCAL_PATH=/config/db.sqlite3
-      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH=/config/users_database.yml
-      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_WATCH=true
-      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_SEARCH_EMAIL=true
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_HOST=lldap
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PORT=17170
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER_BASE_DN=ou=users,dc=${PUBLIC_HOSTNAME}
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUP_BASE_DN=ou=groups,dc=${PUBLIC_HOSTNAME}
+
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.authelia.entrypoints=websecure"
       - "traefik.http.routers.authelia.rule=HostRegexp(`{subdomain:auth}.{host:.+}`)"
       - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.${PUBLIC_HOSTNAME}%2F'
       - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
       - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
+
+  lldap:
+    image: lldap/lldap:stable
+    container_name: lldap
+    ports:
+      - "17170:17170"
+    volumes:
+      - "${CONFIG_PATH}/ReverseProxy/LLDAP:/data"
+    environment:
+      - TZ=${TIMEZONE}
+      - LLDAP_JWT_SECRET=${JWT_SECRET}
+      - LLDAP_KEY_SEED=${KEY_SEED}
+      - LLDAP_LDAP_BASE_DN=dc=${PUBLIC_HOSTNAME}
+    labels:
+      - "traefik.http.routers.lldap.middlewares=authelia"
