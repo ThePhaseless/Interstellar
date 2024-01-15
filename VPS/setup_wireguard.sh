@@ -70,7 +70,7 @@ echo "Rules with comments '$comment1' or '$comment2' have been removed."
 
 ## Create a new iptables chain and set the default rules to DROP
 echo "Creating new iptables profile..."
-sudo iptables -P FORWARD DROP
+sudo iptables -P FORWARD DROP -m comment --comment "VPS to DMZ"
 
 ## Allow forwarding from the default interface to the Wireguard interface on ports 80 and 443
 echo "Allowing forwarding from the default interface to the Wireguard interface on ports 80 and 443..."
