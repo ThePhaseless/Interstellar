@@ -41,7 +41,7 @@ echo "Done."
 # Update the package list and upgrade existing packages
 echo "Updating system..."
 sudo apt update
-sudo apt fully-upgrade
+sudo apt full-upgrade
 sudo apt dist-upgrade
 sudo unattended-upgrades
 sudo fwupdmgr refresh
