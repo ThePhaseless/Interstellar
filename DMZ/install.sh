@@ -44,7 +44,6 @@ sudo apt update
 sudo apt full-upgrade -y
 sudo apt dist-upgrade -y
 sudo unattended-upgrades
-sudo fwupdmgr refresh
 sudo fwupdmgr update
 
 # Install Zsh and Oh-My-Zsh
