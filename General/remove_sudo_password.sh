@@ -4,7 +4,7 @@ echo "Applying sudo patch..."
 # Check if patch is already applied by searching for the comment
 if grep -Fxq "# INSTALLATION SCRIPT DO NOT MODIFY" /etc/sudoers.d/"$USER"; then
 	echo "Patch already applied"
-	exit
+	exit 0
 fi
 
 # Allow for sudo without password
