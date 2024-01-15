@@ -19,16 +19,16 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
 fi
 
 # Install VS Code
-./general/setup_vscode.sh
+../General/setup_vscode.sh
 
 # Install Zsh and Oh-My-Zsh
 ## For user
-./general/setup_zsh.sh
+../General/setup_zsh.sh
 ## For root
-sudo ./general/setup_zsh.sh
+sudo ../General/setup_zsh.sh
 
 # Install Tailscale
-./general/setup_tailscale.sh
+../General/setup_tailscale.sh
 
 # Make a tunnel with wireguard to DNS server
 ./setup_wireguard.sh
