@@ -89,18 +89,15 @@ sudo sed -i '/net.ipv4.ip_forward=1/s/^#//g' /etc/sysctl.conf
 sudo sysctl --system
 
 
+# Display warning about flushing iptables
+read -r -p "WARNING: Next step will flush iptables. (because firewall is already managed by Oracle VCN) Press enter to continue: "
+sudo iptables -F
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+
 ## Create a new iptables chain and set the default rules to DROP
 echo "Creating new iptables profile..."
 sudo iptables -P FORWARD DROP # Set default rule to drop
-sudo iptables -I INPUT -p udp --dport 51820 -j ACCEPT -m comment --comment "Wireguard" # Allow Wireguard
-sudo iptables -I INPUT -p icmp --icmp-type echo-request -j ACCEPT # Allow ping
-
-## Enable UFW
-echo "Enabling UFW..."
-sudo ufw allow 22  # SSH
-sudo ufw allow 80  # HTTP
-sudo ufw allow 443 # HTTPS
-sudo ufw allow "$WIREGUARD_PORT"/udp
 
 # Wait untill wireguard is up
 echo "Waiting for Wireguard to come up..."
