@@ -60,6 +60,9 @@ sudo ../Scripts/setup_zsh.sh
 # Setup samba
 ./setup_samba.sh
 
+# Install Screen Off Service
+./setup_screen_off_service.sh
+
 # Setup Tailscale
 ../General/setup_tailscale.sh
 
