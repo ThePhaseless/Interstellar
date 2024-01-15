@@ -16,3 +16,9 @@ Rename every `*.env.example` file to `*.env` and fill in the variables and fill 
 
 Just run the `install.sh` script in the root of the project. This will install all the services and setup the reverse proxy.
 If you just want to install a specific feature, you can just run apropiate script in folders `DMZ`, `VPS` or `General`.
+
+### Quick Run Script
+
+```bash
+git clone https://github.com/ThePhaseless/Interstellar && cd Interstellar && ./install.sh
+```
