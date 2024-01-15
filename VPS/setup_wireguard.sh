@@ -95,6 +95,20 @@ sudo iptables -P FORWARD DROP # Set default rule to drop
 sudo iptables -I INPUT -p udp --dport 51820 -j ACCEPT -m comment --comment "Wireguard" # Allow Wireguard
 sudo iptables -I INPUT -p icmp --icmp-type echo-request -j ACCEPT # Allow ping
 
+## Enable UFW
+echo "Enabling UFW..."
+sudo ufw allow 22  # SSH
+sudo ufw allow 80  # HTTP
+sudo ufw allow 443 # HTTPS
+sudo ufw allow "$WIREGUARD_PORT"/udp
+
+# Wait untill wireguard is up
+echo "Waiting for Wireguard to come up..."
+while ! ping -c 1 -W 1 "$WIREGUARD_DMZ_IP"; do
+	echo "Waiting for Wireguard to come up..."
+	sleep 1
+done
+
 ## Allow forwarding from the default interface to the Wireguard interface on ports 80 and 443
 echo "Allowing forwarding from the default interface to the Wireguard interface on ports 80 and 443..."
 sudo iptables -A FORWARD -i "$default_interface" -o wg0 -p tcp --syn --dport 80 -m conntrack --ctstate NEW -j ACCEPT -m comment --comment "VPS to DMZ"
@@ -122,18 +136,3 @@ sudo netfilter-persistent save
 sudo apt install iptables-persistent -y
 sudo systemctl enable netfilter-persistent
 sudo apt install iptables-persistent
-
-
-## Enable UFW
-echo "Enabling UFW..."
-sudo ufw allow 22  # SSH
-sudo ufw allow 80  # HTTP
-sudo ufw allow 443 # HTTPS
-sudo ufw allow "$WIREGUARD_PORT"/udp
-
-# Wait untill wireguard is up
-echo "Waiting for Wireguard to come up..."
-while ! ping -c 1 -W 1 "$WIREGUARD_DMZ_IP"; do
-	echo "Waiting for Wireguard to come up..."
-	sleep 1
-done
