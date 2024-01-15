@@ -49,6 +49,22 @@ echo "Configuring firewall..."
 default_interface=$(ip route | grep default | head -n 1 | awk '{print $5}')
 echo "Default interface: $default_interface"
 
+## Remove old rules with comment "VPS to DMZ" and "DMZ to VPS"
+echo "Removing old rules..."
+comment1="DMZ to VPS"
+comment2="VPS to DMZ"
+
+# Get the rule numbers with the specified comments
+rule_numbers=$(iptables -L -n --line-numbers | grep -E "($comment1|$comment2)" | awk '{print $1}')
+
+# Remove the rules based on their numbers
+for rule_number in $rule_numbers; do
+	iptables -D INPUT "$rule_number"
+	iptables -D OUTPUT "$rule_number"
+done
+
+echo "Rules with comments '$comment1' or '$comment2' have been removed."
+
 ## Create a new iptables chain and set the default rules to DROP
 echo "Creating new iptables profile..."
 sudo iptables -P FORWARD DROP
