@@ -6,9 +6,27 @@ echo "Settings up Wireguard for DMZ..."
 sudo apt update
 sudo apt install wireguard -y
 
-# Generate a key pair for Wireguard
-echo "Generating Wireguard key pair..."
-wg genkey | tee ./privatekey | wg pubkey | tee ./publickey
+generateNewKeys=false
+# check if keys are already generated
+if [ -f "./privatekey" ] && [ -f "./publickey" ]; then
+	echo "Found existing Wireguard key pair..."
+	read -r -p "Do you want to generate a new key pair? [y/N] " response
+	if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
+		generateNewKeys=true
+	fi
+elif [ ! -f "./privatekey" ] && [ ! -f "./publickey" ]; then
+	echo "No Wireguard key pair found, generating a new one..."
+	generateNewKeys=true
+else
+	echo "Found incomplete Wireguard key pair, generating a new one..."
+	generateNewKeys=true
+fi
+
+if [ "$generateNewKeys" = true ]; then
+	# Generate a key pair for Wireguard
+	echo "Generating Wireguard key pair..."
+	wg genkey | tee ./privatekey | wg pubkey | tee ./publickey
+fi
 echo "Public key: $(cat ./publickey)"
 echo "Please note down the public key. You will need it later to set up client."
 echo "Now run setup on the VPS and press enter after you get the public key of the VPS."
@@ -51,16 +69,9 @@ echo "$append" | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
 sudo systemctl enable wg-quick@wg0
 sudo systemctl start wg-quick@wg0
 
-# Test connection
-echo "Testing connection..."
-response=$(ping -c 1 "$WIREGUARD_VPS_IP")
-echo "If you see a response, the connection is working."
-echo "If you don't see a response, check the configuration and try again."
-echo "If you still don't see a response, check the firewall rules and try again."
-
-if [[ "$response" == *"1 received"* ]]; then
-	echo "Connection successful."
-else
-	echo "Connection failed."
-	exit 1
-fi
+# Wait untill wireguard is up
+echo "Waiting for Wireguard to come up..."
+while ! ping -c 1 -W 1 "$WIREGUARD_VPS_IP"; do
+	echo "Waiting for Wireguard to come up..."
+	sleep 1
+done
