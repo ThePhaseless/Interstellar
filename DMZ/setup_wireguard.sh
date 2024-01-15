@@ -35,8 +35,7 @@ sudo apt install wireguard -y
 sudo rm -f /etc/wireguard/wg0.conf
 (umask 077 && printf "[Interface]\nPrivateKey = " | sudo tee /etc/wireguard/wg0.conf >/dev/null)
 sudo cat ./privatekey | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
-append="\
-Address = $WIREGUARD_DMZ_IP/32\n\n[Peer]\nPublicKey = $WIREGUARD_DMZ_PUBLIC_KEY\nAllowedIPs = $WIREGUARD_VPS_IP/32\nEndpoint = $VPS_PUBLIC_IP:$WIREGUARD_PORT\nPersistentKeepalive = 25"
+append="Address = $WIREGUARD_DMZ_IP/32\n\n[Peer]\nPublicKey = $WIREGUARD_DMZ_PUBLIC_KEY\nAllowedIPs = $WIREGUARD_VPS_IP/32\nEndpoint = $VPS_PUBLIC_IP:$WIREGUARD_PORT\nPersistentKeepalive = 25"
 
 # Add the following to the end of the file
 $append | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
