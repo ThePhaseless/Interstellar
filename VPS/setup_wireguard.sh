@@ -68,13 +68,6 @@ sudo systemctl start wg-quick@wg0
 # Ask user to press enter after setting up the DMZ
 read -r -p "Press enter after setting up the DMZ..."
 
-# Wait untill wireguard is up
-echo "Waiting for Wireguard to come up..."
-while ! ping -c 1 -W 1 "$WIREGUARD_DMZ_IP"; do
-	echo "Waiting for Wireguard to come up..."
-	sleep 1
-done
-
 # Configure UFW
 echo "Configuring firewall..."
 ## Check which interface is the default
@@ -128,3 +121,10 @@ sudo ufw allow 22  # SSH
 sudo ufw allow 80  # HTTP
 sudo ufw allow 443 # HTTPS
 sudo ufw allow "$WIREGUARD_PORT"/udp
+
+# Wait untill wireguard is up
+echo "Waiting for Wireguard to come up..."
+while ! ping -c 1 -W 1 "$WIREGUARD_DMZ_IP"; do
+	echo "Waiting for Wireguard to come up..."
+	sleep 1
+done
