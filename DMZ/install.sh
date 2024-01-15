@@ -41,12 +41,16 @@ esac
 # Create directories
 echo "Creating directories..."
 for directory in "$CONFIG_PATH" "$MEDIA_PATH" "$SSD_PATH" "$STORAGE_PATH"; do
-	export directory
 	echo "Creating $directory"
 	sudo mkdir -p "$directory"
 	set_permissions_ownership "$directory"
 done
 echo "Done."
+
+export CONFIG_PATH
+export MEDIA_PATH
+export SSD_PATH
+export STORAGE_PATH
 
 # Update the package list and upgrade existing packages
 echo "Updating system..."
