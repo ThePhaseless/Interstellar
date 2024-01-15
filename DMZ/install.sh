@@ -26,7 +26,7 @@ source ./.env
 read -r -p "Continue? (Y/n): "
 
 # Apply sudo patch
-./General/remove_sudo_password.sh
+../General/remove_sudo_password.sh
 
 # Create directories
 echo "Creating directories..."

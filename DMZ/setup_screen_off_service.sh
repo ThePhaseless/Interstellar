@@ -2,7 +2,7 @@
 
 # Install screen_off.service
 echo "Installing screen-off.service..."
-sudo cp ./General/screen-off.service /etc/systemd/system/screen-off.service
+sudo cp ./screen-off.service /etc/systemd/system/screen-off.service
 
 sudo systemctl daemon-reload
 sudo systemctl enable screen-off.service
