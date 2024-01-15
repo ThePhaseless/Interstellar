@@ -71,6 +71,12 @@ sudo sed -i 's/\r$//' /etc/wireguard/wg0.conf
 sudo systemctl disable wg-quick@wg0
 sudo systemctl stop wg-quick@wg0
 
+# Uncomment net.ipv4.ip_forward=1
+echo "Uncommenting net.ipv4.ip_forward=1..."
+sudo sed -i '/net.ipv4.ip_forward=1/s/^#//g' /etc/sysctl.conf
+sudo sysctl --system
+
+
 # Enable Wireguard
 sudo systemctl enable wg-quick@wg0
 sudo systemctl start wg-quick@wg0

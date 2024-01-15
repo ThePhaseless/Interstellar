@@ -83,6 +83,12 @@ sudo iptables-save | grep -v COMMENT | sudo iptables-restore
 
 echo "Rules with comments '$comment1' or '$comment2' have been removed."
 
+# Uncomment net.ipv4.ip_forward=1
+echo "Uncommenting net.ipv4.ip_forward=1..."
+sudo sed -i '/net.ipv4.ip_forward=1/s/^#//g' /etc/sysctl.conf
+sudo sysctl --system
+
+
 ## Create a new iptables chain and set the default rules to DROP
 echo "Creating new iptables profile..."
 sudo iptables -P FORWARD DROP -m comment --comment "VPS to DMZ"
@@ -114,6 +120,8 @@ sudo netfilter-persistent save
 sudo apt install iptables-persistent -y
 sudo systemctl enable netfilter-persistent
 sudo apt install iptables-persistent
+ip
+
 
 ## Enable UFW
 echo "Enabling UFW..."
