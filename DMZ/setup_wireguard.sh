@@ -56,7 +56,7 @@ sudo cat ./privatekey | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
 append="Address = $WIREGUARD_DMZ_IP/32
 
 [Peer]
-PublicKey = $WIREGUARD_DMZ_PUBLIC_KEY
+PublicKey = $WIREGUARD_VPS_PUBLIC_KEY
 AllowedIPs = $WIREGUARD_VPS_IP/32
 Endpoint = $VPS_PUBLIC_IP:$WIREGUARD_PORT
 PersistentKeepalive = 25"
@@ -66,6 +66,10 @@ echo "$append" | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
 
 # Convert DOS to UNIX format
 sudo sed -i 's/\r$//' /etc/wireguard/wg0.conf
+
+# Disable old configuration
+sudo systemctl disable wg-quick@wg0
+sudo systemctl stop wg-quick@wg0
 
 # Enable Wireguard
 sudo systemctl enable wg-quick@wg0

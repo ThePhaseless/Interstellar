@@ -57,6 +57,10 @@ AllowedIPs = $WIREGUARD_DMZ_IP/32"
 # Add the following to the end of the file
 echo "$append" | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
 
+# Disable old configuration
+sudo systemctl disable wg-quick@wg0
+sudo systemctl stop wg-quick@wg0
+
 # Enable Wireguard
 sudo systemctl enable wg-quick@wg0
 sudo systemctl start wg-quick@wg0
