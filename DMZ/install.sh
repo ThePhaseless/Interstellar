@@ -83,4 +83,4 @@ sudo ../General/setup_zsh.sh
 ./setup_wireguard.sh
 
 # Install Docker and Docker Compose
-../setup_docker.sh
+./setup_docker.sh
