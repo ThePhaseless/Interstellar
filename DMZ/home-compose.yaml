@@ -9,32 +9,29 @@ services:
     restart: unless-stopped
 
   homepage:
-    image: ghcr.io/benphelps/homepage:latest
-    container_name: homepage
-    environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: Homepage
     ports:
-      - 4000:3000
+      - 82:3000
     volumes:
       - ${CONFIG_PATH}/Home/Homepage:/app/config
-      - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway" # access host from within container
 
-  pufferpanel:
-    container_name: pufferpanel
-    ports:
-      - "8080:8080" # HTTP
-      - "5657:5657" # Daemon
-      - "25565:25565" # Minecraft
+  duplicati:
+    image: lscr.io/linuxserver/duplicati:latest
+    container_name: duplicati
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - CLI_ARGS= #optional
     volumes:
-      - "${CONFIG_PATH}/Home/PufferPanel:/etc/pufferpanel"
-      - "${CONFIG_PATH}/Home/PufferPanelServers:/var/lib/pufferpanel"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ${CONFIG_PATH}/Home/Duplicati:/config
+      - /public:/source
+    ports:
+      - 8200:8200
     restart: unless-stopped
-    image: "pufferpanel/pufferpanel:java"
 
   sggwbot:
     environment:
@@ -43,33 +40,32 @@ services:
     container_name: sggwbot
     image: thephaseless/sggwbot:main
 
-  filebrowser:
-    container_name: filebrowser
-    command: "--auth.method='none'"
-    volumes:
-      - "/public:/srv"
-    ports:
-      - "900:80"
-    image: filebrowser/filebrowser
+  # filebrowser:
+  #   container_name: filebrowser
+  #   command: "--auth.method='none'"
+  #   volumes:
+  #     - "/public:/srv"
+  #   ports:
+  #     - "83:80"
+  #   image: filebrowser/filebrowser
 
   adguardhome:
-    container_name: adguardhome
+    container_name: AdguardHome
     image: adguard/adguardhome
     restart: unless-stopped
     volumes:
       - "${CONFIG_PATH}/Home/AdGuard/work:/opt/adguardhome/work"
       - "${CONFIG_PATH}/Home/AdGuard/conf:/opt/adguardhome/conf"
     ports:
-      - "53:53/tcp" # DNS
-      - "53:53/udp" # DNS
-      - "82:80" # WebUI
+      - "84:80" # WebUI
+      - "53:53" # DNS
       - "3000:3000/tcp" # Setup
 
   scanservjs:
-    container_name: scanservjs-container
+    container_name: scanservjs
     image: "sbs20/scanservjs:latest"
     ports:
-      - "5555:8080"
+      - "84:8080"
     volumes:
       - "/var/run/dbus:/var/run/dbus"
       - "${MEDIA_PATH}/Scans:/app/data/output"
@@ -79,15 +75,16 @@ services:
       - "/dev/bus/usb:/dev/bus/usb"
     privileged: true
 
-  wolweb:
-    container_name: wolweb
-    image: "ghcr.io/sameerdhoot/wolweb"
-    restart: unless-stopped
-    volumes:
-      - ${CONFIG_PATH}/Home/WakeOnLAN/devices.json:/devices.json
+  gptwol:
+    container_name: GPT-Wol
+    image: misterbabou/gptwol:latest
     network_mode: host
+    ports:
+      - "85:85"
+    restart: unless-stopped
     environment:
-      WOLWEBHOST: "0.0.0.0"
-      WOLWEBPORT: "6666"
-      WOLWEBVDIR: "/"
-      WOLWEBBCASTIP: "192.168.1.255:9"
+      - PORT=85 #Free Port on Your host default is 5000
+      - TZ=Europe/Paris #Set your timezone for Cron default is UTC
+    volumes:
+      - ./computers.txt:/app/computers.txt
+      - ./appdata/cron:/etc/cron.d

@@ -2,6 +2,7 @@
   "recommendations": [
     "mads-hartmann.bash-ide-vscode",
     "rogalmic.bash-debug",
-    "jeff-hykin.better-shellscript-syntax"
+	"jeff-hykin.better-shellscript-syntax",
+	"redhat.vscode-yaml"
   ]
 }
