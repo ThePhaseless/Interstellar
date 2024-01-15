@@ -46,11 +46,11 @@ sudo systemctl start wg-quick@wg0
 # Configure UFW
 echo "Configuring firewall..."
 ## Check which interface is the default
-default_interface=$(ip route | grep default | awk '{print $5}')
+default_interface=$(ip route | grep default | head -n 1 | awk '{print $5}')
 echo "Default interface: $default_interface"
 
-## Create a new UFW profile and set the default rules to DROP
-echo "Creating new UFW profile..."
+## Create a new iptables chain and set the default rules to DROP
+echo "Creating new iptables profile..."
 sudo iptables -P FORWARD DROP
 
 ## Allow forwarding from the default interface to the Wireguard interface on ports 80 and 443
