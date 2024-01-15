@@ -92,6 +92,7 @@ sudo sysctl --system
 ## Create a new iptables chain and set the default rules to DROP
 echo "Creating new iptables profile..."
 sudo iptables -P FORWARD DROP -m comment --comment "VPS to DMZ"
+sudo iptables -I INPUT -p udp --dport 51820 -j ACCEPT -m comment --comment "Wireguard"
 
 ## Allow forwarding from the default interface to the Wireguard interface on ports 80 and 443
 echo "Allowing forwarding from the default interface to the Wireguard interface on ports 80 and 443..."
@@ -120,7 +121,6 @@ sudo netfilter-persistent save
 sudo apt install iptables-persistent -y
 sudo systemctl enable netfilter-persistent
 sudo apt install iptables-persistent
-ip
 
 
 ## Enable UFW
