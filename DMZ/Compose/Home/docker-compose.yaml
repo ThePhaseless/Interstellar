@@ -40,15 +40,6 @@ services:
     container_name: sggwbot
     image: thephaseless/sggwbot:main
 
-  # filebrowser:
-  #   container_name: filebrowser
-  #   command: "--auth.method='none'"
-  #   volumes:
-  #     - "/public:/srv"
-  #   ports:
-  #     - "83:80"
-  #   image: filebrowser/filebrowser
-
   adguardhome:
     container_name: AdguardHome
     image: adguard/adguardhome
@@ -86,5 +77,4 @@ services:
       - PORT=85 #Free Port on Your host default is 5000
       - TZ=Europe/Paris #Set your timezone for Cron default is UTC
     volumes:
-      - ./computers.txt:/app/computers.txt
-      - ./appdata/cron:/etc/cron.d
+      - ${CONFIG_PATH}/Home/GPTWol/computers.txt:/app/computers.txt
