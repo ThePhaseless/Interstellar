@@ -15,6 +15,7 @@ if [ -f "$PWD"/.env ]; then
 	echo "Using environment variables from .env"
 else
 	echo "No .env file found, creating one..."
+	read -r -p "Press any key to edit .env... " -n1 -s
 	cp ./.env.example ./.env
 	nano ./.env
 fi
@@ -23,7 +24,20 @@ fi
 source ./.env
 
 # Ask the user if envs are correct
-read -r -p "Continue? (Y/n): "
+read -r -p "Continue? (Y/n): " input
+case $input in
+[yY][eE][sS] | [yY])
+	echo "Continuing..."
+	;;
+[nN][oO] | [nN])
+	echo "Exiting..."
+	exit 1
+	;;
+*)
+	echo "Invalid input..."
+	exit 1
+	;;
+esac
 
 # Apply sudo patch
 ../General/remove_sudo_password.sh
