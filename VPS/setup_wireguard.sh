@@ -54,17 +54,7 @@ echo "Removing old rules..."
 comment1="DMZ to VPS"
 comment2="VPS to DMZ"
 
-# Get the rule numbers with the specified comments
-rule_numbers=$(sudo iptables -L -n --line-numbers | grep -E "($comment1|$comment2)" | awk '{print $1}')
-readarray -t rule_numbers <<<"$rule_numbers"
-# Remove the rules based on their numbers
-for rule_number in "${rule_numbers[@]}"; do
-	sudo iptables -D INPUT "$rule_number"
-	sudo iptables -D OUTPUT "$rule_number"
-	sudo iptables -D FORWARD "$rule_number"
-	sudo iptables -t nat -D PREROUTING "$rule_number"
-	sudo iptables -t nat -D POSTROUTING "$rule_number"
-done
+sudo iptables-save | grep -v COMMENT | sudo iptables-restore
 
 echo "Rules with comments '$comment1' or '$comment2' have been removed."
 
