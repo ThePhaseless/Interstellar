@@ -26,7 +26,7 @@ source ./.env
 read -r -p "Continue? (Y/n): "
 
 # Apply sudo patch
-./Scripts/remove_sudo_password.sh
+./General/remove_sudo_password.sh
 
 # Create directories
 echo "Creating directories..."
@@ -49,10 +49,10 @@ sudo fwupdmgr update
 
 # Install Zsh and Oh-My-Zsh
 ## For user
-../Scripts/setup_zsh.sh
+../General/setup_zsh.sh
 
 ## For root
-sudo ../Scripts/setup_zsh.sh
+sudo ../General/setup_zsh.sh
 
 # Install VS Code
 ../General/setup_vscode.sh
