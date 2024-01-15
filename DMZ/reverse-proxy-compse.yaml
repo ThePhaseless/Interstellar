@@ -1,0 +1,73 @@
+services:
+  traefik:
+    depends_on:
+      - authelia
+    container_name: traefik
+    # The official v2 Traefik docker image
+    image: traefik:latest
+    # Enables the web UI and tells Traefik to listen to docker
+    command:
+      - "--api=true"
+      - "--api.insecure=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entryPoint.permanent=true"
+      - "--global.sendAnonymousUsage=true"
+      - "--providers.file.directory=/config"
+      - "--providers.file.watch=true"
+      - "--providers.docker=true"
+      - "--providers.docker.defaultRule=HostRegexp(`{subdomain: .ContainerName}`)"
+      - "--providers.docker.tls.certresolver=cloudflare"
+      - "--certificatesResolvers.cloudflare.acme.email=${CF_API_EMAIL}"
+      - "--certificatesResolvers.cloudflare.acme.storage=/cert/acme.json"
+      - "--certificatesResolvers.cloudflare.acme.dnsChallenge.provider=cloudflare"
+    environment:
+      - PROXY=${PROXY}
+      - CF_EMAIL=${CF_API_EMAIL}
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
+      - HOST_IP=${HOST_IP}
+      - PROXY_IP=${PROXY_IP}
+      - TARGET_IP=${TARGET_IP}
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The HTTPS port
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONFIG_PATH}/ReverseProxy/Traefik/config:/config
+      - ${CONFIG_PATH}/ReverseProxy/Traefik/cert:/cert
+    labels:
+      # Enable Traefik Dashboard
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`proxy.${PUBLIC_HOSTNAME}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.middlewares=authelia@file"
+      - "traefik.http.routers.traefik.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+  authelia:
+    container_name: authelia
+    image: authelia/authelia:latest
+    volumes:
+      - ${CONFIG_PATH}/ReverseProxy/Authelia:/config
+    environment:
+      - AUTHELIA_NOTIFIER_SMTP_HOST=smtp.gmail.com
+      - AUTHELIA_NOTIFIER_SMTP_PORT=587
+      - AUTHELIA_NOTIFIER_SMTP_USERNAME=${SMTP_USERNAME}
+      - AUTHELIA_NOTIFIER_SMTP_PASSWORD=${SMTP_PASSWORD}
+      - AUTHELIA_LOG_LEVEL=info
+      - AUTHELIA_JWT_SECRET=${AUTHELIA_JWT_SECRET}
+      - AUTHELIA_SESSION_DOMAIN=${PUBLIC_HOSTNAME}
+      - AUTHELIA_SESSION_SECRET=${AUTHELIA_SESSION_SECRET}
+      - AUTHELIA_DEFAULT_REDIRECTION_URL=https://${PUBLIC_HOSTNAME}
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_ENCRYPTION_KEY}
+      - AUTHELIA_STORAGE_LOCAL_PATH=/config/db.sqlite3
+      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH=/config/users_database.yml
+      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_WATCH=true
+      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_SEARCH_EMAIL=true
