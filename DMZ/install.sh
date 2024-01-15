@@ -31,8 +31,7 @@ case $input in
 	exit 1
 	;;
 *)
-	echo "Invalid input..."
-	exit 1
+	echo "Continuing..."
 	;;
 esac
 
