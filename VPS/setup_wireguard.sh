@@ -91,8 +91,9 @@ sudo sysctl --system
 
 ## Create a new iptables chain and set the default rules to DROP
 echo "Creating new iptables profile..."
-sudo iptables -P FORWARD DROP -m comment --comment "VPS to DMZ"
-sudo iptables -I INPUT -p udp --dport 51820 -j ACCEPT -m comment --comment "Wireguard"
+sudo iptables -P FORWARD DROP # Set default rule to drop
+sudo iptables -I INPUT -p udp --dport 51820 -j ACCEPT -m comment --comment "Wireguard" # Allow Wireguard
+sudo iptables -I INPUT -p icmp --icmp-type echo-request -j ACCEPT # Allow ping
 
 ## Allow forwarding from the default interface to the Wireguard interface on ports 80 and 443
 echo "Allowing forwarding from the default interface to the Wireguard interface on ports 80 and 443..."
