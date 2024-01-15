@@ -29,12 +29,7 @@ sudo rm -f /etc/wireguard/wg0.conf
 (umask 077 && printf "[Interface]\nPrivateKey = " | sudo tee /etc/wireguard/wg0.conf >/dev/null)
 sudo cat ./privatekey | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
 append="\
-ListenPort = $WIREGUARD_PORT
-Address = $WIREGUARD_VPS_IP/24
-
-[Peer]
-PublicKey = $WIREGUARD_DMZ_PUBLIC_KEY
-AllowedIPs = $WIREGUARD_DMZ_IP/32"
+ListenPort = $WIREGUARD_PORT \nAddress = $WIREGUARD_VPS_IP/24 \n\n[Peer]\nPublicKey = $WIREGUARD_DMZ_PUBLIC_KEY\nAllowedIPs = $WIREGUARD_DMZ_IP/32\n"
 
 # Add the following to the end of the file
 $append | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
@@ -60,12 +55,12 @@ sudo iptables -A FORWARD -i "$default_interface" -o wg0 -m conntrack --ctstate E
 sudo iptables -A FORWARD -i wg0 -o "$default_interface" -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 ## Redirect traffic from the default interface to the Wireguard interface on ports 80 and 443 to the DMZ
-sudo iptables -t nat -A PREROUTING -i "$default_interface" -p tcp --dport 80 -j DNAT --to-destination $WIREGUARD_DMZ_IP
-sudo iptables -t nat -A PREROUTING -i "$default_interface" -p tcp --dport 443 -j DNAT --to-destination $WIREGUARD_DMZ_IP
+sudo iptables -t nat -A PREROUTING -i "$default_interface" -p tcp --dport 80 -j DNAT --to-destination "$WIREGUARD_DMZ_IP"
+sudo iptables -t nat -A PREROUTING -i "$default_interface" -p tcp --dport 443 -j DNAT --to-destination "$WIREGUARD_DMZ_IP"
 
 ## Redirect returning traffic from the Wireguard interface to the default interface on ports 80 and 443
-sudo iptables -t nat -A POSTROUTING -o wg0 -p tcp --dport 80 -d $WIREGUARD_DMZ_IP -j SNAT --to-source $WIREGUARD_VPS_IP
-sudo iptables -t nat -A POSTROUTING -o wg0 -p tcp --dport 443 -d $WIREGUARD_DMZ_IP -j SNAT --to-source $WIREGUARD_VPS_IP
+sudo iptables -t nat -A POSTROUTING -o wg0 -p tcp --dport 80 -d "$WIREGUARD_DMZ_IP" -j SNAT --to-source "$WIREGUARD_VPS_IP"
+sudo iptables -t nat -A POSTROUTING -o wg0 -p tcp --dport 443 -d "$WIREGUARD_DMZ_IP" -j SNAT --to-source "$WIREGUARD_VPS_IP"
 
 ## Save the rules
 sudo apt install netfilter-persistent -y
@@ -80,9 +75,16 @@ sudo ufw allow 80  # HTTP
 sudo ufw allow 443 # HTTPS
 sudo ufw allow "$WIREGUARD_PORT"/udp
 
-# Test the connection
-echo "Testing the connection..."
-ping "$WIREGUARD_DMZ_IP"
+# Test connection
+echo "Testing connection..."
+response=$(ping -c 1 "$WIREGUARD_DMZ_IP")
 echo "If you see a response, the connection is working."
 echo "If you don't see a response, check the configuration and try again."
 echo "If you still don't see a response, check the firewall rules and try again."
+
+if [[ "$response" == *"1 received"* ]]; then
+	echo "Connection successful."
+else
+	echo "Connection failed."
+	exit 1
+fi

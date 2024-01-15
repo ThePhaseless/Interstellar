@@ -36,13 +36,7 @@ sudo rm -f /etc/wireguard/wg0.conf
 (umask 077 && printf "[Interface]\nPrivateKey = " | sudo tee /etc/wireguard/wg0.conf >/dev/null)
 sudo cat ./privatekey | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
 append="\
-Address = $WIREGUARD_DMZ_IP/32
-
-[Peer]
-PublicKey = $WIREGUARD_DMZ_PUBLIC_KEY
-AllowedIPs = $WIREGUARD_VPS_IP/32
-Endpoint = $VPS_PUBLIC_IP:$WIREGUARD_PORT
-PersistentKeepalive = 25"
+Address = $WIREGUARD_DMZ_IP/32\n\n[Peer]\nPublicKey = $WIREGUARD_DMZ_PUBLIC_KEY\nAllowedIPs = $WIREGUARD_VPS_IP/32\nEndpoint = $VPS_PUBLIC_IP:$WIREGUARD_PORT\nPersistentKeepalive = 25"
 
 # Add the following to the end of the file
 $append | sudo tee -a /etc/wireguard/wg0.conf >/dev/null
@@ -53,7 +47,14 @@ sudo systemctl start wg-quick@wg0
 
 # Test connection
 echo "Testing connection..."
-ping "$WIREGUARD_DMZ_IP"
+response=$(ping -c 1 "$WIREGUARD_VPS_IP")
 echo "If you see a response, the connection is working."
 echo "If you don't see a response, check the configuration and try again."
 echo "If you still don't see a response, check the firewall rules and try again."
+
+if [[ "$response" == *"1 received"* ]]; then
+	echo "Connection successful."
+else
+	echo "Connection failed."
+	exit 1
+fi
