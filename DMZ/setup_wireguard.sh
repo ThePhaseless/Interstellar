@@ -13,7 +13,7 @@ echo "Public key: $(cat ./publickey)"
 echo "Please note down the public key. You will need it later to set up client."
 echo "Now run setup on the VPS and press enter after you get the public key of the VPS."
 read -r -p "Press enter to continue: "
-if [ ! -f "./.env" ]; then
+if [ ! -f "./wireguard.env" ]; then
 	echo "No wireguard.env file found, creating one..."
 	cp ./wireguard.env.example ./wireguard.env
 fi

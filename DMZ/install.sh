@@ -65,5 +65,8 @@ sudo ../General/setup_zsh.sh
 # Setup Tailscale
 ../General/setup_tailscale.sh
 
+# Setup Wireguard
+./setup_wireguard.sh
+
 # Install Docker and Docker Compose
 ../setup_docker.sh
