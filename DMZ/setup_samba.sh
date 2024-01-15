@@ -13,8 +13,8 @@ echo "Including SAMBA configuration file..."
 
 # Replace CONFIG_PATH and STORAGE_PATH with $CONFIG_PATH and $STORAGE_PATH
 echo "Replacing CONFIG_PATH and STORAGE_PATH with \$CONFIG_PATH and \$STORAGE_PATH..."
-sudo sed -i "s|CONFIG_PATH|$CONFIG_PATH|g" shares.conf
-sudo sed -i "s|STORAGE_PATH|$STORAGE_PATH|g" shares.conf
+sudo sed -i "s|CONFIG_PATH|$CONFIG_PATH|g" /etc/samba/smb.conf
+sudo sed -i "s|STORAGE_PATH|$STORAGE_PATH|g" /etc/samba/smb.conf
 
 echo "Restarting SAMBA..."
 sudo systemctl restart smbd
