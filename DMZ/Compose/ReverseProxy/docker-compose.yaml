@@ -1,8 +1,7 @@
 services:
   traefik:
     depends_on:
-      authelia:
-        condition: service_healthy
+      - authelia
     container_name: traefik
     # The official v2 Traefik docker image
     image: traefik:latest
@@ -63,7 +62,7 @@ services:
       - ${CONFIG_PATH}/ReverseProxy/Authelia:/config
     environment:
       - AUTHELIA_LOG_LEVEL=info
-      - AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY=two_factor
+      - AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY=one_factor
       - AUTHELIA_NOTIFIER_SMTP_HOST=smtp.gmail.com
       - AUTHELIA_NOTIFIER_SMTP_PORT=587
       - AUTHELIA_NOTIFIER_SMTP_USERNAME=${SMTP_USERNAME}
@@ -81,6 +80,7 @@ services:
       - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=${LDAP_ADMIN_PASSWORD}
       - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUPS_FILTER=(&(member={dn})(objectclass=groupOfNames))
       - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN=${DCs}
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_DISPLAY_NAME_ATTRIBUTE=givenName
     labels:
       - "traefik.http.routers.authelia.rule=HostRegexp(`{subdomain:auth}.{host:.+}`)"
       - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.${PUBLIC_HOSTNAME}%2F'
@@ -92,11 +92,9 @@ services:
     container_name: ldap
     healthcheck:
       test: ["CMD", "ldapsearch", "-x", "-H", "ldap://localhost:389", "-b", "${DCs}", "-D", "cn=admin,${DCs}", "-w", "${LDAP_ADMIN_PASSWORD}"]
-      start_interval: 2s
-      start_period: 10s
-      interval: 5s
-      timeout: 10s
-      retries: 1
+      interval: 30s
+      timeout: 2s
+      retries: 3
     environment:
       - LDAP_TLS=false
       - LDAP_PORT_NUMBER=389
