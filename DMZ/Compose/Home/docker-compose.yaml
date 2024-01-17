@@ -45,7 +45,6 @@ services:
   sggwbot:
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
-    restart: unless-stopped
     container_name: sggwbot
     image: thephaseless/sggwbot:main
     labels:
@@ -91,7 +90,6 @@ services:
     network_mode: host
     ports:
       - "85:85"
-    restart: unless-stopped
     environment:
       - PORT=85 #Free Port on Your host default is 5000
       - TZ=${TIMEZONE}
