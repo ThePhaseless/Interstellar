@@ -22,9 +22,7 @@ services:
     image: lscr.io/linuxserver/duplicati:latest
     container_name: duplicati
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
+      - TZ=${TIMEZONE}
       - CLI_ARGS= #optional
     volumes:
       - ${CONFIG_PATH}/Home/Duplicati:/config
