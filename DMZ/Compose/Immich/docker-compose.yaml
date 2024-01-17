@@ -28,22 +28,26 @@ services:
     restart: always
     labels:
       - "traefik.http.routers.immich.rule=HostRegexp(`{subdomain:photos}.{host:.+}`)"
+      - "traefik.http.routers.immich.middlewares=authelia"
+
 
   immich-microservices:
     container_name: immich_microservices
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
-    extends:
-      service: hwaccel
     command: ["start.sh", "microservices"]
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
+    devices:
+      - /dev/dri:/dev/dri
     depends_on:
       - redis
       - database
     restart: always
+    labels:
+      - "traefik.enable=false"
 
   immich-machine-learning:
     container_name: immich_machine_learning
@@ -53,11 +57,15 @@ services:
     env_file:
       - .env
     restart: always
+    labels:
+      - "traefik.enable=false"
 
   redis:
     container_name: immich_redis
     image: redis:6.2-alpine@sha256:c5a607fb6e1bb15d32bbcf14db22787d19e428d59e31a5da67511b49bb0f1ccc
     restart: always
+    labels:
+      - "traefik.enable=false"
 
   database:
     container_name: immich_postgres
@@ -71,10 +79,8 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
-
-  hwaccel:
-    devices:
-      - /dev/dri:/dev/dri # If using Intel QuickSync or VAAPI
+    labels:
+      - "traefik.enable=false"
 
 volumes:
   pgdata:
