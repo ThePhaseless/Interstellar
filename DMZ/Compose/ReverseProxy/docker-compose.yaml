@@ -1,7 +1,8 @@
 services:
   traefik:
     depends_on:
-      - authelia
+      authelia:
+        condition: service_healthy
     container_name: traefik
     # The official v2 Traefik docker image
     image: traefik:latest
@@ -52,7 +53,8 @@ services:
 
   authelia:
     depends_on:
-      - lldap
+      ldap:
+        condition: service_healthy
     container_name: authelia
     image: authelia/authelia:latest
     ports:
@@ -60,40 +62,68 @@ services:
     volumes:
       - ${CONFIG_PATH}/ReverseProxy/Authelia:/config
     environment:
+      - AUTHELIA_LOG_LEVEL=info
       - AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY=two_factor
       - AUTHELIA_NOTIFIER_SMTP_HOST=smtp.gmail.com
       - AUTHELIA_NOTIFIER_SMTP_PORT=587
       - AUTHELIA_NOTIFIER_SMTP_USERNAME=${SMTP_USERNAME}
       - AUTHELIA_NOTIFIER_SMTP_PASSWORD=${SMTP_PASSWORD}
       - AUTHELIA_NOTIFIER_SMTP_SENDER=${SMTP_SENDER}
-      - AUTHELIA_JWT_SECRET=${AUTHELIA_JWT_SECRET}
+      - AUTHELIA_JWT_SECRET=${JWT_SECRET}
       - AUTHELIA_SESSION_DOMAIN=${PUBLIC_HOSTNAME}
       - AUTHELIA_SESSION_SECRET=${AUTHELIA_SESSION_SECRET}
       - AUTHELIA_DEFAULT_REDIRECTION_URL=https://${PUBLIC_HOSTNAME}
       - AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_ENCRYPTION_KEY}
       - AUTHELIA_STORAGE_LOCAL_PATH=/config/db.sqlite3
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_HOST=lldap
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PORT=17170
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER_BASE_DN=ou=users,dc=${PUBLIC_HOSTNAME}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUP_BASE_DN=ou=groups,dc=${PUBLIC_HOSTNAME}
-
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION=custom
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_URL=ldap://ldap
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER=cn=admin,${DCs}
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=${LDAP_ADMIN_PASSWORD}
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUPS_FILTER=(&(member={dn})(objectclass=groupOfNames))
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN=${DCs}
     labels:
       - "traefik.http.routers.authelia.rule=HostRegexp(`{subdomain:auth}.{host:.+}`)"
       - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.${PUBLIC_HOSTNAME}%2F'
       - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
       - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'
 
-  lldap:
-    image: lldap/lldap:stable
-    container_name: lldap
-    ports:
-      - "17170:17170"
-    volumes:
-      - "${CONFIG_PATH}/ReverseProxy/LLDAP:/data"
+  ldap:
+    image: bitnami/openldap
+    container_name: ldap
+    healthcheck:
+      test: ["CMD", "ldapsearch", "-x", "-H", "ldap://localhost:389", "-b", "${DCs}", "-D", "cn=admin,${DCs}", "-w", "${LDAP_ADMIN_PASSWORD}"]
+      start_interval: 2s
+      start_period: 10s
+      interval: 5s
+      timeout: 10s
+      retries: 1
     environment:
-      - TZ=${TIMEZONE}
-      - LLDAP_JWT_SECRET=${JWT_SECRET}
-      - LLDAP_KEY_SEED=${KEY_SEED}
-      - LLDAP_LDAP_BASE_DN=dc=${PUBLIC_HOSTNAME}
+      - LDAP_TLS=false
+      - LDAP_PORT_NUMBER=389
+      - LDAP_ROOT=${DCs}
+      - LDAP_ADMIN_DN=cn=admin,${DCs}
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
     labels:
-      - "traefik.http.routers.lldap.middlewares=authelia"
+      - "traefik.enable=false"
+
+
+  ldap-user-manager:
+    depends_on:
+      ldap:
+        condition: service_healthy
+    restart: unless-stopped
+    container_name: ldap-user-manager
+    ports:
+        - 85:80
+    environment:
+        - SERVER_HOSTNAME=${PUBLIC_HOSTNAME}
+        - NO_HTTPS=true
+        - LDAP_URI=ldap://ldap
+        - LDAP_BASE_DN=${DCs}
+        - LDAP_ADMINS_GROUP=admins
+        - LDAP_ADMIN_BIND_DN=cn=admin,${DCs}
+        - LDAP_ADMIN_BIND_PWD=${LDAP_ADMIN_PASSWORD}
+    image: wheelybird/ldap-user-manager:latest
+    labels:
+      - "traefik.http.routers.ldap-user-manager.rule=HostRegexp(`{subdomain:users}.{host:.+}`)"
+      - "traefik.http.routers.ldap-user-manager.middlewares=authelia"
