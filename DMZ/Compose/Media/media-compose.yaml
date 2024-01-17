@@ -6,6 +6,8 @@ services:
       - ${CONFIG_PATH}/Media/Recyclarr:/config
     environment:
       - TZ=${TIMEZONE}
+    labels:
+      - "traefik.enable=false"
 
   bazarr:
     image: linuxserver/bazarr:latest
@@ -18,6 +20,8 @@ services:
     ports:
       - 6767:6767
     restart: unless-stopped
+    labels:
+      - "traefik.http.routers.sonarr.middlewares=authelia"
 
   radarr:
     image: linuxserver/radarr:latest
@@ -30,13 +34,13 @@ services:
     ports:
       - 7878:7878
     restart: unless-stopped
+    labels:
+      - "traefik.http.routers.sonarr.middlewares=authelia"
 
   sonarr:
     image: linuxserver/sonarr:latest
     container_name: sonarr
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ=${TIMEZONE}
     volumes:
       - ${CONFIG_PATH}/Media/Sonarr:/config
@@ -44,19 +48,21 @@ services:
     ports:
       - 8989:8989
     restart: unless-stopped
+    labels:
+      - "traefik.http.routers.sonarr.middlewares=authelia"
 
   prowlarr:
     image: linuxserver/prowlarr:develop
     container_name: prowlarr
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ=${TIMEZONE}
     volumes:
       - ${CONFIG_PATH}/Media/Prowlarr:/config
     ports:
       - 9696:9696
     restart: unless-stopped
+    labels:
+      - "traefik.http.routers.prowlarr.middlewares=authelia"
 
   qbittorrent:
     container_name: qBittorrent
@@ -65,26 +71,27 @@ services:
     ports:
       - 5656:8080
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - UMASK=002
       - TZ=${TIMEZONE}
     volumes:
       - ${CONFIG_PATH}/Media/qBittorrent:/config
       - ${MEDIA_PATH}:/data
+    labels:
+      - "traefik.http.routers.qbittorrent.middlewares=authelia"
 
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ=${TIMEZONE}
     ports:
       - 5055:5055
     volumes:
       - ${CONFIG_PATH}/Media/Jellyseerr:/app/config
     restart: unless-stopped
+    labels:
+      - "traefik.routers.jellyseerr.rule=HostRegexp(`{subdomain:add}.{host:.+}`)"
+      - "traefik.routers.jellyseerr.middlewares=authelia"
 
   jellyfin:
     image: linuxserver/jellyfin:latest
@@ -104,6 +111,10 @@ services:
     restart: unless-stopped
     devices:
       - /dev/dri/dri:/dev/dri/dri
+    labels:
+      - "traefik.http.routers.jellyfin.rule=HostRegexp(`{subdomain:watch}.{host:.+}`)"
+      - "traefik.http.routers.jellyfin.middlewares=authelia"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
 
   watchtower:
     image: containrrr/watchtower:latest
@@ -112,6 +123,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --cleanup
     restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -121,6 +134,6 @@ services:
       - LOG_HTML=${LOG_HTML:-false}
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
       - TZ=${TIMEZONE}
-    ports:
-      - 8191:8191
     restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
