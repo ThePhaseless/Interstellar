@@ -7,6 +7,9 @@ services:
     volumes:
       - ${CONFIG_PATH}/Home/httpd:/usr/local/apache2/htdocs
     restart: unless-stopped
+    labels:
+      - "traefik.http.routers.authelia.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.services.httpd.loadbalancer.server.port=80"
 
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
@@ -14,9 +17,13 @@ services:
     ports:
       - 82:3000
     volumes:
-      - ${CONFIG_PATH}/Home/Homepage:/app/config
+      - ./Homepage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
+    labels:
+      - "traefik.http.routers.authelia.rule=HostRegexp(`{subdomain:home}.{host:.+}`)"
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+      - "traefik.http.routers.homepage.middlewares=authelia"
 
   duplicati:
     image: lscr.io/linuxserver/duplicati:latest
@@ -30,6 +37,10 @@ services:
     ports:
       - 8200:8200
     restart: unless-stopped
+    labels:
+      - "traefik.http.routers.duplicati.rule=HostRegexp(`{subdomain:backup}.{host:.+}`)"
+      - "traefik.http.services.duplicati.loadbalancer.server.port=8200"
+      - "traefik.http.routers.duplicati.middlewares=authelia"
 
   sggwbot:
     environment:
@@ -37,6 +48,8 @@ services:
     restart: unless-stopped
     container_name: sggwbot
     image: thephaseless/sggwbot:main
+    labels:
+      - "traefik.enable=false"
 
   adguardhome:
     container_name: AdguardHome
@@ -49,6 +62,10 @@ services:
       - "84:80" # WebUI
       - "53:53" # DNS
       - "3000:3000/tcp" # Setup
+    labels:
+      - "traefik.http.routers.adguardhome.rule=HostRegexp(`{subdomain:adguard}.{host:.+}`)"
+      - "traefik.http.services.adguardhome.loadbalancer.server.port=80"
+      - "traefik.http.routers.adguardhome.middlewares=authelia"
 
   scanservjs:
     container_name: scanservjs
@@ -63,6 +80,10 @@ services:
     devices:
       - "/dev/bus/usb:/dev/bus/usb"
     privileged: true
+    labels:
+      - "traefik.http.routers.scanservjs.rule=HostRegexp(`{subdomain:scan}.{host:.+}`)"
+      - "traefik.http.services.scanservjs.loadbalancer.server.port=8080"
+      - "traefik.http.routers.scanservjs.middlewares=authelia"
 
   gptwol:
     container_name: GPT-Wol
@@ -73,6 +94,10 @@ services:
     restart: unless-stopped
     environment:
       - PORT=85 #Free Port on Your host default is 5000
-      - TZ=Europe/Paris #Set your timezone for Cron default is UTC
+      - TZ=${TIMEZONE}
     volumes:
-      - ${CONFIG_PATH}/Home/GPTWol/computers.txt:/app/computers.txt
+      - ${CONFIG_PATH}/Home/GPTWol:/app
+    labels:
+      - "traefik.http.routers.gptwol.rule=HostRegexp(`{subdomain:wol}.{host:.+}`)"
+      - "traefik.http.services.gptwol.loadbalancer.server.port=85"
+      - "traefik.http.routers.gptwol.middlewares=authelia"
