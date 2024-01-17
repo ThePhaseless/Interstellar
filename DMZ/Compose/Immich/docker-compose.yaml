@@ -16,7 +16,7 @@ services:
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     command: ["start.sh", "immich"]
     volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      - ${STORAGE_CONFIG}/Photos:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
@@ -36,7 +36,7 @@ services:
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     command: ["start.sh", "microservices"]
     volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      - ${STORAGE_CONFIG}/Photos:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
