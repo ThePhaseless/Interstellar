@@ -42,11 +42,11 @@ services:
       - "traefik.http.services.duplicati.loadbalancer.server.port=8200"
       - "traefik.http.routers.duplicati.middlewares=authelia"
 
-  sggwbot:
+  renamer:
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
-    container_name: sggwbot
-    image: thephaseless/sggwbot:main
+    container_name: renamer
+    image: ghcr.io/thephaseless/renamer:main
     labels:
       - "traefik.enable=false"
 
