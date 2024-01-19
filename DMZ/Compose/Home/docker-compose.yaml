@@ -5,7 +5,7 @@ services:
     ports:
       - "81:80"
     volumes:
-      - ${CONFIG_PATH}/Home/httpd:/usr/local/apache2/htdocs
+      - ./website:/usr/local/apache2/htdocs
     restart: unless-stopped
     labels:
       - "traefik.http.routers.authelia.rule=HostRegexp(`{host:.+}`)"
