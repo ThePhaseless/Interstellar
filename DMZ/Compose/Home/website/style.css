@@ -114,3 +114,15 @@ body {
   color: var(--text-color);
   font-size: clamp(50px, min(10vw, 10vh), 200px);
 }
+
+.center {
+  height: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.big-text {
+  font-size: clamp(50px, min(10vw, 10vh), 200px);
+}
