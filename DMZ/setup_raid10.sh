@@ -70,7 +70,7 @@ for DISK in $DISKS; do
 
 		# Add RAID1 to mdadm.conf
 		echo "Adding RAID1 to mdadm.conf..."
-		sudo mdadm --detail --scan | tee -a /etc/mdadm/mdadm.conf
+		sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
 
 		# Add RAID1 to mdadm.conf
 		echo "Adding RAID1 to mdadm.conf..."
