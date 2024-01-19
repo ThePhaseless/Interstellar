@@ -9,26 +9,32 @@ if [ -z "$STORAGE_PATH" ]; then
 	echo "STORAGE_PATH = $STORAGE_PATH"
 	echo "STORAGE_PATH not set..."
 	# Ask for STORAGE path, if empty set to /public/STORAGE
-	echo "Where should the STORAGE be mounted? (e.g., /public/STORAGE)"
+	echo "Where should the STORAGE be mounted? (e.g., /public/Storage)"
 	read -r -p "STORAGE path: " STORAGE_PATH
 	if [ -z "$STORAGE_PATH" ]; then
 		echo "STORAGE_PATH not set, skipping STORAGE setup..."
 		exit 0
+	# Check if STORAGE_PATH exists
+	elif [ ! -d "$STORAGE_PATH" ]; then
+		echo "STORAGE_PATH does not exist..."
+		exit 1
 	fi
 fi
 
 if [ -z "${DISKS[*]}" ]; then
 	lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT
 	echo "Which disks should be used with STORAGE? RAID10 requires at least 4 disks. (e.g. sdb sdc sdd sde)"
-	read -r -p "Disks: " DISKS
+	read -r -p "Disks: " DISKSRAW
 	if [ "$DISKS" = "none" ]; then
 		echo "Skipping STORAGE setup..."
 		exit 0
 	fi
+	# Split disks into array
+	IFS=' ' read -r -a DISKS <<< "$DISKSRAW"
 fi
 
 # Check if disks are specified
-if [ -z "$DISKS" ]; then
+if [ -z "${DISKS[*]}" ]; then
 	echo "No disks specified..."
 	exit 1
 fi
@@ -81,7 +87,7 @@ echo "Mounting STORAGE..."
 sudo mount /dev/md0 "$STORAGE_PATH"
 
 # Check if STORAGE config is already in fstab
-if grep -q "# STORAGE" /etc/fstab; then
+if sudo grep -q "# STORAGE" /etc/fstab; then
 	echo "STORAGE already in fstab..."
 	echo "Removing old STORAGE from fstab..."
 	# Remove old STORAGE from fstab
@@ -96,10 +102,10 @@ echo "UUID of STORAGE: $STORAGE_UUID"
 
 # Add STORAGE to fstab
 echo "Adding STORAGE to fstab..."
-echo "# STORAGE" | tee -a /etc/fstab
-echo "# DO NOT EDIT THIS SECTION BY HAND" | tee -a /etc/fstab
+echo "# STORAGE" | sudo tee -a /etc/fstab
+echo "# DO NOT EDIT THIS SECTION BY HAND" | sudo tee -a /etc/fstab
 echo "UUID=$STORAGE_UUID $STORAGE_PATH ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
-echo "# STORAGE END" | tee -a /etc/fstab
+echo "# STORAGE END" | sudo tee -a /etc/fstab
 
 # Update initramfs
 echo "Updating initramfs..."
