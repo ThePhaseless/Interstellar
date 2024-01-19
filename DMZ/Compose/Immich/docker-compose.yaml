@@ -16,7 +16,7 @@ services:
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     command: ["start.sh", "immich"]
     volumes:
-      - ${STORAGE_CONFIG}/Photos:/usr/src/app/upload
+      - ${STORAGE_PATH}/Photos:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
@@ -30,13 +30,12 @@ services:
       - "traefik.http.routers.immich.rule=HostRegexp(`{subdomain:photos}.{host:.+}`)"
       - "traefik.http.routers.immich.middlewares=authelia"
 
-
   immich-microservices:
     container_name: immich_microservices
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     command: ["start.sh", "microservices"]
     volumes:
-      - ${STORAGE_CONFIG}/Photos:/usr/src/app/upload
+      - ${STORAGE_PATH}/Photos:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
