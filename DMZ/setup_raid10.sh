@@ -66,15 +66,15 @@ for DISK in $DISKS; do
 	if [ "$(echo "$tempDisks" | wc -w)" -eq 2 ]; then
 		# Create RAID1
 		echo "Creating RAID1 with $tempDisks..."
-		mdadm --create --verbose /dev/md$RAIDnum --level=1 --raid-devices=2 "$tempDisks"
+		sudo mdadm --create --verbose /dev/md$RAIDnum --level=1 --raid-devices=2 "$tempDisks"
 
 		# Add RAID1 to mdadm.conf
 		echo "Adding RAID1 to mdadm.conf..."
-		mdadm --detail --scan | tee -a /etc/mdadm/mdadm.conf
+		sudo mdadm --detail --scan | tee -a /etc/mdadm/mdadm.conf
 
 		# Add RAID1 to mdadm.conf
 		echo "Adding RAID1 to mdadm.conf..."
-		mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
+		sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
 
 		# Add RAID1 to RAID1Arrays
 		RAID1Arrays="$RAID1Arrays /dev/md$RAIDnum"
@@ -89,16 +89,15 @@ done
 
 # Create RAID10
 echo "Creating RAID10 with $RAID1Arrays..."
-mdadm --create --verbose /dev/md0 --level=10 --raid-devices=4 "$RAID1Arrays"
+sudo mdadm --create --verbose /dev/md0 --level=10 --raid-devices=4 "$RAID1Arrays"
 
 # Create filesystem
 echo "Creating filesystem..."
-mkfs.ext4 -F /dev/md0
+sudo mkfs.ext4 -F /dev/md0
 
 # Mount STORAGE
 echo "Mounting STORAGE..."
-mkdir -p "$STORAGE_PATH"
-mount /dev/md0 "$STORAGE_PATH"
+sudo mount /dev/md0 "$STORAGE_PATH"
 
 # Check if STORAGE config is already in fstab
 if grep -q "# STORAGE" /etc/fstab; then
@@ -118,7 +117,7 @@ echo "UUID of STORAGE: $STORAGE_UUID"
 echo "Adding STORAGE to fstab..."
 echo "# STORAGE" | tee -a /etc/fstab
 echo "# DO NOT EDIT THIS SECTION BY HAND" | tee -a /etc/fstab
-echo "UUID=$STORAGE_UUID $STORAGE_PATH ext4 defaults,nofail,discard 0 0" | tee -a /etc/fstab
+echo "UUID=$STORAGE_UUID $STORAGE_PATH ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
 echo "# STORAGE END" | tee -a /etc/fstab
 
 # Update initramfs
