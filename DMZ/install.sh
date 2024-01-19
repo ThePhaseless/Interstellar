@@ -70,6 +70,18 @@ sudo ../General/setup_zsh.sh
 # Install VS Code
 ../General/setup_vscode.sh
 
+# Setup Storage
+read -r -p "Do you want to setup RAID10? (Y/n): " input
+case $input in
+[nN][oO] | [nN])
+	echo "Skipping RAID10 setup..."
+	;;
+*)
+	echo "Setting up RAID10..."
+	./setup_raid10.sh
+	;;
+esac
+
 # Setup samba
 ./setup_samba.sh
 
