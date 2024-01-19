@@ -1,0 +1,116 @@
+@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@600&family=Prompt:wght@600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
+
+:root {
+  --primary-color: #ff6f00;
+  --background-color: #131516;
+  --background-container: #272727;
+  --text-color: #e8e6e3;
+}
+
+* {
+  font-family: Montserrat, Arial, sans-serif;
+  color: #e8e6e3;
+  user-select: none;
+  text-decoration: none;
+  margin: 0;
+}
+
+html,
+body {
+  height: 100%;
+  background-color: var(--background-color);
+}
+
+.portfolio-container {
+  padding: 25px;
+  padding-left: 30px;
+  border-top-left-radius: 40px;
+  border-bottom-left-radius: 40px;
+  background-color: var(--background-container);
+  position: absolute;
+  right: 0;
+  top: 30px;
+  text-decoration: none;
+}
+.portfolio-text {
+  font-size: 1.5rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.portfolio-button {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.column {
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: space-around;
+}
+
+.title {
+  text-align: center;
+  font-family: "Kanit", sans-serif;
+  font-size: 23vw;
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+.left {
+  flex-wrap: wrap;
+}
+
+.right {
+  flex-wrap: wrap-reverse;
+}
+
+.btn-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@keyframes fadeColors {
+  0% {
+    background-color: #ff6f00;
+  }
+  50% {
+    background-color: #ff3c00;
+  }
+  100% {
+    background-color: #ff6f00;
+  }
+}
+.on-hover {
+  transition: transform 0.2s;
+}
+.on-hover:hover {
+  transform: scale(1.1);
+  background-color: var(--primary-color);
+  animation: fadeColors 5s infinite;
+}
+
+.btn {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--background-container);
+  transition: transform 0.2s;
+
+  padding: clamp(25px, min(5vw, 5vh), 200px);
+  margin: 1%;
+
+  /* Text */
+  text-decoration: none;
+  color: var(--text-color);
+  font-size: clamp(50px, min(10vw, 10vh), 200px);
+}
