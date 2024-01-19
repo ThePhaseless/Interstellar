@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Exit immediately if any command fails
+set -e
+
+
 # Check if STORAGE_PATH is set
 if [ -z "$STORAGE_PATH" ]; then
 	echo "STORAGE_PATH = $STORAGE_PATH"
@@ -13,12 +17,14 @@ if [ -z "$STORAGE_PATH" ]; then
 	fi
 fi
 
-lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT
-echo "Which disks should be used with STORAGE? RAID10 requires at least 4 disks. (e.g. sdb sdc sdd sde)"
-read -r -p "Disks: " DISKS
-if [ "$DISKS" = "none" ]; then
-	echo "Skipping STORAGE setup..."
-	exit 0
+if [ -z "${DISKS[*]}" ]; then
+	lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT
+	echo "Which disks should be used with STORAGE? RAID10 requires at least 4 disks. (e.g. sdb sdc sdd sde)"
+	read -r -p "Disks: " DISKS
+	if [ "$DISKS" = "none" ]; then
+		echo "Skipping STORAGE setup..."
+		exit 0
+	fi
 fi
 
 # Check if disks are specified
@@ -28,7 +34,7 @@ if [ -z "$DISKS" ]; then
 fi
 
 # Check if 4 disks are specified
-if [ "$(echo "$DISKS" | wc -w)" -lt 4 ]; then
+if [ "${#DISKS[@]}" -lt 4 ]; then
 	echo "RAID10 requires at least 4 disks..."
 	exit 1
 fi
@@ -39,7 +45,10 @@ sudo apt install mdadm -y
 
 # Check drives
 echo "Checking disks..."
-for DISK in $DISKS; do
+set +e
+for i in "${!DISKS[@]}"; do
+	DISK="${DISKS[$i]}"
+
 	# Check if disk exists
 	if [ ! -e "/dev/${DISK}" ]; then
 		echo "Disk /dev/${DISK} does not exist..."
@@ -51,45 +60,17 @@ for DISK in $DISKS; do
 		echo "Disk /dev/${DISK} is mounted..."
 		exit 1
 	fi
+
+	# Add /dev/ to disks
+	DISKS[i]="/dev/${DISK}"
 done
+set -e
 
-# Create pairs of RAID1
-echo "Creating RAIDs1..."
-RAIDnum=1
-RAID1Arrays=""
-tempDisks=""
-for DISK in $DISKS; do
-	# Add disk to tempDisks
-	tempDisks="$tempDisks /dev/${DISK}"
-
-	# Check if 2 disks are in tempDisks
-	if [ "$(echo "$tempDisks" | wc -w)" -eq 2 ]; then
-		# Create RAID1
-		echo "Creating RAID1 with $tempDisks..."
-		sudo mdadm --create --verbose /dev/md$RAIDnum --level=1 --raid-devices=2 "$tempDisks"
-
-		# Add RAID1 to mdadm.conf
-		echo "Adding RAID1 to mdadm.conf..."
-		sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
-
-		# Add RAID1 to mdadm.conf
-		echo "Adding RAID1 to mdadm.conf..."
-		sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
-
-		# Add RAID1 to RAID1Arrays
-		RAID1Arrays="$RAID1Arrays /dev/md$RAIDnum"
-
-		# Increase disknum
-		RAIDnum=$((RAIDnum + 1))
-
-		# Reset tempDisks
-		tempDisks=""
-	fi
-done
+# Get disk count
+DISKCOUNT="${#DISKS[@]}"
 
 # Create RAID10
-echo "Creating RAID10 with $RAID1Arrays..."
-sudo mdadm --create --verbose /dev/md0 --level=10 --raid-devices=4 "$RAID1Arrays"
+sudo mdadm --create --verbose /dev/md0 --level=10 --raid-devices="$DISKCOUNT" "${DISKS[@]}"
 
 # Create filesystem
 echo "Creating filesystem..."
