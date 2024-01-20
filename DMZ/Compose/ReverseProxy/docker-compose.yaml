@@ -91,6 +91,8 @@ services:
   ldap:
     image: bitnami/openldap
     container_name: ldap
+    volumes:
+      - ${CONFIG_PATH}/ReverseProxy/LDAP:/bitnami/openldap
     healthcheck:
       test:
         [
