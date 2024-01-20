@@ -21,7 +21,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     labels:
-      - "traefik.http.routers.authelia.rule=HostRegexp(`{subdomain:home}.{host:.+}`)"
+      - "traefik.http.routers.homepage.rule=HostRegexp(`{subdomain:home}.{host:.+}`)"
       - "traefik.http.services.homepage.loadbalancer.server.port=3000"
       - "traefik.http.routers.homepage.middlewares=authelia"
 

@@ -21,7 +21,7 @@ services:
       - 6767:6767
     restart: unless-stopped
     labels:
-      - "traefik.http.routers.sonarr.middlewares=authelia"
+      - "traefik.http.routers.bazarr.middlewares=authelia"
 
   radarr:
     image: linuxserver/radarr:latest
@@ -35,7 +35,7 @@ services:
       - 7878:7878
     restart: unless-stopped
     labels:
-      - "traefik.http.routers.sonarr.middlewares=authelia"
+      - "traefik.http.routers.radarr.middlewares=authelia"
 
   sonarr:
     image: linuxserver/sonarr:latest
@@ -108,7 +108,7 @@ services:
       - 1900:1900/udp
     restart: unless-stopped
     devices:
-      - /dev/dri/dri:/dev/dri/dri
+      - /dev/dri:/dev/dri
     labels:
       - "traefik.http.routers.jellyfin.rule=HostRegexp(`{subdomain:watch}.{host:.+}`)"
       - "traefik.http.routers.jellyfin.middlewares=authelia"
