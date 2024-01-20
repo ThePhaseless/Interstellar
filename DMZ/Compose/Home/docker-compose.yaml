@@ -70,7 +70,7 @@ services:
     container_name: scanservjs
     image: "sbs20/scanservjs:latest"
     ports:
-      - "84:8080"
+      - "86:8080"
     volumes:
       - "/var/run/dbus:/var/run/dbus"
       - "${MEDIA_PATH}/Scans:/app/data/output"
