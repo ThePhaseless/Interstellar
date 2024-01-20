@@ -19,6 +19,18 @@ if [ -z "$STORAGE_PATH" ]; then
 		echo "STORAGE_PATH does not exist..."
 		exit 1
 	fi
+	# Check if STORAGE_PATH is not empty
+	if [ -z "$STORAGE_PATH" ]; then
+		echo "STORAGE_PATH is empty..."
+		read -r -p "Do you want to pruge STORAGE_PATH? (y/N) " RESPONSE
+		if [[ "$RESPONSE" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
+			echo "Purging STORAGE_PATH..."
+			sudo rm -rf "$STORAGE_PATH/*"
+		else
+			echo "Skipping STORAGE setup..."
+			exit 0
+		fi
+	fi
 fi
 
 if [ -z "${DISKS[*]}" ]; then
@@ -67,8 +79,29 @@ for i in "${!DISKS[@]}"; do
 		exit 1
 	fi
 
+	# Fix disk
+	echo "Fixing disk /dev/${DISK}..."
+	sudo fsck -y "/dev/${DISK}"
+
+	# Clear disk
+	echo "Clearing disk /dev/${DISK}..."
+	sudo dd if=/dev/zero of="/dev/${DISK}" bs=1M count=1
+	sudo mdadm --zero-superblock "/dev/${DISK}"
+
+	# Remove partition table
+	echo "Removing partition table from /dev/${DISK}..."
+	sudo sgdisk --zap-all "/dev/${DISK}"
+
+	# Create partition table
+	echo "Creating partition table on /dev/${DISK}..."
+	sudo parted --script "/dev/${DISK}" mklabel gpt
+
+	# Create partition
+	echo "Creating partition on /dev/${DISK}..."
+	sudo parted --script "/dev/${DISK}" mkpart primary 0% 100%
+
 	# Add /dev/ to disks
-	DISKS[i]="/dev/${DISK}"
+	DISKS[i]="/dev/${DISK}1"
 done
 set -e
 
@@ -77,6 +110,14 @@ DISKCOUNT="${#DISKS[@]}"
 
 # Create RAID10
 sudo mdadm --create --verbose /dev/md0 --level=10 --raid-devices="$DISKCOUNT" "${DISKS[@]}"
+
+# Check RAID10
+echo "Checking RAID10..."
+sudo mdadm --detail /dev/md0
+
+# Save RAID10 config
+echo "Saving RAID10 config..."
+sudo mdadm --detail --scan --verbose | sudo tee /etc/mdadm/mdadm.conf
 
 # Create filesystem
 echo "Creating filesystem..."
@@ -104,7 +145,7 @@ echo "UUID of STORAGE: $STORAGE_UUID"
 echo "Adding STORAGE to fstab..."
 echo "# STORAGE" | sudo tee -a /etc/fstab
 echo "# DO NOT EDIT THIS SECTION BY HAND" | sudo tee -a /etc/fstab
-echo "UUID=$STORAGE_UUID $STORAGE_PATH ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
+echo "/dev/md0 $STORAGE_PATH ext4 defaults 0 0" | sudo tee -a /etc/fstab
 echo "# STORAGE END" | sudo tee -a /etc/fstab
 
 # Update initramfs
