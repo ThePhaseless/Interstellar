@@ -1,12 +1,17 @@
 services:
   portainer:
+    container_name: Portainer
     image: portainer/portainer-ce:latest
     ports:
-      - 9443:9443
+      - 9000:9000
     volumes:
-      - ./Portainer:/data
+      - ${CONFIG_PATH}/Home/Portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
+    labels:
+      - "traefik.http.routers.portainer.rule=HostRegexp(`{subdomain:portainer}.{host:.+}`)"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.routers.portainer.middlewares=authelia"
 
   httpd:
     image: httpd:latest
@@ -26,7 +31,7 @@ services:
     ports:
       - 82:3000
     volumes:
-      - ./Homepage:/app/config
+      - ${CONFIG_PATH}/Home/Homepage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     labels:
