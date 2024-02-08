@@ -2,124 +2,124 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
 
 :root {
-  --primary-color: #ff6f00;
-  --background-color: #131516;
-  --background-container: #272727;
-  --text-color: #e8e6e3;
+	--primary-color: #ff6f00;
+	--background-color: #131516;
+	--background-container: #272727;
+	--text-color: #e8e6e3;
 }
 
 * {
-  font-family: Montserrat, Arial, sans-serif;
-  color: var(--text-color);
-  user-select: none;
-  text-decoration: none;
-  margin: 0;
+	font-family: Montserrat, Arial, sans-serif;
+	color: var(--text-color);
+	user-select: none;
+	text-decoration: none;
+	margin: 0;
 }
 
 html,
 body {
-  height: 100%;
-  background-color: var(--background-color);
+	height: 100%;
+	background-color: var(--background-color);
 }
 
 .portfolio-container {
-  padding: 25px;
-  padding-left: 30px;
-  border-top-left-radius: 40px;
-  border-bottom-left-radius: 40px;
-  background-color: var(--background-container);
-  position: absolute;
-  right: 0;
-  top: 30px;
-  text-decoration: none;
-  * {
-    display: inline-block;
-    vertical-align: middle;
-  }
+	padding: 25px;
+	padding-left: 30px;
+	border-top-left-radius: 40px;
+	border-bottom-left-radius: 40px;
+	background-color: var(--background-container);
+	position: absolute;
+	right: 0;
+	top: 30px;
+	text-decoration: none;
+	* {
+		display: inline-block;
+		vertical-align: middle;
+	}
 }
 .portfolio-text {
-  font-size: 1.5rem;
+	font-size: 1.5rem;
 }
 
 .column {
-  overflow: hidden;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  justify-content: space-around;
+	overflow: hidden;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-content: center;
+	justify-content: space-around;
 }
 
 .title {
-  text-align: center;
-  font-family: "Kanit", sans-serif;
-  font-size: 23vw;
-  color: var(--text-color);
-  font-weight: bold;
+	text-align: center;
+	font-family: "Kanit", sans-serif;
+	font-size: 23vw;
+	color: var(--text-color);
+	font-weight: bold;
 }
 
 .left {
-  flex-wrap: wrap;
+	flex-wrap: wrap;
 }
 
 .right {
-  flex-wrap: wrap-reverse;
+	flex-wrap: wrap-reverse;
 }
 
 .btn-container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex-wrap: wrap;
+	justify-content: center;
 }
 
 @keyframes fadeColors {
-  0% {
-    background-color: #ff6f00;
-  }
-  50% {
-    background-color: #ff3c00;
-  }
-  100% {
-    background-color: #ff6f00;
-  }
+	0% {
+		background-color: #ff6f00;
+	}
+	50% {
+		background-color: #ff3c00;
+	}
+	100% {
+		background-color: #ff6f00;
+	}
 }
 .on-hover {
-  transition: transform 0.2s;
+	transition: transform 0.2s;
 }
 .on-hover:hover {
-  transform: scale(1.1);
-  background-color: var(--primary-color);
-  animation: fadeColors 5s infinite;
+	transform: scale(1.1);
+	background-color: var(--primary-color);
+	animation: fadeColors 5s infinite;
 }
 
 .btn {
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background-color: var(--background-container);
-  transition: transform 0.2s;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background-color: var(--background-container);
+	transition: transform 0.2s;
 
-  padding: clamp(25px, min(5vw, 5vh), 200px);
-  margin: 1%;
+	padding: clamp(25px, min(5vw, 5vh), 200px);
+	margin: 1%;
 
-  /* Text */
-  text-decoration: none;
-  color: var(--text-color);
-  font-size: clamp(50px, min(10vw, 10vh), 200px);
+	/* Text */
+	text-decoration: none;
+	color: var(--text-color);
+	font-size: clamp(50px, min(10vw, 10vh), 200px);
 }
 
 .center {
-  height: 100%;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+	height: 100%;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
 .big-text {
-  font-size: clamp(50px, min(10vw, 10vh), 200px);
+	font-size: clamp(50px, min(10vw, 10vh), 200px);
 }

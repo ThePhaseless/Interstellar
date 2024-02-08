@@ -3,7 +3,6 @@
 # Exit immediately if any command fails
 set -e
 
-
 # Check if STORAGE_PATH is set
 if [ -z "$STORAGE_PATH" ]; then
 	echo "STORAGE_PATH = $STORAGE_PATH"
@@ -42,7 +41,7 @@ if [ -z "${DISKS[*]}" ]; then
 		exit 0
 	fi
 	# Split disks into array
-	IFS=' ' read -r -a DISKS <<< "$DISKSRAW"
+	IFS=' ' read -r -a DISKS <<<"$DISKSRAW"
 fi
 
 # Check if disks are specified

@@ -88,7 +88,6 @@ echo "Uncommenting net.ipv4.ip_forward=1..."
 sudo sed -i '/net.ipv4.ip_forward=1/s/^#//g' /etc/sysctl.conf
 sudo sysctl --system
 
-
 # Display warning about flushing iptables
 read -r -p "WARNING: Next step will flush iptables. (because firewall is already managed by Oracle VCN) Press enter to continue: "
 sudo iptables -F

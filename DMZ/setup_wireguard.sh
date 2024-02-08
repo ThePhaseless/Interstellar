@@ -41,7 +41,7 @@ source ./wireguard.env
 # Ask if user wants to continue
 read -r -p "Do you want to continue? [Y/n] " response
 if [[ "$response" =~ ^([nN][oO]|[nN])+$ ]]; then
-echo "Exiting..."
+	echo "Exiting..."
 	exit 0
 fi
 
