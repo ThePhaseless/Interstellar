@@ -39,22 +39,7 @@ services:
       - "traefik.http.services.homepage.loadbalancer.server.port=3000"
       - "traefik.http.routers.homepage.middlewares=authelia"
 
-  duplicati:
-    image: lscr.io/linuxserver/duplicati:latest
-    container_name: duplicati
-    environment:
-      - TZ=${TIMEZONE}
-      - CLI_ARGS= #optional
-    volumes:
-      - ${CONFIG_PATH}/Home/Duplicati:/config
-      - /public:/source
-    ports:
-      - 8200:8200
-    restart: unless-stopped
-    labels:
-      - "traefik.http.routers.duplicati.rule=HostRegexp(`{subdomain:backup}.{host:.+}`)"
-      - "traefik.http.services.duplicati.loadbalancer.server.port=8200"
-      - "traefik.http.routers.duplicati.middlewares=authelia"
+
 
   renamer:
     environment:
