@@ -39,8 +39,6 @@ services:
       - "traefik.http.services.homepage.loadbalancer.server.port=3000"
       - "traefik.http.routers.homepage.middlewares=authelia"
 
-
-
   renamer:
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
