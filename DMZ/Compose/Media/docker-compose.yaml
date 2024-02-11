@@ -6,8 +6,6 @@ services:
       - ${CONFIG_PATH}/Media/Recyclarr:/config
     environment:
       - TZ=${TIMEZONE}
-    labels:
-      - "traefik.enable=false"
 
   bazarr:
     image: linuxserver/bazarr:latest
@@ -21,6 +19,7 @@ services:
       - 6767:6767
     restart: unless-stopped
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.bazarr.middlewares=authelia"
 
   radarr:
@@ -35,6 +34,7 @@ services:
       - 7878:7878
     restart: unless-stopped
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.radarr.middlewares=authelia"
 
   sonarr:
@@ -49,6 +49,7 @@ services:
       - 8989:8989
     restart: unless-stopped
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.sonarr.middlewares=authelia"
 
   prowlarr:
@@ -62,6 +63,7 @@ services:
       - 9696:9696
     restart: unless-stopped
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.prowlarr.middlewares=authelia"
 
   qbittorrent:
@@ -77,6 +79,7 @@ services:
       - ${CONFIG_PATH}/Media/qBittorrent:/config
       - ${MEDIA_PATH}/Downloads:/data/downloads
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.qbittorrent.middlewares=authelia"
 
   jellyseerr:
@@ -90,8 +93,9 @@ services:
       - ${CONFIG_PATH}/Media/Jellyseerr:/app/config
     restart: unless-stopped
     labels:
-      - "traefik.routers.jellyseerr.rule=HostRegexp(`{subdomain:add}.{host:.+}`)"
-      - "traefik.routers.jellyseerr.middlewares=authelia"
+      - "traefik.enable=true"
+      - "traefik.http.routers.jellyseerr.rule=HostRegexp(`{subdomain:add}.{host:.+}`)"
+      - "traefik.http.routers.jellyseerr.middlewares=authelia"
 
   jellyfin:
     image: linuxserver/jellyfin:latest
@@ -110,8 +114,8 @@ services:
     devices:
       - /dev/dri:/dev/dri
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.jellyfin.rule=HostRegexp(`{subdomain:watch}.{host:.+}`)"
-      - "traefik.http.routers.jellyfin.middlewares=authelia"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
 
   watchtower:
@@ -133,5 +137,3 @@ services:
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
       - TZ=${TIMEZONE}
     restart: unless-stopped
-    labels:
-      - "traefik.enable=false"
