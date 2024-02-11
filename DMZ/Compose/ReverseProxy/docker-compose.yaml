@@ -1,7 +1,8 @@
 services:
   traefik:
     depends_on:
-      - authelia
+      authelia:
+        condition: service_healthy
     container_name: traefik
     # The official v2 Traefik docker image
     image: traefik:latest
@@ -17,11 +18,11 @@ services:
       - "--entrypoints.websecure.http.tls.certresolver=cloudflare"
       - "--entrypoints.websecure.http.tls.domains[0].main=${PUBLIC_HOSTNAME}"
       - "--entrypoints.websecure.http.tls.domains[0].sans=*.${PUBLIC_HOSTNAME}"
-      - "--entrypoints.websecure.forwardedHeaders.insecure=true"
       - "--global.sendAnonymousUsage=true"
       - "--providers.file.directory=/config"
       - "--providers.file.watch=true"
       - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.defaultRule=HostRegexp(`{subdomain:{{ .ContainerName }}}.{host:.+}`)"
       - "--certificatesResolvers.cloudflare.acme.email=${CF_API_EMAIL}"
       - "--certificatesResolvers.cloudflare.acme.storage=/cert/acme.json"
@@ -41,8 +42,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${CONFIG_PATH}/ReverseProxy/Traefik/config:/config
       - ${CONFIG_PATH}/ReverseProxy/Traefik/cert:/cert
-      - ./pages:/pages
     labels:
+      - "traefik.enable=true"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.middlewares=authelia"
 
@@ -52,7 +53,7 @@ services:
 
   authelia:
     depends_on:
-      ldap:
+      lldap:
         condition: service_healthy
     container_name: authelia
     image: authelia/authelia:latest
@@ -75,68 +76,48 @@ services:
       - AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_ENCRYPTION_KEY}
       - AUTHELIA_STORAGE_LOCAL_PATH=/config/db.sqlite3
       - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION=custom
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_URL=ldap://ldap
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER=cn=admin,${DCs}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERS_FILTER=(&({username_attribute}={input})(objectClass=person))
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=${LDAP_ADMIN_PASSWORD}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUPS_FILTER=(&(member={dn})(objectclass=groupOfNames))
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_URL=ldap://lldap
       - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN=${DCs}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_DISPLAY_NAME_ATTRIBUTE=givenName
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERNAME_ATTRIBUTE=uid
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN=ou=people
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERS_FILTER=(&({username_attribute}={input})(objectClass=person))
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_GROUPS_DN=ou=groups
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUPS_FILTER=(member={dn})
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUP_NAME_ATTRIBUTE=cn
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_MAIL_ATTRIBUTE=mail
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_DISPLAY_NAME_ATTRIBUTE=displayName
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER=uid=admin,ou=people,${DCs}
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=${LDAP_ADMIN_PASSWORD}
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.authelia.rule=HostRegexp(`{subdomain:auth}.{host:.+}`)"
       - "traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.${PUBLIC_HOSTNAME}%2F"
       - "traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true"
       - "traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
-
-  ldap:
-    image: bitnami/openldap
-    container_name: ldap
-    volumes:
-      - ${CONFIG_PATH}/ReverseProxy/LDAP:/bitnami/openldap
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "ldapsearch",
-          "-x",
-          "-H",
-          "ldap://localhost:389",
-          "-b",
-          "${DCs}",
-          "-D",
-          "cn=admin,${DCs}",
-          "-w",
-          "${LDAP_ADMIN_PASSWORD}",
-        ]
-      interval: 30s
-      timeout: 2s
-      retries: 3
-    environment:
-      - LDAP_TLS=false
-      - LDAP_PORT_NUMBER=389
-      - LDAP_ROOT=${DCs}
-      - LDAP_ADMIN_DN=cn=admin,${DCs}
-      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
-    labels:
-      - "traefik.enable=false"
-
-  ldap-user-manager:
-    depends_on:
-      ldap:
-        condition: service_healthy
-    restart: unless-stopped
-    container_name: ldap-user-manager
+  lldap:
+    container_name: lldap
+    image: lldap/lldap:stable
     ports:
-      - 85:80
+      # For LDAP, not recommended to expose, see Usage section.
+      - "389:389"
+      # For LDAPS (LDAP Over SSL), enable port if LLDAP_LDAPS_OPTIONS__ENABLED set true, look env below
+      #- "6360:6360"
+      # For the web front-end
+      - "17170:17170"
+    volumes:
+      - "${CONFIG_PATH}/ReverseProxy/LLDAP:/data"
+      # Alternatively, you can mount a local folder
+      # - "./lldap_data:/data"
     environment:
-      - SERVER_HOSTNAME=${PUBLIC_HOSTNAME}
-      - NO_HTTPS=true
-      - LDAP_URI=ldap://ldap
-      - LDAP_BASE_DN=${DCs}
-      - LDAP_ADMINS_GROUP=admins
-      - LDAP_ADMIN_BIND_DN=cn=admin,${DCs}
-      - LDAP_ADMIN_BIND_PWD=${LDAP_ADMIN_PASSWORD}
-    image: wheelybird/ldap-user-manager:latest
+      - LLDAP_LDAP_USER_PASS=${LDAP_ADMIN_PASSWORD}
+      - TZ=${TIMEZONE}
+      - LLDAP_JWT_SECRET=${JWT_SECRET}
+      - LLDAP_KEY_SEED=${KEY_SEED}
+      - LLDAP_LDAP_BASE_DN=${DCs}
+      - LLDAP_LDAP_PORT=389
+      - LLDAP_VERBOSE=true
     labels:
-      - "traefik.http.routers.ldap-user-manager.rule=HostRegexp(`{subdomain:users}.{host:.+}`)"
-      - "traefik.http.routers.ldap-user-manager.middlewares=authelia"
+      - "traefik.enable=true"
+      - "traefik.http.routers.lldap.rule=HostRegexp(`{subdomain:lldap}.{host:.+}`)"
+      - "traefik.http.routers.lldap.entrypoints=websecure"
+      - "traefik.http.services.lldap.loadbalancer.server.port=17170"
