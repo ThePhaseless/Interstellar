@@ -2,4 +2,4 @@ include:
   - path: ./Compose/ReverseProxy/docker-compose.yaml
   - path: ./Compose/Media/docker-compose.yaml
   - path: ./Compose/Home/docker-compose.yaml
-  - path: ./Compose/Immich/docker-compose.yaml
+  # - path: ./Compose/Immich/docker-compose.yaml
