@@ -1,5 +1,6 @@
 services:
   traefik:
+    restart: unless-stopped
     depends_on:
       authelia:
         condition: service_healthy
@@ -52,6 +53,7 @@ services:
     container_name: whoami
 
   authelia:
+    restart: unless-stopped
     depends_on:
       lldap:
         condition: service_healthy
@@ -95,6 +97,7 @@ services:
       - "traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true"
       - "traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
   lldap:
+    restart: unless-stopped
     container_name: lldap
     image: lldap/lldap:stable
     ports:
