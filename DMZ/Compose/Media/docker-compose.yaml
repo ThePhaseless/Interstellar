@@ -77,7 +77,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${CONFIG_PATH}/Media/qBittorrent:/config
-      - ${MEDIA_PATH}/Downloads:/data/downloads
+      - ${MEDIA_PATH}/Downloads:/data/Downloads
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.qbittorrent.middlewares=authelia"
