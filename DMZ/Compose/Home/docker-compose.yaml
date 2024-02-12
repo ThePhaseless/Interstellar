@@ -43,6 +43,7 @@ services:
       - "traefik.http.routers.homepage.middlewares=authelia"
 
   renamer:
+    restart: unless-stopped
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
     container_name: renamer
@@ -66,6 +67,7 @@ services:
       - "traefik.http.routers.adguardhome.middlewares=authelia"
 
   scanservjs:
+    restart: unless-stopped
     container_name: scanservjs
     image: "sbs20/scanservjs:latest"
     ports:
@@ -74,7 +76,6 @@ services:
       - "/var/run/dbus:/var/run/dbus"
       - "${MEDIA_PATH}/Scans:/app/data/output"
       - "${CONFIG_PATH}/Home/Scanservjs:/app/config"
-    restart: unless-stopped
     devices:
       - "/dev/bus/usb:/dev/bus/usb"
     privileged: true
@@ -85,6 +86,7 @@ services:
       - "traefik.http.routers.scanservjs.middlewares=authelia"
 
   gptwol:
+    restart: unless-stopped
     container_name: GPT-Wol
     image: misterbabou/gptwol:latest
     network_mode: host
