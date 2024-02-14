@@ -19,7 +19,6 @@
 			name="description"
 			content="A website that contains a various self-hosted services. Protected by Cloudflare."
 		/>
-		<script src="router.js"></script>
 		<link rel="stylesheet" href="style.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Nerine</title>
@@ -31,7 +30,7 @@
 			<div class="emoji">🌸</div>
 		</div>
 		<div class="row apps-container">
-			<div class="border row apps">
+			<div class="border row">
 				<a class="app" href="https://watch.nerine.dev">
 					<span class="material-symbols-rounded">tv</span>
 					<div>Watch</div>
@@ -49,18 +48,16 @@
 					<div>Account</div>
 				</a>
 			</div>
-			<div class="border row apps">
-				<a class="app center" href="home">
-					<span class="material-symbols-rounded">home</span>
-					<div>Home</div>
-				</a>
-			</div>
-			<div class="border row apps">
-				<a class="app center" href="manage">
-					<span class="material-symbols-rounded">settings</span>
-					<div>Manage</div>
-				</a>
-			</div>
+
+			<a class="app center border" href="home">
+				<span class="material-symbols-rounded">home</span>
+				<div>Home</div>
+			</a>
+
+			<a class="app center border" href="manage">
+				<span class="material-symbols-rounded">settings</span>
+				<div>Manage</div>
+			</a>
 		</div>
 	</body>
 </html>
