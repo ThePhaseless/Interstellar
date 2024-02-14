@@ -1,25 +1,38 @@
-@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@600&family=Prompt:wght@600&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
-
 :root {
+	--emoji-size: min(40vh, 25vw);
+	--title-size: min(20vh, 10vw);
+	--icon-size: min(20vh, 5vw);
+	--text-size: min(10vh, 2vw);
 	--primary-color: #f4abba;
 	--secondary-color: #ea596e;
 	--container-border-color: #acacac;
-	--text-color: #656565;
+	--title-color: #444444;
+	--padding-small: min(10vh, 2vw);
+	--padding-large: min(20vh, 5vw);
 }
 
-.body {
+* {
+	user-select: none;
+	text-decoration: none !important;
+}
+html {
+	overflow: hidden;
+}
+
+body {
 	display: flex;
-	justify-content: space-around;
-	align-items: center;
 	flex-direction: column;
+	justify-content: space-evenly;
+	align-items: center;
+	margin: 0;
+	padding: 0;
 	height: 100vh;
-	background-color: var(--primary-color);
+	width: 100vw;
 }
 
 .row {
 	display: flex;
-	justify-content: center;
+	justify-content: space-evenly;
 	align-items: center;
 }
 
@@ -30,29 +43,80 @@
 	align-items: start;
 }
 
-.title {
-	text-align: center;
-	font-family: "Kanit", sans-serif;
-	font-size: 150px;
-	color: var(--text-color);
-	font-weight: bold;
+.border {
+	border: 5px solid var(--container-border-color);
+	border-radius: min(10vh, 2vw);
 }
 
-.container {
-	border: 5px solid var(--container-border-color);
-	border-radius: 30px;
+.center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.title {
+	/* padding-left: var(--padding-large);
+	padding-right: var(--padding-large); */
+	width: 80%;
+	height: 50%;
+}
+
+h1 {
+	font-family: "Kanit", sans-serif;
+	font-style: normal;
+	text-align: center;
+	font-size: var(--title-size);
+	line-height: 1;
+	color: var(--title-color);
+}
+
+.apps-container {
+	justify-content: space-between;
+	width: 80%;
+}
+
+.apps {
+	padding-top: var(--padding-small);
+	padding-bottom: var(--padding-small);
+}
+
+.app {
+	padding-left: var(--padding-small);
+	padding-right: var(--padding-small);
 	position: relative;
 	display: flex;
-	justify-content: space-evenly;
+	justify-content: center;
 	align-items: center;
-	padding-left: 70px;
-	padding-right: 70px;
+	flex-direction: column;
+	width: min(40vh, 7vw, 140px);
 }
+
+.material-symbols-rounded {
+	font-size: var(--icon-size);
+	color: var(--title-color);
+}
+
+.app div {
+	font-family: "Monsterrat", sans-serif;
+	font-weight: 400;
+	font-style: normal;
+	text-align: center;
+	font-size: var(--text-size);
+	line-height: 1;
+	color: var(--title-color);
+}
+
 .spacer {
-	width: 70px;
+	width: 80px;
+}
+
+.divider {
+	height: max(4vh, 6vw);
+	width: 0.2vw;
+	background-color: var(--container-border-color);
+	border-radius: 40px;
 }
 
 .emoji {
-	position: relative;
-	font-size: 300px;
+	font-size: var(--emoji-size);
 }
