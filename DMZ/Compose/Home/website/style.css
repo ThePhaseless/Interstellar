@@ -3,13 +3,23 @@
 	--title-size: min(15vh, 10vw);
 	--icon-size: min(7vh);
 	--text-size: clamp(15px, 2.5vh, 3vw);
-	--primary-color: #f4abba;
-	--secondary-color: #ea596e;
-	--tertiary-color: #ffcc4d;
-	--container-border-color: #acacac;
-	--title-color: #444444;
+	--primary-color: #f090a1;
+	--background-color: #e9f5db;
+	--on-background-color: #cfe1b9;
+	--container-border-color: #b5c99a;
+	--text-color: #3a442c;
 	--padding-small: 2vw;
 	--padding-large: min(5vw);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--primary-color: #ea5f73;
+		--on-background-color: #556340;
+		--background-color: #39422b;
+		--container-border-color: #2b3221;
+		--text-color: #cfe1b9;
+	}
 }
 
 * {
@@ -29,16 +39,27 @@ html {
 }
 
 body {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-evenly;
-	align-items: center;
 	margin: 0;
 	padding: 0;
 	height: 100vh;
 	width: 100vw;
+	background-color: var(--background-color);
 }
 
+#content {
+	height: 100vh;
+	width: 100vw;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+	align-items: center;
+}
+
+.josefin-sans {
+	font-family: "Josefin Sans";
+	font-weight: 400;
+	font-style: normal;
+}
 .row {
 	display: flex;
 	align-items: center;
@@ -52,6 +73,7 @@ body {
 }
 
 .border {
+	background-color: var(--on-background-color);
 	border: 5px solid var(--container-border-color);
 	border-radius: min(3vh, 3vw);
 }
@@ -69,20 +91,18 @@ body {
 }
 
 h1 {
-	font-family: "Kanit", sans-serif;
-	font-style: normal;
 	text-align: center;
 	font-size: var(--title-size);
 	line-height: 1;
-	color: var(--title-color);
-	transition: color 1s;
+	color: var(--text-color);
+	transition: color 0.3s;
 }
 
 h1:hover {
-	color: var(--primary-color);
+	color: var(--primary-color) !important;
 }
 
-.apps-container {
+.apps {
 	justify-content: center;
 	flex-wrap: wrap;
 	gap: 4vw;
@@ -92,7 +112,7 @@ h1:hover {
 
 .app {
 	padding: var(--padding-small);
-	color: var(--title-color);
+	color: var(--text-color);
 	position: relative;
 	display: flex;
 	justify-content: center;
@@ -105,7 +125,7 @@ h1:hover {
 
 .app:hover {
 	color: whitesmoke;
-	background-color: var(--secondary-color);
+	background-color: var(--primary-color);
 	margin: 20px;
 }
 
@@ -116,7 +136,6 @@ h1:hover {
 
 .app div {
 	font-family: "Monsterrat", sans-serif;
-	font-weight: 400;
 	font-style: normal;
 	text-align: center;
 	font-size: var(--text-size);
