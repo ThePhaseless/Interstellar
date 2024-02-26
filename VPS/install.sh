@@ -33,4 +33,4 @@ sudo ../General/setup_zsh.sh
 # Make a tunnel with wireguard to DNS server
 ./setup_wireguard.sh
 
-echo "Done, now every http and https request will be tunneled to the DMZ."
+echo "Done, now every http and https request will be tunneled to DMZ."
