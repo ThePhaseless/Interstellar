@@ -2,8 +2,11 @@
 # Post-Installation Script Installer
 # ----------------------------------
 
+# Allow execution of all .sh files
+echo "Making .sh files executable..."
+find . -type f -iname "**/*.sh" -exec sudo chmod +x {} \;
+
 # Ask if this is a host or a proxy
-find . -type f -iname "*.sh" -exec chmod +x {} \;
 echo "Is this a host or a proxy?"
 echo "1. DMZ"
 echo "2. VPS"
