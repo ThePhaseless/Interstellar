@@ -1,3 +1,4 @@
 **/*.env
-*key
-DMZ/Compose/**/Config
+**/privatekey
+**/publickey
+DMZ/Docker/Configs
