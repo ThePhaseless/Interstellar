@@ -1,4 +1,5 @@
-**/*.env
+**/*.env*
+!**/*.env*example
 **/privatekey
 **/publickey
 DMZ/Docker/Configs
