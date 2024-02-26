@@ -84,6 +84,8 @@ services:
       - "traefik.http.routers.qbittorrent.middlewares=authelia"
 
   jellyseerr:
+    depends_on:
+      - jellyfin
     image: fallenbagel/jellyseerr:latest
     container_name: Jellyseerr
     environment:
