@@ -11,17 +11,17 @@ set_permissions_ownership() {
 
 # Set default values for environment variables from fireword.env
 echo "Using these environment variables:"
-if [ -f "$PWD"/.env ]; then
+if [ -f "Docker/Compose/envs/.env" ]; then
 	echo "Using environment variables from .env"
 else
-	echo "No .env file found, creating one..."
+	echo "No .env file found, creating..."
 	read -r -p "Press any key to edit .env... " -n1 -s
-	cp ./.env.example ./.env
-	nano ./.env
+	cp Docker/Compose/envs/.env.example Docker/Compose/envs/.env
+	nano Docker/Compose/envs/.env
 fi
 
 # shellcheck disable=SC1091
-source ./.env
+source Docker/Compose/envs/.env
 
 # Ask the user if envs are correct
 read -r -p "Continue? (Y/n): " input
@@ -34,9 +34,6 @@ case $input in
 	echo "Continuing..."
 	;;
 esac
-
-# Apply sudo patch
-../General/remove_sudo_password.sh
 
 # Create directories
 echo "Creating directories..."
@@ -51,6 +48,9 @@ export CONFIG_PATH
 export MEDIA_PATH
 export SSD_PATH
 export STORAGE_PATH
+
+# Apply sudo patch
+../General/remove_sudo_password.sh
 
 # Update the package list and upgrade existing packages
 echo "Updating system..."
