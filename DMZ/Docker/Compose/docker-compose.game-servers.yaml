@@ -1,0 +1,12 @@
+name: game-servers
+services:
+  ftb-skies-expert:
+    container_name: FTBSkiesExpert
+    image: eclipse-temurin:17-jre
+    working_dir: /data
+    command: ["/data/run.sh"]
+    attach: true
+    volumes:
+      - "${SSD_PATH}/Servers/FTB-Skies-Expert:/data"
+    ports:
+      - "25565:25565"

@@ -1,6 +1,8 @@
+name: home
+
 services:
   homeassistant:
-    container_name: homeassistant
+    container_name: HomeAssistant
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
       - ${CONFIG_PATH}/Home/HomeAssistant:/config
@@ -39,7 +41,7 @@ services:
     ports:
       - "81:80"
     volumes:
-      - ./website:/usr/local/apache2/htdocs
+      - ${CONFIG_PATH}/Home/httpd:/usr/local/apache2/htdocs
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -63,9 +65,9 @@ services:
 
   renamer:
     restart: unless-stopped
-    environment:
-      - BOT_TOKEN=${BOT_TOKEN}
-    container_name: renamer
+    env_file:
+      - ./envs/.env.discord-bot
+    container_name: Renamer
     image: ghcr.io/thephaseless/renamer:main
 
   adguardhome:

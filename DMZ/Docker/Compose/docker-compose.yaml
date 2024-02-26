@@ -1,0 +1,10 @@
+include:
+  - path: ./docker-compose.game-servers.yaml
+  - path: ./docker-compose.reverse-proxy.yaml
+    env_file:
+      - .env
+      - envs/.env.traefik
+      - envs/.env.authelia
+      - envs/.env.ldap
+  - path: ./docker-compose.home.yaml
+  - path: ./docker-compose.media.yaml

@@ -1,3 +1,5 @@
+name: reverse-proxy
+
 services:
   traefik:
     restart: unless-stopped
@@ -5,6 +7,8 @@ services:
       authelia:
         condition: service_healthy
     container_name: traefik
+    env_file:
+      - ./envs/.env.traefik
     # The official v2 Traefik docker image
     image: traefik:latest
     # Enables the web UI and tells Traefik to listen to docker
@@ -37,8 +41,6 @@ services:
       - "80:80"
       # The HTTPS port
       - "443:443"
-    environment:
-      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${CONFIG_PATH}/ReverseProxy/Traefik/config:/config
@@ -47,10 +49,6 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.middlewares=authelia"
-
-  whoami:
-    image: traefik/whoami
-    container_name: whoami
 
   authelia:
     restart: unless-stopped
@@ -63,39 +61,21 @@ services:
       - "9091:9091"
     volumes:
       - ${CONFIG_PATH}/ReverseProxy/Authelia:/config
+    env_file:
+      - ./envs/.env.authelia
     environment:
-      - AUTHELIA_LOG_LEVEL=info
-      - AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY=one_factor
-      - AUTHELIA_NOTIFIER_SMTP_HOST=smtp.gmail.com
-      - AUTHELIA_NOTIFIER_SMTP_PORT=587
-      - AUTHELIA_NOTIFIER_SMTP_USERNAME=${SMTP_USERNAME}
-      - AUTHELIA_NOTIFIER_SMTP_PASSWORD=${SMTP_PASSWORD}
-      - AUTHELIA_NOTIFIER_SMTP_SENDER=${SMTP_SENDER}
-      - AUTHELIA_JWT_SECRET=${JWT_SECRET}
       - AUTHELIA_SESSION_DOMAIN=${PUBLIC_HOSTNAME}
-      - AUTHELIA_SESSION_SECRET=${AUTHELIA_SESSION_SECRET}
       - AUTHELIA_DEFAULT_REDIRECTION_URL=https://${PUBLIC_HOSTNAME}
-      - AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_ENCRYPTION_KEY}
-      - AUTHELIA_STORAGE_LOCAL_PATH=/config/db.sqlite3
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION=custom
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_URL=ldap://lldap
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN=${DCs}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERNAME_ATTRIBUTE=uid
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN=ou=people
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERS_FILTER=(&({username_attribute}={input})(objectClass=person))
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_GROUPS_DN=ou=groups
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUPS_FILTER=(member={dn})
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUP_NAME_ATTRIBUTE=cn
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_MAIL_ATTRIBUTE=mail
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_DISPLAY_NAME_ATTRIBUTE=displayName
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER=uid=admin,ou=people,${DCs}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=${LDAP_ADMIN_PASSWORD}
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN=${LLDAP_LDAP_BASE_DN}
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER=uid=admin,ou=people,${LLDAP_LDAP_BASE_DN}
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=${LLDAP_LDAP_USER_PASS}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.authelia.rule=HostRegexp(`{subdomain:auth}.{host:.+}`)"
       - "traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.${PUBLIC_HOSTNAME}%2F"
       - "traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true"
       - "traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
+
   lldap:
     restart: unless-stopped
     container_name: lldap
@@ -111,14 +91,10 @@ services:
       - "${CONFIG_PATH}/ReverseProxy/LLDAP:/data"
       # Alternatively, you can mount a local folder
       # - "./lldap_data:/data"
+    env_file:
+      - ./envs/.env.ldap
     environment:
-      - LLDAP_LDAP_USER_PASS=${LDAP_ADMIN_PASSWORD}
       - TZ=${TIMEZONE}
-      - LLDAP_JWT_SECRET=${JWT_SECRET}
-      - LLDAP_KEY_SEED=${KEY_SEED}
-      - LLDAP_LDAP_BASE_DN=${DCs}
-      - LLDAP_LDAP_PORT=389
-      - LLDAP_VERBOSE=true
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.lldap.rule=HostRegexp(`{subdomain:lldap}.{host:.+}`)"

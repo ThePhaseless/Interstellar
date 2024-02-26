@@ -1,7 +1,8 @@
+name: media
 services:
   recyclarr:
     image: recyclarr/recyclarr
-    container_name: recyclarr
+    container_name: Recyclarr
     volumes:
       - ${CONFIG_PATH}/Media/Recyclarr:/config
     environment:
@@ -9,7 +10,7 @@ services:
 
   bazarr:
     image: linuxserver/bazarr:latest
-    container_name: bazarr
+    container_name: Bazarr
     environment:
       - TZ=${TIMEZONE}
     volumes:
@@ -24,7 +25,7 @@ services:
 
   radarr:
     image: linuxserver/radarr:latest
-    container_name: radarr
+    container_name: Radarr
     environment:
       - TZ=${TIMEZONE}
     volumes:
@@ -39,7 +40,7 @@ services:
 
   sonarr:
     image: linuxserver/sonarr:latest
-    container_name: sonarr
+    container_name: Sonarr
     environment:
       - TZ=${TIMEZONE}
     volumes:
@@ -54,7 +55,7 @@ services:
 
   prowlarr:
     image: linuxserver/prowlarr:develop
-    container_name: prowlarr
+    container_name: Prowlarr
     environment:
       - TZ=${TIMEZONE}
     volumes:
@@ -84,7 +85,7 @@ services:
 
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
+    container_name: Jellyseerr
     environment:
       - TZ=${TIMEZONE}
     ports:
@@ -99,7 +100,7 @@ services:
 
   jellyfin:
     image: linuxserver/jellyfin:latest
-    container_name: jellyfin
+    container_name: Jellyfin
     environment:
       - TZ=${TIMEZONE}
       - JELLYFIN_PublishedServerUrl=watch.${PUBLIC_HOSTNAME}
@@ -120,7 +121,7 @@ services:
 
   watchtower:
     image: containrrr/watchtower:latest
-    container_name: watchtower
+    container_name: Watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --cleanup
@@ -130,7 +131,7 @@ services:
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr
+    container_name: FlareSolverr
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_HTML=${LOG_HTML:-false}
