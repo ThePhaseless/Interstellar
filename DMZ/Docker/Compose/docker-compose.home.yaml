@@ -4,21 +4,22 @@ services:
   homeassistant:
     container_name: HomeAssistant
     image: "ghcr.io/home-assistant/home-assistant:stable"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
     volumes:
       - ${CONFIG_PATH}/Home/HomeAssistant:/config
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
     restart: unless-stopped
+    network_mode: host
+    environment:
+      - HOMEASSISTANT_URL=https://homeassistant.${PUBLIC_HOSTNAME}
     ports:
       - "8123:8123"
     devices:
       - "/dev/bus/usb:/dev/bus/usb"
     privileged: true
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.homeassistant.rule=HostRegexp(`{subdomain:homeassistant}.{host:.+}`)"
-      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
-      - "traefik.http.routers.homeassistant.middlewares=authelia"
 
   portainer:
     container_name: Portainer

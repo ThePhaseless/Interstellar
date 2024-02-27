@@ -8,6 +8,8 @@ frontend:
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
+homeassistant:
+  external_url: !env_var HOMEASSISTANT_URL
 
 http:
   use_x_forwarded_for: true
