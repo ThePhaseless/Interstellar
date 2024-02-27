@@ -1,4 +1,11 @@
 name: dmz
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+          gateway: 172.21.0.1
 include:
   - path: ./docker-compose.game-servers.yaml
   - path: ./docker-compose.reverse-proxy.yaml

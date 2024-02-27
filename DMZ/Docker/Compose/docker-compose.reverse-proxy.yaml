@@ -2,6 +2,9 @@ name: reverse-proxy
 
 services:
   traefik:
+    networks:
+      default:
+        ipv4_address: 172.21.0.255
     restart: unless-stopped
     depends_on:
       authelia:
