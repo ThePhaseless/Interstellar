@@ -22,7 +22,8 @@
         "redhat.vscode-yaml",
         "ms-azuretools.vscode-docker",
         "esbenp.prettier-vscode",
-        "keesschollaart.vscode-home-assistant"
+        "keesschollaart.vscode-home-assistant",
+        "fengtan.ldap-explorer"
       ]
     }
   }
