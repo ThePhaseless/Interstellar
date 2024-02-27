@@ -1,3 +1,4 @@
+name: dmz
 include:
   - path: ./docker-compose.game-servers.yaml
   - path: ./docker-compose.reverse-proxy.yaml
