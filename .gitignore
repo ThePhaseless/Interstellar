@@ -2,4 +2,19 @@
 !**/*.env*example
 **/privatekey
 **/publickey
-DMZ/Docker/Configs
+DMZ/Docker/Configs/*
+
+!DMZ/Docker/Configs/Home
+DMZ/Docker/Configs/Home/*
+
+# Home Assistant
+!DMZ/Docker/Configs/Home/HomeAssistant
+DMZ/Docker/Configs/Home/HomeAssistant/*
+!*DMZ/Docker/Configs/Home/HomeAssistant/configuration.yaml
+
+# Adguard Home
+!DMZ/Docker/Configs/Home/AdGuard
+DMZ/Docker/Configs/Home/AdGuard/*
+!DMZ/Docker/Configs/Home/AdGuard/conf
+DMZ/Docker/Configs/Home/AdGuard/conf/*
+!DMZ/Docker/Configs/Home/AdGuard/conf/AdGuardHome.yaml
