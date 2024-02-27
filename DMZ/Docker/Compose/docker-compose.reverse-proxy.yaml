@@ -6,6 +6,8 @@ services:
       default:
         ipv4_address: 172.21.0.255
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       authelia:
         condition: service_healthy
