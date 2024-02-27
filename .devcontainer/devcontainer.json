@@ -21,7 +21,8 @@
         "jeff-hykin.better-shellscript-syntax",
         "redhat.vscode-yaml",
         "ms-azuretools.vscode-docker",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "keesschollaart.vscode-home-assistant"
       ]
     }
   }

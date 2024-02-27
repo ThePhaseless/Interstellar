@@ -3,5 +3,8 @@
     "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": [
       "*-compose.yaml"
     ]
+  },
+  "files.associations": {
+    "DMZ/Docker/Configs/Home/HomeAssistant/configuration.yaml": "home-assistant"
   }
 }
