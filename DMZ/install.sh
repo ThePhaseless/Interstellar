@@ -78,7 +78,7 @@ case $input in
 	;;
 *)
 	echo "Setting up RAID10..."
-	./setup_raid10.sh
+	./setup_raidz10.sh
 	;;
 esac
 
