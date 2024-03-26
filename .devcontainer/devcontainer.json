@@ -12,6 +12,7 @@
   "remoteEnv": {
     "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
   },
+  "postCreateCommand": "sudo apt update && sudo apt install -y shellcheck",
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {
