@@ -69,7 +69,7 @@ if [ -f "/etc/wireguard/$VPN_INTERFACE.conf" ]; then
 fi
 config="[Interface]
 PrivateKey = $(cat "$KEYS_LOCATION/dmz.pem")
-Address = $WIREGUARD_VPS_IP/24
+Address = $WIREGUARD_DMZ_IP/24
 ListenPort = $WIREGUARD_PORT
 
 [Peer]
@@ -95,12 +95,5 @@ while true; do
     fi
 done
 echo "Connection successful!"
-
-
-# Speed test connection
-echo "Speed testing connection..."
-sudo apt install iperf3 -y
-sleep 5
-iperf3 -c $WIREGUARD_DMZ_IP
 
 echo "Done!"

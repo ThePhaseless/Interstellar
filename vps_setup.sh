@@ -101,10 +101,6 @@ while true; do
 done
 echo "Connection successful!"
 
-# Speed test connection
-sudo apt install iperf3 -y
-iperf3 -s
-
 # Redirect ports with nginx
 echo "Redirecting ports..."
 sudo apt install nginx -y
