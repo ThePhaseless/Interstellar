@@ -56,12 +56,13 @@ read -r -p "Press enter to continue: "
 
 # Build Wireguard config
 echo "Building Wireguard config..."
+sudo chmod 777 /etc/wireguard -R
 if [ -f "/etc/wireguard/$VPN_INTERFACE.conf" ]; then
     read -r -p "Wireguard config already exists. Do you want to overwrite it? [y/N] " response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
         echo "Overwriting existing config..."
         sudo wg-quick down $VPN_INTERFACE
-        rm /etc/wireguard/$VPN_INTERFACE.conf
+        sudo rm /etc/wireguard/$VPN_INTERFACE.conf
     else
         echo "Exiting..."
         exit 0
@@ -78,9 +79,7 @@ AllowedIPs = $WIREGUARD_VPS_IP/32
 Endpoint = $PUBLIC_VPS_IP:$WIREGUARD_PORT
 PersistentKeepalive = 25"
 
-sudo touch /etc/wireguard/$VPN_INTERFACE.conf
-sudo chmod 777 /etc/wireguard/$VPN_INTERFACE.conf
-echo "$config" | sudo tee /etc/wireguard/$VPN_INTERFACE.conf
+echo "$config" > /etc/wireguard/$VPN_INTERFACE.conf
 
 # Allow iptables forwarding
 sudo sysctl -w net.ipv4.ip_forward=1
