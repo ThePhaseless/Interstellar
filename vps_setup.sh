@@ -54,7 +54,7 @@ if [ "$generateNewKeys" = true ]; then
     wg genkey | tee "$KEYS_LOCATION/vps.pem" | wg pubkey | tee "$KEYS_LOCATION/vps.pub"
 fi
 echo "Public key $KEYS_LOCATION/vps.pub:"
-echo "$(cat "$KEYS_LOCATION/vps.pub")"
+cat "$KEYS_LOCATION/vps.pub"
 echo "Please note down the public key. You will need it later to set up client."
 
 # Setting up dmz public key
@@ -67,7 +67,7 @@ read -r -p "Press enter to continue: "
 # Build Wireguard config
 echo "Building Wireguard config..."
 sudo chmod 777 /etc/wireguard -R
-if [ -f "/etc/wireguard/$VPN_INTERFACE.conf"]; then
+if [ -f "/etc/wireguard/$VPN_INTERFACE.conf" ]; then
     read -r -p "Wireguard config already exists. Do you want to overwrite it? [y/N] " response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
         echo "Overwriting existing config..."
@@ -105,6 +105,8 @@ done
 nginx_config="$nginx_config
 }"
 
-sudo rm /etc/nginx/modules-enabled/proxy.conf
+if [ -f "/etc/nginx/modules-enabled/proxy.conf" ]; then
+    sudo rm /etc/nginx/modules-enabled/proxy.conf
+fi
 touch /etc/nginx/modules-enabled/proxy.conf
 echo "$nginx_config" > /etc/nginx/modules-enabled/proxy.conf
