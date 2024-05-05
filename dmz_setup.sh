@@ -90,12 +90,12 @@ sudo wg-quick up $VPN_INTERFACE
 echo "Testing connection..."
 while true; do
     sleep 1
-    if ping -c 1 -W 1 $WIREGUARD_DMZ_IP; then
+    if ping -c 1 -W 1 $WIREGUARD_VPS_IP; then
         break
     fi
 done
 echo "Connection successful!"
-sudo systemctl enable wg-quick@$VPN_INTERFACE
+
 
 # Speed test connection
 echo "Speed testing connection..."

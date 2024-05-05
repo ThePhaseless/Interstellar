@@ -91,6 +91,20 @@ echo "$config" > /etc/wireguard/$VPN_INTERFACE.conf
 
 sudo wg-quick up $VPN_INTERFACE
 
+# Check connection
+echo "Checking connection..."
+while true; do
+    sleep 1
+    if ping -c 1 -W 1 $WIREGUARD_DMZ_IP; then
+        break
+    fi
+done
+echo "Connection successful!"
+
+# Speed test connection
+sudo apt install iperf3 -y
+iperf3 -s
+
 # Redirect ports with nginx
 echo "Redirecting ports..."
 sudo apt install nginx -y
@@ -111,3 +125,7 @@ fi
 sudo touch /etc/nginx/modules-enabled/proxy.conf
 sudo chmod 777 /etc/nginx/modules-enabled/proxy.conf
 echo "$nginx_config" > /etc/nginx/modules-enabled/proxy.conf
+
+sudo systemctl restart nginx
+sudo systemctl enable nginx
+echo "Done!"
