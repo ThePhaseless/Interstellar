@@ -108,5 +108,6 @@ nginx_config="$nginx_config
 if [ -f "/etc/nginx/modules-enabled/proxy.conf" ]; then
     sudo rm /etc/nginx/modules-enabled/proxy.conf
 fi
-touch /etc/nginx/modules-enabled/proxy.conf
+sudo touch /etc/nginx/modules-enabled/proxy.conf
+sudo chmod 777 /etc/nginx/modules-enabled/proxy.conf
 echo "$nginx_config" > /etc/nginx/modules-enabled/proxy.conf
