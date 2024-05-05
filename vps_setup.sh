@@ -115,11 +115,10 @@ done
 nginx_config="$nginx_config
 }"
 
-sudo chmod 777 /etc/nginx/modules-enabled/proxy.conf
 if [ -f "/etc/nginx/modules-enabled/proxy.conf" ]; then
     sudo rm /etc/nginx/modules-enabled/proxy.conf
 fi
-sudo touch /etc/nginx/modules-enabled/proxy.conf
+sudo chmod 777 /etc/nginx/modules-enabled
 echo "$nginx_config" > /etc/nginx/modules-enabled/proxy.conf
 
 sudo systemctl restart nginx
