@@ -109,7 +109,7 @@ for port in "${REDIRECT_PORTS[@]}"; do
     nginx_config="$nginx_config
     server {
         listen $port;
-        proxy_pass $WIREGUARD_DMZ_IP:$WIREGUARD_PORT;
+        proxy_pass $WIREGUARD_DMZ_IP:$port;
     }"
 done
 nginx_config="$nginx_config
