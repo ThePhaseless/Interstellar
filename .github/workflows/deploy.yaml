@@ -16,7 +16,7 @@ jobs:
           tags: tag:ci
       - name: Check for Repository
         run: |
-          tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "if [ ! -d ${{ vars.SSH_DIR }} ]; then exit 1 ; fi"
+          tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "if [ ! -d ${{ vars.SSH_DIR }} ] || [ ! -d ${{ vars.SSH_DIR }}/.env ]; then exit 1 ; fi"
       - name: Deploy
         run: |
           tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "cd ${{ vars.SSH_DIR }} && git pull && docker compose up -d"
