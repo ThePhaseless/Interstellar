@@ -1,0 +1,150 @@
+name: home
+
+services:
+  samba:
+    container_name: Samba
+    image: ghcr.io/servercontainers/samba
+    network_mode: host
+    cap_add:
+      - CAP_NET_ADMIN
+    environment:
+      TZ: ${TIMEZONE}
+      ACCOUNT_thephaseless: ${SMB_THEPHASELESS_PASS}
+      ACCOUNT_karolina: ${SMB_KAROLINA_PASS}
+      SAMBA_VOLUME_CONFIG_shared_home: |
+        [Storage]
+          path=/storage
+          browseable = yes
+          force user = root
+          force group = root
+          create mask = 0664
+          directory mask = 0775
+
+        [Game Servers]
+          path=/game-servers
+          browseable = yes
+          force user = root
+          force group = root
+          create mask = 0664
+          directory mask = 0775
+
+    volumes:
+      - ${SERVERS_PATH}:/game-servers
+      - ${STORAGE_PATH}:/storage
+    restart: unless-stopped
+
+  homeassistant:
+    container_name: HomeAssistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - ${CONFIG_PATH}/HomeAssistant:/config
+      - /run/dbus:/run/dbus:ro
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+      - HOMEASSISTANT_URL=https://ha.${PUBLIC_HOSTNAME}
+    ports:
+      - "8123:8123"
+    devices:
+      - "/dev/bus/usb:/dev/bus/usb"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homeassistant.rule=HostRegexp(`{subdomain:ha}.{host:.+}`)"
+      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
+      - "traefik.http.routers.homeassistant.middlewares=authelia"
+
+  portainer:
+    container_name: Portainer
+    image: portainer/portainer-ce:latest
+    environment:
+      - TZ=${TIMEZONE}
+    ports:
+      - 9000:9000
+    volumes:
+      - ${CONFIG_PATH}/Home/Portainer:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.routers.portainer.middlewares=authelia"
+
+  httpd:
+    image: httpd:latest
+    container_name: httpd
+    ports:
+      - "81:80"
+    volumes:
+      - ${CONFIG_PATH}/Home/httpd:/usr/local/apache2/htdocs
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.httpd.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.services.httpd.loadbalancer.server.port=80"
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: Homepage
+    ports:
+      - 82:3000
+    volumes:
+      - ${CONFIG_PATH}/Home/Homepage:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=HostRegexp(`{subdomain:dashboard}.{host:.+}`)"
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+      - "traefik.http.routers.homepage.middlewares=authelia"
+
+  renamer:
+    restart: unless-stopped
+    environment:
+      - BOT_TOKEN=${RENAMER_BOT_TOKEN}
+    container_name: Renamer
+    image: ghcr.io/thephaseless/renamer:main
+
+  adguardhome:
+    container_name: AdguardHome
+    image: adguard/adguardhome
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - "${CONFIG_PATH}/Home/AdGuard/work:/opt/adguardhome/work"
+      - "${CONFIG_PATH}/Home/AdGuard/conf:/opt/adguardhome/conf"
+    ports:
+      - "84:80" # WebUI
+      - "53:53/tcp" # DNS
+      - "53:53/udp" # DNS
+      - "3000:3000/tcp" # Setup
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adguardhome.rule=HostRegexp(`{subdomain:adguard}.{host:.+}`)"
+      - "traefik.http.services.adguardhome.loadbalancer.server.port=80"
+      - "traefik.http.routers.adguardhome.middlewares=authelia"
+
+  scanservjs:
+    restart: unless-stopped
+    container_name: scanservjs
+    image: "sbs20/scanservjs:latest"
+    ports:
+      - "86:8081"
+    volumes:
+      - "/var/run/dbus:/var/run/dbus"
+      - "${STORAGE_PATH}/Media/Scans:/app/data/output"
+      - "${CONFIG_PATH}/Home/Scanservjs:/app/config"
+    devices:
+      - "/dev/bus/usb:/dev/bus/usb"
+    privileged: true
+    environment:
+      - TZ=${TIMEZONE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.scanservjs.rule=HostRegexp(`{subdomain:scan}.{host:.+}`)"
+      - "traefik.http.services.scanservjs.loadbalancer.server.port=8080"
+      - "traefik.http.routers.scanservjs.middlewares=authelia"
