@@ -1,0 +1,9 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+auth_header:
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.0.0.0/8
