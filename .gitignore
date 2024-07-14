@@ -1,1 +1,8 @@
-config/
+config/*
+!config/Home
+config/Home/*
+!config/Home/AdGuard
+!config/Home/httpd
+!config/Home/HomeAssistant
+
+**/.env
