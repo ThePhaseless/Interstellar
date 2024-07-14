@@ -1,0 +1,22 @@
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+        -   name: Setup Tailscale
+            uses: tailscale/github-action@v2
+            with:
+                oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+                oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+                tags: tag:ci
+        -   name: Check for Repository
+            run: |
+                ssh $SSH_USER@$SSH_HOST "if [ ! -d $SSH_DIR ]; then git clone $GITHUB_SERVER_URL/$GITHUB_REPOSITORY ; fi"
+        -   name: Deploy
+            run: |
+                ssh $SSH_USER@$SSH_HOST "cd $SSH_DIR && git pull && docker compose up -d"
