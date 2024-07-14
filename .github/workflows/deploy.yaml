@@ -16,7 +16,7 @@ jobs:
           tags: tag:ci
       - name: Check for Repository
         run: |
-          ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "if [ ! -d ${{ vars.SSH_DIR }} ]; then git clone ${{ github.server_url }}/${{ github.repository }} ; fi"
+          ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "if [ ! -d ${{ vars.SSH_DIR }} ]; then exit 1 ; fi"
       - name: Deploy
         run: |
           ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "cd ${{ vars.SSH_DIR }} && git pull && docker compose up -d"
