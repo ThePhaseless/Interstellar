@@ -35,10 +35,11 @@ services:
       # Docker provider
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.defaultRule=HostRegexp(`{subdomain:{{ .ContainerName }}}.{host:.+}`)"
+      - '--providers.docker.defaultRule=Host(`{{ or {{ index .Labels "subdomain" }} .ContainerName }}.{{ env PUBLIC_HOSTNAME }}`)'
     environment:
       - TZ=${TIMEZONE}
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
     ports:
       # The HTTP port
       - "80:80"
@@ -73,7 +74,7 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.authelia.rule=HostRegexp(`{subdomain:auth}.{host:.+}`)"
+      - "subdomain=auth"
       - "traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.${PUBLIC_HOSTNAME}%2F"
       - "traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true"
       - "traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
@@ -98,7 +99,7 @@ services:
       - LLDAP_KEY_SEED=${LDAP_KEY_SEED}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.lldap.rule=HostRegexp(`{subdomain:lldap}.{host:.+}`)"
+      - "subdomain=lldap"
       - "traefik.http.routers.lldap.entrypoints=websecure"
 
   postfix:

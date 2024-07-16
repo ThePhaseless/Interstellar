@@ -49,7 +49,7 @@ services:
       - "/dev/bus/usb:/dev/bus/usb"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.homeassistant.rule=HostRegexp(`{subdomain:ha}.{host:.+}`)"
+      - "subdomain=ha"
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
       - "traefik.http.routers.homeassistant.middlewares=authelia"
 
@@ -81,7 +81,7 @@ services:
       - TZ=${TIMEZONE}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.httpd.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.routers.httpd.rule=Host(`{{ env PUBLIC_HOSTNAME }}`)"
       - "traefik.http.services.httpd.loadbalancer.server.port=80"
 
   homepage:
@@ -97,7 +97,7 @@ services:
       - TZ=${TIMEZONE}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.homepage.rule=HostRegexp(`{subdomain:dashboard}.{host:.+}`)"
+      - "subdomain=dashboard"
       - "traefik.http.services.homepage.loadbalancer.server.port=3000"
       - "traefik.http.routers.homepage.middlewares=authelia"
 
@@ -124,7 +124,7 @@ services:
       - "3000:3000/tcp" # Setup
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.adguardhome.rule=HostRegexp(`{subdomain:adguard}.{host:.+}`)"
+      - "hostname=dns"
       - "traefik.http.services.adguardhome.loadbalancer.server.port=80"
       - "traefik.http.routers.adguardhome.middlewares=authelia"
 
@@ -145,6 +145,6 @@ services:
       - TZ=${TIMEZONE}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.scanservjs.rule=HostRegexp(`{subdomain:scan}.{host:.+}`)"
+      - "subdomain=scan"
       - "traefik.http.services.scanservjs.loadbalancer.server.port=8080"
       - "traefik.http.routers.scanservjs.middlewares=authelia"
