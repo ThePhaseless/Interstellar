@@ -57,6 +57,8 @@ services:
     depends_on:
       lldap:
         condition: service_healthy
+      postfix:
+        condition: service_healthy
     container_name: authelia
     image: authelia/authelia:latest
     ports:
