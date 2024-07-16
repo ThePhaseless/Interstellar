@@ -1,3 +1,5 @@
+#!/bin/bash
+
 source .env
 config_path=$CONFIG_PATH
 
