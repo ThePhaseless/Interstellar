@@ -36,7 +36,7 @@ authentication_backend:
   ldap:
     implementation: custom
     address: ldap://lldap
-    user: uid=bind_user,ou=people,${LDAP_BASE_DN}
+    user: uid=admin,ou=people,${LDAP_BASE_DN}
     password: ${LDAP_PASSWORD}
     base_dn: ${LDAP_BASE_DN}
     additional_users_dn: ou=people
