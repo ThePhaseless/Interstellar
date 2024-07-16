@@ -1,10 +1,13 @@
 Config/*
 
-!Config/Home
+!Config/Home/
 Config/Home/*
+!Config/Home/AdGuard/
+!Config/Home/httpd/
+!Config/Home/HomeAssistant/
 
-!Config/Home/AdGuard
-!Config/Home/httpd
-!Config/Home/HomeAssistant
+!Config/Auth/
+Config/Auth/*
+!Config/Auth/Authelia/
 
 **/.env
