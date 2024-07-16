@@ -1,1 +1,2 @@
-sudo git pull && docker compose up -d --remove-orphans
+sudo git pull
+docker compose up -d --remove-orphans
