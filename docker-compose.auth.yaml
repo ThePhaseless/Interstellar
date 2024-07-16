@@ -15,11 +15,11 @@ services:
       - "--log.level=DEBUG"
       # Redirects web traffic to HTTPS
       - "--entrypoints.web.address=:80"
+      - "--entryPoints.web.proxyProtocol.trustedIPs=100.0.0.0/8"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      - "--entrypoints.web.http.redirections.entryPoint.permanent=true"
       # Enables TLS and manages certificates
       - "--entrypoints.websecure.address=:443"
+      - "--entryPoints.websecure.proxyProtocol.trustedIPs=100.0.0.0/8"
       - "--entrypoints.websecure.http.tls=true"
       - "--entrypoints.websecure.http.tls.certresolver=cloudflare"
       - "--entrypoints.websecure.http.tls.domains[0].main=${PUBLIC_HOSTNAME}"
