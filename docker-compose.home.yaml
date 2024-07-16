@@ -37,7 +37,7 @@ services:
     container_name: HomeAssistant
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
-      - ${CONFIG_PATH}/HomeAssistant:/config
+      - ${CONFIG_PATH}/Home/HomeAssistant:/config
       - /run/dbus:/run/dbus:ro
     restart: unless-stopped
     environment:
