@@ -35,7 +35,7 @@ services:
       # Docker provider
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - '--providers.docker.defaultRule=Host(`{{ or (index .Labels "subdomain") .ContainerName }}.{{ env PUBLIC_HOSTNAME }}`)'
+      - '--providers.docker.defaultRule=Host(`{{ or (index .Labels \"subdomain\") .ContainerName }}.{{ env \"PUBLIC_HOSTNAME\" }}`)'
     environment:
       - TZ=${TIMEZONE}
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
