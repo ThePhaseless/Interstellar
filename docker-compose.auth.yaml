@@ -11,7 +11,7 @@ services:
     image: traefik:latest
     # Enables the web UI and tells Traefik to listen to docker
     command:
-      - "--api.insecure=true"
+      - "--api.dashboard=true"
       # Redirects web traffic to HTTPS
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
@@ -43,6 +43,7 @@ services:
       - "80:80"
       # The HTTPS port
       - "443:443"
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${CONFIG_PATH}/Auth/Traefik/config:/config
