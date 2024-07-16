@@ -3,6 +3,8 @@ Config/*
 !Config/Home/
 Config/Home/*
 !Config/Home/AdGuard/
+Config/Home/AdGuard/*
+!Config/Home/AdGuard/conf
 !Config/Home/httpd/
 !Config/Home/HomeAssistant/
 
