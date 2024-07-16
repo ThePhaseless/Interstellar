@@ -64,22 +64,9 @@ services:
     volumes:
       - ${CONFIG_PATH}/Auth/Authelia:/config
     environment:
-      - TZ=${TIMEZONE}
-      - AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_RESET_DISABLE=false
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS=ldap://lldap
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD=${LDAP_PASSWORD}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION=custom
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_START_TLS=false
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN=${LDAP_BASE_DN}
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN="ou=people"
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERS_FILTER="(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))"
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_GROUPS_DN="ou=groups"
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUPS_FILTER="(member={dn})"
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERNAME_ATTRIBUTES_DISPLAY_NAME=displayName
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERNAME_ATTRIBUTES_USERNAME=uid
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERNAME_ATTRIBUTES_GROUP_NAME=cn
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERNAME_ATTRIBUTES_MAIL=mail
-      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER=uid=bind_user,ou=people,dc=example,dc=com
+      - X_AUTHELIA_CONFIG_FILTERS=expand-env
+    env_file:
+      - .env
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.authelia.rule=HostRegexp(`{subdomain:auth}.{host:.+}`)"
@@ -103,8 +90,8 @@ services:
       - LLDAP_LDAP_BASE_DN=${LDAP_BASE_DN}
       - LLDAP_LDAP_PORT=389
       - LLDAP_LDAP_USER_PASS=${LDAP_PASSWORD}
-      - LLDAP_JWT_SECRET=REPLACE_WITH_RANDOM
-      - LLDAP_KEY_SEED=REPLACE_WITH_RANDOM
+      - LLDAP_JWT_SECRET=${LDAP_JWT_SECRET}
+      - LLDAP_KEY_SEED=${LDAP_KEY_SEED}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.lldap.rule=HostRegexp(`{subdomain:lldap}.{host:.+}`)"
@@ -121,7 +108,3 @@ services:
       - RELAYHOST_PASSWORD=${SMTP_PASSWORD}
     volumes:
       - ${CONFIG_PATH}/Auth/Postfix:/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.postfix.rule=HostRegexp(`{subdomain:postfix}.{host:.+}`)"
-      - "traefik.http.routers.postfix.entrypoints=websecure"

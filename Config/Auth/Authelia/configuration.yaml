@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://www.authelia.com/schemas/v4.38/json-schema/configuration.json
+# yamllint disable rule:comments-indentation
+---
+###############################################################################
+##                           Authelia Configuration                          ##
+###############################################################################
+
+##
+## Notes:
+##
+##    - the default location of this file is assumed to be configuration.yml unless otherwise noted
+##    - when using docker the container expects this by default to be at /config/configuration.yml
+##    - the default location where this file is loaded from can be overridden with the X_AUTHELIA_CONFIG environment var
+##    - the comments in this configuration file are helpful but users should consult the official documentation on the
+##      website at https://www.authelia.com/ or https://www.authelia.com/configuration/prologue/introduction/
+##    - this configuration file template is not automatically updated
+##
+
+## Certificates directory specifies where Authelia will load trusted certificates (public portion) from in addition to
+## the system certificates store.
+## They should be in base64 format, and have one of the following extensions: *.cer, *.crt, *.pem.
+# certificates_directory: '/config/certificates/'
+
+## The theme to display: light, dark, grey, auto.
+theme: "auto"
+
+access_control:
+  default_policy: one_factor
+
+authentication_backend:
+  ldap:
+    implementation: custom
+    address: ldap://lldap
+    user: uid=bind_user,ou=people,${LDAP_BASE_DN}
+    password: ${LDAP_PASSWORD}
+    base_dn: ${LDAP_BASE_DN}
+    additional_users_dn: ou=people
+    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+    additional_groups_dn: ou=groups
+    groups_filter: (member={dn})
+    attributes:
+      display_name: displayName
+      username: uid
+      group_name: cn
+      mail: mail
+
+storage:
+  encryption_key: ${AUTHELIA_STORAGE_ENCRYPTION_KEY}
+  local:
+    path: /config/storage.db
+
+notifier:
+  smtp:
+    address: smtp://postfix:587
+    # will be overriden by postfix anyway
+    sender: authelia@example.com
+
+session:
+  secret: ${AUTHELIA_SESSION_SECRET}
+  cookies:
+    - domain: ${PUBLIC_HOSTNAME}
+      authelia_url: https://auth.${PUBLIC_HOSTNAME}
