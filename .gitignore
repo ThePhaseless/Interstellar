@@ -7,6 +7,8 @@ Config/Home/AdGuard/*
 !Config/Home/AdGuard/conf
 !Config/Home/httpd/
 !Config/Home/HomeAssistant/
+Config/Home/HomeAssistant/*
+!Config/Home/HomeAssistant/configuration.yaml
 
 !Config/Auth/
 Config/Auth/*
