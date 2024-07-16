@@ -60,7 +60,7 @@ dns:
   bootstrap_prefer_ipv6: false
   upstream_timeout: 10s
   private_networks: []
-  use_private_ptr_resolvers: true
+  use_private_ptr_resolvers: false
   local_ptr_upstreams: []
   use_dns64: false
   dns64_prefixes: []
@@ -168,9 +168,9 @@ filtering:
   safebrowsing_block_host: standard-block.dns.adguard.com
   rewrites:
     - domain: '*.nerine.dev'
-      answer: media
+      answer: 192.168.1.147
     - domain: nerine.dev
-      answer: media
+      answer: 192.168.1.147
   safebrowsing_cache_size: 1048576
   safesearch_cache_size: 1048576
   parental_cache_size: 1048576
