@@ -12,6 +12,7 @@ services:
     # Enables the web UI and tells Traefik to listen to docker
     command:
       - "--api.dashboard=true"
+      - "--log.level=DEBUG"
       # Redirects web traffic to HTTPS
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
