@@ -108,5 +108,6 @@ services:
       - RELAYHOST=smtp.gmail.com:587
       - RELAYHOST_USERNAME=${SMTP_USERNAME}
       - RELAYHOST_PASSWORD=${SMTP_PASSWORD}
+      - ALLOWED_SENDER_DOMAINS=gmail.com
     volumes:
       - ${CONFIG_PATH}/Auth/Postfix:/data
