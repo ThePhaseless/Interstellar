@@ -27,6 +27,11 @@ theme: "auto"
 access_control:
   default_policy: one_factor
 
+identity_validation:
+  reset_password:
+    jwt_algorithm: HS256
+    jwt_secret: ${AUTHELIA_RESET_PASSWORD_JWT_SECRET}
+
 authentication_backend:
   ldap:
     implementation: custom
