@@ -15,3 +15,4 @@ http:
     - 172.0.0.0/8
 
 auth_header:
+  username_header: Remote-User
