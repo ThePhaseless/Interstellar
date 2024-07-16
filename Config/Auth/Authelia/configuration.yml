@@ -30,7 +30,7 @@ access_control:
 identity_validation:
   reset_password:
     jwt_algorithm: HS256
-    jwt_secret: ${AUTHELIA_RESET_PASSWORD_JWT_SECRET}
+    jwt_secret: ${AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET}
 
 authentication_backend:
   ldap:
