@@ -12,7 +12,7 @@ services:
     # Enables the web UI and tells Traefik to listen to docker
     command:
       - "--api.dashboard=true"
-      - "--log.level=DEBUG"
+      - "--api.insecure=true"
       # Redirects web traffic to HTTPS
       - "--entrypoints.web.address=:80"
       - "--entryPoints.web.proxyProtocol.trustedIPs=100.0.0.0/8"
@@ -35,11 +35,10 @@ services:
       # Docker provider
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - '--providers.docker.defaultRule=Host(`{{ or (index .Labels "subdomain") .ContainerName }}.{{ env "PUBLIC_HOSTNAME" }}`)'
+      - '--providers.docker.defaultRule=Host(`{{ or (index .Labels "subdomain") (lower .ContainerName)}}.${PUBLIC_HOSTNAME}`)'
     environment:
       - TZ=${TIMEZONE}
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
-      - PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
     ports:
       # The HTTP port
       - "80:80"
@@ -99,6 +98,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "subdomain=lldap"
+      - "traefik.http.routers.lldap.middlewares=authelia"
       - "traefik.http.routers.lldap.entrypoints=websecure"
 
   postfix:
