@@ -11,5 +11,7 @@ Config/Home/AdGuard/*
 !Config/Auth/
 Config/Auth/*
 !Config/Auth/Authelia/
+Config/Auth/Authelia/*
+!Config/Auth/Authelia/configuration.yml
 
 **/.env
