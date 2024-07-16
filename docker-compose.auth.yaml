@@ -16,10 +16,12 @@ services:
       # Redirects web traffic to HTTPS
       - "--entrypoints.web.address=:80"
       - "--entryPoints.web.proxyProtocol.trustedIPs=100.0.0.0/8"
+      - "--entryPoints.web.forwardedHeaders.trustedIPs=100.0.0.0/8"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       # Enables TLS and manages certificates
       - "--entrypoints.websecure.address=:443"
       - "--entryPoints.websecure.proxyProtocol.trustedIPs=100.0.0.0/8"
+      - "--entryPoints.websecure.forwardedHeaders.trustedIPs=100.0.0.0/8"
       - "--entrypoints.websecure.http.tls=true"
       - "--entrypoints.websecure.http.tls.certresolver=cloudflare"
       - "--entrypoints.websecure.http.tls.domains[0].main=${PUBLIC_HOSTNAME}"
@@ -51,6 +53,16 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.http.routers.traefik.middlewares=authelia"
+
+  whoami:
+    restart: unless-stopped
+    container_name: whoami
+    image: traefik/whoami:latest
+    ports:
+      - "1337:80"
+    labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.traefik.middlewares=authelia"
 
   authelia:
