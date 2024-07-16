@@ -67,6 +67,7 @@ dns:
   serve_http3: false
   use_http3_upstreams: false
   serve_plain_dns: true
+  hostsfile_enabled: true
 tls:
   enabled: false
   server_name: ""
@@ -83,12 +84,14 @@ tls:
   private_key_path: ""
   strict_sni_check: false
 querylog:
+  dir_path: ""
   ignored: []
   interval: 2160h
   size_memory: 1000
   enabled: true
   file_enabled: true
 statistics:
+  dir_path: ""
   ignored: []
   interval: 24h
   enabled: true
@@ -119,11 +122,11 @@ filters:
     id: 1708365227
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_14.txt
-    name: "POL: Polish filters for Pi-hole"
+    name: 'POL: Polish filters for Pi-hole'
     id: 1708365228
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_41.txt
-    name: "POL: CERT Polska List of malicious domains"
+    name: 'POL: CERT Polska List of malicious domains'
     id: 1708365229
 whitelist_filters: []
 user_rules: []
@@ -164,7 +167,7 @@ filtering:
   parental_block_host: family-block.dns.adguard.com
   safebrowsing_block_host: standard-block.dns.adguard.com
   rewrites:
-    - domain: "*.nerine.dev"
+    - domain: '*.nerine.dev'
       answer: media
     - domain: nerine.dev
       answer: media
@@ -187,6 +190,7 @@ clients:
     hosts: true
   persistent: []
 log:
+  enabled: true
   file: ""
   max_backups: 0
   max_size: 100
