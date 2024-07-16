@@ -34,11 +34,12 @@ services:
     restart: unless-stopped
 
   homeassistant:
+    privileged: true
     container_name: HomeAssistant
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
       - ${CONFIG_PATH}/Home/HomeAssistant:/config
-      - /run/dbus:/run/dbus:ro
+      - /dev/usb:/dev/usb
     restart: unless-stopped
     environment:
       - TZ=${TIMEZONE}
@@ -81,7 +82,7 @@ services:
       - TZ=${TIMEZONE}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.httpd.rule=Host(`{{ env PUBLIC_HOSTNAME }}`)"
+      - 'traefik.http.routers.httpd.rule=Host(`${PUBLIC_HOSTNAME}`)'
       - "traefik.http.services.httpd.loadbalancer.server.port=80"
 
   homepage:
@@ -124,7 +125,7 @@ services:
       - "3000:3000/tcp" # Setup
     labels:
       - "traefik.enable=true"
-      - "hostname=dns"
+      - "subdomain=dns"
       - "traefik.http.services.adguardhome.loadbalancer.server.port=80"
       - "traefik.http.routers.adguardhome.middlewares=authelia"
 
