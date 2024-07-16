@@ -19,4 +19,7 @@ jobs:
           tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "if [ ! -d ${{ vars.SSH_DIR }} ] || [ ! -f ${{ vars.SSH_DIR }}/.env ]; then echo 'Repository not found' ; exit 1 ; fi"
       - name: Deploy
         run: |
-          tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "cd ${{ vars.SSH_DIR }} && sudo git pull && docker compose up -d --remove-orphans"
+          tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "cd ${{ vars.SSH_DIR }} && ./scripts/deploy.sh"
+      - name: Check for HACS
+        run: |
+          tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "cd ${{ vars.SSH_DIR }} && ./scripts/install_hacs.sh"
