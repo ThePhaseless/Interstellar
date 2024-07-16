@@ -59,6 +59,7 @@ notifier:
     address: smtp://postfix:587
     # will be overriden by postfix anyway
     sender: authelia@example.com
+    disable_starttls: true # postfix has only cert for localhost
 
 session:
   secret: ${AUTHELIA_SESSION_SECRET}
