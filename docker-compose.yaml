@@ -1,5 +1,4 @@
 include:
-  # - docker-compose.game-servers.yaml
-  - docker-compose.media.yaml
-  - docker-compose.auth.yaml
-  - docker-compose.home.yaml
+  - path: docker-compose.media.yaml
+  - path: docker-compose.auth.yaml
+  - path: docker-compose.home.yaml
