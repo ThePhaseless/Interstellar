@@ -6,7 +6,7 @@
   "packageRules": [
     {
       "matchPackageNames": ["**/**"],
-      "allowedVersions": "/^[0-9]{1,3}+\\.[0-9]+\\.[0-9]+(\\.[0-9]+)?$/"
+      "allowedVersions": "/^[0-9]{1,3}\\.[0-9]+\\.[0-9]+(\\.[0-9]+)?$/"
     }
   ]
 }
