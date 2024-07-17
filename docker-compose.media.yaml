@@ -132,3 +132,12 @@ services:
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
       - TZ=${TIMEZONE}
     restart: unless-stopped
+
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr
+    container_name: recyclarr
+    user: 1000:1000
+    volumes:
+      - ${CONFIG_PATH}/Recyclarr:/config
+    environment:
+      - TZ=${TIMEZONE}

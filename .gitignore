@@ -1,5 +1,11 @@
 Config/*
 
+!Config/Media
+Config/Media/*
+!Config/Media/Recyclarr
+Config/Media/Recyclarr/*
+!Config/Media/Recyclarr/recyclarr.yml
+
 !Config/Home/
 Config/Home/*
 !Config/Home/AdGuard/
