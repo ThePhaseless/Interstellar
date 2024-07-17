@@ -3,7 +3,7 @@ name: home
 services:
   samba:
     container_name: Samba
-    image: ghcr.io/servercontainers/samba
+    image: ghcr.io/servercontainers/samba:latest
     network_mode: host
     cap_add:
       - CAP_NET_ADMIN
@@ -36,7 +36,7 @@ services:
   homeassistant:
     privileged: true
     container_name: HomeAssistant
-    image: "ghcr.io/home-assistant/home-assistant:stable"
+    image: ghcr.io/home-assistant/home-assistant:2024.7
     volumes:
       - ${CONFIG_PATH}/Home/HomeAssistant:/config
       - /dev/usb:/dev/usb
@@ -56,7 +56,7 @@ services:
 
   portainer:
     container_name: Portainer
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.20.3
     environment:
       - TZ=${TIMEZONE}
     ports:

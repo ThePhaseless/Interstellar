@@ -8,7 +8,7 @@ services:
         condition: service_healthy
     container_name: traefik
     # The official v2 Traefik docker image
-    image: traefik:latest
+    image: traefik:v3.1
     # Enables the web UI and tells Traefik to listen to docker
     command:
       - "--api.dashboard=true"
@@ -73,7 +73,7 @@ services:
       postfix:
         condition: service_healthy
     container_name: authelia
-    image: authelia/authelia:latest
+    image: authelia/authelia:4.38
     ports:
       - "9091:9091"
     volumes:
@@ -92,7 +92,7 @@ services:
   lldap:
     restart: unless-stopped
     container_name: lldap
-    image: lldap/lldap:stable
+    image: lldap/lldap:2024-06-16
     ports:
       # For LDAPS (LDAP Over SSL), enable port if LLDAP_LDAPS_OPTIONS__ENABLED set true, look env below
       # - "6360:6360"
@@ -114,7 +114,7 @@ services:
       - "traefik.http.routers.lldap.entrypoints=websecure"
 
   postfix:
-    image: boky/postfix
+    image: boky/postfix:4.2.1
     container_name: postfix
     restart: unless-stopped
     environment:
