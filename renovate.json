@@ -5,7 +5,6 @@
   ],
   "packageRules": [
     {
-      "matchPackageNames": ["jellyfin"],
       "allowedVersions": "!/\d{3,}\..*$/"
     }
   ]
