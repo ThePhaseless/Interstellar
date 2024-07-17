@@ -5,7 +5,7 @@
   ],
   "packageRules": [
     {
-      "allowedVersions": "!/\d{3,}\..*$/"
+      "allowedVersions": "!/\\d{3,}\\..*$/"
     }
   ]
 }
