@@ -5,6 +5,7 @@
   ],
   "packageRules": [
     {
+      "matchPackageNames": ["*"],
       "allowedVersions": "!/\\d{3,}\\..*$/"
     }
   ]
