@@ -168,9 +168,9 @@ filtering:
   safebrowsing_block_host: standard-block.dns.adguard.com
   rewrites:
     - domain: '*.nerine.dev'
-      answer: 192.168.1.147
+      answer: 192.168.1.6
     - domain: nerine.dev
-      answer: 192.168.1.147
+      answer: 192.168.1.6
   safebrowsing_cache_size: 1048576
   safesearch_cache_size: 1048576
   parental_cache_size: 1048576
