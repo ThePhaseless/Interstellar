@@ -9,7 +9,13 @@ services:
     container_name: traefik
     # The official v2 Traefik docker image
     image: traefik:v3.1
-    # Enables the web UI and tells Traefik to listen to docker
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+      start_interval: 1s
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
@@ -93,6 +99,8 @@ services:
     restart: unless-stopped
     container_name: lldap
     image: lldap/lldap:2024-06-16
+    healthcheck:
+      start_interval: 3s
     ports:
       # For LDAPS (LDAP Over SSL), enable port if LLDAP_LDAPS_OPTIONS__ENABLED set true, look env below
       # - "6360:6360"
@@ -117,6 +125,8 @@ services:
     image: boky/postfix:4.2.1
     container_name: postfix
     restart: unless-stopped
+    healthcheck:
+      start_interval: 3s
     environment:
       - TZ=${TIMEZONE}
       - RELAYHOST=smtp.gmail.com:587
