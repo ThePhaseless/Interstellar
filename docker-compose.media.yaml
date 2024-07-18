@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bazarr.middlewares=authelia"
+      - "traefik.http.routers.bazarr.middlewares=authelia,crowdsec,default-headers"
 
   radarr:
     image: linuxserver/radarr:5.7.0
@@ -22,13 +22,13 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${CONFIG_PATH}/Media/Radarr:/config
-      - ${STORAGE_PATH}/Media:/data
+      - ${STORAGE_PATH}:/data
     ports:
       - 7878:7878
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.radarr.middlewares=authelia"
+      - "traefik.http.routers.radarr.middlewares=authelia,crowdsec,default-headers"
 
   sonarr:
     image: linuxserver/sonarr:4.0.8
@@ -37,13 +37,13 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${CONFIG_PATH}/Media/Sonarr:/config
-      - ${STORAGE_PATH}/Media:/data #optional
+      - ${STORAGE_PATH}:/data #optional
     ports:
       - 8989:8989
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.sonarr.middlewares=authelia"
+      - "traefik.http.routers.sonarr.middlewares=authelia,crowdsec,default-headers"
 
   prowlarr:
     image: linuxserver/prowlarr:1.20.1
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.prowlarr.middlewares=authelia"
+      - "traefik.http.routers.prowlarr.middlewares=authelia,crowdsec,default-headers"
 
   qbittorrent:
     container_name: qBittorrent
@@ -70,10 +70,10 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${CONFIG_PATH}/Media/qBittorrent:/config
-      - ${STORAGE_PATH}/Downloads:/data/Downloads
+      - ${STORAGE_PATH}:/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.qbittorrent.middlewares=authelia"
+      - "traefik.http.routers.qbittorrent.middlewares=authelia,crowdsec,default-headers"
 
   jellyseerr:
     depends_on:
@@ -90,7 +90,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "subdomain=add"
-      - "traefik.http.routers.jellyseerr.middlewares=authelia"
+      - "traefik.http.routers.jellyseerr.middlewares=authelia,crowdsec,default-headers"
 
   jellyfin:
     image: linuxserver/jellyfin:10.9.7

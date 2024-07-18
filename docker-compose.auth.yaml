@@ -1,11 +1,25 @@
 name: reverse-proxy
 
 services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:v1.6.2
+    container_name: crowdsec
+    restart: unless-stopped
+
+    environment:
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve"
+    volumes:
+      - ${LOGS_PATH}:/var/log:ro
+      - ${CONFIG_PATH}/Auth/Crowdsec/db:/var/lib/crowdsec/data/
+      - ${CONFIG_PATH}/Auth/Crowdsec/config:/etc/crowdsec/
+
   traefik:
     restart: unless-stopped
     depends_on:
       authelia:
         condition: service_healthy
+      crowdsec:
+        condition: service_started
     container_name: traefik
     # The official v2 Traefik docker image
     image: traefik:v3.1
@@ -17,8 +31,13 @@ services:
       start_period: 30s
       start_interval: 1s
     command:
+      # Enable Dashboard
       - "--api.dashboard=true"
       - "--api.insecure=true"
+      - "--ping=true"
+      # Enable Traefik logs
+      - "--accesslog"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
       # Redirects web traffic to HTTPS
       - "--entrypoints.web.address=:80"
       - "--entryPoints.web.proxyProtocol.trustedIPs=100.0.0.0/8"
@@ -44,22 +63,42 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - '--providers.docker.defaultRule=Host(`{{ or (index .Labels "subdomain") (lower .ContainerName)}}.${PUBLIC_HOSTNAME}`)'
+      # Plugins
+      ## SABLIER: Dynamically start/stop containers
+      - --experimental.plugins.sablier.modulename=github.com/acouvreur/sablier
+      - --experimental.plugins.sablier.version=v1.8.0-beta.12
+      ## CrowdSec:
+      - --experimental.plugins.crowdsec.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      - --experimental.plugins.crowdsec.version=v1.3.3
     environment:
       - TZ=${TIMEZONE}
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     ports:
       # The HTTP port
-      - "80:80"
+      - target: 80
+        published: 80
+        mode: host
       # The HTTPS port
-      - "443:443"
+      - target: 443
+        published: 443
+        mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ${LOGS_PATH}/traefik:/var/log/traefik
       - ${CONFIG_PATH}/Auth/Traefik/config:/config
       - ${CONFIG_PATH}/Auth/Traefik/cert:/cert
     labels:
+      # CrowdSec middleware
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec.enabled=true"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec.crowdseclapikey=${CROWDSEC_API_KEY}"
+      # Headers middleware
+      - "traefik.http.middlewares.default-headers.headers.customResponseHeaders.stsSeconds=63072000"
+      - "traefik.http.middlewares.default-headers.headers.customResponseHeaders.stsPreload=true"
+      - "traefik.http.middlewares.default-headers.headers.customResponseHeaders.contentTypeNosniff=true"
+
       - "traefik.enable=true"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
-      - "traefik.http.routers.traefik.middlewares=authelia"
+      - "traefik.http.routers.traefik.middlewares=authelia,crowdsec,default-headers"
 
   whoami:
     restart: unless-stopped
@@ -69,7 +108,7 @@ services:
       - "1337:80"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.middlewares=authelia"
+      - "traefik.http.routers.whoami.middlewares=authelia,crowdsec,default-headers"
 
   authelia:
     restart: unless-stopped
@@ -118,7 +157,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "subdomain=lldap"
-      - "traefik.http.routers.lldap.middlewares=authelia"
+      - "traefik.http.routers.lldap.middlewares=authelia,crowdsec,default-headers"
       - "traefik.http.routers.lldap.entrypoints=websecure"
 
   postfix:

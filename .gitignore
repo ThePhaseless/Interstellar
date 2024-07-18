@@ -22,4 +22,6 @@ Config/Auth/*
 Config/Auth/Authelia/*
 !Config/Auth/Authelia/configuration.yml
 
+Logs/
+
 **/.env

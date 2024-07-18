@@ -52,7 +52,7 @@ services:
       - "traefik.enable=true"
       - "subdomain=ha"
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
-      - "traefik.http.routers.homeassistant.middlewares=authelia"
+      - "traefik.http.routers.homeassistant.middlewares=authelia,crowdsec,default-headers"
 
   portainer:
     container_name: Portainer
@@ -68,21 +68,21 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-      - "traefik.http.routers.portainer.middlewares=authelia"
+      - "traefik.http.routers.portainer.middlewares=authelia,crowdsec,default-headers"
 
   httpd:
-    image: httpd:latest
+    image: nginx:latest
     container_name: httpd
     ports:
       - "81:80"
     volumes:
-      - ${CONFIG_PATH}/Home/httpd:/usr/local/apache2/htdocs
+      - ${CONFIG_PATH}/Home/httpd:/usr/share/nginx/html
     restart: unless-stopped
     environment:
       - TZ=${TIMEZONE}
     labels:
       - "traefik.enable=true"
-      - 'traefik.http.routers.httpd.rule=Host(`${PUBLIC_HOSTNAME}`)'
+      - "traefik.http.routers.httpd.rule=Host(`${PUBLIC_HOSTNAME}`)"
       - "traefik.http.services.httpd.loadbalancer.server.port=80"
 
   homepage:
@@ -100,7 +100,7 @@ services:
       - "traefik.enable=true"
       - "subdomain=dashboard"
       - "traefik.http.services.homepage.loadbalancer.server.port=3000"
-      - "traefik.http.routers.homepage.middlewares=authelia"
+      - "traefik.http.routers.homepage.middlewares=authelia,crowdsec,default-headers"
 
   renamer:
     restart: unless-stopped
@@ -127,7 +127,7 @@ services:
       - "traefik.enable=true"
       - "subdomain=dns"
       - "traefik.http.services.adguardhome.loadbalancer.server.port=80"
-      - "traefik.http.routers.adguardhome.middlewares=authelia"
+      - "traefik.http.routers.adguardhome.middlewares=authelia,crowdsec,default-headers"
 
   scanservjs:
     restart: unless-stopped
@@ -148,4 +148,4 @@ services:
       - "traefik.enable=true"
       - "subdomain=scan"
       - "traefik.http.services.scanservjs.loadbalancer.server.port=8080"
-      - "traefik.http.routers.scanservjs.middlewares=authelia"
+      - "traefik.http.routers.scanservjs.middlewares=authelia,crowdsec,default-headers"
