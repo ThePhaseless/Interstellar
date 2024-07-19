@@ -5,8 +5,8 @@ services:
     image: crowdsecurity/crowdsec:v1.6.2
     container_name: crowdsec
     restart: unless-stopped
-
     environment:
+      SMTP_USERNAME: ${SMTP_USERNAME}
       COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve"
     volumes:
       - ${LOGS_PATH}:/var/log:ro
@@ -92,9 +92,9 @@ services:
       - "traefik.http.middlewares.crowdsec.plugin.crowdsec.enabled=true"
       - "traefik.http.middlewares.crowdsec.plugin.crowdsec.crowdseclapikey=${CROWDSEC_API_KEY}"
       # Headers middleware
-      - "traefik.http.middlewares.default-headers.headers.customResponseHeaders.stsSeconds=63072000"
-      - "traefik.http.middlewares.default-headers.headers.customResponseHeaders.stsPreload=true"
-      - "traefik.http.middlewares.default-headers.headers.customResponseHeaders.contentTypeNosniff=true"
+      - "traefik.http.middlewares.default-headers.headers.stsSeconds=63072000"
+      - "traefik.http.middlewares.default-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.default-headers.headers.contentTypeNosniff=true"
 
       - "traefik.enable=true"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"

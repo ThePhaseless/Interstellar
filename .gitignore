@@ -22,6 +22,21 @@ Config/Auth/*
 Config/Auth/Authelia/*
 !Config/Auth/Authelia/configuration.yml
 
+!Config/Auth/Crowdsec
+Config/Auth/Crowdsec/*
+!Config/Auth/Crowdsec/config
+Config/Auth/Crowdsec/config/*
+!Config/Auth/Crowdsec/config/acquis.yaml
+!Config/Auth/Crowdsec/config/profiles.yaml
+!Config/Auth/Crowdsec/config/notifications
+Config/Auth/Crowdsec/config/notifications/*
+!Config/Auth/Crowdsec/config/notifications/email.yaml
+!Config/Auth/Crowdsec/config/parsers
+Config/Auth/Crowdsec/config/parsers/*
+!Config/Auth/Crowdsec/config/parsers/s02-enrich
+Config/Auth/Crowdsec/config/parsers/s02-enrich/*
+!Config/Auth/Crowdsec/config/parsers/s02-enrich/default-whitelists.yaml
+
 Logs/
 
 **/.env

@@ -82,7 +82,7 @@ services:
       - TZ=${TIMEZONE}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.middlewares=crowdsec,default-headers"
+      - "traefik.http.routers.httpd.middlewares=crowdsec,default-headers"
       - "traefik.http.routers.httpd.rule=Host(`${PUBLIC_HOSTNAME}`)"
       - "traefik.http.services.httpd.loadbalancer.server.port=80"
 
