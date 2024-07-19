@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bazarr.middlewares=authelia,crowdsec,default-headers"
+      - "traefik.http.routers.bazarr.middlewares=crowdsec,default-headers,authelia"
 
   radarr:
     image: linuxserver/radarr:5.7.0
@@ -28,7 +28,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.radarr.middlewares=authelia,crowdsec,default-headers"
+      - "traefik.http.routers.radarr.middlewares=crowdsec,default-headers,authelia"
 
   sonarr:
     image: linuxserver/sonarr:4.0.8
@@ -43,7 +43,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.sonarr.middlewares=authelia,crowdsec,default-headers"
+      - "traefik.http.routers.sonarr.middlewares=crowdsec,default-headers,authelia"
 
   prowlarr:
     image: linuxserver/prowlarr:1.20.1
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.prowlarr.middlewares=authelia,crowdsec,default-headers"
+      - "traefik.http.routers.prowlarr.middlewares=crowdsec,default-headers,authelia"
 
   qbittorrent:
     container_name: qBittorrent
@@ -73,7 +73,7 @@ services:
       - ${STORAGE_PATH}:/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.qbittorrent.middlewares=authelia,crowdsec,default-headers"
+      - "traefik.http.routers.qbittorrent.middlewares=crowdsec,default-headers,authelia"
 
   jellyseerr:
     depends_on:
@@ -90,7 +90,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "subdomain=add"
-      - "traefik.http.routers.jellyseerr.middlewares=authelia,crowdsec,default-headers"
+      - "traefik.http.routers.jellyseerr.middlewares=crowdsec,default-headers,authelia"
 
   jellyfin:
     image: linuxserver/jellyfin:10.9.7
@@ -110,6 +110,7 @@ services:
       - /dev/dri:/dev/dri
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.whoami.middlewares=crowdsec,default-headers"
       - "subdomain=watch"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
 

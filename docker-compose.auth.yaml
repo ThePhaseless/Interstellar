@@ -98,7 +98,7 @@ services:
 
       - "traefik.enable=true"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
-      - "traefik.http.routers.traefik.middlewares=authelia,crowdsec,default-headers"
+      - "traefik.http.routers.traefik.middlewares=crowdsec,default-headers,authelia"
 
   whoami:
     restart: unless-stopped
@@ -108,7 +108,7 @@ services:
       - "1337:80"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.middlewares=authelia,crowdsec,default-headers"
+      - "traefik.http.routers.whoami.middlewares=crowdsec,default-headers,authelia"
 
   authelia:
     restart: unless-stopped
@@ -158,7 +158,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "subdomain=lldap"
-      - "traefik.http.routers.lldap.middlewares=authelia,crowdsec,default-headers"
+      - "traefik.http.routers.lldap.middlewares=crowdsec,default-headers,authelia"
       - "traefik.http.routers.lldap.entrypoints=websecure"
 
   postfix:
