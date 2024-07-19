@@ -125,6 +125,7 @@ services:
       - ${CONFIG_PATH}/Auth/Authelia:/config
     environment:
       - X_AUTHELIA_CONFIG_FILTERS=expand-env
+      - AUTHELIA_NOTIFIER_SMTP_SENDER=auth.${SMTP_USERNAME}
     env_file:
       - .env
     labels:
@@ -166,11 +167,12 @@ services:
     restart: unless-stopped
     healthcheck:
       start_interval: 3s
+      start_period: 30s
     environment:
       - TZ=${TIMEZONE}
       - RELAYHOST=smtp.gmail.com:587
       - RELAYHOST_USERNAME=${SMTP_USERNAME}
       - RELAYHOST_PASSWORD=${SMTP_PASSWORD}
-      - ALLOWED_SENDER_DOMAINS=gmail.com
+      - ALLOW_EMPTY_SENDER_DOMAINS=true
     volumes:
       - ${CONFIG_PATH}/Auth/Postfix:/data
