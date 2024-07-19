@@ -27,11 +27,27 @@ services:
           force group = root
           create mask = 0664
           directory mask = 0775
-
     volumes:
       - ${SERVERS_PATH}:/game-servers
       - ${STORAGE_PATH}:/storage
     restart: unless-stopped
+
+  # open-webui:
+  #   volumes:
+  #     - ${CONFIG_PATH}/Home/OpenWebUI:/app/backend/data
+  #     - ${STORAGE_PATH}/ollama:/root/.ollama
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   container_name: open-webui
+  #   restart: unless-stopped
+  #   environment:
+  #     - WEBUI_AUTH=false
+  #   image: ghcr.io/open-webui/open-webui:ollama
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.services.open-webui.loadbalancer.server.port=8080"
+  #     - "traefik.http.routers.open-webui.middlewares=crowdsec,default-headers,authelia"
+  #     - "subdomain=chat"
 
   homeassistant:
     privileged: true
