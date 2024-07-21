@@ -5,6 +5,19 @@
   ],
   "packageRules": [
     {
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch",
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
       "matchPackagePatterns": [".*"],
       "allowedVersions": "/^v?[0-9]{1,3}(\\D.*)?$/"
     }
