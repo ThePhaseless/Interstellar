@@ -176,6 +176,6 @@ services:
     container_name: recyclarr
     user: 1000:1000
     volumes:
-      - ${CONFIG_PATH}/Recyclarr:/config
+      - ${CONFIG_PATH}/Media/Recyclarr:/config
     environment:
       - TZ=${TIMEZONE}
