@@ -46,8 +46,8 @@ services:
       - "traefik.http.routers.sonarr.middlewares=crowdsec,default-headers,authelia"
 
   prowlarr:
-    image: linuxserver/prowlarr:1.20.1
-    container_name: Prowlarr
+    image: ghcr.io/thephaseless/byparr
+    container_name: Byparr
     environment:
       - TZ=${TIMEZONE}
     volumes:
