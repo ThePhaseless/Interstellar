@@ -44,7 +44,7 @@ sonarr:
     quality_profiles:
       - name: Default
         qualities:
-          - name: Bluray-2160p Remux
+          # - name: Bluray-2160p Remux
           - name: Bluray-2160p
           - name: WEBDL-2160p
           - name: WEBRip-2160p
@@ -182,7 +182,7 @@ radarr:
     quality_profiles:
       - name: Default
         qualities:
-          - name: Remux-2160p
+          # - name: Remux-2160p
           - name: Bluray-2160p
           - name: WEBDL-2160p
           - name: WEBRip-2160p
