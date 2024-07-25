@@ -46,8 +46,8 @@ services:
       - "traefik.http.routers.sonarr.middlewares=crowdsec,default-headers,authelia"
 
   prowlarr:
-    image: ghcr.io/thephaseless/byparr
-    container_name: Byparr
+    image: linuxserver/prowlarr
+    container_name: Prowlarr
     environment:
       - TZ=${TIMEZONE}
     volumes:
@@ -125,13 +125,10 @@ services:
       - "traefik.enable=false"
 
   flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:pr-1282
-    container_name: FlareSolverr
+    image: ghcr.io/thephaseless/byparr:main
+    container_name: Byparr
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-info}
-      - LOG_HTML=${LOG_HTML:-false}
-      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
-      - TZ=${TIMEZONE}
     restart: unless-stopped
 
   decluttarr:
