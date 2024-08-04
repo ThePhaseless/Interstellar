@@ -9,24 +9,23 @@ services:
       - CAP_NET_ADMIN
     environment:
       TZ: ${TIMEZONE}
-      ACCOUNT_thephaseless: ${SMB_THEPHASELESS_PASS}
-      ACCOUNT_karolina: ${SMB_KAROLINA_PASS}
       SAMBA_VOLUME_CONFIG_shared_home: |
         [Storage]
           path=/storage
-          browseable = yes
-          force user = root
-          force group = root
-          create mask = 0664
-          directory mask = 0775
+          browsable = yes
+          writable = yes
+          guest ok = yes
+          create mask = 0777
+          directory mask = 0777
 
         [Game Servers]
           path=/game-servers
-          browseable = yes
-          force user = root
-          force group = root
-          create mask = 0664
-          directory mask = 0775
+          browsable = yes
+          writable = yes
+          guest ok = yes
+          create mask = 0777
+          directory mask = 0777
+
     volumes:
       - ${SERVERS_PATH}:/game-servers
       - ${STORAGE_PATH}:/storage
