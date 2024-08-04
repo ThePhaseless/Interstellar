@@ -14,5 +14,5 @@ http:
   trusted_proxies:
     - 172.0.0.0/8
 
-auth_header:
-  username_header: Remote-User
+# auth_header:
+#   username_header: Remote-User
