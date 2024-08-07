@@ -86,7 +86,7 @@ services:
       - "traefik.enable=true"
       - "subdomain=ha"
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
-      - "traefik.http.routers.homeassistant.middlewares=crowdsec,default-headers,authelia"
+      - "traefik.http.routers.homeassistant.middlewares=crowdsec,default-headers"
 
   portainer:
     container_name: Portainer
