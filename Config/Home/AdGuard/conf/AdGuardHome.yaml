@@ -129,7 +129,9 @@ filters:
     name: 'POL: CERT Polska List of malicious domains'
     id: 1708365229
 whitelist_filters: []
-user_rules: []
+user_rules:
+  - '@@||t.co^$important'
+  - ""
 dhcp:
   enabled: false
   interface_name: ""
