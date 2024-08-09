@@ -48,24 +48,24 @@ services:
   #     - "traefik.http.routers.open-webui.middlewares=crowdsec,default-headers,authelia"
   #     - "subdomain=chat"
 
-  pufferpanel:
-    container_name: pufferpanel
-    restart: unless-stopped
-    ports:
-      - 8180:8080
-    volumes:
-      - ${CONFIG_PATH}/Home/PufferPanel/config:/etc/pufferpanel
-      - ${CONFIG_PATH}/Home/PufferPanel/binaries:/var/lib/pufferpanel/binaries
-      - ${SERVERS_PATH}:/var/lib/pufferpanel/servers
-      - /var/run/docker.sock:/var/run/docker.sock
-    image: pufferpanel/pufferpanel:latest
-    environment:
-      - TZ=${TIMEZONE}
-    labels:
-      - "traefik.enable=true"
-      - "subdomain=servers"
-      - "traefik.http.services.pufferpanel.loadbalancer.server.port=8080"
-      - "traefik.http.routers.pufferpanel.middlewares=crowdsec,default-headers,authelia"
+  # pufferpanel:
+  #   container_name: pufferpanel
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8180:8080
+  #   volumes:
+  #     - ${CONFIG_PATH}/Home/PufferPanel/config:/etc/pufferpanel
+  #     - ${CONFIG_PATH}/Home/PufferPanel/binaries:/var/lib/pufferpanel/binaries
+  #     - ${SERVERS_PATH}:/var/lib/pufferpanel/servers
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   image: pufferpanel/pufferpanel:latest
+  #   environment:
+  #     - TZ=${TIMEZONE}
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "subdomain=servers"
+  #     - "traefik.http.services.pufferpanel.loadbalancer.server.port=8080"
+  #     - "traefik.http.routers.pufferpanel.middlewares=crowdsec,default-headers,authelia"
 
   homeassistant:
     privileged: true
