@@ -80,6 +80,7 @@ services:
       - HOMEASSISTANT_URL=https://ha.${PUBLIC_HOSTNAME}
     ports:
       - "8123:8123"
+      - "9:9"
     devices:
       - "/dev/bus/usb:/dev/bus/usb"
     labels:
