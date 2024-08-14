@@ -1,0 +1,15 @@
+services:
+  dawncraft:
+    restart: unless-stopped
+    image: eclipse-temurin:17
+    container_name: dawncraft
+    working_dir: /server
+    entrypoint: "/bin/bash"
+    command: start.sh
+    tty: true
+    stdin_open: true
+    volumes:
+      - ${SERVERS_PATH}/dawncraft:/server
+    ports:
+      - 25565:25565
+      - 25565:25565/udp
