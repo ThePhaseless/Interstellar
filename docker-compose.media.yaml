@@ -7,7 +7,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${CONFIG_PATH}/Media/Bazarr:/config
-      - ${STORAGE_PATH}/Media:/data
+      - ${STORAGE_PATH}:/data
     ports:
       - 6767:6767
     restart: unless-stopped
