@@ -162,7 +162,7 @@ services:
       - "traefik.http.routers.lldap.entrypoints=websecure"
 
   postfix:
-    image: boky/postfix:4.2.1
+    image: boky/postfix:4.3.0
     container_name: postfix
     restart: unless-stopped
     healthcheck:
