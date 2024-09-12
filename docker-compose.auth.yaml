@@ -2,7 +2,7 @@ name: reverse-proxy
 
 services:
   crowdsec:
-    image: crowdsecurity/crowdsec:v1.6.2
+    image: crowdsecurity/crowdsec:v1.6.3
     container_name: crowdsec
     restart: unless-stopped
     environment:
