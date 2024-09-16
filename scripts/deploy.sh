@@ -1,5 +1,7 @@
 #!/bin/bash
 
 sudo git pull
-docker compose up -d --remove-orphans --pull always
+docker compose down
+docker compose pull
+docker compose up -d --remove-orphans
 docker system prune -a -f
