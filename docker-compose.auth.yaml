@@ -22,7 +22,7 @@ services:
         condition: service_started
     container_name: traefik
     # The official v2 Traefik docker image
-    image: traefik:v3.1
+    image: traefik:v3.2
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 1m30s
