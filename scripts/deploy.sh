@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 sudo git pull
 docker compose down
