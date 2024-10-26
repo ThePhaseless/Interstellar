@@ -16,7 +16,7 @@ services:
       - "traefik.http.routers.bazarr.middlewares=crowdsec,default-headers,authelia"
 
   radarr:
-    image: linuxserver/radarr:5.12.2
+    image: linuxserver/radarr:5.13.1
     container_name: Radarr
     environment:
       - TZ=${TIMEZONE}
@@ -31,7 +31,7 @@ services:
       - "traefik.http.routers.radarr.middlewares=crowdsec,default-headers,authelia"
 
   sonarr:
-    image: linuxserver/sonarr:4.0.9
+    image: linuxserver/sonarr:4.0.10
     container_name: Sonarr
     environment:
       - TZ=${TIMEZONE}
