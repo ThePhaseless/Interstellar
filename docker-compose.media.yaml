@@ -170,7 +170,7 @@ services:
       #- QBITTORRENT_PASSWORD=Your password
 
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:7.2
+    image: ghcr.io/recyclarr/recyclarr:7.3
     container_name: recyclarr
     volumes:
       - ${CONFIG_PATH}/Media/Recyclarr:/config
