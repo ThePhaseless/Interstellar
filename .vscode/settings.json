@@ -1,4 +1,7 @@
 {
+    "files.associations": {
+        "Config/Home/HomeAssistant/*.yaml": "home-assistant"
+    },
     "yaml.schemas": {
         "https://www.authelia.com/schemas/v4.38/json-schema/configuration.json": "file:///home/thephaseless/Repos/Interstellar/Config/Auth/authelia.yaml"
     }
