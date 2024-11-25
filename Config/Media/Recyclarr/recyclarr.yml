@@ -61,7 +61,7 @@ sonarr:
           - name: HDTV-720p
         upgrade:
           allowed: true
-          until_quality: WEBRip-1080p
+          until_quality: WEBDL-1080p
           until_score: 2000
 
     custom_formats:
@@ -200,7 +200,7 @@ radarr:
           - name: HDTV-720p
         upgrade:
           allowed: true
-          until_quality: Bluray-1080p
+          until_quality: WEBDL-1080p
           until_score: 2000
 
     custom_formats:
