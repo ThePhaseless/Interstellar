@@ -1,7 +1,7 @@
 services:
   magnum:
     container_name: Magnum
-    image: github.com/silvernetgroupsggw/magnum:main
+    image: ghcr.io/silvernetgroupsggw/magnum:main
     environment:
       - API_MODE=development
     restart: unless-stopped
