@@ -134,7 +134,7 @@ services:
     restart: unless-stopped
 
   decluttarr:
-    image: ghcr.io/manimatter/decluttarr:v1.50.1
+    image: ghcr.io/manimatter/decluttarr:v1.50.2
     container_name: decluttarr
     restart: always
     environment:
