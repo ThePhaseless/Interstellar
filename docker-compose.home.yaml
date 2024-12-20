@@ -91,7 +91,7 @@ services:
 
   portainer:
     container_name: Portainer
-    image: portainer/portainer-ce:2.25.0
+    image: portainer/portainer-ce:2.25.1
     environment:
       - TZ=${TIMEZONE}
     ports:
