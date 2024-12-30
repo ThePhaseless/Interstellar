@@ -78,7 +78,7 @@ services:
   jellyseerr:
     depends_on:
       - jellyfin
-    image: fallenbagel/jellyseerr:2.1.0
+    image: fallenbagel/jellyseerr:2.2.0
     container_name: Jellyseerr
     environment:
       - TZ=${TIMEZONE}
