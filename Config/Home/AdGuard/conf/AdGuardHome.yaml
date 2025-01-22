@@ -21,7 +21,10 @@ dns:
   ratelimit_whitelist: []
   refuse_any: true
   upstream_dns:
+    - 9.9.9.10
     - tls://1dot1dot1dot1.cloudflare-dns.com
+    - tls://dns10.quad9.net
+    - https://dns10.quad9.net/dns-query
   upstream_dns_file: ""
   bootstrap_dns:
     - 9.9.9.10
@@ -131,6 +134,8 @@ filters:
 whitelist_filters: []
 user_rules:
   - '@@||t.co^$important'
+  - '||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.114.52.63'
+  - '||nerine.dev^$client=192.168.0.0/24,dnsrewrite=NOERROR;A;192.168.0.23'
   - ""
 dhcp:
   enabled: false
@@ -169,11 +174,7 @@ filtering:
   blocking_mode: default
   parental_block_host: family-block.dns.adguard.com
   safebrowsing_block_host: standard-block.dns.adguard.com
-  rewrites:
-    - domain: '*.nerine.dev'
-      answer: 192.168.1.6
-    - domain: nerine.dev
-      answer: 192.168.1.6
+  rewrites: []
   safe_fs_patterns:
     - /opt/adguardhome/work/data/userfilters/*
   safebrowsing_cache_size: 1048576
