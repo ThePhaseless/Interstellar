@@ -134,7 +134,7 @@ filters:
 whitelist_filters: []
 user_rules:
   - '@@||t.co^$important'
-  - '||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.101.218.88'
+  - '||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.112.159.57'
   - '||nerine.dev^$client=192.168.0.0/24,dnsrewrite=NOERROR;A;192.168.0.32'
   - ""
 dhcp:
