@@ -1,0 +1,5 @@
+include:
+  - path: compose.media.yaml
+  - path: compose.auth.yaml
+  - path: compose.home.yaml
+  - path: compose.misc.yaml

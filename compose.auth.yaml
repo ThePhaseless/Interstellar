@@ -6,7 +6,6 @@ services:
     container_name: crowdsec
     restart: unless-stopped
     environment:
-      SMTP_USERNAME: ${SMTP_USERNAME}
       COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve"
     volumes:
       - ${LOGS_PATH}:/var/log:ro
@@ -16,7 +15,7 @@ services:
   traefik:
     restart: unless-stopped
     depends_on:
-      authelia:
+      authentikserver:
         condition: service_healthy
       crowdsec:
         condition: service_started
@@ -38,15 +37,16 @@ services:
       # Enable Traefik logs
       - "--accesslog"
       - "--accesslog.filepath=/var/log/traefik/access.log"
-      # Redirects web traffic to HTTPS
+      # Create entrypoitns
       - "--entrypoints.web.address=:80"
-      - "--entryPoints.web.proxyProtocol.trustedIPs=100.0.0.0/8"
-      # - "--entryPoints.web.forwardedHeaders.trustedIPs=100.0.0.0/8"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      # Enables TLS and manages certificates
       - "--entrypoints.websecure.address=:443"
+      # Enable proxy protocol
+      - "--entryPoints.web.proxyProtocol.trustedIPs=100.0.0.0/8"
+      - "--entryPoints.web.forwardedHeaders.trustedIPs=100.0.0.0/8"
       - "--entryPoints.websecure.proxyProtocol.trustedIPs=100.0.0.0/8"
-      # - "--entryPoints.websecure.forwardedHeaders.trustedIPs=100.0.0.0/8"
+      - "--entryPoints.websecure.forwardedHeaders.trustedIPs=100.0.0.0/8"
+      # Enables TLS and manages certificates
       - "--entrypoints.websecure.http.tls=true"
       - "--entrypoints.websecure.http.tls.certresolver=cloudflare"
       - "--entrypoints.websecure.http.tls.domains[0].main=${PUBLIC_HOSTNAME}"
@@ -64,12 +64,12 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - '--providers.docker.defaultRule=Host(`{{ or (index .Labels "subdomain") (lower .ContainerName)}}.${PUBLIC_HOSTNAME}`)'
       # Plugins
-      ## SABLIER: Dynamically start/stop containers
-      - --experimental.plugins.sablier.modulename=github.com/acouvreur/sablier
-      - --experimental.plugins.sablier.version=v1.8.0-beta.12
+      # ## SABLIER: Dynamically start/stop containers
+      # - --experimental.plugins.sablier.modulename=github.com/acouvreur/sablier
+      # - --experimental.plugins.sablier.version=v1.8.0-beta.12
       ## CrowdSec:
       - --experimental.plugins.crowdsec.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
-      - --experimental.plugins.crowdsec.version=v1.3.3
+      - --experimental.plugins.crowdsec.version=v1.4.1
     environment:
       - TZ=${TIMEZONE}
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
@@ -88,17 +88,18 @@ services:
       - ${CONFIG_PATH}/Auth/Traefik/config:/config
       - ${CONFIG_PATH}/Auth/Traefik/cert:/cert
     labels:
-      # CrowdSec middleware
+      # Headers middleware
+      # - "traefik.http.middlewares.default-headers.headers.stsSeconds=63072000"
+      # - "traefik.http.middlewares.default-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.default-headers.headers.contentTypeNosniff=true"
+
+      # CrowdSec plugin
       - "traefik.http.middlewares.crowdsec.plugin.crowdsec.enabled=true"
       - "traefik.http.middlewares.crowdsec.plugin.crowdsec.crowdseclapikey=${CROWDSEC_API_KEY}"
-      # Headers middleware
-      - "traefik.http.middlewares.default-headers.headers.stsSeconds=63072000"
-      - "traefik.http.middlewares.default-headers.headers.stsPreload=true"
-      - "traefik.http.middlewares.default-headers.headers.contentTypeNosniff=true"
 
       - "traefik.enable=true"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
-      - "traefik.http.routers.traefik.middlewares=crowdsec,default-headers,authelia"
+      - "traefik.http.routers.traefik.middlewares=default-headers"
 
   whoami:
     restart: unless-stopped
@@ -108,58 +109,83 @@ services:
       - "1337:80"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.middlewares=crowdsec,default-headers"
+      - "traefik.http.routers.whoami.middlewares=default-headers"
 
-  authelia:
+  postgresql:
+    image: docker.io/library/postgres:16-alpine
     restart: unless-stopped
-    depends_on:
-      lldap:
-        condition: service_healthy
-      postfix:
-        condition: service_healthy
-    container_name: authelia
-    image: authelia/authelia:4.38
-    ports:
-      - "9091:9091"
-    volumes:
-      - ${CONFIG_PATH}/Auth/Authelia:/config
-    environment:
-      - X_AUTHELIA_CONFIG_FILTERS=expand-env
-      - AUTHELIA_NOTIFIER_SMTP_SENDER=auth.${SMTP_USERNAME}
-    env_file:
-      - .env
-    labels:
-      - "traefik.enable=true"
-      - "subdomain=auth"
-      - "traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/verify?rd=https%3A%2F%2Fauth.${PUBLIC_HOSTNAME}%2F"
-      - "traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true"
-      - "traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
-
-  lldap:
-    restart: unless-stopped
-    container_name: lldap
-    image: lldap/lldap:2024-06-16
     healthcheck:
-      start_interval: 3s
-    ports:
-      # For LDAPS (LDAP Over SSL), enable port if LLDAP_LDAPS_OPTIONS__ENABLED set true, look env below
-      # - "6360:6360"
-      # For the web front-end
-      - "17170:17170"
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
     volumes:
-      - "${CONFIG_PATH}/Auth/LLDAP:/data"
+      - ${CONFIG_PATH}/Database:/var/lib/postgresql/data
     environment:
-      - TZ=${TIMEZONE}
-      - LLDAP_LDAP_BASE_DN=${LDAP_BASE_DN}
-      - LLDAP_LDAP_PORT=389
-      - LLDAP_LDAP_USER_PASS=${LDAP_PASSWORD}
-      - LLDAP_JWT_SECRET=${LDAP_JWT_SECRET}
-      - LLDAP_KEY_SEED=${LDAP_KEY_SEED}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+  redis:
+    image: docker.io/library/redis:alpine
+    command: --save 60 1 --loglevel warning
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - ${CONFIG_PATH}/Redis:/data
+
+  authentikserver:
+    image: ghcr.io/goauthentik/server:2024.12
+    restart: unless-stopped
+    command: server
+    env_file:
+      - .env.authentik
+    volumes:
+      - ${CONFIG_PATH}/Auth/Authentik/media:/media
+      - ${CONFIG_PATH}/Auth/Authentik/custom-templates:/templates
+    ports:
+      - "9000:9000"
     labels:
-      - "traefik.enable=true"
-      - "subdomain=lldap"
-      - "traefik.http.routers.lldap.middlewares=crowdsec,default-headers,authelia"
-      - "traefik.http.routers.lldap.entrypoints=websecure"
+      traefik.enable: true
+      subdomain: auth
+      traefik.http.middlewares.auth.forwardauth.address: http://authentikserver:9000/outpost.goauthentik.io/auth/traefik
+      traefik.http.middlewares.auth.forwardauth.trustForwardHeader: true
+      traefik.http.middlewares.auth.forwardauth.authResponseHeaders: X-authentik-username,X-authentik-groups,X-authentik-entitlements,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  authentikworker:
+    image: ghcr.io/goauthentik/server:2024.12
+    restart: unless-stopped
+    command: worker
+    env_file:
+      - .env.authentik
+    # `user: root` and the docker socket volume are optional.
+    # See more for the docker socket integration here:
+    # https://goauthentik.io/docs/outposts/integrations/docker
+    # Removing `user: root` also prevents the worker from fixing the permissions
+    # on the mounted folders, so when removing this make sure the folders have the correct UID/GID
+    # (1000:1000 by default)
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONFIG_PATH}/Auth/certs:/certs
+      - ${CONFIG_PATH}/Auth/Authentik/media:/media
+      - ${CONFIG_PATH}/Auth/Authentik/custom-templates:/templates
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   postfix:
     image: boky/postfix:4.4.0

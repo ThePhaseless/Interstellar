@@ -18,12 +18,6 @@ Config/Home/AdGuard/*
 Config/Home/HomeAssistant/*
 !Config/Home/HomeAssistant/configuration.yaml
 
-!Config/Auth/
-Config/Auth/*
-!Config/Auth/Authelia/
-Config/Auth/Authelia/*
-!Config/Auth/Authelia/configuration.yml
-
 !Config/Auth/Crowdsec
 Config/Auth/Crowdsec/*
 !Config/Auth/Crowdsec/config
@@ -41,4 +35,5 @@ Config/Auth/Crowdsec/config/parsers/s02-enrich/*
 
 Logs/
 
-**/.env
+**/.env*
+!**/.env*.example
