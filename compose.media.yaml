@@ -31,7 +31,7 @@ services:
       - "traefik.http.routers.radarr.middlewares=crowdsec,default-headers,auth"
 
   sonarr:
-    image: linuxserver/sonarr:4.0.12
+    image: linuxserver/sonarr:4.0.13
     container_name: Sonarr
     environment:
       - TZ=${TIMEZONE}
