@@ -131,11 +131,16 @@ filters:
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_41.txt
     name: 'POL: CERT Polska List of malicious domains'
     id: 1708365229
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt
+    name: HaGeZi's Threat Intelligence Feeds
+    id: 1739377959
 whitelist_filters: []
 user_rules:
   - '@@||t.co^$important'
   - '||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.112.159.57'
   - '||nerine.dev^$client=192.168.0.0/24,dnsrewrite=NOERROR;A;192.168.0.32'
+  - '@@||brightdata.com^$client=''100.84.56.60'''
   - ""
 dhcp:
   enabled: false
