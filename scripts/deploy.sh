@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-sudo git pull
+sudo git pull --rebase
 docker compose down
 docker compose pull
 docker compose up -d --remove-orphans
