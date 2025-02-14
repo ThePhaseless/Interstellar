@@ -91,7 +91,8 @@ services:
       - "${CONFIG_PATH}/Home/AdGuard/conf:/opt/adguardhome/conf"
     ports:
       - "84:80" # WebUI
-      - "53:53" # DNS
+      - 53:53/udp
+      - 53:53/tcp
       - "3000:3000/tcp" # Setup
     labels:
       - "traefik.enable=true"
