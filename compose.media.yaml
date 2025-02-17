@@ -93,7 +93,7 @@ services:
       - "traefik.http.routers.jellyseerr.middlewares=crowdsec,default-headers,auth"
 
   jellyfin:
-    image: linuxserver/jellyfin:10.10.5
+    image: linuxserver/jellyfin:10.10.6
     container_name: Jellyfin
     environment:
       - DOCKER_MODS=linuxserver/mods:jellyfin-opencl-intel|linuxserver/mods:jellyfin-mod2
