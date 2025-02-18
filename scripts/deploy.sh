@@ -2,7 +2,5 @@
 set -e
 
 sudo git pull --rebase
-docker compose down
-docker compose pull
-docker compose up -d --remove-orphans
+docker compose up -d --remove-orphans --pull always
 docker system prune -a -f
