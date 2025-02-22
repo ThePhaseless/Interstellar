@@ -62,7 +62,7 @@ services:
   qbittorrent:
     container_name: qBittorrent
     restart: unless-stopped
-    image: linuxserver/qbittorrent:5.0.4
+    image: linuxserver/qbittorrent:20.04.1
     ports:
       - 8080:8080
     environment:
