@@ -74,6 +74,7 @@ services:
       - ${STORAGE_PATH}:/data
     labels:
       - "traefik.enable=true"
+      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
       - "traefik.http.routers.qbittorrent.middlewares=crowdsec,default-headers,auth"
 
   jellyseerr:
@@ -97,7 +98,7 @@ services:
     image: linuxserver/jellyfin:10.10.6
     container_name: Jellyfin
     environment:
-      - DOCKER_MODS=linuxserver/mods:jellyfin-opencl-intel|linuxserver/mods:jellyfin-mod2
+      - DOCKER_MODS=linuxserver/mods:jellyfin-opencl-intel
       - TZ=${TIMEZONE}
       - JELLYFIN_PublishedServerUrl=watch.${PUBLIC_HOSTNAME}
     volumes:
