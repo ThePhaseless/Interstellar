@@ -16,7 +16,7 @@ services:
       - "traefik.http.routers.bazarr.middlewares=crowdsec,default-headers,auth"
 
   radarr:
-    image: linuxserver/radarr:5.18.4
+    image: linuxserver/radarr:5.19.3
     container_name: Radarr
     environment:
       - TZ=${TIMEZONE}
