@@ -195,7 +195,7 @@ clients:
   runtime_sources:
     whois: true
     arp: true
-    rdns: true
+    rdns: false
     dhcp: true
     hosts: true
   persistent: []
