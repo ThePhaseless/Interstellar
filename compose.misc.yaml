@@ -1,12 +1,14 @@
 # Misc services
+volumes:
+  mssql:
 services:
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: mssql
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=TotallySafePassword
+      - SA_PASSWORD=TotallySafeP4ssword
     ports:
       - "1433:1433"
     volumes:
-      - ${CONFIG_PATH}/Misc/mssql:/var/opt/mssql
+      - mssql:/var/opt/mssql
