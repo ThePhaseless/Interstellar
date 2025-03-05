@@ -12,3 +12,4 @@ services:
       - "1433:1433"
     volumes:
       - mssql:/var/opt/mssql
+      - $CONFIG_PATH/Misc/mssql:/shared
