@@ -105,3 +105,18 @@ services:
       - "subdomain=dns"
       - "traefik.http.services.adguardhome.loadbalancer.server.port=80"
       - "traefik.http.routers.adguardhome.middlewares=crowdsec,default-headers,auth"
+
+  scanservjs:
+    restart: unless-stopped
+    devices:
+      - /dev/bus/usb
+    container_name: scanservjs
+    image: sbs20/scanservjs:latest
+    environment:
+      - SANE_XEROX_USB_HALT_WORKAROUND=1
+      - SANE_USB_WORKAROUND=1
+    labels:
+      - "traefik.enable=true"
+      - "subdomain=scan"
+      - "traefik.http.services.scanservjs.loadbalancer.server.port=8080"
+      - "traefik.http.routers.scanservjs.middlewares=crowdsec,default-headers,auth"
