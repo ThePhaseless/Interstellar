@@ -15,7 +15,7 @@ services:
   traefik:
     restart: unless-stopped
     depends_on:
-      authentikserver:
+      authentik_server:
         condition: service_healthy
       crowdsec:
         condition: service_started
@@ -140,7 +140,7 @@ services:
     volumes:
       - ${CONFIG_PATH}/Redis:/data
 
-  authentikserver:
+  authentik_server:
     image: ghcr.io/goauthentik/server:2024.12
     restart: unless-stopped
     command: server
@@ -154,7 +154,7 @@ services:
     labels:
       traefik.enable: true
       subdomain: auth
-      traefik.http.middlewares.auth.forwardauth.address: http://authentikserver:9000/outpost.goauthentik.io/auth/traefik
+      traefik.http.middlewares.auth.forwardauth.address: http://authentik_server:9000/outpost.goauthentik.io/auth/traefik
       traefik.http.middlewares.auth.forwardauth.trustForwardHeader: true
       traefik.http.middlewares.auth.forwardauth.authResponseHeaders: X-authentik-username,X-authentik-groups,X-authentik-entitlements,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version
     depends_on:
@@ -163,7 +163,7 @@ services:
       redis:
         condition: service_healthy
 
-  authentikworker:
+  authentik_worker:
     image: ghcr.io/goauthentik/server:2024.12
     restart: unless-stopped
     command: worker
@@ -177,7 +177,6 @@ services:
     # (1000:1000 by default)
     user: root
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - ${CONFIG_PATH}/Auth/certs:/certs
       - ${CONFIG_PATH}/Auth/Authentik/media:/media
       - ${CONFIG_PATH}/Auth/Authentik/custom-templates:/templates
@@ -186,6 +185,20 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  authentik_ldap:
+    image: ghcr.io/goauthentik/ldap:2024.12
+    # Optionally specify which networks the container should be
+    # might be needed to reach the core authentik server
+    # networks:
+    #   - foo
+    ports:
+      - 389:3389
+      - 636:6636
+    environment:
+      AUTHENTIK_HOST: https://auth.${PUBLIC_HOSTNAME}
+      AUTHENTIK_INSECURE: "true"
+      AUTHENTIK_TOKEN: ${OUTPOST_TOKEN}
 
   postfix:
     image: boky/postfix:4.4.0
