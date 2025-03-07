@@ -141,6 +141,8 @@ user_rules:
   - '||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.112.159.57'
   - '||nerine.dev^$client=192.168.0.0/24,dnsrewrite=NOERROR;A;192.168.0.52'
   - '@@||brightdata.com'
+  - '@@||gamedrive.org^$important'
+  - ""
 dhcp:
   enabled: false
   interface_name: ""
