@@ -1,5 +1,9 @@
 name: reverse-proxy
 
+networks:
+  default:
+    enable_ipv6: true
+
 services:
   crowdsec:
     image: crowdsecurity/crowdsec:v1.6.5
@@ -42,10 +46,10 @@ services:
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.websecure.address=:443"
       # Enable proxy protocol
-      - "--entryPoints.web.proxyProtocol.trustedIPs=100.0.0.0/8"
-      - "--entryPoints.web.forwardedHeaders.trustedIPs=100.0.0.0/8"
-      - "--entryPoints.websecure.proxyProtocol.trustedIPs=100.0.0.0/8"
-      - "--entryPoints.websecure.forwardedHeaders.trustedIPs=100.0.0.0/8"
+      - "--entryPoints.web.proxyProtocol.trustedIPs=100.64.0.0/10"
+      - "--entryPoints.web.forwardedHeaders.trustedIPs=100.64.0.0/10"
+      - "--entryPoints.websecure.proxyProtocol.trustedIPs=100.64.0.0/10"
+      - "--entryPoints.websecure.forwardedHeaders.trustedIPs=100.64.0.0/10"
       # Enables TLS and manages certificates
       - "--entrypoints.websecure.http.tls=true"
       - "--entrypoints.websecure.http.tls.certresolver=cloudflare"
