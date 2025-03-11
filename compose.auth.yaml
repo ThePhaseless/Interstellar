@@ -1,9 +1,5 @@
 name: reverse-proxy
 
-networks:
-  default:
-    enable_ipv6: true
-
 services:
   crowdsec:
     image: crowdsecurity/crowdsec:v1.6.5
