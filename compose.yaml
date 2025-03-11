@@ -1,3 +1,7 @@
+networks:
+  default:
+    enable_ipv6: true
+
 include:
   - path: compose.media.yaml
   - path: compose.auth.yaml
