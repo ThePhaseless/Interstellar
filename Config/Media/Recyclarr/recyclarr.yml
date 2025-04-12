@@ -42,6 +42,8 @@ sonarr:
         daily: default
 
     quality_profiles:
+      - name: Remux-1080p - Anime
+        min_format_score: 1
       - name: WEB-2160p
         qualities:
           - name: Bluray-2160p Remux
@@ -83,17 +85,16 @@ sonarr:
           - 026d5aadd1a6b4e550b134cb6c72b3ca # Uncensored
         assign_scores_to:
           - name: Remux-1080p - Anime
-            score: 0 # Adjust scoring as desired
+            score: 1 # Adjust scoring as desired
       - trash_ids:
           - b2550eb333d27b75833e25b8c2557b38 # 10bit
         assign_scores_to:
           - name: Remux-1080p - Anime
-            score: 0 # Adjust scoring as desired
+            score: 50 # Adjust scoring as desired
       - trash_ids:
-          - 418f50b10f1907201b6cfdf881f467b7 # Anime Dual Audio
+          - ae575f95ab639ba5d15f663bf019e3e8 # Language: Not Original
         assign_scores_to:
           - name: Remux-1080p - Anime
-            score: 0 # Adjust scoring as desired
 
       # HDR Formats
       - trash_ids:
