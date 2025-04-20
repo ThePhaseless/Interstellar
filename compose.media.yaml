@@ -46,7 +46,7 @@ services:
       - "traefik.http.routers.sonarr.middlewares=crowdsec,default-headers,auth"
 
   prowlarr:
-    image: linuxserver/prowlarr:1.33.3
+    image: linuxserver/prowlarr:1.34.1
     container_name: Prowlarr
     environment:
       - TZ=${TIMEZONE}
