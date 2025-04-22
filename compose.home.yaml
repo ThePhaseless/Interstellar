@@ -82,7 +82,7 @@ services:
 
   adguardhome:
     container_name: AdguardHome
-    image: adguard/adguardhome:v0.107.60
+    image: adguard/adguardhome:v0.107.61
     restart: unless-stopped
     environment:
       - TZ=${TIMEZONE}
