@@ -23,10 +23,6 @@ dns:
   upstream_dns:
     - 1.1.1.1
     - 8.8.8.8
-    - 9.9.9.10
-    - tls://1dot1dot1dot1.cloudflare-dns.com
-    - tls://dns10.quad9.net
-    - https://dns10.quad9.net/dns-query
   upstream_dns_file: ""
   bootstrap_dns:
     - 9.9.9.10
@@ -127,11 +123,11 @@ filters:
     id: 1708365227
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_14.txt
-    name: "POL: Polish filters for Pi-hole"
+    name: 'POL: Polish filters for Pi-hole'
     id: 1708365228
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_41.txt
-    name: "POL: CERT Polska List of malicious domains"
+    name: 'POL: CERT Polska List of malicious domains'
     id: 1708365229
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt
@@ -139,12 +135,12 @@ filters:
     id: 1739377959
 whitelist_filters: []
 user_rules:
-  - "@@||t.co^$important"
-  - "||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.112.159.57"
-  - "||nerine.dev^$client=192.168.0.0/24,dnsrewrite=NOERROR;A;192.168.0.52"
-  - "@@||brightdata.com"
-  - "@@||gamedrive.org^$important"
-  - "@@||track.adtraction.com^$important"
+  - '@@||t.co^$important'
+  - '||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.112.159.57'
+  - '||nerine.dev^$client=192.168.0.0/24,dnsrewrite=NOERROR;A;192.168.0.52'
+  - '@@||brightdata.com'
+  - '@@||gamedrive.org^$important'
+  - '@@||track.adtraction.com^$important'
   - ""
 dhcp:
   enabled: false
