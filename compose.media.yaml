@@ -120,6 +120,8 @@ services:
   byparr:
     image: ghcr.io/thephaseless/byparr:latest
     container_name: Byparr
+    ports:
+      - 8191:8191
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-info}
     restart: unless-stopped
