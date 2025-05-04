@@ -5,10 +5,19 @@ wake_on_lan:
 # Load frontend themes from the themes folder
 frontend:
   themes: !include_dir_merge_named themes
+  extra_module_url:
+    - /hacsfiles/material-you-utilities/material-you-utilities.min.js
 
 # automation: !include automations.yaml
 # script: !include scripts.yaml
 # scene: !include scenes.yaml
+
+panel_custom:
+  - name: material-you-panel
+    url_path: material-you-configuration
+    sidebar_title: Material You Utilities
+    sidebar_icon: mdi:material-design
+    module_url: /hacsfiles/material-you-utilities/material-you-utilities.min.js
 
 http:
   use_x_forwarded_for: true
@@ -16,4 +25,4 @@ http:
     - 172.0.0.0/8
 
 auth_header:
-    username_header: X-authentik-username
+  username_header: X-authentik-username
