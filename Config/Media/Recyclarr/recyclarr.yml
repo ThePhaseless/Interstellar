@@ -64,7 +64,6 @@ sonarr:
         upgrade:
           allowed: true
           until_quality: Bluray-2160p Remux
-          until_score: 2000
 
     include:
       # Comment out any of the following includes to disable them
@@ -175,7 +174,6 @@ radarr:
         upgrade:
           allowed: true
           until_quality: Remux-2160p
-          until_score: 2000
 
     include:
       # Comment out any of the following includes to disable them
