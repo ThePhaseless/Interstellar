@@ -118,7 +118,7 @@ services:
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
 
   byparr:
-    image: ghcr.io/thephaseless/byparr:v1.2.1
+    image: ghcr.io/thephaseless/byparr:1.2.1
     container_name: Byparr
     ports:
       - 8191:8191
