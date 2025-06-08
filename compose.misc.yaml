@@ -1,15 +1,15 @@
 # Misc services
-volumes:
-  mssql:
-services:
-  mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: mssql
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=TotallySafeP4ssword
-    ports:
-      - "1433:1433"
-    volumes:
-      - mssql:/var/opt/mssql
-      - $CONFIG_PATH/Misc/mssql:/shared
+#volumes:
+#  mssql:
+#services:
+#  mssql:
+#    image: mcr.microsoft.com/mssql/server:2022-latest
+#    container_name: mssql
+#    environment:
+#      - ACCEPT_EULA=Y
+#      - SA_PASSWORD=TotallySafeP4ssword
+#    ports:
+#      - "1433:1433"
+#    volumes:
+#      - mssql:/var/opt/mssql
+#      - $CONFIG_PATH/Misc/mssql:/shared
