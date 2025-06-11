@@ -22,7 +22,7 @@ services:
 
   homeassistant:
     container_name: HomeAssistant
-    image: ghcr.io/home-assistant/home-assistant:2025.5
+    image: ghcr.io/home-assistant/home-assistant:2025.6
     volumes:
       - ${CONFIG_PATH}/Home/HomeAssistant:/config
     restart: unless-stopped
