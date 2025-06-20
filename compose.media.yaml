@@ -31,7 +31,7 @@ services:
       - "traefik.http.routers.radarr.middlewares=crowdsec,default-headers,auth"
 
   sonarr:
-    image: linuxserver/sonarr:4.0.14
+    image: linuxserver/sonarr:4.0.15
     container_name: Sonarr
     environment:
       - TZ=${TIMEZONE}
@@ -80,7 +80,7 @@ services:
   jellyseerr:
     depends_on:
       - jellyfin
-    image: fallenbagel/jellyseerr:2.6.0
+    image: fallenbagel/jellyseerr:2.7.0
     container_name: Jellyseerr
     environment:
       - TZ=${TIMEZONE}
