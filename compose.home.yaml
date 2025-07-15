@@ -57,7 +57,7 @@ services:
       - "traefik.http.services.httpd.loadbalancer.server.port=80"
 
   homepage:
-    image: ghcr.io/gethomepage/homepage:v1.3.2
+    image: ghcr.io/gethomepage/homepage:v1.4.0
     container_name: Homepage
     ports:
       - 82:3000
