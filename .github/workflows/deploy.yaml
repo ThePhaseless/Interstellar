@@ -15,6 +15,7 @@ jobs:
       - name: Run Ansible Lint
         uses: ansible/ansible-lint@main
         with:
+          setup_python: false
           working_directory: Ansible
 
       - name: Setup TFLint
@@ -39,20 +40,36 @@ jobs:
       - name: Terraform Init
         working-directory: Terraform
         run: terraform init -backend-config="bucket=${{ secrets.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
+        env:
+          TF_VAR_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
+          TF_VAR_PRIVATE_KEY: ${{ secrets.TF_VAR_PRIVATE_KEY }}
+          TF_VAR_REGION: ${{ secrets.TF_VAR_REGION }}
+          TF_VAR_TENANCY_OCID: ${{ secrets.TF_VAR_TENANCY_OCID }}
+          TF_VAR_USER_OCID: ${{ secrets.TF_VAR_USER_OCID }}
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan -input=false
         working-directory: Terraform
         env:
-          TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
           PM_PASS: ${{ secrets.PM_PASS }}
-          TF_VAR_bucket_name: ${{ secrets.TF_BUCKET_NAME }}
+          TF_VAR_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
+          TF_VAR_PRIVATE_KEY: ${{ secrets.TF_VAR_PRIVATE_KEY }}
+          TF_VAR_REGION: ${{ secrets.TF_VAR_REGION }}
+          TF_VAR_TENANCY_OCID: ${{ secrets.TF_VAR_TENANCY_OCID }}
+          TF_VAR_USER_OCID: ${{ secrets.TF_VAR_USER_OCID }}
+          TF_VAR_PROXMOX_HOST: ${{ vars.TF_VAR_proxmox_host }}
+          TF_VAR_BUCKET_NAME: ${{ secrets.TF_BUCKET_NAME }}
 
       - name: Terraform Apply
         run: terraform apply -input=false tfplan
         working-directory: Terraform
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         env:
-          TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
           PM_PASS: ${{ secrets.PM_PASS }}
-          TF_VAR_bucket_name: ${{ secrets.TF_BUCKET_NAME }}
+          TF_VAR_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
+          TF_VAR_PRIVATE_KEY: ${{ secrets.TF_VAR_PRIVATE_KEY }}
+          TF_VAR_REGION: ${{ secrets.TF_VAR_REGION }}
+          TF_VAR_TENANCY_OCID: ${{ secrets.TF_VAR_TENANCY_OCID }}
+          TF_VAR_USER_OCID: ${{ secrets.TF_VAR_USER_OCID }}
+          TF_VAR_PROXMOX_HOST: ${{ vars.TF_VAR_proxmox_host }}
+          TF_VAR_BUCKET_NAME: ${{ secrets.TF_BUCKET_NAME }}
