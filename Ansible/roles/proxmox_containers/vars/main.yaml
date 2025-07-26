@@ -1,0 +1,10 @@
+proxmox_containers_configs:
+  - "lxc.cgroup2.devices.allow: c 195:* rwm"
+  - "lxc.cgroup2.devices.allow: c 510:* rwm"
+  - "dev0: /dev/nvidia0"
+  - "dev1: /dev/nvidiactl"
+  - "dev2: /dev/nvidia-uvm"
+  - "dev3: /dev/nvidia-uvm-tools"
+  - "dev4: /dev/nvidia-caps/nvidia-cap1"
+  - "dev5: /dev/nvidia-caps/nvidia-cap2"
+  - "dev6: /dev/net/tun"
