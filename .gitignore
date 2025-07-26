@@ -39,4 +39,4 @@ Logs/
 !**/.env*.example
 
 .ansible/
-Keys/
+Keys/*.pem
