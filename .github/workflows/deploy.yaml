@@ -10,7 +10,7 @@ jobs:
     environment: server
     steps:
       - name: Set TF_VAR_PRIVATE_KEY_PATH environment variable
-        run: echo "TF_VAR_PRIVATE_KEY_PATH=${{ github.workspace }}/${{vars.RELATIVE_PRIVATE_KEY_PATH}}" >> $GITHUB_ENV
+        run: echo "TF_VAR_private_key_path=${{ github.workspace }}/${{vars.RELATIVE_PRIVATE_KEY_PATH}}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -47,7 +47,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Save Oracle Key to a file
-        run: echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > "${{ env.TF_VAR_PRIVATE_KEY_PATH }}"
+        run: echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > "${{ env.TF_VAR_private_key_path }}"
 
       - name: Terraform Init
         working-directory: Terraform
@@ -65,7 +65,6 @@ jobs:
         env:
           PM_PASS: ${{ secrets.PM_PASS }}
           TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
-          TF_VAR_private_key_path: ${{ env.TF_VAR_PRIVATE_KEY_PATH }}
           TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
           TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
           TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
