@@ -11,12 +11,6 @@ variable "ports" {
   }
 }
 
-variable "private_key"{
-  description = "Private key for Oracle API access"
-  type        = string
-  sensitive   = true
-}
-
 variable "bucket_name" {
   description = "Name of the Object Storage bucket for Terraform state"
   type        = string
