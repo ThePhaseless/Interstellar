@@ -1,8 +1,7 @@
 terraform {
-  # backend "oci" {
-  #   bucket    = "terraform-state"
-  #   namespace = "default"
-  # }
+  required_version = ">= 1.12.2"
+  backend "oci" {
+  }
 
   required_providers {
     proxmox = {
@@ -20,6 +19,10 @@ terraform {
     tls = {
       source  = "hashicorp/tls"
       version = ">=4.0.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = ">=2.0.0"
     }
   }
 }
