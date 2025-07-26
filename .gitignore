@@ -37,3 +37,5 @@ Logs/
 
 **/.env*
 !**/.env*.example
+
+Keys/
