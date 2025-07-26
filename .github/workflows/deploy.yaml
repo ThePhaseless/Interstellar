@@ -22,6 +22,7 @@ jobs:
 
       - name: Run TFLint
         run: tflint --init && tflint -f compact
+        working-directory: Terraform
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -36,6 +37,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
+        working-directory: Terraform
         run: terraform init -backend-config="bucket=${{ secrets.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
 
       - name: Terraform Plan
