@@ -22,6 +22,11 @@ variable "proxmox_host" {
   type        = string
 }
 
+variable "private_key" {
+  description = "Private key for Proxmox API access"
+  type        = string
+}
+
 variable "proxmox_user" {
   description = "Proxmox user for API access"
   type        = string
