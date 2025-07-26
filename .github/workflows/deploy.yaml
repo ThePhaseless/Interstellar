@@ -8,9 +8,16 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: server
+    env:
+      PM_PASS: ${{ secrets.PM_PASS }}
+      TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
+      TF_VAR_private_key_path: ${{ github.workspace }}/${{ vars.RELATIVE_PRIVATE_KEY_PATH }}
+      TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
+      TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
+      TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
+      TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
+      TF_VAR_bucket_name: ${{ secrets.TF_BUCKET_NAME }}
     steps:
-      - name: Set TF_VAR_PRIVATE_KEY_PATH environment variable
-        run: echo "TF_VAR_private_key_path=${{ github.workspace }}/${{vars.RELATIVE_PRIVATE_KEY_PATH}}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -52,35 +59,12 @@ jobs:
       - name: Terraform Init
         working-directory: Terraform
         run: terraform init -backend-config="bucket=${{ secrets.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
-        env:
-          TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
-          TF_VAR_private_key_path: ${{ env.TF_VAR_PRIVATE_KEY_PATH }}
-          TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
-          TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
-          TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan -input=false
         working-directory: Terraform
-        env:
-          PM_PASS: ${{ secrets.PM_PASS }}
-          TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
-          TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
-          TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
-          TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
-          TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
-          TF_VAR_bucket_name: ${{ secrets.TF_BUCKET_NAME }}
 
       - name: Terraform Apply
         run: terraform apply -input=false tfplan
         working-directory: Terraform
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
-        env:
-          PM_PASS: ${{ secrets.PM_PASS }}
-          TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
-          TF_VAR_private_key_path: ${{ env.TF_VAR_PRIVATE_KEY_PATH }}
-          TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
-          TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
-          TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
-          TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
-          TF_VAR_bucket_name: ${{ secrets.TF_BUCKET_NAME }}
