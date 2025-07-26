@@ -9,9 +9,46 @@ jobs:
     runs-on: ubuntu-latest
     environment: server
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@main
+        with:
+          working_directory: Ansible
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Run TFLint
+        run: tflint --init && tflint -f compact
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Setup Tailscale
         uses: tailscale/github-action@v3
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init -backend-config="bucket=${{ secrets.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan -input=false
+        env:
+          TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
+          PM_PASS: ${{ secrets.PM_PASS }}
+          TF_VAR_bucket_name: ${{ secrets.TF_BUCKET_NAME }}
+
+      - name: Terraform Apply
+        run: terraform apply -input=false tfplan
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        env:
+          TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
+          PM_PASS: ${{ secrets.PM_PASS }}
+          TF_VAR_bucket_name: ${{ secrets.TF_BUCKET_NAME }}

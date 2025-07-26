@@ -11,6 +11,12 @@ variable "ports" {
   }
 }
 
+variable "bucket_name" {
+  description = "Name of the Object Storage bucket for Terraform state"
+  type        = string
+  default     = "terraform-state"
+}
+
 variable "proxmox_host" {
   description = "Proxmox host address"
   type        = string

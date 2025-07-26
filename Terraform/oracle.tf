@@ -28,7 +28,7 @@ data "oci_objectstorage_namespace" "namespace" {
 
 resource "oci_objectstorage_bucket" "terraform_state" {
   compartment_id = oci_identity_compartment.compartment.id
-  name           = "terraform-state-bucket"
+  name           = var.bucket_name
   namespace      = data.oci_objectstorage_namespace.namespace.namespace
   versioning     = "Enabled"
 }
