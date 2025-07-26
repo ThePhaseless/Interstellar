@@ -1,32 +1,38 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-outside-of-docker
 {
-  "name": "Docker outside of Docker",
+  "name": "Interstellar Dev Container",
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/base:bullseye",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
-    "ghcr.io/devcontainers/features/python:1": {}
+  "build": {
+    "dockerfile": "Dockerfile"
   },
-  // Use this environment variable if you need to bind mount your local source code into a new container.
-  "remoteEnv": {
-    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+  "containerEnv": {
+    "UV_LINK_MODE": "copy",
+    "VIRTUAL_ENV_DISABLE_PROMPT": "true"
   },
-  "postCreateCommand": "sudo apt update && sudo apt install -y shellcheck",
-  // Configure tool-specific properties.
+  "postCreateCommand": "uv sync",
   "customizations": {
     "vscode": {
       "extensions": [
         "mads-hartmann.bash-ide-vscode",
         "rogalmic.bash-debug",
         "jeff-hykin.better-shellscript-syntax",
-        "redhat.vscode-yaml",
-        "ms-azuretools.vscode-docker",
-        "esbenp.prettier-vscode",
         "keesschollaart.vscode-home-assistant",
-        "fengtan.ldap-explorer"
-      ]
+        "fengtan.ldap-explorer",
+        "ms-python.python",
+        "redhat.ansible",
+        "opentofu.vscode-opentofu",
+        "SanjulaGanepola.github-local-actions",
+        "samuelcolvin.jinjahtml",
+        "IkBenGeenRobot.ansible-variable-lookup"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "./.venv/bin/python"
+      }
     }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/terraform:1": {}
   }
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   // "remoteUser": "root"
