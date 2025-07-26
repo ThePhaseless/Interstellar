@@ -40,6 +40,7 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan -input=false
+        working-directory: Terraform
         env:
           TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
           PM_PASS: ${{ secrets.PM_PASS }}
@@ -47,6 +48,7 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -input=false tfplan
+        working-directory: Terraform
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         env:
           TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
