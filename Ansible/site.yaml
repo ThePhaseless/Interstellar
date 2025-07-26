@@ -1,0 +1,15 @@
+---
+- name: Main deployment playbook
+  hosts: proxmox_hosts
+  gather_facts: false
+  vars_files:
+    - vars/proxmox.yaml
+    - vars/container_config.yaml
+  roles:
+    - role: proxmox_containers
+
+- name: Ping all containers
+  hosts: all
+  tasks:
+    - name: Ping container
+      ansible.builtin.ping:

@@ -1,0 +1,44 @@
+---
+- name: Extract container IDs from vars
+  ansible.builtin.set_fact:
+    container_ids: "{{ containers | map('split', '/') | map('last') | list }}"
+
+- name: Get IP addresses of containers
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    pct exec {{ item }} -- ip route get 1 | awk '{print $7;exit}'
+  register: container_ips
+  delegate_to: "{{ pve_ip }}"
+  changed_when: false
+  loop: "{{ container_ids }}"
+  args:
+    executable: /bin/bash
+
+- name: Create container IP mapping
+  ansible.builtin.set_fact:
+    container_ip_map: >-
+      {{
+        container_ips.results |
+        selectattr('stdout', 'defined') |
+        selectattr('stdout', '!=', '') |
+        items2dict(key_name='item', value_name='stdout')
+      }}
+
+- name: Add containers to inventory
+  ansible.builtin.add_host:
+    name: "Container {{ item.item }}"
+    groups: proxmox_containers
+    ansible_host: "{{ item.stdout }}"
+    ansible_user: root
+    ansible_ssh_private_key_file: "../Keys/deployment_key.pem"
+    ansible_ssh_common_args: "-o ProxyJump={{ pve_user }}@{{ pve_ip }}"
+  changed_when: false
+  no_log: true
+  loop: "{{ container_ips.results }}"
+  when: item.stdout is defined and item.stdout != ""
+
+- name: Update container configurations
+  ansible.builtin.include_tasks: update_container_config.yaml
+  loop: "{{ container_ids }}"
+  loop_control:
+    loop_var: container_id

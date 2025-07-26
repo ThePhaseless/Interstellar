@@ -1,0 +1,4 @@
+.ansible/
+inventory*.ini
+
+vars/proxmox.yaml
