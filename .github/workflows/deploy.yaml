@@ -12,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run ansible-lint
+      - name: Run Ansible Lint
         uses: ansible/ansible-lint@main
         with:
           working_directory: Ansible
