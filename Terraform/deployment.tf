@@ -16,7 +16,7 @@ resource "local_file" "ansible_inventory" {
     pve_user = var.proxmox_user
 
     oracle_servers = {
-      oci_core_instance.instance.public_ip = "ubuntu"
+      "${oci_core_instance.instance.public_ip}"= "ubuntu"
     },
 
     private_key_path = "${path.root}/../Keys/deployment_key.pem"
