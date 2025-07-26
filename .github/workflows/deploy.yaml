@@ -16,15 +16,14 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
+          enable-cache: true
 
       - name: Install Project Dependencies
         run: uv sync --locked
 
       - name: Run Ansible Lint
-        uses: ansible/ansible-lint@main
-        with:
-          setup_python: false
-          working_directory: Ansible
+        run: ansible-lint
+        working-directory: Ansible
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
