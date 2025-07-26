@@ -54,7 +54,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Save Oracle Key to a file
-        run: echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > "${{ env.TF_VAR_private_key_path }} && chmod 600 ${{ env.TF_VAR_private_key_path }}"
+        run: echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > "${{ env.TF_VAR_private_key_path }}"
 
       - name: Terraform Init
         working-directory: Terraform
