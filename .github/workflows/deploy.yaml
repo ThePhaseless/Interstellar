@@ -15,12 +15,3 @@ jobs:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
-      - name: Check for Repository
-        run: |
-          tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "if [ ! -d ${{ vars.SSH_DIR }} ] || [ ! -f ${{ vars.SSH_DIR }}/.env ]; then echo 'Repository not found' ; exit 1 ; fi"
-      - name: Deploy
-        run: |
-          tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "cd ${{ vars.SSH_DIR }} && ./scripts/deploy.sh"
-      - name: Check for HACS
-        run: |
-          tailscale ssh ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} "cd ${{ vars.SSH_DIR }} && ./scripts/install_hacs.sh"
