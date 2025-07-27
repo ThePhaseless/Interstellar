@@ -53,6 +53,7 @@ resource "proxmox_lxc" "containers" {
     size    = local.storage_size
   }
 
+  nameserver = "1.1.1.1"
   network {
     name   = "eth0"
     bridge = "vmbr0"

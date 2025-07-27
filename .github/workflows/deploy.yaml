@@ -70,3 +70,10 @@ jobs:
         run: terraform apply -input=false tfplan
         working-directory: Terraform
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+
+      - name: Ansible Requirements
+        run: ansible-galaxy install -r requirements.yml
+        working-directory: Ansible
+
+      - name: Ansible Playbook
+        run: ansible-playbook site.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }} tailscale_tags=\"${{vars.TAILSCALE_MACHINES_TAG}}\""
