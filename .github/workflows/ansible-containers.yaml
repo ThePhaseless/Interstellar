@@ -10,8 +10,8 @@ on:
       - main
     paths:
       - "Ansible/**"
-      - "Config/**"
       - ".github/workflows/ansible-containers.yaml"
+      - ".github/workflows/ansible-template.yaml"
 
 jobs:
   call-ansible-workflow:
