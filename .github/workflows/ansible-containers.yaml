@@ -28,9 +28,8 @@ jobs:
       - name: Download encrypted artifacts
         uses: actions/download-artifact@v4
         with:
-          name: encrypted-ansible-files
+          name: encrypted-ansible-files-${{hashFiles( 'Terraform/**' )}}
           path: .
-        continue-on-error: true
 
       - name: Decrypt sensitive files
         run: |
