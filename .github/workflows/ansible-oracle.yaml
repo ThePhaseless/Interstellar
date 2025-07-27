@@ -12,6 +12,10 @@ on:
       - "Ansible/**"
       - ".github/workflows/ansible-oracle.yaml"
 
+concurrency:
+  group: ansible-oracle
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
