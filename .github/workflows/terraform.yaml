@@ -58,17 +58,10 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
       - name: Encrypt sensitive files for Ansible
-        working-directory: .github/workflows
         run: |
-          ./encrypt.sh "${{ secrets.GPG_SECRET }}" Ansible/vars/proxmox.yaml
-          ./encrypt.sh "${{ secrets.GPG_SECRET }}" Ansible/inventory.ini
-          ./encrypt.sh "${{ secrets.GPG_SECRET }}" Keys/deployment_key.pem
-
-      - name: List gpg files
-        shell: bash
-        run: |
-          echo "Files in the current directory:"
-          ls -la **/*.gpg
+          ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Ansible/vars/proxmox.yaml
+          ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Ansible/inventory.ini
+          ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Keys/deployment_key.pem
 
       - name: Upload encrypted artifacts
         uses: actions/upload-artifact@v4
