@@ -26,12 +26,6 @@ runs:
         ./decrypt.sh "${{ inputs.gpg-secret }}" ./Keys/deployment_key.pem
         ./decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/vars/proxmox.yaml
 
-    - name: List gpg files
-      shell: bash
-      run: |
-        echo "Files in the current directory:"
-        ls -la **/*.gpg
-
     - name: Install uv
       uses: astral-sh/setup-uv@v6
       with:
