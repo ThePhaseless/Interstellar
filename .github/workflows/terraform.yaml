@@ -1,11 +1,18 @@
+name: Deploy Terraform Infrastructure
 on:
   workflow_dispatch:
+  schedule:
+    # Run weekly on Sunday at 2 AM UTC to prevent artifact expiration
+    - cron: "0 2 * * 0"
   push:
     branches:
       - main
+    paths:
+      - "Terraform/**"
+      - ".github/workflows/terraform.yaml"
 
 jobs:
-  deploy:
+  terraform:
     runs-on: ubuntu-latest
     environment: server
     env:
@@ -20,19 +27,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          activate-environment: true
-          enable-cache: true
-
-      - name: Install Project Dependencies
-        run: uv sync --locked
-
-      - name: Run Ansible Lint
-        run: ansible-lint
-        working-directory: Ansible
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
@@ -49,6 +43,7 @@ jobs:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
+          version: latest
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -71,10 +66,22 @@ jobs:
         working-directory: Terraform
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
-      - name: Ansible Requirements
-        run: ansible-galaxy install -r requirements.yml
-        working-directory: Ansible
+      - name: Encrypt sensitive files for Ansible
+        run: |
+          # Encrypt inventory.ini if it exists
+          if [ -f "Ansible/inventory.ini" ]; then
+            gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase "${{ secrets.TF_VAR_PRIVATE_KEY }}" --output Ansible/inventory.ini.gpg Ansible/inventory.ini
+          fi
+          # Encrypt deployment key if it exists
+          if [ -f "Keys/deployment_key.pem" ]; then
+            gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase "${{ secrets.TF_VAR_PRIVATE_KEY }}" --output Keys/deployment_key.pem.gpg Keys/deployment_key.pem
+          fi
 
-      - name: Ansible Playbook
-        run: ansible-playbook site.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
-        working-directory: Ansible
+      - name: Upload encrypted artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-ansible-files
+          path: |
+            Ansible/inventory.ini.gpg
+            Keys/deployment_key.pem.gpg
+          retention-days: 90

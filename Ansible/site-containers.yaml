@@ -7,12 +7,6 @@
     - vars/container_config.yaml
   roles:
     - role: proxmox_containers
-- name: Deploy Tailscale on Oracle
-  hosts: oracle
-  vars_files:
-    - vars/tailscale-oracle.yaml
-  roles:
-    - role: artis3n.tailscale.machine
 
 - name: Deploy Tailscale on Proxmox Containers
   hosts: proxmox_containers
