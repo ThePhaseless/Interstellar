@@ -1,19 +1,16 @@
 ---
 - name: Main deployment playbook
-  hosts: proxmox_hosts
-  gather_facts: false
   vars_files:
     - vars/containers.yaml
   roles:
     - role: configure_containers
 
 - name: Deploy Tailscale on Proxmox Containers
-  hosts: containers
   vars_files:
     - vars/tailscale-containers.yaml
   roles:
     - role: artis3n.tailscale.machine
 
 - name: Install Docker
-  include_role:
-    name: geerlingguy.docker
+  roles:
+    - role: geerlingguy.docker
