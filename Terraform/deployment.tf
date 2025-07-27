@@ -11,7 +11,7 @@ resource "local_sensitive_file" "deployment_key" {
 }
 
 resource "local_file" "ansible_inventory" {
-  content = templatefile("${path.root}/Templates/inventory-static.tpl", {
+  content = templatefile("${path.root}/Templates/inventory.tpl", {
     pve_ip   = var.proxmox_host
     pve_user = var.proxmox_user
 
@@ -24,7 +24,7 @@ resource "local_file" "ansible_inventory" {
     proxy_host       = var.proxmox_host
 
   })
-  filename = "${path.root}/../Ansible/inventory-static.ini"
+  filename = "${path.root}/../Ansible/inventory.ini"
 }
 
 # Save a list of Proxmox container IDs to a YAML file for Ansible

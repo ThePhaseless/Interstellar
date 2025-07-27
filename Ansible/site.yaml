@@ -8,8 +8,9 @@
   roles:
     - role: proxmox_containers
 
-- name: Ping all containers
+- name: Deploy Tailscale on Oracle and Proxmox containers
   hosts: all
-  tasks:
-    - name: Ping container
-      ansible.builtin.ping:
+  vars_files:
+    - vars/tailscale.yaml
+  roles:
+    - role: artis3n.tailscale.machine

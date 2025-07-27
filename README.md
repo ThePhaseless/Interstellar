@@ -55,7 +55,6 @@ This repository contains the complete configuration and documentation for my per
 | **Network** | 1Gbps Ethernet + Tailscale VPN                          | 4Gbps Ethernet + Tailscale |
 | **OS**      | Proxmox VE 8                                            | Ubuntu 24.04 Minimal       |
 
-
 The primary server runs Proxmox VE with VM containing various docker containers:
 
 ### 🎬 Media Services
@@ -112,13 +111,13 @@ A VPS running on Oracle's free ARM tier with:
 ## 🔒 Tailscale Implementation
 
 Tailscale is utilized for:
+
 - Secure VPN mesh connecting all infrastructure
 - SSH authentication
 - Automatic DNS configuration with AdGuard Home
 - Game server sharing
 - Zero-trust network architecture
 - Self hosted proxy (Oracle VPS running as an exit node)
-
 
 ## ♻️ CI/CD Pipeline
 
@@ -143,6 +142,7 @@ Interstellar/
 ```
 
 ## 🛒 Requirements
+
 - Domain
 - Cloudflare Account
 - SMTP Account
@@ -150,12 +150,12 @@ Interstellar/
 
 ## 🔄 Getting Started
 
-1. Start Tailscale with `--snat-subnet-routes=false` for docker IP resolving (may break Tailscale subnet routing)
+1. Start Tailscale with `` for docker IP resolving (may break Tailscale subnet routing)
 2. Clone this repository
 3. Rename `*.env.example` files to `*.env`
 4. Update the values in the `.env` files
 5. Run `docker compose up -d`
-6. Set up *arr and fill out API keys in .env file
+6. Set up \*arr and fill out API keys in .env file
 7. [Setup Authentik with Traefik](https://github.com/brokenscripts/authentik_traefik?tab=readme-ov-file)
 8. [Configure LDAP Authentik with Jellyfin](https://docs.goauthentik.io/integrations/services/jellyfin/) (use manual outpost and set outpost token in `.env` file)
 9. Run `docker compose up -d` again to apply new variables
