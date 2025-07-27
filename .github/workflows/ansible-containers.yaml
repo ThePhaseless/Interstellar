@@ -13,6 +13,10 @@ on:
       - "Config/**"
       - ".github/workflows/ansible-containers.yaml"
 
+concurrency:
+  group: ansible-containers
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

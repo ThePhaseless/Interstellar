@@ -11,6 +11,10 @@ on:
       - "Terraform/**"
       - ".github/workflows/terraform.yaml"
 
+concurrency:
+  group: terraform
+  cancel-in-progress: true
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
