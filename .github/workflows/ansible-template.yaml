@@ -2,6 +2,10 @@ name: Ansible Workflow Template
 on:
   workflow_call:
     inputs:
+      terraform-workflow-id:
+        description: "ID of the Terraform job to wait for"
+        required: true
+        type: string
       playbook-name:
         description: "Name of the playbook to run (e.g., site-containers.yaml)"
         required: true
@@ -14,11 +18,6 @@ on:
         description: "Concurrency group name"
         required: true
         type: string
-      config-paths:
-        description: "Additional paths to watch for changes (JSON array as string)"
-        required: false
-        type: string
-        default: "[]"
     secrets:
       GPG_SECRET:
         required: true
@@ -48,6 +47,7 @@ jobs:
         id: download-artifact
         continue-on-error: true
         with:
+          run-id: ${{ inputs.terraform-workflow-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           name: encrypted-ansible-files-${{hashFiles( 'Terraform/**' )}}
 

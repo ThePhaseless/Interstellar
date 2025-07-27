@@ -5,13 +5,6 @@ on:
     workflows: ["Deploy Terraform Infrastructure"]
     types:
       - completed
-  push:
-    branches:
-      - main
-    paths:
-      - "Ansible/**"
-      - ".github/workflows/ansible-containers.yaml"
-      - ".github/workflows/ansible-template.yaml"
 
 jobs:
   call-ansible-workflow:
@@ -20,7 +13,7 @@ jobs:
       playbook-name: "site-containers.yaml"
       workflow-name: "Apply Ansible Playbook on Proxmox Containers"
       concurrency-group: "ansible-containers"
-      config-paths: '["Config/**"]'
+      terraform-workflow-id: ${{ github.event.workflow_run.id }}
     secrets:
       GPG_SECRET: ${{ secrets.GPG_SECRET }}
       TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
