@@ -3,20 +3,17 @@
   hosts: proxmox_hosts
   gather_facts: false
   vars_files:
-    - vars/proxmox.yaml
+    - vars/containers.yaml
   roles:
-    - role: proxmox_containers
+    - role: configure_containers
 
 - name: Deploy Tailscale on Proxmox Containers
-  hosts: proxmox_containers
+  hosts: containers
   vars_files:
     - vars/tailscale-containers.yaml
   roles:
     - role: artis3n.tailscale.machine
 
-- name: Update Tailscale on Proxmox
-  hosts: proxmox_hosts
-  vars_files:
-    - vars/tailscale-proxmox.yaml
-  roles:
-    - role: artis3n.tailscale.machine
+- name: Install Docker
+  include_role:
+    name: geerlingguy.docker

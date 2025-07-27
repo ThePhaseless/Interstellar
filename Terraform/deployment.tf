@@ -28,13 +28,13 @@ resource "local_file" "ansible_inventory" {
 }
 
 # Save a list of Proxmox container IDs to a YAML file for Ansible
-resource "local_file" "proxmox_containers" {
+resource "local_file" "containers" {
   content = yamlencode({
     containers = [for container in proxmox_lxc.containers : container.id]
     pve_user   = var.proxmox_user
     pve_ip     = var.proxmox_host
   })
 
-  filename = "${path.root}/../Ansible/vars/proxmox.yaml"
+  filename = "${path.root}/../Ansible/vars/containers.yaml"
 }
 

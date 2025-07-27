@@ -20,9 +20,9 @@ jobs:
     needs: terraform
     strategy:
       matrix:
-        playbook: ["containers", "oracle"]
+        playbook: ["containers", "oracle", "proxmox"]
     uses: ./.github/workflows/ansible-template.yaml
     with:
-      playbook-name: "site-${{matrix.playbook}}.yaml"
-      workflow-name: "Apply Ansible Playbook on ${{matrix.playbook}}"
+      ansible-group: ${{matrix.playbook}}
+      playbook-name: "deploy-${{matrix.playbook}}.yaml"
     secrets: inherit

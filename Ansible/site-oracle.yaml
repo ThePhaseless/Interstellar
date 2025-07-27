@@ -1,7 +1,0 @@
----
-- name: Deploy Tailscale on Oracle
-  hosts: oracle
-  vars_files:
-    - vars/tailscale-oracle.yaml
-  roles:
-    - role: artis3n.tailscale.machine
