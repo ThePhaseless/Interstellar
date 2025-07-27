@@ -10,6 +10,7 @@
   hosts: oracle
   roles:
     - role: geerlingguy.docker
+      become: true
 
 - name: Configure
   hosts: oracle
