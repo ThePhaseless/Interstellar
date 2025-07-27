@@ -1,0 +1,28 @@
+name: Deploy Terraform Infrastructure
+on:
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Sunday at 2 AM UTC to prevent artifact expiration
+    - cron: "0 2 * * 0"
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: terraform
+  cancel-in-progress: true
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform.yaml
+    secrets: inherit
+  ansible:
+    needs: terraform
+    strategy:
+      matrix:
+        playbook: ["containers", "oracle"]
+    uses: ./.github/workflows/ansible-template.yaml
+    with:
+      playbook-name: "site-${{matrix.playbook}}.yaml"
+      workflow-name: "Apply Ansible Playbook on ${{matrix.playbook}}"
+    secrets: inherit
