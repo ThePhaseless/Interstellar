@@ -48,6 +48,7 @@ jobs:
         id: download-artifact
         continue-on-error: true
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           name: encrypted-ansible-files-${{hashFiles( 'Terraform/**' )}}
 
   deploy:
