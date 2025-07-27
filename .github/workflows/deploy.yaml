@@ -16,13 +16,24 @@ jobs:
   terraform:
     uses: ./.github/workflows/terraform.yaml
     secrets: inherit
-  ansible:
+  ansible-proxmox:
     needs: terraform
-    strategy:
-      matrix:
-        playbook: ["containers", "oracle", "proxmox"]
     uses: ./.github/workflows/ansible-template.yaml
     with:
-      ansible-group: ${{matrix.playbook}}
-      playbook-name: "deploy-${{matrix.playbook}}.yaml"
+      ansible-group: "proxmox"
+      playbook-name: "deploy-proxmox.yaml"
+    secrets: inherit
+  ansible-containers:
+    needs: ansible-proxmox
+    uses: ./.github/workflows/ansible-template.yaml
+    with:
+      ansible-group: "containers"
+      playbook-name: "deploy-containers.yaml"
+    secrets: inherit
+  ansible-oracle:
+    needs: terraform
+    uses: ./.github/workflows/ansible-template.yaml
+    with:
+      ansible-group: oracle
+      playbook-name: "deploy-oracle.yaml"
     secrets: inherit

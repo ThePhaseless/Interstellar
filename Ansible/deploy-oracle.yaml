@@ -1,8 +1,10 @@
 ---
-- name: Update all packages on the system
-  ansible.builtin.apt:
-    name: "*"
-    state: latest
+- name: Configure Packages
+  tasks:
+    - name: Update all packages on the system
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
 
 - name: Deploy Tailscale on Oracle
   vars_files:
