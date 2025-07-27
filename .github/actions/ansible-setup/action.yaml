@@ -1,0 +1,66 @@
+name: 'Ansible Setup'
+description: 'Common setup steps for Ansible workflows'
+inputs:
+  gpg-secret:
+    description: 'GPG secret for decryption'
+    required: true
+  ts-oauth-client-id:
+    description: 'Tailscale OAuth Client ID'
+    required: true
+  ts-oauth-secret:
+    description: 'Tailscale OAuth Secret'
+    required: true
+  artifact-name:
+    description: 'Name of the encrypted artifact to download'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Download encrypted artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: .
+
+    - name: Decrypt sensitive files
+      shell: bash
+      run: |
+        # Decrypt inventory.ini if encrypted version exists
+        if [ -f "Ansible/inventory.ini.gpg" ]; then
+          gpg --decrypt --batch --yes --passphrase "${{ inputs.gpg-secret }}" --output Ansible/inventory.ini Ansible/inventory.ini.gpg
+          chmod 600 Ansible/inventory.ini
+        fi
+        # Decrypt deployment key if encrypted version exists
+        if [ -f "Keys/deployment_key.pem.gpg" ]; then
+          gpg --decrypt --batch --yes --passphrase "${{ inputs.gpg-secret }}" --output Keys/deployment_key.pem Keys/deployment_key.pem.gpg
+          chmod 600 Keys/deployment_key.pem
+        fi
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        activate-environment: true
+        enable-cache: true
+
+    - name: Install Project Dependencies
+      shell: bash
+      run: uv sync --locked
+
+    - name: Run Ansible Lint
+      shell: bash
+      run: ansible-lint
+      working-directory: Ansible
+
+    - name: Setup Tailscale
+      uses: tailscale/github-action@v3
+      with:
+        oauth-client-id: ${{ inputs.ts-oauth-client-id }}
+        oauth-secret: ${{ inputs.ts-oauth-secret }}
+        tags: tag:ci
+        version: latest
+
+    - name: Ansible Requirements
+      shell: bash
+      run: ansible-galaxy install -r requirements.yml
+      working-directory: Ansible

@@ -1,0 +1,72 @@
+name: Ansible Workflow Template
+on:
+  workflow_call:
+    inputs:
+      playbook-name:
+        description: "Name of the playbook to run (e.g., site-containers.yaml)"
+        required: true
+        type: string
+      workflow-name:
+        description: "Display name for the workflow"
+        required: true
+        type: string
+      concurrency-group:
+        description: "Concurrency group name"
+        required: true
+        type: string
+      config-paths:
+        description: "Additional paths to watch for changes (JSON array as string)"
+        required: false
+        type: string
+        default: "[]"
+    secrets:
+      GPG_SECRET:
+        required: true
+      TS_OAUTH_CLIENT_ID:
+        required: true
+      TS_OAUTH_SECRET:
+        required: true
+      TS_PROXMOX_OAUTH_SECRET:
+        required: true
+
+concurrency:
+  group: ${{ inputs.concurrency-group }}
+  cancel-in-progress: true
+
+jobs:
+  check-artifact:
+    runs-on: ubuntu-latest
+    environment: server
+    outputs:
+      download-artifact: ${{ steps.download-artifact.outcome }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download encrypted artifacts
+        uses: actions/download-artifact@v4
+        id: download-artifact
+        continue-on-error: true
+        with:
+          name: encrypted-ansible-files-${{hashFiles( 'Terraform/**' )}}
+
+  deploy:
+    runs-on: ubuntu-latest
+    environment: server
+    needs: [check-artifact]
+    if: needs.check-artifact.outputs.download-artifact == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Ansible Environment
+        uses: ./.github/actions/ansible-setup
+        with:
+          gpg-secret: ${{ secrets.GPG_SECRET }}
+          ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          artifact-name: encrypted-ansible-files-${{hashFiles( 'Terraform/**' )}}
+
+      - name: Run Ansible Playbook
+        run: ansible-playbook ${{ inputs.playbook-name }} --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
+        working-directory: Ansible

@@ -12,62 +12,15 @@ on:
       - "Ansible/**"
       - ".github/workflows/ansible-oracle.yaml"
 
-concurrency:
-  group: ansible-oracle
-  cancel-in-progress: true
-
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    environment: server
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download encrypted artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: encrypted-ansible-files-${{hashFiles( 'Terraform/**' )}}
-          path: .
-
-      - name: Decrypt sensitive files
-        run: |
-          # Decrypt inventory.ini if encrypted version exists
-          if [ -f "Ansible/inventory.ini.gpg" ]; then
-            gpg --decrypt --batch --yes --passphrase "${{ secrets.GPG_SECRET }}" --output Ansible/inventory.ini Ansible/inventory.ini.gpg
-            chmod 600 Ansible/inventory.ini
-          fi
-          # Decrypt deployment key if encrypted version exists
-          if [ -f "Keys/deployment_key.pem.gpg" ]; then
-            gpg --decrypt --batch --yes --passphrase "${{ secrets.GPG_SECRET }}" --output Keys/deployment_key.pem Keys/deployment_key.pem.gpg
-            chmod 600 Keys/deployment_key.pem
-          fi
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          activate-environment: true
-          enable-cache: true
-
-      - name: Install Project Dependencies
-        run: uv sync --locked
-
-      - name: Run Ansible Lint (Oracle-specific)
-        run: ansible-lint
-        working-directory: Ansible
-
-      - name: Setup Tailscale
-        uses: tailscale/github-action@v3
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
-          version: latest
-
-      - name: Ansible Requirements
-        run: ansible-galaxy install -r requirements.yml
-        working-directory: Ansible
-
-      - name: Ansible Playbook (Oracle only)
-        run: ansible-playbook site-oracle.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
-        working-directory: Ansible
+  call-ansible-workflow:
+    uses: ./.github/workflows/ansible-template.yaml
+    with:
+      playbook-name: "site-oracle.yaml"
+      workflow-name: "Apply Ansible Playbook on Oracle"
+      concurrency-group: "ansible-oracle"
+    secrets:
+      GPG_SECRET: ${{ secrets.GPG_SECRET }}
+      TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+      TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+      TS_PROXMOX_OAUTH_SECRET: ${{ secrets.TS_PROXMOX_OAUTH_SECRET }}
