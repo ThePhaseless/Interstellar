@@ -1,31 +1,34 @@
 ---
-- name: Configure Packages
-  tasks:
-    - name: Update all packages on the system
-      ansible.builtin.apt:
-        name: "*"
-        state: latest
-
 - name: Deploy Tailscale on Oracle
+  hosts: oracle
   vars_files:
     - vars/tailscale-oracle.yaml
   roles:
     - role: artis3n.tailscale.machine
 
 - name: Install Docker
-  include_role:
-    name: geerlingguy.docker
+  hosts: oracle
+  roles:
+    - role: geerlingguy.docker
 
-- name: Get Github repository information
-  ansible.builtin.git:
-    repo: "https://github.com/ThePhaseless/Interstellar.git"
-    single_branch: true
-  register: repository_info
+- name: Configure
+  hosts: oracle
+  tasks:
+    - name: Update all packages on the system
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        only_upgrade: true
+    - name: Get Github repository information # noqa: latest
+      ansible.builtin.git:
+        repo: "https://github.com/ThePhaseless/Interstellar.git"
+        single_branch: true
+      register: repository_info
 
-- name: Deploy test compose
-  ansible.builtin.docker_compose:
-    project_src: "{{ repository_info.git_dir_now  }}"
-    files:
-      - "compose.test.yaml"
-    remove_orphans: true
-    pull: always
+    - name: Deploy test compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ repository_info.git_dir_now }}"
+        files:
+          - "compose.test.yaml"
+        remove_orphans: true
+        pull: always
