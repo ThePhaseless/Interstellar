@@ -7,7 +7,7 @@ resource "tls_private_key" "deployment_key" {
 
 resource "local_sensitive_file" "deployment_key" {
   content  = tls_private_key.deployment_key.private_key_pem
-  filename = "${path.root}/../Keys/deployment_key.pem"
+  filename = "${path.root}/../$2.pem"
 }
 
 resource "local_file" "ansible_inventory" {
@@ -19,7 +19,7 @@ resource "local_file" "ansible_inventory" {
       (oci_core_instance.instance.public_ip)= "ubuntu"
     },
 
-    private_key_path = "${path.root}/../Keys/deployment_key.pem"
+    private_key_path = "${path.root}/../$2.pem"
     proxy_user       = var.proxmox_user
     proxy_host       = var.proxmox_host
 
