@@ -1,5 +1,6 @@
 ---
 - name: Main deployment playbook
+  hosts: proxmox
   vars_files:
     - vars/containers.yaml
   roles:
