@@ -1,4 +1,4 @@
-[proxmox_hosts]
+[proxmox]
 ${pve_ip} ansible_user=${pve_user} ansible_name="Proxmox VE"
 
 [oracle]
@@ -9,4 +9,4 @@ ${ip} ansible_user=${user}
 [oracle:vars]
 ansible_ssh_private_key_file=${private_key_path}
 
-[proxmox_containers:children]
+[containers:children]
