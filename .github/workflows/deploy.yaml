@@ -77,3 +77,4 @@ jobs:
 
       - name: Ansible Playbook
         run: ansible-playbook site.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }} tailscale_tags=\"${{vars.TAILSCALE_MACHINES_TAG}}\""
+        working-directory: Ansible
