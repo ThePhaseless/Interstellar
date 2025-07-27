@@ -27,13 +27,13 @@ jobs:
     needs: terraform
     uses: ./.github/workflows/ansible-template.yaml
     with:
-      ansible-group: "containers"
       playbook-name: "deploy-containers.yaml"
+      workflow-name: "Deploy Containers"
     secrets: inherit
   ansible-oracle:
     needs: terraform
     uses: ./.github/workflows/ansible-template.yaml
     with:
-      ansible-group: oracle
       playbook-name: "deploy-oracle.yaml"
+      workflow-name: "Deploy Oracle"
     secrets: inherit
