@@ -59,7 +59,7 @@ jobs:
 
       - name: Encrypt sensitive files for Ansible
         run: |
-          ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Ansible/vars/proxmox.yaml
+          ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Ansible/vars/containers.yaml
           ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Ansible/inventory.ini
           ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Keys/deployment_key.pem
 
@@ -68,7 +68,7 @@ jobs:
         with:
           name: encrypted-ansible-files
           path: |
-            Ansible/vars/proxmox.yaml.gpg
+            Ansible/vars/containers.yaml.gpg
             Ansible/inventory.ini.gpg
             Keys/deployment_key.pem.gpg
           retention-days: 90
