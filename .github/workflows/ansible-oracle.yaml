@@ -35,12 +35,12 @@ jobs:
         run: |
           # Decrypt inventory.ini if encrypted version exists
           if [ -f "Ansible/inventory.ini.gpg" ]; then
-            gpg --decrypt --batch --yes --passphrase "${{ secrets.TF_VAR_PRIVATE_KEY }}" --output Ansible/inventory.ini Ansible/inventory.ini.gpg
+            gpg --decrypt --batch --yes --passphrase "${{ secrets.GPG_SECRET }}" --output Ansible/inventory.ini Ansible/inventory.ini.gpg
             chmod 600 Ansible/inventory.ini
           fi
           # Decrypt deployment key if encrypted version exists
           if [ -f "Keys/deployment_key.pem.gpg" ]; then
-            gpg --decrypt --batch --yes --passphrase "${{ secrets.TF_VAR_PRIVATE_KEY }}" --output Keys/deployment_key.pem Keys/deployment_key.pem.gpg
+            gpg --decrypt --batch --yes --passphrase "${{ secrets.GPG_SECRET }}" --output Keys/deployment_key.pem Keys/deployment_key.pem.gpg
             chmod 600 Keys/deployment_key.pem
           fi
 

@@ -74,11 +74,11 @@ jobs:
         run: |
           # Encrypt inventory.ini if it exists
           if [ -f "Ansible/inventory.ini" ]; then
-            gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase "${{ secrets.TF_VAR_PRIVATE_KEY }}" --output Ansible/inventory.ini.gpg Ansible/inventory.ini
+            gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase "${{ secrets.GPG_SECRET }}" --output Ansible/inventory.ini.gpg Ansible/inventory.ini
           fi
           # Encrypt deployment key if it exists
           if [ -f "Keys/deployment_key.pem" ]; then
-            gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase "${{ secrets.TF_VAR_PRIVATE_KEY }}" --output Keys/deployment_key.pem.gpg Keys/deployment_key.pem
+            gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase "${{ secrets.GPG_SECRET }}" --output Keys/deployment_key.pem.gpg Keys/deployment_key.pem
           fi
 
       - name: Upload encrypted artifacts
