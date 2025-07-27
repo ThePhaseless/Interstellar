@@ -34,7 +34,7 @@ jobs:
 
       - name: Hash Terraform files
         id: hash
-        run: echo "${{hashFiles( 'Terraform/**' )}}" >> $GITHUB_ENV
+        run: echo "hash=${{hashFiles( 'Terraform/**' )}}" >> $GITHUB_ENV
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
