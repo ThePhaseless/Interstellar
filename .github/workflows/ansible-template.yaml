@@ -49,7 +49,7 @@ jobs:
         with:
           run-id: ${{ inputs.terraform-workflow-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          name: encrypted-ansible-files-${{hashFiles( 'Terraform/**' )}}
+          name: encrypted-ansible-files
 
   deploy:
     runs-on: ubuntu-latest
