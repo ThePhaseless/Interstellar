@@ -16,15 +16,15 @@ jobs:
   terraform:
     uses: ./.github/workflows/terraform.yaml
     secrets: inherit
-  ansible-proxmox:
-    needs: terraform
-    uses: ./.github/workflows/ansible-template.yaml
-    with:
-      ansible-group: "proxmox"
-      playbook-name: "deploy-proxmox.yaml"
-    secrets: inherit
+  # ansible-proxmox:
+  #   needs: terraform
+  #   uses: ./.github/workflows/ansible-template.yaml
+  #   with:
+  #     ansible-group: "proxmox"
+  #     playbook-name: "deploy-proxmox.yaml"
+  #   secrets: inherit
   ansible-containers:
-    needs: ansible-proxmox
+    needs: terraform
     uses: ./.github/workflows/ansible-template.yaml
     with:
       ansible-group: "containers"
