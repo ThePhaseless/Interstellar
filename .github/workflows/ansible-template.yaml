@@ -66,7 +66,7 @@ jobs:
           gpg-secret: ${{ secrets.GPG_SECRET }}
           ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          artifact-name: encrypted-ansible-files-${{hashFiles( 'Terraform/**' )}}
+          artifact-name: encrypted-ansible-files
 
       - name: Run Ansible Playbook
         run: ansible-playbook ${{ inputs.playbook-name }} --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
