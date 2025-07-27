@@ -7,9 +7,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "Terraform/**"
-      - ".github/workflows/terraform.yaml"
 
 concurrency:
   group: terraform

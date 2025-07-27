@@ -1,17 +1,9 @@
 name: Apply Ansible Playbook on Oracle
 on:
-  workflow_dispatch:
   workflow_run:
     workflows: ["Deploy Terraform Infrastructure"]
     types:
       - completed
-  push:
-    branches:
-      - main
-    paths:
-      - "Ansible/**"
-      - ".github/workflows/ansible-oracle.yaml"
-      - ".github/workflows/ansible-template.yaml"
 
 jobs:
   call-ansible-workflow:
@@ -20,6 +12,7 @@ jobs:
       playbook-name: "site-oracle.yaml"
       workflow-name: "Apply Ansible Playbook on Oracle"
       concurrency-group: "ansible-oracle"
+      terraform-workflow-id: ${{ github.event.workflow_run.id }}
     secrets:
       GPG_SECRET: ${{ secrets.GPG_SECRET }}
       TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
