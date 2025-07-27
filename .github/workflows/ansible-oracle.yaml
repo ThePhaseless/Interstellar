@@ -11,6 +11,7 @@ on:
     paths:
       - "Ansible/**"
       - ".github/workflows/ansible-oracle.yaml"
+      - ".github/workflows/ansible-template.yaml"
 
 jobs:
   call-ansible-workflow:
