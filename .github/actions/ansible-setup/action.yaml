@@ -13,6 +13,9 @@ inputs:
   artifact-name:
     description: 'Name of the encrypted artifact to download'
     required: true
+  terraform-workflow-id:
+    description: 'ID of the Terraform workflow run to fetch artifacts from'
+    required: true
 
 runs:
   using: composite
@@ -21,6 +24,8 @@ runs:
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
+        run-id: ${{ inputs.terraform-workflow-id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         path: .
 
     - name: Decrypt sensitive files
