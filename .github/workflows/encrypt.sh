@@ -1,3 +1,1 @@
-if [ -f "$2" ]; then
-    gpg --symmetric --batch --passphrase "$1" --output "$2.gpg" "$2"
-fi
+gpg --symmetric --cipher-algo AES256 --passphrase "$1" --batch --output "$2.gpg" "$2"

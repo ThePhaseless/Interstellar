@@ -1,4 +1,1 @@
-if [ -f "$2.gpg" ]; then
-    gpg --decrypt --batch --yes --passphrase "$1" --output "$2" "$2.gpg"
-    chmod 600 "$2"
-fi
+gpg --decrypt --symmetric --cipher-algo AES256 --passphrase "$1" --batch --output "$2.gpg" "$2"
