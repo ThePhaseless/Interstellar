@@ -26,6 +26,7 @@
       ansible.builtin.git:
         repo: "https://github.com/ThePhaseless/Interstellar.git"
         single_branch: true
+        clone: true
       register: repository_info
 
     - name: Deploy test compose
