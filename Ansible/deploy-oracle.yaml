@@ -16,10 +16,12 @@
   hosts: oracle
   tasks:
     - name: Update all packages on the system
+      become: true
       ansible.builtin.apt:
         name: "*"
         state: latest
         only_upgrade: true
+
     - name: Get Github repository information # noqa: latest
       ansible.builtin.git:
         repo: "https://github.com/ThePhaseless/Interstellar.git"
@@ -27,6 +29,7 @@
       register: repository_info
 
     - name: Deploy test compose
+      become: true
       community.docker.docker_compose_v2:
         project_src: "{{ repository_info.git_dir_now }}"
         files:
