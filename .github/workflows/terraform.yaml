@@ -32,6 +32,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Hash Terraform files
+        id: hash
+        run: echo "${{hashFiles( 'Terraform/**' )}}" >> $GITHUB_ENV
+
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
 
@@ -84,7 +88,7 @@ jobs:
       - name: Upload encrypted artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: encrypted-ansible-files
+          name: encrypted-ansible-files-${{ env.hash }}
           path: |
             Ansible/inventory.ini.gpg
             Keys/deployment_key.pem.gpg
