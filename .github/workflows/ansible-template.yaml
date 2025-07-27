@@ -67,6 +67,7 @@ jobs:
           ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           artifact-name: encrypted-ansible-files
+          terraform-workflow-id: ${{ inputs.terraform-workflow-id }}
 
       - name: Run Ansible Playbook
         run: ansible-playbook ${{ inputs.playbook-name }} --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
