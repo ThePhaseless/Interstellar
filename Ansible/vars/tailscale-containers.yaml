@@ -1,0 +1,2 @@
+tailscale_args: --ssh --snat-subnet-routes=false
+tailscale_tags: ['terraform']
