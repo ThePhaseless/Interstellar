@@ -1,4 +1,6 @@
 collections:
   - name: artis3n.tailscale
-  - name: geerlingguy.docker
   - name: community.docker
+roles:
+  - name: geerlingguy.docker
+
