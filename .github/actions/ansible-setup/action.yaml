@@ -22,9 +22,9 @@ runs:
       shell: bash
       working-directory: .github/actions/ansible-setup
       run: |
-        ./decrypt.sh "${{ inputs.gpg-secret }}" Ansible/inventory.ini
-        ./decrypt.sh "${{ inputs.gpg-secret }}" Keys/deployment_key.pem
-        ./decrypt.sh "${{ inputs.gpg-secret }}" Ansible/vars/proxmox.yaml
+        ./decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/inventory.ini
+        ./decrypt.sh "${{ inputs.gpg-secret }}" ./Keys/deployment_key.pem
+        ./decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/vars/proxmox.yaml
 
     - name: List gpg files
       shell: bash
