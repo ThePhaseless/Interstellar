@@ -1,1 +1,6 @@
 ---
+- name: Main deployment playbook
+  vars_files:
+    - vars/containers.yaml
+  roles:
+    - role: configure_containers
