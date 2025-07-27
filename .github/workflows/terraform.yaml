@@ -1,16 +1,6 @@
-name: Deploy Terraform Infrastructure
+name: Deploy Terraform
 on:
-  workflow_dispatch:
-  schedule:
-    # Run weekly on Sunday at 2 AM UTC to prevent artifact expiration
-    - cron: "0 2 * * 0"
-  push:
-    branches:
-      - main
-
-concurrency:
-  group: terraform
-  cancel-in-progress: true
+  workflow_call:
 
 jobs:
   terraform:
