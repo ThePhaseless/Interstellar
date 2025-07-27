@@ -20,11 +20,10 @@ runs:
   steps:
     - name: Decrypt sensitive files
       shell: bash
-      working-directory: .github/actions/ansible-setup
       run: |
-        ./decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/inventory.ini
-        ./decrypt.sh "${{ inputs.gpg-secret }}" ./Keys/deployment_key.pem
-        ./decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/vars/proxmox.yaml
+        ./scripts/decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/inventory.ini
+        ./scripts/decrypt.sh "${{ inputs.gpg-secret }}" ./Keys/deployment_key.pem
+        ./scripts/decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/vars/proxmox.yaml
 
     - name: Install uv
       uses: astral-sh/setup-uv@v6
