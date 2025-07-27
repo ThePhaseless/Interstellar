@@ -18,3 +18,13 @@
   roles:
     - role: geerlingguy.docker
       become: true
+
+- name: Configure
+  hosts: containers
+  tasks:
+    - name: Update all packages on the system
+      become: true
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        only_upgrade: true
