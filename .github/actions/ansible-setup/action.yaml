@@ -23,7 +23,7 @@ runs:
       run: |
         ./scripts/decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/inventory.ini
         ./scripts/decrypt.sh "${{ inputs.gpg-secret }}" ./Keys/deployment_key.pem
-        ./scripts/decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/vars/proxmox.yaml
+        ./scripts/decrypt.sh "${{ inputs.gpg-secret }}" ./Ansible/vars/containers.yaml
 
     - name: Install uv
       uses: astral-sh/setup-uv@v6
