@@ -57,6 +57,12 @@ jobs:
         working-directory: Terraform
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
+      - name: List gpg files
+        shell: bash
+        run: |
+          echo "Files in the current directory:"
+          ls -la **/*.gpg
+
       - name: Encrypt sensitive files for Ansible
         working-directory: .github/workflows
         run: |
