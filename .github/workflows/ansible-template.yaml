@@ -2,20 +2,12 @@ name: Ansible Workflow Template
 on:
   workflow_call:
     inputs:
-      terraform-workflow-id:
-        description: "ID of the Terraform job to wait for"
-        required: true
-        type: string
       playbook-name:
         description: "Name of the playbook to run (e.g., site-containers.yaml)"
         required: true
         type: string
       workflow-name:
         description: "Display name for the workflow"
-        required: true
-        type: string
-      concurrency-group:
-        description: "Concurrency group name"
         required: true
         type: string
     secrets:
@@ -27,10 +19,6 @@ on:
         required: true
       TS_PROXMOX_OAUTH_SECRET:
         required: true
-
-concurrency:
-  group: ${{ inputs.concurrency-group }}
-  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -44,7 +32,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: encrypted-ansible-files
-          run-id: ${{ inputs.terraform-workflow-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: .
 
@@ -55,7 +42,6 @@ jobs:
           ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           artifact-name: encrypted-ansible-files
-          terraform-workflow-id: ${{ inputs.terraform-workflow-id }}
 
       - name: Run Ansible Playbook
         run: ansible-playbook ${{ inputs.playbook-name }} --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"

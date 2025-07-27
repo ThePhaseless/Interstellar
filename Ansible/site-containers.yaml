@@ -4,7 +4,6 @@
   gather_facts: false
   vars_files:
     - vars/proxmox.yaml
-    - vars/container_config.yaml
   roles:
     - role: proxmox_containers
 
@@ -15,7 +14,7 @@
   roles:
     - role: artis3n.tailscale.machine
 
-- name: Deploy Tailscale on Proxmox
+- name: Update Tailscale on Proxmox
   hosts: proxmox_hosts
   vars_files:
     - vars/tailscale-proxmox.yaml
