@@ -26,13 +26,13 @@
       ansible.builtin.git:
         repo: "https://github.com/ThePhaseless/Interstellar.git"
         single_branch: true
-        clone: true
+        dest: "/opt/interstellar"
       register: repository_info
 
     - name: Deploy test compose
       become: true
       community.docker.docker_compose_v2:
-        project_src: "{{ repository_info.git_dir_now }}"
+        project_src: "/opt/interstellar"
         files:
           - "compose.test.yaml"
         remove_orphans: true
