@@ -15,12 +15,13 @@
 - name: Configure
   hosts: oracle
   tasks:
-    - name: Update all packages on the system
+    - ansible.builtin.import_tasks: tasks/update-apt.yaml
+    - name: Create repo folder
       become: true
-      ansible.builtin.apt:
-        name: "*"
-        state: latest
-        only_upgrade: true
+      ansible.builtin.file:
+        path: /opt/interstellar
+        state: directory
+        mode: "0755"
 
     - name: Get Github repository information # noqa: latest
       ansible.builtin.git:
