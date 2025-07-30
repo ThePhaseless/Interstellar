@@ -15,7 +15,8 @@
 - name: Configure
   hosts: oracle
   tasks:
-    - ansible.builtin.import_tasks: tasks/update-apt.yaml
+    - name: Update packages
+      ansible.builtin.import_tasks: tasks/update-apt.yaml
     - name: Create repo folder
       become: true
       ansible.builtin.file:

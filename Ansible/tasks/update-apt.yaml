@@ -1,0 +1,6 @@
+- name: Update all packages on the system
+  become: true
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+    only_upgrade: true
