@@ -27,8 +27,8 @@ jobs:
       TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
       TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
       TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
-      OCI_BUCKET: ${{ vars.TF_BUCKET_NAME }}
-      OCI_NAMESPACE: ${{ secrets.TF_NAMESPACE }}
+      OCI_bucket: ${{ vars.TF_BUCKET_NAME }}
+      OCI_namespace: ${{ secrets.TF_NAMESPACE }}
       OCI_CLI_USER: ${{ secrets.TF_VAR_USER_OCID }}
       OCI_CLI_TENANCY: ${{ secrets.TF_VAR_TENANCY_OCID }}
       OCI_CLI_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
@@ -57,7 +57,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: Terraform
-        run: terraform init
+        run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
@@ -77,7 +77,7 @@ jobs:
           version: latest
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan -input=false -detailed-exitcode && echo exit_code."$?" >> $GITHUB_OUTPUT
+        run: terraform plan -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}" -out=tfplan -input=false -detailed-exitcode && echo exit_code."$?" >> $GITHUB_OUTPUT
         continue-on-error: true
         working-directory: Terraform
         id: plan
@@ -89,7 +89,7 @@ jobs:
           exit 1
 
       - name: Terraform Apply
-        run: terraform apply -input=false tfplan
+        run: terraform apply -input=false tfplan -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
         working-directory: Terraform
         if: (github.event_name == 'workflow_dispatch' || github.event_name == 'push' ) && steps.plan.outputs.exit_code == '2'
 
