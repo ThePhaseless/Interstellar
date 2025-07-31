@@ -25,7 +25,8 @@ jobs:
       TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
       TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
       TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
-      TF_VAR_bucket_name: ${{ vars.TF_BUCKET_NAME }}
+      TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
+      TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
       OCI_BUCKET: ${{ vars.TF_BUCKET_NAME }}
       OCI_NAMESPACE: ${{ secrets.TF_NAMESPACE }}
       OCI_CLI_USER: ${{ secrets.TF_VAR_USER_OCID }}
@@ -38,10 +39,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Retrieve the OCID of a named compartment in tenancy
-        uses: oracle-actions/run-oci-cli-command@v1.3.2
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          command: os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
+          activate-environment: true
+          enable-cache: true
+
+      - name: Install Project Dependencies
+        run: uv sync --locked --link-mode=copy
+
+      - name: Download files from OCI bucket
+        continue-on-error: true
+        run: oci os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
