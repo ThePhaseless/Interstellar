@@ -45,7 +45,7 @@ jobs:
         run: uv sync --locked
 
       - name: Retrieve the OCID of a named compartment in tenancy
-        run: oci os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -n "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
+        run: oci os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
 
       - name: Setup Ansible Environment
         uses: ./.github/actions/ansible-setup/ansible-only
