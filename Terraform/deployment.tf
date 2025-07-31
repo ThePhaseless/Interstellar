@@ -7,7 +7,7 @@ resource "tls_private_key" "deployment_key" {
 
 resource "local_sensitive_file" "deployment_key" {
   content  = tls_private_key.deployment_key.private_key_pem
-  filename = "${path.root}/../Keys/deployment_key.pem"
+  filename = "${path.root}/../.private/deployment_key.pem"
 }
 
 resource "local_file" "ansible_inventory" {
@@ -19,12 +19,12 @@ resource "local_file" "ansible_inventory" {
       (oci_core_instance.instance.public_ip)= "ubuntu"
     },
 
-    private_key_path = "${path.root}/../Keys/deployment_key.pem"
+    private_key_path = "${path.root}/../.private/deployment_key.pem"
     proxy_user       = var.proxmox_user
     proxy_host       = var.proxmox_host
 
   })
-  filename = "${path.root}/../Ansible/inventory.ini"
+  filename = "${path.root}/../.private/inventory.ini"
 }
 
 # Save a list of Proxmox container IDs to a YAML file for Ansible
@@ -35,6 +35,6 @@ resource "local_file" "containers" {
     pve_ip     = var.proxmox_host
   })
 
-  filename = "${path.root}/../Ansible/vars/containers.yaml"
+  filename = "${path.root}/../.private/containers.yaml"
 }
 

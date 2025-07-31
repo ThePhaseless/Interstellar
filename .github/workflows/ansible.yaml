@@ -1,0 +1,51 @@
+name: Deploy Ansible Configuration
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Ansible/**"
+      - "Config/**"
+      - "compose*.yaml"
+      - ".github/workflows/ansible.yaml"
+      - ".github/actions/ansible-setup/**"
+    branches:
+      - main
+
+concurrency:
+  group: ansible
+  cancel-in-progress: true
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+    environment: server
+    env:
+      OCI_CLI_USER: ${{ secrets.TF_VAR_USER_OCID }}
+      OCI_CLI_TENANCY: ${{ secrets.TF_VAR_TENANCY_OCID }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.TF_VAR_PRIVATE_KEY }}
+      OCI_CLI_REGION: ${{ secrets.TF_VAR_REGION }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Retrieve the OCID of a named compartment in tenancy
+        uses: oracle-actions/run-oci-cli-command@v1.3.2
+        with:
+          command: os object bulk-download -bn "${{ secrets.ANSIBLE_BUCKET_NAME }}" -n "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
+
+      - name: Setup Ansible Environment
+        uses: ./.github/actions/ansible-setup/ansible-only
+        with:
+          ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+
+      - name: Deploy Containers
+        run: ansible-playbook deploy-containers.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
+        working-directory: Ansible
+
+      - name: Deploy Oracle
+        run: ansible-playbook deploy-oracle.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
+        working-directory: Ansible

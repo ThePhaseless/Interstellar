@@ -11,10 +11,16 @@ variable "ports" {
   }
 }
 
-variable "bucket_name" {
+variable "state_bucket_name" {
   description = "Name of the Object Storage bucket for Terraform state"
   type        = string
   default     = "terraform-state"
+}
+
+variable "ansible_bucket_name" {
+  description = "Name of the Object Storage bucket for Ansible files"
+  type        = string
+  default     = "ansible-files"
 }
 
 variable "proxmox_host" {
