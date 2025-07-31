@@ -34,7 +34,7 @@ jobs:
       - name: Retrieve the OCID of a named compartment in tenancy
         uses: oracle-actions/run-oci-cli-command@v1.3.2
         with:
-          command: os object bulk-download -bn "${{ secrets.ANSIBLE_BUCKET_NAME }}" -n "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
+          command: os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -n "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
 
       - name: Setup Ansible Environment
         uses: ./.github/actions/ansible-setup/ansible-only

@@ -25,7 +25,9 @@ jobs:
       TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
       TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
       TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
-      TF_VAR_bucket_name: ${{ secrets.TF_BUCKET_NAME }}
+      TF_VAR_bucket_name: ${{ vars.TF_BUCKET_NAME }}
+      OCI_BUCKET: ${{ vars.TF_BUCKET_NAME }}
+      OCI_NAMESPACE: ${{ secrets.TF_NAMESPACE }}
       OCI_CLI_USER: ${{ secrets.TF_VAR_USER_OCID }}
       OCI_CLI_TENANCY: ${{ secrets.TF_VAR_TENANCY_OCID }}
       OCI_CLI_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
@@ -39,7 +41,15 @@ jobs:
       - name: Retrieve the OCID of a named compartment in tenancy
         uses: oracle-actions/run-oci-cli-command@v1.3.2
         with:
-          command: os object bulk-download -bn "${{ secrets.ANSIBLE_BUCKET_NAME }}" -n "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
+          command: os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: Terraform
+        run: terraform init
+
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
 
@@ -57,49 +67,24 @@ jobs:
           tags: tag:ci
           version: latest
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Save Oracle Key to a file
-        run: |
-          echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > "${{ env.TF_VAR_private_key_path }}"
-          chmod 600 "${{ env.TF_VAR_private_key_path }}"
-
-      - name: Terraform Init
-        working-directory: Terraform
-        run: terraform init -backend-config="bucket=${{ secrets.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
-
       - name: Terraform Plan
-        run: terraform plan -out=tfplan -input=false
+        run: terraform plan -out=tfplan -input=false -detailed-exitcode && echo exit_code."$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
         working-directory: Terraform
+        id: plan
+
+      - name: Exit if plan failed
+        if: steps.plan.outputs.exit_code != '0' && steps.plan.outputs.exit_code != '2'
+        run: |
+          echo "::error Terraform plan failed with exit code ${{ steps.plan.outputs.exit_code }}"
+          exit 1
 
       - name: Terraform Apply
         run: terraform apply -input=false tfplan
         working-directory: Terraform
-        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        if: (github.event_name == 'workflow_dispatch' || github.event_name == 'push' ) && steps.plan.outputs.exit_code == '2'
 
       - name: Check for changes in shared files and upload to OCI bucket
-        run: |
-          upload_if_changed() {
-            local source_file="$1"
-            local bucket_object="$2"
-            local downloaded_file="shared-files/$bucket_object"
-
-            if [ ! -f "$source_file" ]; then
-              echo "Source file $source_file does not exist, skipping upload"
-              return
-            fi
-
-            # If downloaded file doesn't exist or files are different, upload
-            if [ ! -f "$downloaded_file" ] || ! cmp -s "$source_file" "$downloaded_file"; then
-              echo "Uploading $source_file to bucket as $bucket_object"
-              oci os object put --bucket-name "$SHARED_FILES_BUCKET" --name "$bucket_object" --file "$source_file" --namespace "$OCI_NAMESPACE" --force
-            else
-              echo "No changes detected for $source_file, skipping upload"
-            fi
-          }
-
-          # Upload files if they changed
-          upload_if_changed "Ansible/inventory.ini" "inventory.ini"
-          upload_if_changed ".private/deployment_key.pem" "deployment_key.pem"
-          upload_if_changed "Ansible/vars/containers.yaml" "containers.yaml"
+        uses: oracle-actions/run-oci-cli-command@v1.3.2
+        with:
+          command: os object bulk-upload -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --src-dir .private/ --overwrite

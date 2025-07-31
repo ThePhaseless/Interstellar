@@ -8,7 +8,7 @@
   },
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.terminal.activateEnvironment": true,
-  "cSpell.words": ["loadbalancer", "traefik"],
+  "cSpell.words": ["loadbalancer", "OCID", "tflint", "traefik"],
   "yaml.customTags": ["!env_var", "!include_dir_merge_named"],
   "python.defaultInterpreterPath": "./.venv/bin/python",
   "ansible.python.interpreterPath": "/workspaces/Interstellar/.venv/bin/python"
