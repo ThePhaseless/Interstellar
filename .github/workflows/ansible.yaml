@@ -2,7 +2,7 @@ name: Deploy Ansible Configuration
 
 on:
   workflow_run:
-    workflows: ["Deploy Ansible Configuration"]
+    workflows: ["Deploy Terraform Infrastructure"]
     types:
       - completed
 
