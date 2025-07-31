@@ -28,7 +28,14 @@ data "oci_objectstorage_namespace" "namespace" {
 
 resource "oci_objectstorage_bucket" "terraform_state" {
   compartment_id = oci_identity_compartment.compartment.id
-  name           = var.bucket_name
+  name           = var.state_bucket_name
+  namespace      = data.oci_objectstorage_namespace.namespace.namespace
+  versioning     = "Enabled"
+}
+
+resource "oci_objectstorage_bucket" "ansible_files" {
+  compartment_id = oci_identity_compartment.compartment.id
+  name           = var.ansible_bucket_name
   namespace      = data.oci_objectstorage_namespace.namespace.namespace
   versioning     = "Enabled"
 }
@@ -43,18 +50,14 @@ data "oci_core_images" "images" {
   sort_order               = "DESC"
 }
 
-module "vcn" {
-  source         = "oracle-terraform-modules/vcn/oci"
-  version        = "3.6.0"
+resource "oci_core_vcn" "vcn" {
   compartment_id = oci_identity_compartment.compartment.id
-
-  vcn_name                = "TerraformVCN"
-  create_internet_gateway = true
+  display_name = "TerraformVCN"
 }
 
 resource "oci_core_security_list" "security_list" {
   compartment_id = oci_identity_compartment.compartment.id
-  vcn_id         = module.vcn.vcn_id
+  vcn_id         = oci_core_vcn.vcn.id
   display_name   = "TerraformSecurityList"
 
   egress_security_rules {
@@ -98,11 +101,11 @@ resource "oci_core_security_list" "security_list" {
 
 resource "oci_core_subnet" "subnet" {
   compartment_id = oci_identity_compartment.compartment.id
-  vcn_id         = module.vcn.vcn_id
+  vcn_id         = oci_core_vcn.vcn.id
   display_name   = "TerraformSubnet"
   cidr_block     = "10.0.0.0/24"
 
-  route_table_id = module.vcn.ig_route_id
+  route_table_id = oci_core_vcn.vcn.id
 
   security_list_ids = [
     oci_core_security_list.security_list.id

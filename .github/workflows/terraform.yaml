@@ -1,6 +1,17 @@
-name: Deploy Terraform
+name: Deploy Terraform Infrastructure
+
 on:
-  workflow_call:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Terraform/**"
+      - ".github/workflows/terraform.yaml"
+    branches:
+      - main
+
+concurrency:
+  group: terraform
+  cancel-in-progress: true
 
 jobs:
   terraform:
@@ -13,12 +24,22 @@ jobs:
       TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
       TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
       TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
-      TF_VAR_proxmox_host: ${{ vars.TF_VAR_proxmox_host }}
+      TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
       TF_VAR_bucket_name: ${{ secrets.TF_BUCKET_NAME }}
+      OCI_CLI_USER: ${{ secrets.TF_VAR_USER_OCID }}
+      OCI_CLI_TENANCY: ${{ secrets.TF_VAR_TENANCY_OCID }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.TF_VAR_PRIVATE_KEY }}
+      OCI_CLI_REGION: ${{ secrets.TF_VAR_REGION }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Retrieve the OCID of a named compartment in tenancy
+        uses: oracle-actions/run-oci-cli-command@v1.3.2
+        with:
+          command: os object bulk-download -bn "${{ secrets.ANSIBLE_BUCKET_NAME }}" -n "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
 
@@ -57,18 +78,28 @@ jobs:
         working-directory: Terraform
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
-      - name: Encrypt sensitive files for Ansible
+      - name: Check for changes in shared files and upload to OCI bucket
         run: |
-          ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Ansible/vars/containers.yaml
-          ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Ansible/inventory.ini
-          ./scripts/encrypt.sh "${{ secrets.GPG_SECRET }}" ./Keys/deployment_key.pem
+          upload_if_changed() {
+            local source_file="$1"
+            local bucket_object="$2"
+            local downloaded_file="shared-files/$bucket_object"
 
-      - name: Upload encrypted artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: encrypted-ansible-files
-          path: |
-            Ansible/vars/containers.yaml.gpg
-            Ansible/inventory.ini.gpg
-            Keys/deployment_key.pem.gpg
-          retention-days: 90
+            if [ ! -f "$source_file" ]; then
+              echo "Source file $source_file does not exist, skipping upload"
+              return
+            fi
+
+            # If downloaded file doesn't exist or files are different, upload
+            if [ ! -f "$downloaded_file" ] || ! cmp -s "$source_file" "$downloaded_file"; then
+              echo "Uploading $source_file to bucket as $bucket_object"
+              oci os object put --bucket-name "$SHARED_FILES_BUCKET" --name "$bucket_object" --file "$source_file" --namespace "$OCI_NAMESPACE" --force
+            else
+              echo "No changes detected for $source_file, skipping upload"
+            fi
+          }
+
+          # Upload files if they changed
+          upload_if_changed "Ansible/inventory.ini" "inventory.ini"
+          upload_if_changed ".private/deployment_key.pem" "deployment_key.pem"
+          upload_if_changed "Ansible/vars/containers.yaml" "containers.yaml"
