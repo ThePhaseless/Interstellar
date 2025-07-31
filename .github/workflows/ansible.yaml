@@ -1,6 +1,11 @@
 name: Deploy Ansible Configuration
 
 on:
+  workflow_run:
+    workflows: ["Deploy Ansible Configuration"]
+    types:
+      - completed
+
   workflow_dispatch:
   push:
     paths:
@@ -13,8 +18,7 @@ on:
       - main
 
 concurrency:
-  group: ansible
-  cancel-in-progress: true
+  group: deployment-${{ github.ref }}
 
 jobs:
   ansible:
