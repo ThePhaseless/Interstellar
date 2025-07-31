@@ -31,10 +31,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Retrieve the OCID of a named compartment in tenancy
-        uses: oracle-actions/run-oci-cli-command@v1.3.2
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          command: os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -n "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
+          activate-environment: true
+          enable-cache: true
+
+      - name: Install Project Dependencies
+        run: uv sync --locked
+
+      - name: Retrieve the OCID of a named compartment in tenancy
+        run: oci os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -n "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
 
       - name: Setup Ansible Environment
         uses: ./.github/actions/ansible-setup/ansible-only
