@@ -3,7 +3,7 @@
   hosts: proxmox
   tasks:
     - name: Configure Proxmox Containers
-      ansible.builtin.include_tasks: tasks/configure_proxmox_containers.yaml
+      ansible.builtin.include_tasks: tasks/update_container_configs.yaml
     - name: Discover Proxmox Containers
       ansible.builtin.include_tasks: tasks/discover_containers.yaml
   vars_files:
