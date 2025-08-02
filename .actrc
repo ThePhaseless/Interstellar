@@ -1,1 +1,3 @@
 -P ubuntu-latest=catthehacker/ubuntu:act-latest
+-j terraform
+--container-options --privileged --device /dev/net/tun --cap-add=NET_ADMIN
