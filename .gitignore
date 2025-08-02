@@ -38,6 +38,11 @@ Logs/
 **/.env*
 !**/.env*.example
 
+# Deploy
 .ansible/
 .private/
+
+# Act
 .secrets
+.vars
+
