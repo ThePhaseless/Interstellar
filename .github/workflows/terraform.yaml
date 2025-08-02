@@ -2,16 +2,7 @@ name: Deploy Terraform Infrastructure
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "Terraform/**"
-      - ".github/workflows/terraform.yaml"
-    branches:
-      - main
-
-concurrency:
-  group: deployment-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
 
 jobs:
   terraform:

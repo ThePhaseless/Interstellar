@@ -1,23 +1,8 @@
 name: Ansible Setup
 
 on:
-  workflow_run:
-    workflows: ["Deploy Terraform Infrastructure"]
-    types:
-      - completed
-
+  workflow_call:
   workflow_dispatch:
-  push:
-    paths:
-      - "Ansible/*/**"
-      - "Ansible/deploy-*.yaml"
-      - ".github/workflows/ansible-setup.yaml"
-      - "Ansible/*.cfg"
-    branches:
-      - main
-
-concurrency:
-  group: deployment-${{ github.ref }}
 
 jobs:
   setup:
