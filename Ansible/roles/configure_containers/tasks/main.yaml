@@ -8,7 +8,6 @@
     set -euxo pipefail
     pct exec {{ item }} -- ip route get 1 | awk '{print $7;exit}'
   register: proxmox_containers_ips
-  delegate_to: "{{ pve_ip }}"
   changed_when: false
   loop: "{{ proxmox_containers_ids }}"
   args:
