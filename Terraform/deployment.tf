@@ -11,11 +11,15 @@ data "oci_objectstorage_object" "existing_deployment_key" {
   object    = "deployment_key.pem"
 }
 
+data "tls_public_key" "deployment_key" {
+  private_key_pem = data.oci_objectstorage_object.existing_deployment_key.content_length != null ? data.oci_objectstorage_object.existing_deployment_key.content : tls_private_key.deployment_key.private_key_pem
+}
+
 resource "oci_objectstorage_object" "deployment_key" {
   object    = "deployment_key.pem"
   bucket    = oci_objectstorage_bucket.ansible_files.name
   namespace = data.oci_objectstorage_namespace.namespace.namespace
-  content   = data.oci_objectstorage_object.existing_deployment_key.content_length != null ? data.oci_objectstorage_object.existing_deployment_key.content : tls_private_key.deployment_key.private_key_pem
+  content   = data.tls_public_key.deployment_key.private_key_pem
 }
 
 resource "oci_objectstorage_object" "inventory" {

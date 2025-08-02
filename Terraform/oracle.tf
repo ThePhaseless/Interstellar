@@ -56,7 +56,14 @@ data "oci_core_images" "images" {
 resource "oci_core_vcn" "vcn" {
   compartment_id = oci_identity_compartment.compartment.id
   display_name   = "TerraformVCN"
-  cidr_blocks    = ["10.0.0.0/16"]
+
+  cidr_blocks = ["10.0.0.0/16"]
+}
+
+resource "oci_core_internet_gateway" "internet_gateway" {
+  compartment_id = oci_identity_compartment.compartment.id
+  vcn_id         = oci_core_vcn.vcn.id
+  display_name   = "TerraformInternetGateway"
 }
 
 resource "oci_core_security_list" "security_list" {
@@ -103,11 +110,23 @@ resource "oci_core_security_list" "security_list" {
   }
 }
 
+resource "oci_core_route_table" "route_table" {
+  compartment_id = oci_identity_compartment.compartment.id
+  vcn_id         = oci_core_vcn.vcn.id
+  display_name   = "TerraformRouteTable"
+
+  route_rules {
+    network_entity_id = oci_core_internet_gateway.internet_gateway.id
+    destination       = "0.0.0.0/0"
+  }
+}
+
 resource "oci_core_subnet" "subnet" {
   compartment_id = oci_identity_compartment.compartment.id
   vcn_id         = oci_core_vcn.vcn.id
   display_name   = "TerraformSubnet"
   cidr_block     = oci_core_vcn.vcn.cidr_blocks[0]
+  route_table_id = oci_core_route_table.route_table.id
 
   security_list_ids = [
     oci_core_security_list.security_list.id
@@ -141,7 +160,7 @@ resource "oci_core_instance" "instance" {
   }
 
   metadata = {
-    ssh_authorized_keys = tls_private_key.deployment_key.public_key_openssh
+    ssh_authorized_keys = data.tls_public_key.deployment_key.public_key_openssh
   }
 
   preserve_boot_volume = false
