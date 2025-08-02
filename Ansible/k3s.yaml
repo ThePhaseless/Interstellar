@@ -1,0 +1,10 @@
+- name: Setup Containers
+  hosts: proxmox
+  tasks:
+    - name: Discover Proxmox Containers
+      ansible.builtin.include_tasks: discover_containers.yaml
+  vars_files:
+    - ../.private/containers.yaml
+
+- name: Setup K3S
+  ansible.builtin.import_playbook: k3s.orchestration.site

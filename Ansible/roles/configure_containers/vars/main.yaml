@@ -1,6 +1,0 @@
-configure_containers_config_lines:
-  - "lxc.cgroup2.devices.allow: c 195:* rwm"
-  - "lxc.cgroup2.devices.allow: c 510:* rwm"
-  - "dev0: /dev/nvidia0"
-  - "dev1: /dev/nvidiactl"
-  - "dev2: /dev/net/tun"
