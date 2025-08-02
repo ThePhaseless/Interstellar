@@ -28,7 +28,7 @@ resource "proxmox_lxc" "containers" {
   memory          = each.value.memory
   swap            = each.value.swap
   unprivileged    = false
-  ssh_public_keys = tls_private_key.deployment_key.public_key_openssh
+  ssh_public_keys = data.tls_public_key.deployment_key.public_key_openssh
 
   features {
     fuse    = true
