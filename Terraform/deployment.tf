@@ -57,15 +57,20 @@ resource "oci_objectstorage_object" "inventory" {
       children = {
         server = {
           children = {
-            containers = null
-            oracle     = null
+            oracle = null
           }
         }
         agent = {
           children = {
-            oracle = null
+            oracle     = null
+            containers = null
           }
         }
+      }
+      vars = {
+        k3s_version  = "v1.33.3+k3s1"
+        token        = "Vs35soKws/if/0guS3lFHKKk1iW4Wz+WtjDKRhrrNa1BBPA1cSJ8jD53IBaxu7XpkUEC8EjHQhuBsQbxngbg9g=="
+        api_endpoint = "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
       }
     }
 
