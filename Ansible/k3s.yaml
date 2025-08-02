@@ -2,7 +2,7 @@
   hosts: proxmox
   tasks:
     - name: Discover Proxmox Containers
-      ansible.builtin.include_tasks: discover_containers.yaml
+      ansible.builtin.include_tasks: tasks/discover_containers.yaml
   vars_files:
     - ../.private/containers.yaml
 
