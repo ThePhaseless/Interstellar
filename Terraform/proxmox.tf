@@ -44,12 +44,11 @@ resource "proxmox_lxc" "containers" {
   }
 
   mountpoint {
-    key     = 0
-    slot    = 0
-    storage = "/Storage"
-    volume  = "/Storage"
-    mp      = "/Storage"
-    size    = "0M"
+    key    = 0
+    slot   = 0
+    volume = "/Storage"
+    mp     = "/Storage"
+    size   = "0T"
   }
 
   # Devices - uncomment when passthrough devices are fixed
