@@ -20,7 +20,7 @@ variable "state_bucket_name" {
 variable "ansible_bucket_name" {
   description = "Name of the Object Storage bucket for Ansible files"
   type        = string
-  default     = "ansible-files"
+  default     = "ansible"
 }
 
 variable "proxmox_host" {
@@ -33,4 +33,15 @@ variable "proxmox_user" {
   type        = string
   default     = "root"
 }
+
+# Unset after devices are fixed
+# variable "passthrough_devices" {
+#   description = "List of devices to pass through to the Proxmox container"
+#   type        = list(string)
+#   default = [
+#     "/dev/nvidia0",
+#     "/dev/nvidiactl",
+#     "/dev/net/tun",
+#   ]
+# }
 
