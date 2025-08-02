@@ -30,7 +30,7 @@ resource "oci_objectstorage_object" "inventory" {
   content = yamlencode({
     proxmox = {
       hosts = {
-        "proxmox" = {
+        "pve" = {
           ansible_host = var.proxmox_host
           ansible_user = var.proxmox_user
         }
