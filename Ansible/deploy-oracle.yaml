@@ -11,6 +11,9 @@
   roles:
     - role: geerlingguy.docker
       become: true
+      vars:
+        docker_users:
+          - "{{ ansible_user_id }}"
 
 - name: Configure
   hosts: oracle
@@ -23,6 +26,7 @@
         path: /opt/interstellar
         state: directory
         mode: "0755"
+        owner: ${ ansible_user_id }
 
     - name: Get Github repository information # noqa: latest
       ansible.builtin.git:
@@ -32,7 +36,6 @@
       register: repository_info
 
     - name: Deploy test compose
-      become: true
       community.docker.docker_compose_v2:
         project_src: "/opt/interstellar"
         files:
