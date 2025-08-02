@@ -42,7 +42,7 @@ jobs:
     concurrency:
       group: deploy-${{ github.ref }}
     needs: changes
-    if: needs.changes.outputs.terraform == 'true' && success()
+    if: needs.changes.outputs.terraform == 'true' && !failure()
     secrets: inherit
     uses: ./.github/workflows/terraform.yaml
 
@@ -50,7 +50,7 @@ jobs:
     concurrency:
       group: deploy-${{ github.ref }}
     needs: [changes]
-    if: needs.changes.outputs.ansible == 'true' && success()
+    if: needs.changes.outputs.ansible == 'true' && !failure()
     secrets: inherit
     uses: ./.github/workflows/ansible-setup.yaml
 
@@ -58,6 +58,6 @@ jobs:
     concurrency:
       group: deploy-${{ github.ref }}
     needs: [changes]
-    if: needs.changes.outputs.any == 'true' && success()
+    if: needs.changes.outputs.any == 'true' && !failure()
     secrets: inherit
     uses: ./.github/workflows/ansible-k3s.yaml
