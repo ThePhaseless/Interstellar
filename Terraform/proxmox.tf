@@ -16,9 +16,6 @@ locals {
   }
 
   root_fs_storage = "local-lvm"
-
-  storage_name = "storage"
-  storage_size = "1184G"
 }
 
 
@@ -26,6 +23,7 @@ resource "proxmox_lxc" "containers" {
   for_each = local.containers
 
   ostemplate      = "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
+  target_node     = var.proxmox_host
   hostname        = each.key
   memory          = each.value.memory
   swap            = each.value.swap
@@ -48,10 +46,25 @@ resource "proxmox_lxc" "containers" {
   mountpoint {
     key     = 0
     slot    = 0
-    storage = local.storage_name
-    mp      = "/storage"
-    size    = local.storage_size
+    storage = "/Storage"
+    volume  = "/Storage"
+    mp      = "/Storage"
+    size    = "0M"
   }
+
+  # Devices - uncomment when passthrough devices are fixed
+  # dynamic "mountpoint" {
+  #   for_each = var.passthrough_devices
+  #   iterator = device
+  #   content {
+  #     key    = 1 + index(var.passthrough_devices, device.value)
+  #     slot   = 1 + index(var.passthrough_devices, device.value)
+  #     size   = "32G"
+  #     backup = false
+  #     volume = device.value
+  #     mp     = device.value
+  #   }
+  # }
 
   nameserver = "1.1.1.1"
   network {

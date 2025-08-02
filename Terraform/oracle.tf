@@ -41,7 +41,6 @@ resource "oci_objectstorage_bucket" "ansible_files" {
   compartment_id = oci_identity_compartment.compartment.id
   name           = var.ansible_bucket_name
   namespace      = data.oci_objectstorage_namespace.namespace.namespace
-  versioning     = "Enabled"
 }
 
 data "oci_core_images" "images" {
@@ -113,7 +112,6 @@ resource "oci_core_subnet" "subnet" {
   security_list_ids = [
     oci_core_security_list.security_list.id
   ]
-
 }
 
 data "oci_identity_availability_domains" "availability_domains" {
