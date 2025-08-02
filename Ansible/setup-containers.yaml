@@ -1,0 +1,23 @@
+---
+- name: Setup Containers
+  hosts: proxmox
+  tasks:
+    - name: Configure Proxmox Containers
+      ansible.builtin.include_tasks: configure_proxmox_containers.yaml
+    - name: Discover Proxmox Containers
+      ansible.builtin.include_tasks: discover_containers.yaml
+  vars_files:
+    - ../.private/containers.yaml
+
+- name: Install and run Tailscale
+  hosts: containers
+  vars_files:
+    - vars/tailscale-containers.yaml
+  roles:
+    - role: artis3n.tailscale.machine
+
+- name: Update packages
+  hosts: containers
+  tasks:
+    - name: Update apt packages
+      ansible.builtin.import_tasks: tasks/update-apt.yaml

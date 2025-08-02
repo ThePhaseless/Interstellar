@@ -6,27 +6,11 @@
   roles:
     - role: artis3n.tailscale.machine
 
-- name: Install Docker
-  hosts: oracle
-  roles:
-    - role: geerlingguy.docker
-      become: true
-      vars:
-        docker_users:
-          - "{{ ansible_user_id }}"
-
 - name: Configure
   hosts: oracle
   tasks:
     - name: Update packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
-    - name: Create repo folder
-      become: true
-      ansible.builtin.file:
-        path: /opt/interstellar
-        state: directory
-        mode: "0755"
-        owner: "{{ ansible_user_id }}"
 
 - name: Fix K3S Agent Service
   hosts: oracle

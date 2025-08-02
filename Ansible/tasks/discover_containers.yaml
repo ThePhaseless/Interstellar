@@ -35,9 +35,3 @@
   no_log: true
   loop: "{{ proxmox_containers_ips.results }}"
   when: item.stdout is defined and item.stdout != ""
-
-- name: Update container configurations
-  ansible.builtin.include_tasks: update_container_config.yaml
-  loop: "{{ proxmox_containers_ids }}"
-  loop_control:
-    loop_var: container_id
