@@ -18,22 +18,25 @@ jobs:
     runs-on: ubuntu-latest
     environment: server
     env:
+      UV_LINK_MODE: copy
+
+      # For Terraform
       PM_PASS: ${{ secrets.PM_PASS }}
       TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
-      TF_VAR_private_key_path: ${{ github.workspace }}/${{ vars.RELATIVE_PRIVATE_KEY_PATH }}
+      TF_VAR_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
       TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
       TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
       TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
       TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
       TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
       TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
-      OCI_bucket: ${{ vars.TF_BUCKET_NAME }}
-      OCI_namespace: ${{ secrets.TF_NAMESPACE }}
-      OCI_CLI_USER: ${{ secrets.TF_VAR_USER_OCID }}
-      OCI_CLI_TENANCY: ${{ secrets.TF_VAR_TENANCY_OCID }}
-      OCI_CLI_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
-      OCI_CLI_KEY_CONTENT: ${{ secrets.TF_VAR_PRIVATE_KEY }}
-      OCI_CLI_REGION: ${{ secrets.TF_VAR_REGION }}
+
+      # For OCI Backend
+      OCI_user: ${{ secrets.TF_VAR_USER_OCID }}
+      OCI_tenancy: ${{ secrets.TF_VAR_TENANCY_OCID }}
+      OCI_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
+      OCI_region: ${{ secrets.TF_VAR_REGION }}
+      OCI_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
 
     steps:
       - name: Checkout code
@@ -44,16 +47,24 @@ jobs:
         with:
           activate-environment: true
           enable-cache: true
+          cache-local-path: .venv
 
       - name: Install Project Dependencies
         run: uv sync --locked --link-mode=copy
 
-      - name: Download files from OCI bucket
-        continue-on-error: true
-        run: oci os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
+      - name: Cache Terraform Providers
+        uses: actions/cache@v4
+        with:
+          path: Terraform/.terraform
+          key: ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Create OCI Private Key
+        run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}
 
       - name: Terraform Init
         working-directory: Terraform
@@ -71,29 +82,16 @@ jobs:
       - name: Setup Tailscale
         uses: tailscale/github-action@v3
         with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
+          use-cache: "true"
           version: latest
 
       - name: Terraform Plan
-        run: terraform plan -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}" -out=tfplan -input=false -detailed-exitcode && echo exit_code."$?" >> $GITHUB_OUTPUT
-        continue-on-error: true
+        run: terraform plan -input=false -out=tfplan
         working-directory: Terraform
         id: plan
 
-      - name: Exit if plan failed
-        if: steps.plan.outputs.exit_code != '0' && steps.plan.outputs.exit_code != '2'
-        run: |
-          echo "::error Terraform plan failed with exit code ${{ steps.plan.outputs.exit_code }}"
-          exit 1
-
       - name: Terraform Apply
-        run: terraform apply -input=false tfplan -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
+        run: terraform apply -input=false tfplan
         working-directory: Terraform
-        if: (github.event_name == 'workflow_dispatch' || github.event_name == 'push' ) && steps.plan.outputs.exit_code == '2'
-
-      - name: Check for changes in shared files and upload to OCI bucket
-        uses: oracle-actions/run-oci-cli-command@v1.3.2
-        with:
-          command: os object bulk-upload -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --src-dir .private/ --overwrite

@@ -24,7 +24,11 @@ jobs:
   ansible:
     runs-on: ubuntu-latest
     environment: server
+    strategy:
+      matrix:
+        playbook: [containers, oracle]
     env:
+      UV_LINK_MODE: copy
       OCI_CLI_USER: ${{ secrets.TF_VAR_USER_OCID }}
       OCI_CLI_TENANCY: ${{ secrets.TF_VAR_TENANCY_OCID }}
       OCI_CLI_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
@@ -35,28 +39,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cache Ansible Collections
+        uses: actions/cache@v4
+        with:
+          path: ~/.ansible/collections
+          key: ${{ runner.os }}-ansible-collections-${{ hashFiles('./Ansible/requirements.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-ansible-collections-
+
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
           enable-cache: true
+          cache-local-path: .venv
 
       - name: Install Project Dependencies
         run: uv sync --locked
 
       - name: Retrieve the OCID of a named compartment in tenancy
-        run: oci os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/
+        run: oci os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/ && chmod 600 .private/deployment_key.pem
 
       - name: Setup Ansible Environment
-        uses: ./.github/actions/ansible-setup/ansible-only
-        with:
-          ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-
-      - name: Deploy Containers
-        run: ansible-playbook deploy-containers.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
         working-directory: Ansible
+        run: ansible-galaxy install -r requirements.yml
 
-      - name: Deploy Oracle
-        run: ansible-playbook deploy-oracle.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          use-cache: "true"
+          version: latest
+
+      - name: Deploy ${{ matrix.playbook }}
+        run: ansible-playbook deploy-${{ matrix.playbook }}.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
         working-directory: Ansible
