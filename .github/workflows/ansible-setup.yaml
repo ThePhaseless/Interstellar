@@ -10,6 +10,7 @@ on:
   push:
     paths:
       - "Ansible/*/**"
+      - "Ansible/deploy-*.yaml"
       - ".github/workflows/ansible-setup.yaml"
       - "Ansible/*.cfg"
     branches:
