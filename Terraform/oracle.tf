@@ -56,7 +56,8 @@ data "oci_core_images" "images" {
 
 resource "oci_core_vcn" "vcn" {
   compartment_id = oci_identity_compartment.compartment.id
-  display_name = "TerraformVCN"
+  display_name   = "TerraformVCN"
+  cidr_blocks    = ["10.0.0.0/16"]
 }
 
 resource "oci_core_security_list" "security_list" {
@@ -107,9 +108,7 @@ resource "oci_core_subnet" "subnet" {
   compartment_id = oci_identity_compartment.compartment.id
   vcn_id         = oci_core_vcn.vcn.id
   display_name   = "TerraformSubnet"
-  cidr_block     = "10.0.0.0/24"
-
-  route_table_id = oci_core_vcn.vcn.id
+  cidr_block     = oci_core_vcn.vcn.cidr_blocks[0]
 
   security_list_ids = [
     oci_core_security_list.security_list.id
@@ -149,5 +148,3 @@ resource "oci_core_instance" "instance" {
 
   preserve_boot_volume = false
 }
-
-

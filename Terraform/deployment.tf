@@ -5,36 +5,61 @@ resource "tls_private_key" "deployment_key" {
   algorithm = "RSA"
 }
 
-resource "local_sensitive_file" "deployment_key" {
-  content  = tls_private_key.deployment_key.private_key_pem
-  filename = "${path.root}/../.private/deployment_key.pem"
+data "oci_objectstorage_object" "existing_deployment_key" {
+  bucket    = var.ansible_bucket_name
+  namespace = data.oci_objectstorage_namespace.namespace.namespace
+  object    = "deployment_key.pem"
 }
 
-resource "local_file" "ansible_inventory" {
-  content = templatefile("${path.root}/Templates/inventory.tpl", {
-    pve_ip   = var.proxmox_host
-    pve_user = var.proxmox_user
+resource "oci_objectstorage_object" "deployment_key" {
+  object    = "deployment_key.pem"
+  bucket    = oci_objectstorage_bucket.ansible_files.name
+  namespace = data.oci_objectstorage_namespace.namespace.namespace
+  content   = data.oci_objectstorage_object.existing_deployment_key.content_length != null ? data.oci_objectstorage_object.existing_deployment_key.content : tls_private_key.deployment_key.private_key_pem
+}
 
-    oracle_servers = {
-      (oci_core_instance.instance.public_ip)= "ubuntu"
+resource "oci_objectstorage_object" "inventory" {
+  object    = "inventory.yaml"
+  bucket    = oci_objectstorage_bucket.ansible_files.name
+  namespace = data.oci_objectstorage_namespace.namespace.namespace
+
+  content = yamlencode({
+    proxmox = {
+      hosts = {
+        "proxmox" = {
+          ansible_host = var.proxmox_host
+          ansible_user = var.proxmox_user
+        }
+      }
+    }
+
+    oracle = {
+      hosts = {
+        "vps" = {
+          ansible_host = oci_core_instance.instance.public_ip
+          ansible_user = "ubuntu"
+        }
+      }
     },
 
-    private_key_path = "${path.root}/../.private/deployment_key.pem"
-    proxy_user       = var.proxmox_user
-    proxy_host       = var.proxmox_host
+    containers = null
 
+    all = {
+      vars = {
+        ansible_ssh_private_key_file = "../.private/deployment_key.pem"
+      }
+    }
   })
-  filename = "${path.root}/../.private/inventory.ini"
 }
 
-# Save a list of Proxmox container IDs to a YAML file for Ansible
-resource "local_file" "containers" {
+resource "oci_objectstorage_object" "containers" {
+  object    = "containers.yaml"
+  bucket    = oci_objectstorage_bucket.ansible_files.name
+  namespace = data.oci_objectstorage_namespace.namespace.namespace
+
   content = yamlencode({
     containers = [for container in proxmox_lxc.containers : container.id]
     pve_user   = var.proxmox_user
     pve_ip     = var.proxmox_host
   })
-
-  filename = "${path.root}/../.private/containers.yaml"
 }
-
