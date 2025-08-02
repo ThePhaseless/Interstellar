@@ -7,6 +7,7 @@
     - name: Discover Proxmox Containers
       ansible.builtin.include_tasks: tasks/discover_containers.yaml
   vars_files:
+    - vars/tailscale-containers.yaml
     - ../.private/containers.yaml
 
 - name: Install and run Tailscale
