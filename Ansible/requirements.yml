@@ -1,6 +1,7 @@
 collections:
   - name: artis3n.tailscale
   - name: community.docker
+  - source: https://github.com/k3s-io/k3s-ansible
 roles:
   - name: geerlingguy.docker
 

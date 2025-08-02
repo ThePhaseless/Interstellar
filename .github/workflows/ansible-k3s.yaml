@@ -1,19 +1,15 @@
-name: Deploy Ansible Configuration
+name: Ansible Setup
 
 on:
   workflow_run:
-    workflows: ["Deploy Terraform Infrastructure"]
+    workflows: ["Ansible Setup"]
     types:
       - completed
 
   workflow_dispatch:
   push:
     paths:
-      - "Ansible/**"
-      - "Config/**"
-      - "compose*.yaml"
-      - ".github/workflows/ansible.yaml"
-      - ".github/actions/ansible-setup/**"
+      - ".github/workflows/ansible-k3s.yaml"
     branches:
       - main
 
@@ -21,12 +17,9 @@ concurrency:
   group: deployment-${{ github.ref }}
 
 jobs:
-  ansible:
+  setup:
     runs-on: ubuntu-latest
     environment: server
-    strategy:
-      matrix:
-        playbook: [containers, oracle]
     env:
       UV_LINK_MODE: copy
       OCI_CLI_USER: ${{ secrets.TF_VAR_USER_OCID }}
@@ -72,6 +65,6 @@ jobs:
           use-cache: "true"
           version: latest
 
-      - name: Deploy ${{ matrix.playbook }}
-        run: ansible-playbook deploy-${{ matrix.playbook }}.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
+      - name: Install k3s
+        run: ansible-playbook k3s.orchestration.site
         working-directory: Ansible
