@@ -46,7 +46,12 @@ resource "oci_objectstorage_object" "inventory" {
       }
     },
 
-    containers = null
+    containers = {
+      vars = {
+        ansible_user            = "root"
+        ansible_ssh_common_args = "-o ProxyJump ${var.proxmox_user}@${var.proxmox_host}"
+      }
+    }
 
     all = {
       vars = {
