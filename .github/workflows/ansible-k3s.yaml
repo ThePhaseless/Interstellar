@@ -1,4 +1,4 @@
-name: Ansible Setup
+name: Ansible K3S
 
 on:
   workflow_run:
@@ -65,6 +65,6 @@ jobs:
           use-cache: "true"
           version: latest
 
-      - name: Install k3s
+      - name: Apply K3S Playbook
         run: ansible-playbook k3s.orchestration.site
         working-directory: Ansible
