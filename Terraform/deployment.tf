@@ -53,6 +53,22 @@ resource "oci_objectstorage_object" "inventory" {
       }
     }
 
+    k3s_cluster = {
+      children = {
+        server = {
+          children = {
+            containers = null
+            oracle     = null
+          }
+        }
+        agent = {
+          children = {
+            oracle = null
+          }
+        }
+      }
+    }
+
     all = {
       vars = {
         ansible_ssh_private_key_file = "../.private/deployment_key.pem"
