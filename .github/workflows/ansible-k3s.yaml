@@ -53,5 +53,5 @@ jobs:
           version: latest
 
       - name: Apply K3S Playbook
-        run: ansible-playbook k3s.orchestration.site
+        run: ansible-playbook k3s.yaml
         working-directory: Ansible

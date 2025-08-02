@@ -5,6 +5,7 @@
       ansible.builtin.include_tasks: tasks/discover_containers.yaml
   vars_files:
     - ../.private/containers.yaml
+    - vars/tailscale-containers.yaml
 
 - name: Setup K3S
   ansible.builtin.import_playbook: k3s.orchestration.site
