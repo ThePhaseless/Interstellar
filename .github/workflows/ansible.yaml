@@ -57,7 +57,7 @@ jobs:
       - name: Install Project Dependencies
         run: uv sync --locked
 
-      - name: Retrieve the OCID of a named compartment in tenancy
+      - name: Get Ansible configuration files
         run: oci os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/ && chmod 600 .private/deployment_key.pem
 
       - name: Setup Ansible Environment
