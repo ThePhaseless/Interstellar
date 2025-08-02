@@ -2,7 +2,7 @@
 - name: Prepare Containers
   hosts: proxmox
   vars_files:
-    - vars/containers.yaml
+    - ../.private/containers.yaml
   roles:
     - role: configure_containers
 
