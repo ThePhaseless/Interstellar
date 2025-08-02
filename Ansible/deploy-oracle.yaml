@@ -28,8 +28,9 @@
         mode: "0755"
         owner: "{{ ansible_user_id }}"
 
-- name: Create /etc/systemd/system/k3s-agent.service.env
+- name: Fix K3S Agent Service
   hosts: oracle
+  become: true
   tasks:
     - name: Create k3s-agent service env file
       ansible.builtin.copy:

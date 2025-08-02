@@ -1,0 +1,63 @@
+name: Deploy Conditionaly Terraform and Ansible
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deployment-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    # Set outputs that will be available to other jobs.
+    outputs:
+      any: ${{ steps.filter.outputs.any }}
+      ansible: ${{ steps.filter.outputs.ansible }}
+      terraform: ${{ steps.filter.outputs.terraform }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect changes in specific folders
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: main
+          filters: |
+            terraform:
+              - 'Terraform/**'
+
+            ansible:
+              - 'Ansible/**'
+              - 'Terraform/**'
+
+            any:
+              - '**'
+
+  terraform:
+    concurrency:
+      group: deploy-${{ github.ref }}
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
+    secrets: inherit
+    uses: ./.github/workflows/terraform.yaml
+
+  ansible_setup:
+    concurrency:
+      group: deploy-${{ github.ref }}
+    needs: [changes]
+    if: needs.changes.outputs.ansible == 'true'
+    secrets: inherit
+    uses: ./.github/workflows/ansible-setup.yaml
+
+  ansible_k3s:
+    concurrency:
+      group: deploy-${{ github.ref }}
+    needs: [changes]
+    if: needs.changes.outputs.any == 'true'
+    secrets: inherit
+    uses: ./.github/workflows/ansible-k3s.yaml

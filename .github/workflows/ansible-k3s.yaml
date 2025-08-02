@@ -1,21 +1,8 @@
 name: Ansible K3S
 
 on:
-  workflow_run:
-    workflows: ["Ansible Setup"]
-    types:
-      - completed
-
+  workflow_call:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/ansible-k3s.yaml"
-    branches:
-      - main
-
-concurrency:
-  group: deployment-${{ github.ref }}
-
 jobs:
   setup:
     runs-on: ubuntu-latest
