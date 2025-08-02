@@ -27,6 +27,7 @@
         state: directory
         mode: "0755"
         owner: "{{ ansible_user_id }}"
+
 - name: Create /etc/systemd/system/k3s-agent.service.env
   hosts: oracle
   tasks:
@@ -34,3 +35,4 @@
       ansible.builtin.copy:
         dest: /etc/systemd/system/k3s-agent.service.env
         mode: "0644"
+        content: ""
