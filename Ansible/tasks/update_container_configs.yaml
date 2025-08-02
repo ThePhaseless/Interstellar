@@ -3,7 +3,7 @@
   ansible.builtin.lineinfile:
     path: "/etc/pve/lxc/{{ container_id }}.conf"
     line: "{{ item }}"
-  loop: "{{ configure_containers_config_lines }}"
+  loop: "{{ container_config_lines }}"
   register: configure_containers_config
 
 - name: Restart container if configuration changed
