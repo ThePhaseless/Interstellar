@@ -10,7 +10,7 @@ on:
       - main
 
 concurrency:
-  group: terraform-${{ github.ref }}
+  group: deployment-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
