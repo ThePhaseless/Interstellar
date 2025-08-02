@@ -6,6 +6,7 @@ variable "ports" {
   }))
   default = {
     SSH       = { port : 22 },
+    HTTP      = { port : 80 },
     HTTPS     = { port : 443 },
     Minecraft = { port : 25565 },
   }

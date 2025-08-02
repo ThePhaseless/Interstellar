@@ -5,7 +5,7 @@ provider "cloudflare" {
 }
 
 locals {
-  ubuntu_version = "22.04"
+  ubuntu_version = "24.04"
   machine = {
     name  = "argon"
     shape = "VM.Standard.A1.Flex"
