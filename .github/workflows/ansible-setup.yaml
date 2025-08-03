@@ -63,7 +63,7 @@ jobs:
         id: create_authkey
         run: |
           playbook="TS_${{ matrix.playbook }}_AUTHKEY"
-          echo "tailscale_authkey_name=${playbook@U}" >> $GITHUB_ENV
+          echo "tailscale_authkey_name=${playbook@U}" >> $GITHUB_OUTPUT
 
       - name: Deploy ${{ matrix.playbook }}
         run: ansible-playbook setup-${{ matrix.playbook }}.yaml --extra-vars "tailscale_authkey=${{ secrets[steps.create_authkey.outputs.tailscale_authkey_name] }}"
