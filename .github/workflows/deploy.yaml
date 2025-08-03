@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     # Set outputs that will be available to other jobs.
     outputs:
-      k3s: ${{ steps.filter.outputs.k3s }}
-      ansible: ${{ steps.filter.outputs.ansible }}
-      terraform: ${{ steps.filter.outputs.terraform }}
+      k3s: ${{ steps.decide.outputs.run_k3s }}
+      ansible: ${{ steps.decide.outputs.run_ansible }}
+      terraform: ${{ steps.decide.outputs.run_terraform }}
 
     steps:
       - name: Checkout code
@@ -26,22 +26,54 @@ jobs:
         uses: dorny/paths-filter@v3
         id: filter
         with:
-          predicate-quantifier: "every"
           filters: |
             k3s: &k3s
-              - '!**'
               - '.github/workflows/ansible-k3s.yaml'
               - 'Ansible/k3s.yaml'
 
             ansible: &ansible
-              - '!**'
+              - *k3s
               - 'Ansible/setup-*.yaml'
               - '.github/workflows/ansible-setup.yaml'
 
             terraform: &terraform
-              - '!**'
+              - *ansible
               - 'Terraform/**'
               - '.github/workflows/terraform.yaml'
+
+      - name: Decide which job to run
+        id: decide
+        run: |
+          # Get filter outputs as JSON and extract workflow names
+          FILTER_OUTPUTS='${{ toJSON(steps.filter.outputs) }}'
+
+          # Define workflows in priority order (highest to lowest priority)
+          # These should match the filter names defined above
+          WORKFLOWS=$(
+            echo "$FILTER_OUTPUTS" | jq -r 'keys[]'
+          )
+
+          # Initialize all outputs to false
+          for workflow in "${WORKFLOWS[@]}"; do
+            echo "run_${workflow}=false" >> $GITHUB_OUTPUT
+          done
+
+          # Find the highest priority workflow that has changes
+          SELECTED_WORKFLOW=""
+          for workflow in "${WORKFLOWS[@]}"; do
+            # Extract the value for this workflow from the JSON output
+            workflow_value=$(echo "$FILTER_OUTPUTS" | jq -r ".${workflow}")
+            if [[ "$workflow_value" == "true" ]]; then
+              echo "run_${workflow}=true" >> $GITHUB_OUTPUT
+              SELECTED_WORKFLOW=$workflow
+              echo "Running ${workflow} workflow"
+              break
+            fi
+          done
+
+          if [[ -z "$SELECTED_WORKFLOW" ]]; then
+            echo "No changes detected in tracked paths"
+          fi
 
   terraform:
     needs: changes
