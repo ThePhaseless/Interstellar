@@ -28,17 +28,18 @@ jobs:
         with:
           base: main
           filters: |
-            terraform:
+            terraform: &terraform
               - 'Terraform/**'
+              - '.github/workflows/terraform.yaml'
 
-            ansible:
+            ansible: &ansible
               - 'Ansible/**'
+              - '.github/workflows/ansible-setup.yaml'
 
             k3s:
               - '**'
-              - '!Ansible/**'
-              - '!Terraform/**'
-
+              - !*terraform
+              - !*ansible
   terraform:
     needs: changes
     if: needs.changes.outputs.terraform == 'true'
