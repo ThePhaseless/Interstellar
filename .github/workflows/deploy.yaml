@@ -33,15 +33,12 @@ jobs:
               - '.github/workflows/terraform.yaml'
 
             ansible: &ansible
-              - 'Ansible/**'
+              - 'Ansible/setup-*.yaml'
               - '.github/workflows/ansible-setup.yaml'
 
             k3s:
-              - '**'
-              - '!Terraform/**'
-              - '!.github/workflows/terraform.yaml'
-              - '!Ansible/**'
-              - '!.github/workflows/ansible-setup.yaml'
+              - '.github/workflows/ansible-k3s.yaml'
+              - 'Ansible/k3s.yaml'
   terraform:
     needs: changes
     if: needs.changes.outputs.terraform == 'true'
