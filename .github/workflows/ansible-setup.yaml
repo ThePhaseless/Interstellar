@@ -69,7 +69,7 @@ jobs:
         run: ansible-playbook setup-${{ matrix.playbook }}.yaml --extra-vars "tailscale_authkey=${{ secrets[steps.create_authkey.outputs.tailscale_authkey_name] }}"
         working-directory: Ansible
 
-  ansible_k3s:
-    needs: setup
-    secrets: inherit
-    uses: ./.github/workflows/ansible-k3s.yaml
+  # ansible_k3s:
+  #   needs: setup
+  #   secrets: inherit
+  #   uses: ./.github/workflows/ansible-k3s.yaml
