@@ -1,11 +1,10 @@
 ---
-- name: Import variables
-  ansible.builtin.include_vars:
-    file: vars/containers.yaml
-
 - name: Setup Containers
   hosts: proxmox
   tasks:
+    - name: Import variables
+      ansible.builtin.include_vars:
+        file: vars/containers.yaml
     - name: Discover Proxmox Containers
       ansible.builtin.include_tasks: tasks/discover_proxmox.yaml
     - name: Configure Proxmox Containers
