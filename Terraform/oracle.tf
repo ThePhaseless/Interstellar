@@ -82,7 +82,7 @@ resource "oci_core_security_list" "security_list" {
 
     for_each = var.ports
     content {
-      stateless   = each.value.stateless
+      stateless   = ingress_security_rules.value.stateless
       source      = "0.0.0.0/0"
       source_type = "CIDR_BLOCK"
       description = "Allow ${ingress_security_rules.key} ingress traffic"
@@ -90,8 +90,8 @@ resource "oci_core_security_list" "security_list" {
       protocol = ingress_security_rules.value.protocol == "TCP" ? "6" : "17"
 
 
-      dynamic "tcp_options" {                                                                           # Use dynamic block for tcp_options
-        for_each = ingress_security_rules.value.protocol == "TCP" ? [ingress_security_rules.value] : [] # Only create if protocol is TCP
+      dynamic "tcp_options" {
+        for_each = ingress_security_rules.value.protocol == "TCP" ? [ingress_security_rules.value] : []
         content {
           min = tcp_options.value.port
           max = tcp_options.value.port
@@ -99,8 +99,8 @@ resource "oci_core_security_list" "security_list" {
       }
 
 
-      dynamic "udp_options" {                                                                           # Use dynamic block for udp_options
-        for_each = ingress_security_rules.value.protocol == "UDP" ? [ingress_security_rules.value] : [] # Only create if protocol is UDP
+      dynamic "udp_options" {
+        for_each = ingress_security_rules.value.protocol == "UDP" ? [ingress_security_rules.value] : []
         content {
           min = udp_options.value.port
           max = udp_options.value.port

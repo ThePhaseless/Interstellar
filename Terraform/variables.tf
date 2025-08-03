@@ -10,7 +10,7 @@ variable "ports" {
     HTTP      = { port : 80 },
     HTTPS     = { port : 443 },
     Minecraft = { port : 25565 },
-    Tailscale = { port : 41641, stateless : true },
+    Tailscale = { port : 41641, stateless : true, protocol : "UDP" },
   }
 }
 
