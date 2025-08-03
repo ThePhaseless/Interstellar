@@ -49,9 +49,9 @@ jobs:
 
           # Define workflows in priority order (highest to lowest priority)
           # These should match the filter names defined above
-          WORKFLOWS=$(
-            echo "$FILTER_OUTPUTS" | jq -r 'keys[]'
-          )
+          WORKFLOWS=($(
+            echo "$FILTER_OUTPUTS" | jq -r 'keys[]' | grep -v '\w*_count' | grep -v 'changes'
+          ))
 
           # Initialize all outputs to false
           for workflow in "${WORKFLOWS[@]}"; do
