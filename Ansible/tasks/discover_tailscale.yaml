@@ -8,12 +8,14 @@
   ansible.builtin.slurp:
     src: ../.private/status.json
   register: private_status_content
+  no_log: true
   when: private_status_file.stat.exists
 
 - name: Get Tailscale status from command
   ansible.builtin.command: tailscale status --json
   register: tailscale_status_result
   changed_when: false
+  no_log: true
   when: not private_status_file.stat.exists
 
 - name: Parse Tailscale status JSON from file
