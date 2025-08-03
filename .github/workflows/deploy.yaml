@@ -26,7 +26,7 @@ jobs:
         uses: dorny/paths-filter@v3
         id: filter
         with:
-          base: main
+          predicate-quantifier: "every"
           filters: |
             k3s: &k3s
               - '!**'
