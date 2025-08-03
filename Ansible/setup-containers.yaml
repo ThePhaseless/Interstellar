@@ -2,10 +2,13 @@
 - name: Setup Containers
   hosts: proxmox
   tasks:
-    - name: Configure Proxmox Containers
-      ansible.builtin.include_tasks: tasks/update_container_configs.yaml
     - name: Discover Proxmox Containers
       ansible.builtin.include_tasks: tasks/discover_containers.yaml
+    - name: Configure Proxmox Containers
+      ansible.builtin.include_tasks: tasks/update_container_configs.yaml
+      loop: "{{ proxmox_containers_ids }}"
+      loop_control:
+        loop_var: container_id
   vars_files:
     - vars/tailscale-containers.yaml
     - ../.private/containers.yaml
