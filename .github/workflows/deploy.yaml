@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     # Set outputs that will be available to other jobs.
     outputs:
-      any: ${{ steps.filter.outputs.any }}
+      k3s: ${{ steps.filter.outputs.k3s }}
       ansible: ${{ steps.filter.outputs.ansible }}
       terraform: ${{ steps.filter.outputs.terraform }}
 
@@ -33,31 +33,26 @@ jobs:
 
             ansible:
               - 'Ansible/**'
-              - 'Terraform/**'
 
-            any:
+            k3s:
               - '**'
+              - '!Ansible/**'
+              - '!Terraform/**'
 
   terraform:
-    concurrency:
-      group: deploy-${{ github.ref }}
     needs: changes
-    if: needs.changes.outputs.terraform == 'true' && !failure()
+    if: needs.changes.outputs.terraform == 'true'
     secrets: inherit
     uses: ./.github/workflows/terraform.yaml
 
   ansible_setup:
-    concurrency:
-      group: deploy-${{ github.ref }}
-    needs: [changes]
-    if: needs.changes.outputs.ansible == 'true' && !failure()
+    needs: changes
+    if: needs.changes.outputs.ansible == 'true'
     secrets: inherit
     uses: ./.github/workflows/ansible-setup.yaml
 
   ansible_k3s:
-    concurrency:
-      group: deploy-${{ github.ref }}
-    needs: [changes]
-    if: needs.changes.outputs.any == 'true' && !failure()
+    needs: changes
+    if: needs.changes.outputs.k3s == 'true'
     secrets: inherit
     uses: ./.github/workflows/ansible-k3s.yaml
