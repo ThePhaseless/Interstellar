@@ -1,22 +1,23 @@
 ---
+- name: Import variables
+  ansible.builtin.include_vars:
+    file: vars/containers.yaml
+
 - name: Setup Containers
   hosts: proxmox
   tasks:
     - name: Discover Proxmox Containers
-      ansible.builtin.include_tasks: tasks/discover_containers.yaml
+      ansible.builtin.include_tasks: tasks/discover_proxmox.yaml
     - name: Configure Proxmox Containers
       ansible.builtin.include_tasks: tasks/update_container_configs.yaml
       loop: "{{ proxmox_containers_ids }}"
       loop_control:
         loop_var: container_id
   vars_files:
-    - vars/tailscale-containers.yaml
-    - ../.private/containers.yaml
+    - ../.private/variables.yaml
 
 - name: Install and run Tailscale
   hosts: containers
-  vars_files:
-    - vars/tailscale-containers.yaml
   roles:
     - role: artis3n.tailscale.machine
 

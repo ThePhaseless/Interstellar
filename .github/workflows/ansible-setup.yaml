@@ -8,6 +8,9 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     environment: server
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
         playbook: [containers, oracle]
@@ -56,8 +59,14 @@ jobs:
           use-cache: "true"
           version: latest
 
+      - name: Create Tailscale Auth Key variable
+        id: create_authkey
+        run: |
+          playbook="TS_${{ matrix.playbook }}_AUTHKEY"
+          echo "tailscale_authkey_name=${playbook@U}" >> $GITHUB_ENV
+
       - name: Deploy ${{ matrix.playbook }}
-        run: ansible-playbook setup-${{ matrix.playbook }}.yaml --extra-vars "tailscale_authkey=${{ secrets.TS_PROXMOX_OAUTH_SECRET }}"
+        run: ansible-playbook setup-${{ matrix.playbook }}.yaml --extra-vars "tailscale_authkey=${{ secrets[steps.create_authkey.outputs.tailscale_authkey_name] }}"
         working-directory: Ansible
 
   ansible_k3s:

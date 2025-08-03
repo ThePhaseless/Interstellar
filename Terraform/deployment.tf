@@ -91,7 +91,7 @@ resource "oci_objectstorage_object" "inventory" {
 }
 
 resource "oci_objectstorage_object" "containers" {
-  object    = "containers.yaml"
+  object    = "variables.yaml"
   bucket    = oci_objectstorage_bucket.ansible_files.name
   namespace = data.oci_objectstorage_namespace.namespace.namespace
 
