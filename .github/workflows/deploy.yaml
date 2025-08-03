@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     # Set outputs that will be available to other jobs.
     outputs:
-      k3s: ${{ steps.decide.outputs.run_k3s }}
-      ansible: ${{ steps.decide.outputs.run_ansible }}
       terraform: ${{ steps.decide.outputs.run_terraform }}
+      ansible: ${{ steps.decide.outputs.run_ansible }}
+      k3s: ${{ steps.decide.outputs.run_k3s }}
 
     steps:
       - name: Checkout code
