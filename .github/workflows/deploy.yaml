@@ -1,4 +1,4 @@
-name: Deploy
+name: Auto Deploy
 
 on:
   push:
@@ -34,12 +34,12 @@ jobs:
               - 'Ansible/k3s.yaml'
 
             ansible: &ansible
-              - *k3s
+              - '!**'
               - 'Ansible/setup-*.yaml'
               - '.github/workflows/ansible-setup.yaml'
 
             terraform: &terraform
-              - *ansible
+              - '!**'
               - 'Terraform/**'
               - '.github/workflows/terraform.yaml'
 
