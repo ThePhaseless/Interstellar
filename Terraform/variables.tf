@@ -1,14 +1,16 @@
 variable "ports" {
   description = "List of ports to be opened in the security group"
   type = map(object({
-    port     = number
-    protocol = optional(string, "TCP")
+    port      = number
+    protocol  = optional(string, "TCP")
+    stateless = optional(bool, false)
   }))
   default = {
     SSH       = { port : 22 },
     HTTP      = { port : 80 },
     HTTPS     = { port : 443 },
     Minecraft = { port : 25565 },
+    Tailscale = { port : 41641, stateless : true },
   }
 }
 

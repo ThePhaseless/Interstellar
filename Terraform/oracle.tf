@@ -82,7 +82,7 @@ resource "oci_core_security_list" "security_list" {
 
     for_each = var.ports
     content {
-      stateless   = false
+      stateless   = each.value.stateless
       source      = "0.0.0.0/0"
       source_type = "CIDR_BLOCK"
       description = "Allow ${ingress_security_rules.key} ingress traffic"
