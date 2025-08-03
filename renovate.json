@@ -7,12 +7,12 @@
       "groupSlug": "all-minor-patch",
       "matchUpdateTypes": ["minor", "patch"],
       "matchPackageNames": ["*"]
-    },
-    {
-      "matchUpdateTypes": ["minor", "patch"],
-      "matchCurrentVersion": "!/^0/",
-      "automerge": true,
-      "ignoreTests": true
     }
+    // {
+    //   "matchUpdateTypes": ["minor", "patch"],
+    //   "matchCurrentVersion": "!/^0/",
+    //   "automerge": true,
+    //   "ignoreTests": true
+    // }
   ]
 }
