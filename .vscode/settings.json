@@ -1,7 +1,8 @@
 {
   "files.associations": {
     "./Config/Home/HomeAssistant/*.yaml": "home-assistant",
-    "./Ansible/**/*.yaml": "ansible"
+    "./Ansible/**/*.yaml": "ansible",
+    "./Ansible/**/*.yml": "ansible"
   },
   "yaml.schemas": {
     "https://www.authelia.com/schemas/v4.38/json-schema/configuration.json": "./Config/Auth/authelia.yaml"
@@ -9,6 +10,7 @@
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.terminal.activateEnvironment": true,
   "cSpell.words": [
+    "AUTHKEY",
     "loadbalancer",
     "objectstorage",
     "OCID",
