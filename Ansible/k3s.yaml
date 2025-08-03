@@ -1,11 +1,8 @@
 - name: Setup Containers
-  hosts: proxmox
+  hosts: localhost
   tasks:
     - name: Discover Proxmox Containers
-      ansible.builtin.include_tasks: tasks/discover_containers.yaml
-  vars_files:
-    - ../.private/containers.yaml
-    - vars/tailscale-containers.yaml
+      ansible.builtin.include_tasks: tasks/discover_tailscale.yaml
 
 - name: Setup K3S
   ansible.builtin.import_playbook: k3s.orchestration.site
