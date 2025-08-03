@@ -38,12 +38,12 @@
   vars_files:
     - ../.private/variables.yaml
 
-# - name: Install and run Tailscale
-#   hosts: containers
-#   vars_files:
-#     - vars/containers.yaml
-#   roles:
-#     - role: artis3n.tailscale.machine
+- name: Install and run Tailscale
+  hosts: containers
+  vars_files:
+    - vars/containers.yaml
+  roles:
+    - role: artis3n.tailscale.machine
 
 - name: Update packages
   hosts: containers

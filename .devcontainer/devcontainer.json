@@ -25,7 +25,8 @@
         "SanjulaGanepola.github-local-actions",
         "samuelcolvin.jinjahtml",
         "IkBenGeenRobot.ansible-variable-lookup",
-        "ms-kubernetes-tools.vscode-kubernetes-tools"
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "Tim-Koehler.helm-intellisense"
       ],
       "settings": {
         "python.defaultInterpreterPath": "./.venv/bin/python",
