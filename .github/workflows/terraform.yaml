@@ -86,7 +86,7 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -input=false tfplan
         working-directory: Terraform
-  # ansible_setup:
-  #   needs: terraform
-  #   secrets: inherit
-  #   uses: ./.github/workflows/ansible-setup.yaml
+  ansible_setup:
+    needs: terraform
+    secrets: inherit
+    uses: ./.github/workflows/ansible-setup.yaml
