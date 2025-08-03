@@ -8,8 +8,8 @@ locals {
 
   containers = {
     nickel = {
-      memory           = 16384
-      swap             = 8192
+      memory           = 24000
+      swap             = 0
       ip               = "dhcp"
       boot_volume_size = "256G"
     }

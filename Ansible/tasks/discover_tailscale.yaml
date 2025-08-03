@@ -1,12 +1,30 @@
 ---
-- name: Get Tailscale status
+- name: Check if .private/status.json exists
+  ansible.builtin.stat:
+    path: ../.private/status.json
+  register: private_status_file
+
+- name: Read Tailscale status from .private/status.json
+  ansible.builtin.slurp:
+    src: ../.private/status.json
+  register: private_status_content
+  when: private_status_file.stat.exists
+
+- name: Get Tailscale status from command
   ansible.builtin.command: tailscale status --json
   register: tailscale_status_result
   changed_when: false
+  when: not private_status_file.stat.exists
 
-- name: Parse Tailscale status JSON
+- name: Parse Tailscale status JSON from file
+  ansible.builtin.set_fact:
+    tailscale_status: "{{ private_status_content.content | b64decode | from_json }}"
+  when: private_status_file.stat.exists
+
+- name: Parse Tailscale status JSON from command
   ansible.builtin.set_fact:
     tailscale_status: "{{ tailscale_status_result.stdout | from_json }}"
+  when: not private_status_file.stat.exists
 
 - name: Filter hosts with tags and create host groups
   ansible.builtin.set_fact:
@@ -20,9 +38,10 @@
 
 - name: Add tagged hosts to inventory groups
   ansible.builtin.add_host:
-    name: "{{ item.value.DNSName.split('.')[0] }}"
+    name: "{{ item.value.DNSName.rstrip('.').split('.')[0] }}"
     groups: "{{ item.value.Tags | map('regex_replace', '^tag:', '') | list }}"
-    ansible_host: "{{ item.value.DNSName }}"
+    ansible_host: "{{ item.value.DNSName.rstrip('.') }}"
+    ansible_user: "root"
   loop: "{{ tailscale_tagged_hosts }}"
   changed_when: false
 
@@ -31,16 +50,15 @@
     msg: |
       Discovered {{ tailscale_tagged_hosts | length }} tagged Tailscale hosts:
       {% for host in tailscale_tagged_hosts %}
-      - {{ host.value.DNSName.split('.')[0] }} ({{ host.value.TailscaleIPs[0] }})
+      - {{ host.value.DNSName.rstrip('.').split('.')[0] }} ({{ host.value.TailscaleIPs[0] }})
         Tags: {{ host.value.Tags | map('regex_replace', '^tag:', '') | join(', ') }}
         Online: {{ host.value.Online }}
       {% endfor %}
   when: tailscale_tagged_hosts | length > 0
-
-- name: Display skipped hosts without tags
-  ansible.builtin.debug:
-    msg: |
-      Skipped {{
-      (tailscale_status.Peer | dict2items | rejectattr('value.Tags', 'defined') | list) +
-      (tailscale_status.Peer | dict2items | selectattr('value.Tags', 'defined') | selectattr('value.Tags', '==', []) | list) | length
-      }} hosts without tags
+# - name: Display skipped hosts without tags
+#   ansible.builtin.debug:
+#     msg: |
+#       Skipped {{
+#       (tailscale_status.Peer | dict2items | rejectattr('value.Tags', 'defined') | list) +
+#       (tailscale_status.Peer | dict2items | selectattr('value.Tags', 'defined') | selectattr('value.Tags', '==', []) | list) | length
+#       }} hosts without tags
