@@ -1,12 +1,8 @@
 ---
-- name: Import variables
-  ansible.builtin.include_vars:
-    file: vars/oracle.yaml
-
 - name: Deploy Tailscale on Oracle
   hosts: oracle
   vars_files:
-    - vars/tailscale-oracle.yaml
+    - vars/oracle.yaml
   roles:
     - role: artis3n.tailscale.machine
 
