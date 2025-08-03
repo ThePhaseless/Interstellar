@@ -38,8 +38,8 @@ jobs:
 
             k3s:
               - '**'
-              - !*terraform
-              - !*ansible
+              - *!terraform
+              - *!ansible
   terraform:
     needs: changes
     if: needs.changes.outputs.terraform == 'true'
