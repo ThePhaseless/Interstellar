@@ -1,4 +1,4 @@
-tailscale_args: --ssh --snat-subnet-routes=false --advertise-exit-node
+tailscale_args: --ssh --snat-subnet-routes=false --advertise-exit-node --reset
 container_config_lines:
   - "lxc.cgroup2.devices.allow: c 195:* rwm"
   - "lxc.cgroup2.devices.allow: c 510:* rwm"
