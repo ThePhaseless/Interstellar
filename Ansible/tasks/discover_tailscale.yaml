@@ -39,10 +39,11 @@
       }}
 
 - name: Add tagged hosts to inventory groups
+  no_log: true
   ansible.builtin.add_host:
     name: "{{ item.value.DNSName.rstrip('.').split('.')[0] }}"
     groups: "{{ item.value.Tags | map('regex_replace', '^tag:', '') | list }}"
-    ansible_host: "{{ item.value.DNSName.rstrip('.') }}"
+    ansible_host: "{{ item.value.TailscaleIPs[0] }}"
     ansible_user: "root"
   loop: "{{ tailscale_tagged_hosts }}"
   changed_when: false
