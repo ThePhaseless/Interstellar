@@ -1,1 +1,1 @@
-tailscale_args: --ssh --snat-subnet-routes=false --advertise-exit-node --reset
+tailscale_args: --ssh --snat-subnet-routes=false --advertise-exit-node
