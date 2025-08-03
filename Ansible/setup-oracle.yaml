@@ -11,13 +11,7 @@
   tasks:
     - name: Update packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
-
-- name: Fix K3S Agent Service
-  hosts: oracle
-  become: true
-  tasks:
-    - name: Create k3s-agent service env file
-      ansible.builtin.copy:
-        dest: /etc/systemd/system/k3s-agent.service.env
-        mode: "0644"
-        content: ""
+    - name: Disable swap
+      ansible.builtin.command: swapoff -a
+      when: ansible_swaps is defined and ansible_swaps | length > 0
+      changed_when: false

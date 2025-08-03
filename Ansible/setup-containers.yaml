@@ -2,6 +2,29 @@
 - name: Setup Containers
   hosts: proxmox
   tasks:
+    - name: Enable ip forwarding
+      register: enable_ip_forward
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        state: present
+        reload: true
+
+    - name: Disable swap
+      ansible.builtin.command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+      changed_when: false
+
+    - name: Reboot ProxmoxVE if needed
+      ansible.builtin.reboot:
+        msg: "Rebooting to apply sysctl changes"
+        connect_timeout: 5
+      when: enable_ip_forward.changed
+      tags:
+        - skip_ansible_lint
+      register: reboot_result
+      ignore_errors: true
+
     - name: Import variables
       ansible.builtin.include_vars:
         file: vars/containers.yaml
@@ -15,13 +38,30 @@
   vars_files:
     - ../.private/variables.yaml
 
-- name: Install and run Tailscale
-  hosts: containers
-  roles:
-    - role: artis3n.tailscale.machine
+# - name: Install and run Tailscale
+#   hosts: containers
+#   vars_files:
+#     - vars/containers.yaml
+#   roles:
+#     - role: artis3n.tailscale.machine
 
 - name: Update packages
   hosts: containers
   tasks:
     - name: Update apt packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
+    - name: Make rootfs rshared on boot
+      register: rc_local_exists
+      ansible.builtin.copy:
+        mode: "0777"
+        dest: /etc/rc.local
+        content: |
+          #!/bin/sh -e
+          mount --make-rshared /
+
+    - name: Reboot to apply /etc/rc.local changes
+      when: rc_local_exists is changed
+      tags:
+        - skip_ansible_lint
+      changed_when: false
+      ansible.builtin.reboot:

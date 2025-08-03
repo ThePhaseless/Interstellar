@@ -1,7 +1,10 @@
 tailscale_args: --ssh --snat-subnet-routes=false --advertise-exit-node
 container_config_lines:
-  - "lxc.cgroup2.devices.allow: c 195:* rwm"
-  - "lxc.cgroup2.devices.allow: c 510:* rwm"
-  - "dev0: /dev/nvidia0"
-  - "dev1: /dev/nvidiactl"
+  - "lxc.apparmor.profile: unconfined"
+  - "lxc.cgroup2.devices.allow: a"
+  - "lxc.cap.drop: "
+  - 'lxc.mount.auto: "proc:rw sys:rw"'
+  # - "dev0: /dev/nvidia0"
+  # - "dev1: /dev/nvidiactl"
   - "dev2: /dev/net/tun"
+  - "dev3: /dev/kmsg"

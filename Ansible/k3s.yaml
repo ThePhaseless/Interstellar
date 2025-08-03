@@ -4,5 +4,25 @@
     - name: Discover Proxmox Containers
       ansible.builtin.include_tasks: tasks/discover_tailscale.yaml
 
+- name: Fix K3S Service
+  hosts: k3s_cluster
+  become: true
+  tasks:
+    - name: Create k3s service env file
+      ansible.builtin.file:
+        path: /etc/systemd/system/k3s.service.env
+        mode: "0644"
+        state: touch
+
+- name: Fix K3S Agent Service
+  hosts: agent
+  become: true
+  tasks:
+    - name: Create k3s-agent service env file
+      ansible.builtin.file:
+        path: /etc/systemd/system/k3s-agent.service.env
+        mode: "0644"
+        state: touch
+
 - name: Setup K3S
   ansible.builtin.import_playbook: k3s.orchestration.site

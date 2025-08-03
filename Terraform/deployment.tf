@@ -63,17 +63,8 @@ resource "oci_objectstorage_object" "inventory" {
 
     k3s_cluster = {
       children = {
-        server = {
-          children = {
-            oracle = null
-          }
-        }
-        agent = {
-          children = {
-            oracle     = null
-            containers = null
-          }
-        }
+        server = null
+        agent  = null
       }
       vars = {
         k3s_version  = "v1.33.3+k3s1"
