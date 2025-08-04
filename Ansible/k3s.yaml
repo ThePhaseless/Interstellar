@@ -10,7 +10,7 @@
       ansible.builtin.set_fact:
         k3s_version: "{{ k3s_version_json.json.tag_name }}"
     - name: Print K3S version
-      ansible.builtin.:
+      ansible.builtin.debug:
         msg: "Latest K3S version is {{ k3s_version }}"
     - name: Discover Proxmox Containers
       ansible.builtin.include_tasks: tasks/discover_tailscale.yaml
