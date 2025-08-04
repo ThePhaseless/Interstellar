@@ -24,5 +24,14 @@
         mode: "0644"
         state: touch
 
+    - name: Get latest k3s version
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/k3s-io/k3s/releases/latest
+        return_content: true
+      register: k3s_version
+
 - name: Setup K3S
   ansible.builtin.import_playbook: k3s.orchestration.site
+  vars:
+    extra_server_args: "--flannel-iface=tailscale0"
+    k3s_version: "{{ k3s_version.json.tag_name }}"
