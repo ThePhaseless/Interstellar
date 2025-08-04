@@ -2,13 +2,16 @@
   hosts: localhost
   tasks:
     - name: Get latest k3s version
-      register: k3s_version
+      register: k3s_version_json
       ansible.builtin.uri:
         url: https://api.github.com/repos/k3s-io/k3s/releases/latest
         return_content: true
     - name: Set K3S version fact
       ansible.builtin.set_fact:
-        k3s_version: "{{ k3s_version.json.tag_name }}"
+        k3s_version: "{{ k3s_version_json.json.tag_name }}"
+    - name: Print K3S version
+      ansible.builtin.:
+        msg: "Latest K3S version is {{ k3s_version }}"
     - name: Discover Proxmox Containers
       ansible.builtin.include_tasks: tasks/discover_tailscale.yaml
 
