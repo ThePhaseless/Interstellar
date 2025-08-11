@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: ./kompose -f ./compose.yaml convert
+    kompose.version: 1.34.0 (cbf2835db)
+    traefik.enable: "true"
+    traefik.http.routers.bazarr.middlewares: crowdsec,default-headers,auth
+  labels:
+    io.kompose.service: bazarr
+  name: bazarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: bazarr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: ./kompose -f ./compose.yaml convert
+        kompose.version: 1.34.0 (cbf2835db)
+        traefik.enable: "true"
+        traefik.http.routers.bazarr.middlewares: crowdsec,default-headers,auth
+      labels:
+        io.kompose.service: bazarr
+    spec:
+      containers:
+        - env:
+            - name: TZ
+              value: Europe/Warsaw
+          image: linuxserver/bazarr:1.5.3-development
+          name: bazarr
+          ports:
+            - containerPort: 6767
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /config
+              name: bazarr-claim0
+            - mountPath: /data
+              name: bazarr-claim1
+      restartPolicy: Always
+      volumes:
+        - name: bazarr-claim0
+          persistentVolumeClaim:
+            claimName: bazarr-claim0
+        - name: bazarr-claim1
+          persistentVolumeClaim:
+            claimName: bazarr-claim1

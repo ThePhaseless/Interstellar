@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  AUTHENTIK_EMAIL__FROM: ""
+  AUTHENTIK_EMAIL__HOST: postfix
+  AUTHENTIK_EMAIL__PORT: "587"
+  AUTHENTIK_EMAIL__TIMEOUT: "10"
+  AUTHENTIK_EMAIL__USE_SSL: "false"
+  AUTHENTIK_EMAIL__USE_TLS: "false"
+  AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
+  AUTHENTIK_POSTGRESQL__HOST: postgresql
+  AUTHENTIK_POSTGRESQL__NAME: ""
+  AUTHENTIK_POSTGRESQL__PASSWORD: ""
+  AUTHENTIK_POSTGRESQL__USER: ""
+  AUTHENTIK_REDIS__HOST: redis
+  AUTHENTIK_SECRET_KEY: ChangeMe!
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: authentik-server-env-authentik
+  name: env-authentik

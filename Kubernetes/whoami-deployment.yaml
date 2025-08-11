@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: ./kompose -f ./compose.yaml convert
+    kompose.version: 1.34.0 (cbf2835db)
+    traefik.enable: "true"
+    traefik.http.routers.whoami.middlewares: default-headers
+  labels:
+    io.kompose.service: whoami
+  name: whoami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: whoami
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: ./kompose -f ./compose.yaml convert
+        kompose.version: 1.34.0 (cbf2835db)
+        traefik.enable: "true"
+        traefik.http.routers.whoami.middlewares: default-headers
+      labels:
+        io.kompose.service: whoami
+    spec:
+      containers:
+        - image: traefik/whoami:latest
+          name: whoami
+          ports:
+            - containerPort: 80
+              protocol: TCP
+      restartPolicy: Always
