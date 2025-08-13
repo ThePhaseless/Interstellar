@@ -8,12 +8,19 @@
         name: net.ipv4.ip_forward
         value: 1
         state: present
+        sysctl_file: /etc/sysctl.d/99-ipv4-forward.conf
         reload: true
 
-    - name: Disable swap
+    - name: Disable swap for current session
       ansible.builtin.command: swapoff -a
       when: ansible_swaptotal_mb > 0
       changed_when: false
+      become: true
+
+    - name: Disable swap permanently, persist reboots
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: "/dev/pve/swap none swap sw 0 0"
 
     - name: Reboot ProxmoxVE if needed
       ansible.builtin.reboot:
