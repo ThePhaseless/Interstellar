@@ -21,7 +21,6 @@
     mode: preserve
     src: "/etc/pve/lxc/{{ container_id }}.conf"
     dest: "/etc/pve/lxc/{{ container_id }}.conf.new"
-  when: output_list | length > 0
 
 - name: Remove existing device entries
   ansible.builtin.lineinfile:
