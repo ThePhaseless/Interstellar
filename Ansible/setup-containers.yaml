@@ -2,6 +2,8 @@
 - name: Setup Containers
   hosts: proxmox
   tasks:
+    - name: Install Nvidia Drivers
+      ansible.builtin.include_tasks: tasks/install_nvidia_drivers.yaml
     - name: Enable ip forwarding
       register: enable_ip_forward
       ansible.posix.sysctl:
@@ -55,6 +57,8 @@
 - name: Update packages
   hosts: containers
   tasks:
+    - name: Install Nvidia Drivers
+      ansible.builtin.include_tasks: tasks/install_nvidia_drivers.yaml
     - name: Update apt packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
     - name: Make rootfs rshared on boot

@@ -1,0 +1,35 @@
+- name: Check if Nvidia drivers are needed
+  ansible.builtin.stat:
+    path:
+      - /usr/bin/nvidia-smi
+      - /usr/bin/nvidia-settings
+  register: nvidia_drivers_needed
+- name: Check if Nvidia drivers are installed
+  ansible.builtin.stat:
+    path: /etc/nvidia-container-runtime/host-files-for-container.d
+  register: nvidia_container_runtime
+- name: Install Nvidia Drivers
+  if: nvidia_drivers_needed.stat.exists and not nvidia_container_runtime.stat.exists
+  block:
+    - name: Get the latest Nvidia driver version
+      ansible.builtin.uri:
+        url: "https://download.nvidia.com/XFree86/Linux-x86_64/latest.txt"
+        return_content: true
+      register: nvidia_latest_version_raw
+    - name: Extract Nvidia driver version from response
+      ansible.builtin.set_fact:
+        nvidia_latest_version: "{{ nvidia_latest_version_raw.content.split()[0] }}"
+        nvidia_latest_version_filename: "{{ nvidia_latest_version_raw.content.split()[1] }}"
+    - name: Download Nvidia driver
+      changed_when: false
+      ansible.builtin.get_url:
+        url: "https://us.download.nvidia.com/XFree86/Linux-x86_64/{{ nvidia_latest_version }}/{{ nvidia_latest_version_filename }}"
+        dest: /tmp/nvidia_driver.run
+        mode: "0755"
+    - name: Install Nvidia driver
+      changed_when: true
+      ansible.builtin.command: >-
+        /tmp/nvidia_driver.run --silent
+        {% if no_kernel_modules %}
+        --no-kernel-module
+        {% endif %}
