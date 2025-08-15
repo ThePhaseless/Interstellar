@@ -6,7 +6,6 @@ metadata:
   name: byparr
   namespace: media
 spec:
-  replicas: 1
   selector:
     matchLabels:
       io.kompose.service: byparr

@@ -1,17 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: ./kompose -f ./compose.yaml convert
-    kompose.version: 1.34.0 (cbf2835db)
-    traefik.enable: "true"
-    traefik.http.routers.radarr.middlewares: crowdsec,default-headers,auth
   labels:
     io.kompose.service: radarr
   name: radarr
   namespace: media
 spec:
-  replicas: 1
+  nodeSelector:
+    kubernetes.io/hostname: nickel
   selector:
     matchLabels:
       io.kompose.service: radarr
@@ -19,11 +15,6 @@ spec:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: ./kompose -f ./compose.yaml convert
-        kompose.version: 1.34.0 (cbf2835db)
-        traefik.enable: "true"
-        traefik.http.routers.radarr.middlewares: crowdsec,default-headers,auth
       labels:
         io.kompose.service: radarr
     spec:
@@ -35,7 +26,6 @@ spec:
           name: radarr
           ports:
             - containerPort: 7878
-              protocol: TCP
           volumeMounts:
             - mountPath: /config
               name: radarr-claim0
@@ -47,5 +37,5 @@ spec:
           persistentVolumeClaim:
             claimName: radarr-claim0
         - name: radarr-claim1
-          persistentVolumeClaim:
-            claimName: radarr-claim1
+          hostPath:
+            path: /Storage

@@ -1,138 +1,153 @@
 apiVersion: v1
 data:
-  recyclarr.yml:
-    "# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json\n\
-    \n# An empty starter config to use with Recyclarr. Update the values below as\
-    \ needed for your\n# instance. You will be required to update the `api_key` and\
-    \ `base_url` for each instance you want\n# to use.\n#\n# If you'd rather use pre-built\
-    \ configuration instead of building your own from scratch, see these\n# pages:\n\
-    # - Config Templates: https://recyclarr.dev/wiki/guide-configs/\n# - CLI Command:\
-    \ http://recyclarr.dev/wiki/cli/config/list/templates/\n#\n# This file WILL NOT\
-    \ WORK as it currently is. You need to read the documentation and build this\n\
-    # configuration from scratch. Note that there's no \"one size fits all\" configuration.\
-    \ Please refer\n# to the TRaSH Guides to understand how to build the appropriate\
-    \ configuration based on your\n# hardware setup and capabilities.\n#\n# For more\
-    \ details on the configuration, see the Configuration Reference on the wiki here:\n\
-    # https://recyclarr.dev/wiki/yaml/config-reference/\n#\n# Want a more flexible\
-    \ file layout?\n# See: https://recyclarr.dev/wiki/file-structure/\n\n# Configuration\
-    \ specific to Sonarr. For Radarr, the layout is the same.\n# See: http://recyclarr.dev/wiki/yaml/config-reference/basic/\n\
-    sonarr:\n  series:\n    # Set the URL/API Key to your actual instance\n    base_url:\
-    \ http://sonarr:8989\n    api_key: !env_var SONARR_API_KEY\n    delete_old_custom_formats:\
-    \ true\n    replace_existing_custom_formats: true\n    # quality_definition:\n\
-    \    #   type: series\n\n    media_naming:\n      series: default\n      season:\
-    \ default\n      episodes:\n        rename: true\n        standard: default\n\
-    \        anime: default\n        daily: default\n\n    quality_profiles:\n   \
-    \   - name: Remux-1080p - Anime\n        min_format_score: 1\n      - name: WEB-2160p\n\
-    \        qualities:\n          - name: Bluray-2160p Remux\n          - name: Bluray-2160p\n\
-    \          - name: WEBDL-2160p\n          - name: WEBRip-2160p\n          - name:\
-    \ HDTV-2160p\n          - name: Bluray-1080p Remux\n          - name: Bluray-1080p\n\
-    \          - name: WEBRip-1080p\n          - name: WEBDL-1080p\n          - name:\
-    \ Bluray-720p\n          - name: WEBRip-720p\n          - name: WEBDL-720p\n \
-    \         - name: Raw-HD\n          - name: HDTV-1080p\n          - name: HDTV-720p\n\
-    \        upgrade:\n          allowed: true\n          until_quality: Bluray-2160p\
-    \ Remux\n\n    include:\n      # Comment out any of the following includes to\
-    \ disable them\n      - template: sonarr-quality-definition-series\n      # Choose\
-    \ between the standard or alternative quality profile setup (choose one only)\n\
-    \      - template: sonarr-v4-quality-profile-web-2160p\n      # - template: sonarr-v4-quality-profile-web-2160p-alternative\n\
-    \      - template: sonarr-v4-custom-formats-web-2160p\n      # Comment out any\
-    \ of the following includes to disable them\n      - template: sonarr-quality-definition-anime\n\
-    \      - template: sonarr-v4-quality-profile-anime\n      - template: sonarr-v4-custom-formats-anime\n\
-    \n    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/\n\
-    \    custom_formats:\n      # Anime\n      - trash_ids:\n          - 026d5aadd1a6b4e550b134cb6c72b3ca\
-    \ # Uncensored\n        assign_scores_to:\n          - name: Remux-1080p - Anime\n\
-    \            score: 1 # Adjust scoring as desired\n      - trash_ids:\n      \
-    \    - b2550eb333d27b75833e25b8c2557b38 # 10bit\n        assign_scores_to:\n \
-    \         - name: Remux-1080p - Anime\n            score: 50 # Adjust scoring\
-    \ as desired\n      - trash_ids:\n          - ae575f95ab639ba5d15f663bf019e3e8\
-    \ # Language: Not Original\n        assign_scores_to:\n          - name: Remux-1080p\
-    \ - Anime\n\n      # HDR Formats\n      - trash_ids:\n          # Comment out\
-    \ the next line if you and all of your users' setups are fully DV compatible\n\
-    \          - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)\n\n          # HDR10+\
-    \ Boost - Uncomment the next two lines if any of your devices DO support HDR10+\n\
-    \          # - 0dad0a507451acddd754fe6dc3a7f5e7 # HDR10+ Boost\n          # -\
-    \ 385e9e8581d33133c3961bdcdeffb7b4 # DV HDR10+ Boost\n        assign_scores_to:\n\
-    \          - name: WEB-2160p\n\n      # Optional\n      - trash_ids:\n       \
-    \   # - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups\n          # - 82d40da2bc6923f41e14394075dd4b03\
-    \ # No-RlsGroup\n          # - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated\n\
-    \          # - 06d66ab109d4d2eddb2794d21526d140 # Retags\n          # - 1b3994c551cbb92a2c781af061f4ab44\
-    \ # Scene\n        assign_scores_to:\n          - name: WEB-2160p\n\n      - trash_ids:\n\
-    \          # Uncomment the next six lines to allow x265 HD releases with HDR/DV\n\
-    \          # - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)\n        # assign_scores_to:\n\
-    \        # - name: WEB-2160p\n        # score: 0\n        # - trash_ids:\n   \
-    \     # - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)\n        assign_scores_to:\n\
-    \          - name: WEB-2160p\n\n      # Optional SDR\n      # Only ever use ONE\
-    \ of the following custom formats:\n      # SDR - block ALL SDR releases\n   \
-    \   # SDR (no WEBDL) - block UHD/4k Remux and Bluray encode SDR releases, but\
-    \ allow SDR WEB\n      - trash_ids:\n          - 2016d1676f5ee13a5b7257ff86ac9a93\
-    \ # SDR\n          # - 83304f261cf516bb208c18c54c0adf97 # SDR (no WEBDL)\n   \
-    \     assign_scores_to:\n          - name: WEB-2160p\n\nradarr:\n  movies:\n \
-    \   base_url: http://radarr:7878\n    api_key: !env_var RADARR_API_KEY\n    delete_old_custom_formats:\
-    \ true\n    replace_existing_custom_formats: true\n\n    media_naming:\n     \
-    \ folder: default\n      movie:\n        rename: true\n        standard: standard\n\
-    \n    # quality_definition:\n    #   type: movie\n\n    quality_profiles:\n  \
-    \    - name: UHD Bluray + WEB\n        qualities:\n          - name: Remux-2160p\n\
-    \          - name: Bluray-2160p\n          - name: WEBDL-2160p\n          - name:\
-    \ WEBRip-2160p\n          - name: HDTV-2160p\n          - name: Remux-1080p\n\
-    \          - name: Bluray-1080p\n          - name: WEBRip-1080p\n          - name:\
-    \ WEBDL-1080p\n          - name: Bluray-720p\n          - name: WEBRip-720p\n\
-    \          - name: WEBDL-720p\n          - name: Raw-HD\n          - name: HDTV-1080p\n\
-    \          - name: HDTV-720p\n        upgrade:\n          allowed: true\n    \
-    \      until_quality: Remux-2160p\n\n    include:\n      # Comment out any of\
-    \ the following includes to disable them\n      - template: radarr-quality-definition-movie\n\
-    \      - template: radarr-quality-profile-uhd-bluray-web\n      - template: radarr-custom-formats-uhd-bluray-web\n\
-    \      # Comment out any of the following includes to disable them\n      - template:\
-    \ radarr-quality-definition-movie\n      - template: radarr-quality-profile-anime\n\
-    \      - template: radarr-custom-formats-anime\n\n    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/\n\
-    \    custom_formats:\n      # Anime\n      - trash_ids:\n          - 064af5f084a0a24458cc8ecd3220f93f\
-    \ # Uncensored\n        assign_scores_to:\n          - name: Remux-1080p - Anime\n\
-    \            score: 0 # Adjust scoring as desired\n      - trash_ids:\n      \
-    \    - a5d148168c4506b55cf53984107c396e # 10bit\n        assign_scores_to:\n \
-    \         - name: Remux-1080p - Anime\n            score: 0 # Adjust scoring as\
-    \ desired\n      - trash_ids:\n          - 4a3b087eea2ce012fcc1ce319259a3be #\
-    \ Anime Dual Audio\n        assign_scores_to:\n          - name: Remux-1080p -\
-    \ Anime\n            score: 0 # Adjust scoring as desired\n      # Audio\n   \
-    \   - trash_ids:\n          # Uncomment the next section to enable Advanced Audio\
-    \ Formats\n          # - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos\n   \
-    \       # - 2f22d89048b01681dde8afe203bf2e95 # DTS X\n          # - 417804f7f2c4308c1f4c5d380d4c4475\
-    \ # ATMOS (undefined)\n          # - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS\n\
-    \          # - 3cafb66171b47f226146a0770576870f # TrueHD\n          # - dcf3ec6938fa32445f590a4da84256cd\
-    \ # DTS-HD MA\n          # - a570d4a0e56a2874b64e5bfa55202a1b # FLAC\n       \
-    \   # - e7c2fcae07cbada050a0af3357491d7b # PCM\n          # - 8e109e50e0a0b83a5098b056e13bf6db\
-    \ # DTS-HD HRA\n          # - 185f1dd7264c4562b9022d963ac37424 # DD+\n       \
-    \   # - f9f847ac70a0af62ea4a08280b859636 # DTS-ES\n          # - 1c1a4c5e823891c75bc50380a6866f73\
-    \ # DTS\n          # - 240770601cc226190c367ef59aba7463 # AAC\n          # - c2998bd0d90ed5621d8df281e839436e\
-    \ # DD\n        assign_scores_to:\n          - name: UHD Bluray + WEB\n\n    \
-    \  # Movie Versions\n      - trash_ids:\n        # Uncomment any of the following\
-    \ lines to prefer these movie versions\n        # - 570bc9ebecd92723d2d21500f4be314c\
-    \ # Remaster\n        # - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster\n   \
-    \     # - e0c07d59beb37348e975a930d5e50319 # Criterion Collection\n        # -\
-    \ 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema\n        # - db9b4c4b53d312a3ca5f1378f6440fc9\
-    \ # Vinegar Syndrome\n        # - 957d0f44b592285f26449575e8b1167e # Special Edition\n\
-    \        # - eecf3a857724171f968a66cb5719e152 # IMAX\n        # - 9f6cbff8cfe4ebbc1bde14c7b7bec0de\
-    \ # IMAX Enhanced\n        assign_scores_to:\n          - name: UHD Bluray + WEB\n\
-    \n      # Optional\n      - trash_ids:\n          # - b6832f586342ef70d9c128d40c07b872\
-    \ # Bad Dual Groups\n          # - cc444569854e9de0b084ab2b8b1532b2 # Black and\
-    \ White Editions\n          # - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)\n\
-    \          # - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup\n          # - 7357cf5161efbf8c4d5d0c30b4815ee2\
-    \ # Obfuscated\n          # - 5c44f52a8714fdd79bb4d98e2673be1f # Retags\n    \
-    \      # - f537cf427b64c38c8e36298f657e4828 # Scene\n        assign_scores_to:\n\
-    \          - name: UHD Bluray + WEB\n\n      - trash_ids:\n          # Uncomment\
-    \ the next six lines to allow x265 HD releases with HDR/DV\n          - dc98083864ea246d05a42df0d05f81cc\
-    \ # x265 (HD)\n        assign_scores_to:\n          - name: UHD Bluray + WEB\n\
-    \            score: 0\n      - trash_ids:\n          - 839bea857ed2c0a8e084f3cbdbd65ecb\
-    \ # x265 (no HDR/DV)\n        assign_scores_to:\n          - name: UHD Bluray\
-    \ + WEB\n\n      - trash_ids:\n          # Comment out the next line if you and\
-    \ all of your users' setups are fully DV compatible\n          - 923b6abef9b17f937fab56cfcf89e1f1\
-    \ # DV (WEBDL)\n\n          # HDR10+ Boost - Uncomment the next two lines if any\
-    \ of your devices DO support HDR10+\n          # - b17886cb4158d9fea189859409975758\
-    \ # HDR10Plus Boost\n          # - 55a5b50cb416dea5a50c4955896217ab # DV HDR10+\
-    \ Boost\n        assign_scores_to:\n          - name: UHD Bluray + WEB\n\n   \
-    \   # Optional SDR\n      # Only ever use ONE of the following custom formats:\n\
-    \      # SDR - block ALL SDR releases\n      # SDR (no WEBDL) - block UHD/4k Remux\
-    \ and Bluray encode SDR releases, but allow SDR WEB\n      # - trash_ids:\n  \
-    \    #     - 9c38ebb7384dada637be8899efa68e6f # SDR\n      #     # - 25c12f78430a3a23413652cbd1d48d77\
-    \ # SDR (no WEBDL)\n      #   assign_scores_to:\n      #     - name: UHD Bluray\
-    \ + WEB\n"
+  radarr.yml: |
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
+    radarr:
+      movies:
+        base_url: http://radarr:7878
+        api_key: !env_var RADARR_API_KEY
+        delete_old_custom_formats: true
+        replace_existing_custom_formats: true
+
+        media_naming:
+          folder: default
+          movie:
+            rename: true
+            standard: standard
+
+        include:
+          - template: radarr-quality-definition-movie
+          - template: radarr-quality-profile-uhd-bluray-web
+          - template: radarr-custom-formats-uhd-bluray-web
+          - template: radarr-quality-definition-anime
+          - template: radarr-quality-profile-anime
+          - template: radarr-custom-formats-anime
+
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            qualities:
+              - name: Remux-2160p
+              - name: Bluray-2160p
+              - name: WEBDL-2160p
+              - name: WEBRip-2160p
+              - name: HDTV-2160p
+              - name: Remux-1080p
+              - name: Bluray-1080p
+              - name: WEBRip-1080p
+              - name: WEBDL-1080p
+              - name: Bluray-720p
+              - name: WEBRip-720p
+              - name: WEBDL-720p
+              - name: Raw-HD
+              - name: HDTV-1080p
+              - name: HDTV-720p
+            upgrade:
+              allowed: true
+              until_quality: Remux-2160p
+
+        # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
+        custom_formats:
+          # Anime
+          - trash_ids:
+              - 064af5f084a0a24458cc8ecd3220f93f # Uncensored
+            assign_scores_to:
+              - name: UHD Bluray + WEB
+                score: 1
+
+          # Movie Versions
+          - trash_ids:
+              # Uncomment any of the following lines to prefer these movie versions
+              - 570bc9ebecd92723d2d21500f4be314c # Remaster
+              - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
+              - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+              - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
+
+          - trash_ids:
+              - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+              - a5d148168c4506b55cf53984107c396e # 10bit
+            assign_scores_to:
+              - name: UHD Bluray + WEB
+                score: 0
+  sonarr.yml: |
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
+    sonarr:
+      series:
+        # Set the URL/API Key to your actual instance
+        base_url: http://sonarr:8989
+        api_key: !env_var SONARR_API_KEY
+        delete_old_custom_formats: true
+        replace_existing_custom_formats: true
+
+        media_naming:
+          series: default
+          season: default
+          episodes:
+            rename: true
+            standard: default
+            anime: default
+            daily: default
+
+        quality_profiles:
+          - name: Remux-1080p - Anime
+            min_format_score: 1
+          - name: WEB-2160p
+            qualities:
+              - name: Bluray-2160p Remux
+              - name: Bluray-2160p
+              - name: WEBDL-2160p
+              - name: WEBRip-2160p
+              - name: HDTV-2160p
+              - name: Bluray-1080p Remux
+              - name: Bluray-1080p
+              - name: WEBRip-1080p
+              - name: WEBDL-1080p
+              - name: Bluray-720p
+              - name: WEBRip-720p
+              - name: WEBDL-720p
+              - name: Raw-HD
+              - name: HDTV-1080p
+              - name: HDTV-720p
+            upgrade:
+              allowed: true
+              until_quality: Bluray-2160p Remux
+
+        include:
+          - template: sonarr-quality-definition-series
+          - template: sonarr-v4-quality-profile-web-2160p
+          - template: sonarr-v4-custom-formats-web-2160p
+          - template: sonarr-quality-definition-anime
+          - template: sonarr-v4-quality-profile-anime
+          - template: sonarr-v4-custom-formats-anime
+
+        # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
+        custom_formats:
+          # HDR Formats
+          - trash_ids:
+              - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
+              - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+              - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+              - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
+            assign_scores_to:
+              - name: WEB-2160p
+
+          - trash_ids:
+              - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
+            assign_scores_to:
+              - name: WEB-2160p
+                score: 0
+
+          - trash_ids:
+              - b2550eb333d27b75833e25b8c2557b38 # 10bit
+            assign_scores_to:
+              - name: Remux-1080p - Anime
+                score: 0 # Adjust scoring as desired
+
+          - trash_ids:
+              - 026d5aadd1a6b4e550b134cb6c72b3ca # Uncensored
+            assign_scores_to:
+              - name: Remux-1080p - Anime
+                score: 100 # Adjust scoring as desired
+
 kind: ConfigMap
 metadata:
   labels:

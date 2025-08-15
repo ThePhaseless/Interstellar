@@ -7,8 +7,6 @@ metadata:
   namespace: media
 spec:
   ports:
-    - name: "9696"
-      port: 9696
-      targetPort: 9696
+    - port: 9696
   selector:
     io.kompose.service: prowlarr

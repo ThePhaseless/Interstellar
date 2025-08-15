@@ -6,7 +6,6 @@ metadata:
   name: prowlarr
   namespace: media
 spec:
-  replicas: 1
   selector:
     matchLabels:
       io.kompose.service: prowlarr
@@ -25,7 +24,6 @@ spec:
           name: prowlarr
           ports:
             - containerPort: 9696
-              protocol: TCP
           volumeMounts:
             - mountPath: /config
               name: prowlarr-claim0

@@ -20,11 +20,10 @@ spec:
         - env:
             - name: TZ
               value: Europe/Warsaw
-          image: linuxserver/bazarr:1.5.3-development
+          image: linuxserver/bazarr:1.5.2
           name: bazarr
           ports:
             - containerPort: 6767
-              protocol: TCP
           volumeMounts:
             - mountPath: /config
               name: bazarr-claim0
