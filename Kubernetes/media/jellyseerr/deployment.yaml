@@ -6,7 +6,6 @@ metadata:
   name: jellyseerr
   namespace: media
 spec:
-  replicas: 1
   selector:
     matchLabels:
       io.kompose.service: jellyseerr
@@ -25,7 +24,6 @@ spec:
           name: jellyseerr
           ports:
             - containerPort: 5055
-              protocol: TCP
           volumeMounts:
             - mountPath: /app/config
               name: jellyseerr-claim0

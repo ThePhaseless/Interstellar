@@ -1,18 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: ./kompose -f ./compose.yaml convert
-    kompose.version: 1.34.0 (cbf2835db)
-    traefik.enable: "true"
-    traefik.http.routers.qbittorrent.middlewares: crowdsec,default-headers,auth
-    traefik.http.services.qbittorrent.loadbalancer.server.port: "8080"
   labels:
     io.kompose.service: qbittorrent
   name: qbittorrent
   namespace: media
 spec:
-  replicas: 1
+  nodeSelector:
+    kubernetes.io/hostname: nickel
   selector:
     matchLabels:
       io.kompose.service: qbittorrent
@@ -20,12 +15,6 @@ spec:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: ./kompose -f ./compose.yaml convert
-        kompose.version: 1.34.0 (cbf2835db)
-        traefik.enable: "true"
-        traefik.http.routers.qbittorrent.middlewares: crowdsec,default-headers,auth
-        traefik.http.services.qbittorrent.loadbalancer.server.port: "8080"
       labels:
         io.kompose.service: qbittorrent
     spec:
@@ -41,7 +30,6 @@ spec:
           name: qbittorrent
           ports:
             - containerPort: 8080
-              protocol: TCP
           volumeMounts:
             - mountPath: /config/qBittorrent
               name: qbittorrent-claim0
@@ -53,5 +41,5 @@ spec:
           persistentVolumeClaim:
             claimName: qbittorrent-claim0
         - name: qbittorrent-claim1
-          persistentVolumeClaim:
-            claimName: qbittorrent-claim1
+          hostPath:
+            path: /Storage

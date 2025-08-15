@@ -8,7 +8,6 @@ metadata:
 spec:
   nodeSelector:
     kubernetes.io/hostname: nickel
-  replicas: 1
   selector:
     matchLabels:
       io.kompose.service: adguard-home
@@ -25,13 +24,10 @@ spec:
           name: adguard-home
           ports:
             - containerPort: 80
-              protocol: TCP
             - containerPort: 53
-              protocol: TCP
             - containerPort: 53
               protocol: UDP
             - containerPort: 3000
-              protocol: TCP
           volumeMounts:
             - mountPath: /opt/adguard-home/work
               name: adguard-home-claim0
