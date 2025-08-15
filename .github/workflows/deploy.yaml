@@ -33,6 +33,8 @@ jobs:
 
             ansible:
               - 'Ansible/setup-*.yaml'
+              - 'Ansible/tasks/**'
+              - 'Ansible/vars/**'
               - '.github/workflows/ansible-setup.yaml'
 
             terraform:

@@ -3,7 +3,7 @@
   ansible.builtin.stat:
     path: "{{ item }}"
   register: device_stats
-  loop: "{{ device_list }}"
+  loop: "{{ container_devices }}"
   loop_control:
     label: "{{ item }}"
 
