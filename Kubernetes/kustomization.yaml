@@ -1,0 +1,18 @@
+configMapGenerator:
+  - name: adguard-home-config
+    namespace: home
+    files:
+      - ./Config/Home/AdGuard/conf/AdGuardHome.yaml
+  - name: decluttarr-config
+    namespace: media
+    files:
+      - ./Config/Media/Decluttarr/config.yaml
+  - name: recyclarr-config
+    namespace: media
+    files:
+      - ./Config/Media/Recyclarr/radarr.yaml
+      - ./Config/Media/Recyclarr/sonarr.yaml
+  - name: httpd-html
+    namespace: infrastructure
+    files:
+      - ./Config/Home/httpd/index.html
