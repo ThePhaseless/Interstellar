@@ -16,39 +16,17 @@
     container_config_lines: "{{ container_config_lines | default([]) + ['dev' + (item | string) + ': ' + (present_devices[(item | int)] | string)] }}"
   loop: "{{ range(0, present_devices | length) | list }}"
 
-- name: Copy container config file
-  become: true
-  ansible.builtin.copy:
-    mode: preserve
-    remote_src: yes
-    src: "/etc/pve/lxc/{{ container_id }}.conf"
-    dest: "/etc/pve/lxc/{{ container_id }}.conf.new"
-
-- name: Remove existing device entries
-  ansible.builtin.lineinfile:
-    path: "/etc/pve/lxc/{{ container_id }}.conf.new"
-    state: absent
-    regexp: "^dev\\d+:"
-
 - name: Add configuration to container config file
+  register: container_config
   ansible.builtin.lineinfile:
-    path: "/etc/pve/lxc/{{ container_id }}.conf.new"
+    path: "/etc/pve/lxc/{{ container_id }}.conf"
     line: "{{ item }}"
   loop: "{{ container_config_lines }}"
-
-- name: Copy new container config file
-  become: true
-  ansible.builtin.copy:
-    mode: preserve
-    remote_src: yes
-    src: "/etc/pve/lxc/{{ container_id }}.conf.new"
-    dest: "/etc/pve/lxc/{{ container_id }}.conf"
-  register: configure_containers_config
 
 - name: Restart container if configuration changed
   tags: skip_ansible_lint
   ansible.builtin.command: "pct reboot {{ container_id }}"
-  when: configure_containers_config.changed
+  when: container_config.changed
   changed_when: true
 
 - name: Wait for container to be ready after restart
@@ -56,6 +34,5 @@
   ansible.builtin.wait_for:
     host: "{{ proxmox_containers_ip_map[container_id] }}"
     port: 22
-    delay: 5
     timeout: 60
-  when: configure_containers_config.changed
+  when: container_config.changed
