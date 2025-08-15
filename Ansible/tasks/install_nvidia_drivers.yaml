@@ -9,7 +9,7 @@
     path: /etc/nvidia-container-runtime/host-files-for-container.d
   register: nvidia_container_runtime
 - name: Install Nvidia Drivers
-  if: nvidia_drivers_needed.stat.exists and not nvidia_container_runtime.stat.exists
+  when: nvidia_drivers_needed.stat.exists and not nvidia_container_runtime.stat.exists
   block:
     - name: Get the latest Nvidia driver version
       ansible.builtin.uri:
