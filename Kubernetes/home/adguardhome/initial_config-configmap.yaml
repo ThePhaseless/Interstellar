@@ -1,0 +1,63 @@
+apiVersion: v1
+data:
+  AdGuardHome.yaml: |
+    dns:
+      upstream_dns:
+        - 1.1.1.1
+        - 8.8.8.8
+      bootstrap_dns:
+        - 9.9.9.10
+        - 149.112.112.10
+        - 2620:fe::10
+        - 2620:fe::fe:10
+      fallback_dns:
+        - 1.1.1.1
+    filters:
+      - enabled: true
+        url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
+        name: AdGuard DNS filter
+        id: 1
+      - enabled: true
+        url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt
+        name: AdAway Default Blocklist
+        id: 2
+      - enabled: true
+        url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_24.txt
+        name: 1Hosts (Lite)
+        id: 1708365224
+      - enabled: true
+        url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt
+        name: Steven Black's List
+        id: 1708365225
+      - enabled: true
+        url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
+        name: Peter Lowe's Blocklist
+        id: 1708365226
+      - enabled: true
+        url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_48.txt
+        name: HaGeZi's Pro Blocklist
+        id: 1708365227
+      - enabled: true
+        url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_14.txt
+        name: "POL: Polish filters for Pi-hole"
+        id: 1708365228
+      - enabled: true
+        url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_41.txt
+        name: "POL: CERT Polska List of malicious domains"
+        id: 1708365229
+      - enabled: true
+        url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt
+        name: HaGeZi's Threat Intelligence Feeds
+        id: 1739377959
+    whitelist_filters: []
+    user_rules:
+      - "||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.100.100.100" # Replace with your actual IP
+      - "||nerine.dev^$client=192.168.0.0/24,dnsrewrite=NOERROR;A;192.168.0.100" # Replace with your actual IP
+    filtering:
+      safe_search:
+        enabled: false
+
+kind: ConfigMap
+metadata:
+  name: adguard-home-initial_config
+  namespace: home
