@@ -17,6 +17,7 @@
   loop: "{{ range(0, present_devices | length) | list }}"
 
 - name: Copy container config file
+  become: true
   ansible.builtin.copy:
     mode: preserve
     remote_src: yes
@@ -36,6 +37,7 @@
   loop: "{{ container_config_lines }}"
 
 - name: Copy new container config file
+  become: true
   ansible.builtin.copy:
     mode: preserve
     remote_src: yes
