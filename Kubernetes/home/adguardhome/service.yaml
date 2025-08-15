@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: ./kompose -f ./compose.yaml convert
+    kompose.version: 1.34.0 (cbf2835db)
+    subdomain: dns
+    traefik.enable: "true"
+    traefik.http.routers.adguardhome.middlewares: crowdsec,default-headers,auth
+    traefik.http.services.adguardhome.loadbalancer.server.port: "80"
+  labels:
+    io.kompose.service: adguardhome
+  name: adguardhome
+  namespace: home
+spec:
+  ports:
+    - name: "84"
+      port: 84
+      targetPort: 80
+    - name: "53"
+      port: 53
+      targetPort: 53
+    - name: 53-udp
+      port: 53
+      protocol: UDP
+      targetPort: 53
+    - name: "3000"
+      port: 3000
+      targetPort: 3000
+  selector:
+    io.kompose.service: adguardhome

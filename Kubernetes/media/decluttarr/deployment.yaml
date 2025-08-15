@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: ./kompose -f ./compose.yaml convert
+    kompose.version: 1.34.0 (cbf2835db)
+  labels:
+    io.kompose.service: decluttarr
+  name: decluttarr
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: decluttarr
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: ./kompose -f ./compose.yaml convert
+        kompose.version: 1.34.0 (cbf2835db)
+      labels:
+        io.kompose.service: decluttarr
+    spec:
+      containers:
+        - env:
+            - name: FAILED_IMPORT_MESSAGE_PATTERNS
+              valueFrom:
+                configMapKeyRef:
+                  key: FAILED_IMPORT_MESSAGE_PATTERNS
+                  name: env-decluttarr
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  key: LOG_LEVEL
+                  name: env-decluttarr
+            - name: MIN_DOWNLOAD_SPEED
+              valueFrom:
+                configMapKeyRef:
+                  key: MIN_DOWNLOAD_SPEED
+                  name: env-decluttarr
+            - name: NO_STALLED_REMOVAL_QBIT_TAG
+              valueFrom:
+                configMapKeyRef:
+                  key: NO_STALLED_REMOVAL_QBIT_TAG
+                  name: env-decluttarr
+            - name: PERMITTED_ATTEMPTS
+              valueFrom:
+                configMapKeyRef:
+                  key: PERMITTED_ATTEMPTS
+                  name: env-decluttarr
+            - name: QBITTORRENT_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: QBITTORRENT_URL
+                  name: env-decluttarr
+            - name: RADARR_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: RADARR_KEY
+                  name: env-decluttarr
+            - name: RADARR_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: RADARR_URL
+                  name: env-decluttarr
+            - name: REMOVE_FAILED
+              valueFrom:
+                configMapKeyRef:
+                  key: REMOVE_FAILED
+                  name: env-decluttarr
+            - name: REMOVE_FAILED_IMPORTS
+              valueFrom:
+                configMapKeyRef:
+                  key: REMOVE_FAILED_IMPORTS
+                  name: env-decluttarr
+            - name: REMOVE_METADATA_MISSING
+              valueFrom:
+                configMapKeyRef:
+                  key: REMOVE_METADATA_MISSING
+                  name: env-decluttarr
+            - name: REMOVE_MISSING_FILES
+              valueFrom:
+                configMapKeyRef:
+                  key: REMOVE_MISSING_FILES
+                  name: env-decluttarr
+            - name: REMOVE_ORPHANS
+              valueFrom:
+                configMapKeyRef:
+                  key: REMOVE_ORPHANS
+                  name: env-decluttarr
+            - name: REMOVE_SLOW
+              valueFrom:
+                configMapKeyRef:
+                  key: REMOVE_SLOW
+                  name: env-decluttarr
+            - name: REMOVE_STALLED
+              valueFrom:
+                configMapKeyRef:
+                  key: REMOVE_STALLED
+                  name: env-decluttarr
+            - name: REMOVE_TIMER
+              valueFrom:
+                configMapKeyRef:
+                  key: REMOVE_TIMER
+                  name: env-decluttarr
+            - name: REMOVE_UNMONITORED
+              valueFrom:
+                configMapKeyRef:
+                  key: REMOVE_UNMONITORED
+                  name: env-decluttarr
+            - name: RUN_PERIODIC_RESCANS
+              valueFrom:
+                configMapKeyRef:
+                  key: RUN_PERIODIC_RESCANS
+                  name: env-decluttarr
+            - name: SONARR_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: SONARR_KEY
+                  name: env-decluttarr
+            - name: SONARR_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: SONARR_URL
+                  name: env-decluttarr
+          image: ghcr.io/manimatter/decluttarr:v1.50.2
+          name: decluttarr
+      restartPolicy: Always

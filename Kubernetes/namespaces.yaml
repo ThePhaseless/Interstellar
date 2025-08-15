@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infrastructure
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: home
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: utilities

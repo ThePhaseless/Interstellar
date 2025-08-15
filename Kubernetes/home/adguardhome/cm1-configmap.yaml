@@ -1,0 +1,71 @@
+apiVersion: v1
+data:
+  AdGuardHome.yaml:
+    "http:\n  pprof:\n    port: 6060\n    enabled: false\n  address:\
+    \ 0.0.0.0:80\n  session_ttl: 720h\nusers: []\nauth_attempts: 5\nblock_auth_min:\
+    \ 15\nhttp_proxy: \"\"\nlanguage: \"\"\ntheme: auto\ndns:\n  bind_hosts:\n   \
+    \ - 0.0.0.0\n  port: 53\n  anonymize_client_ip: false\n  ratelimit: 20\n  ratelimit_subnet_len_ipv4:\
+    \ 24\n  ratelimit_subnet_len_ipv6: 56\n  ratelimit_whitelist: []\n  refuse_any:\
+    \ true\n  upstream_dns:\n    - 1.1.1.1\n    - 8.8.8.8\n  upstream_dns_file: \"\
+    \"\n  bootstrap_dns:\n    - 9.9.9.10\n    - 149.112.112.10\n    - 2620:fe::10\n\
+    \    - 2620:fe::fe:10\n  fallback_dns:\n    - 1.1.1.1\n  upstream_mode: load_balance\n\
+    \  fastest_timeout: 1s\n  allowed_clients: []\n  disallowed_clients: []\n  blocked_hosts:\n\
+    \    - version.bind\n    - id.server\n    - hostname.bind\n  trusted_proxies:\n\
+    \    - 127.0.0.0/8\n    - 172.0.0.0/8\n    - ::1/128\n  cache_size: 4194304\n\
+    \  cache_ttl_min: 0\n  cache_ttl_max: 0\n  cache_optimistic: false\n  bogus_nxdomain:\
+    \ []\n  aaaa_disabled: false\n  enable_dnssec: false\n  edns_client_subnet:\n\
+    \    custom_ip: \"\"\n    enabled: false\n    use_custom: false\n  max_goroutines:\
+    \ 300\n  handle_ddr: true\n  ipset: []\n  ipset_file: \"\"\n  bootstrap_prefer_ipv6:\
+    \ false\n  upstream_timeout: 10s\n  private_networks: []\n  use_private_ptr_resolvers:\
+    \ false\n  local_ptr_upstreams: []\n  use_dns64: false\n  dns64_prefixes: []\n\
+    \  serve_http3: false\n  use_http3_upstreams: false\n  serve_plain_dns: true\n\
+    \  hostsfile_enabled: true\n  pending_requests:\n    enabled: true\ntls:\n  enabled:\
+    \ false\n  server_name: \"\"\n  force_https: false\n  port_https: 443\n  port_dns_over_tls:\
+    \ 853\n  port_dns_over_quic: 853\n  port_dnscrypt: 0\n  dnscrypt_config_file:\
+    \ \"\"\n  allow_unencrypted_doh: false\n  certificate_chain: \"\"\n  private_key:\
+    \ \"\"\n  certificate_path: \"\"\n  private_key_path: \"\"\n  strict_sni_check:\
+    \ false\nquerylog:\n  dir_path: \"\"\n  ignored: []\n  interval: 2160h\n  size_memory:\
+    \ 1000\n  enabled: true\n  file_enabled: true\nstatistics:\n  dir_path: \"\"\n\
+    \  ignored: []\n  interval: 24h\n  enabled: true\nfilters:\n  - enabled: true\n\
+    \    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt\n\
+    \    name: AdGuard DNS filter\n    id: 1\n  - enabled: true\n    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt\n\
+    \    name: AdAway Default Blocklist\n    id: 2\n  - enabled: true\n    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_24.txt\n\
+    \    name: 1Hosts (Lite)\n    id: 1708365224\n  - enabled: true\n    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt\n\
+    \    name: Steven Black's List\n    id: 1708365225\n  - enabled: true\n    url:\
+    \ https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt\n    name:\
+    \ Peter Lowe's Blocklist\n    id: 1708365226\n  - enabled: true\n    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_48.txt\n\
+    \    name: HaGeZi's Pro Blocklist\n    id: 1708365227\n  - enabled: true\n   \
+    \ url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_14.txt\n\
+    \    name: 'POL: Polish filters for Pi-hole'\n    id: 1708365228\n  - enabled:\
+    \ true\n    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_41.txt\n\
+    \    name: 'POL: CERT Polska List of malicious domains'\n    id: 1708365229\n\
+    \  - enabled: true\n    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt\n\
+    \    name: HaGeZi's Threat Intelligence Feeds\n    id: 1739377959\nwhitelist_filters:\
+    \ []\nuser_rules:\n  - '@@||t.co^$important'\n  - '||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.112.159.57'\n\
+    \  - '||nerine.dev^$client=192.168.0.0/24,dnsrewrite=NOERROR;A;192.168.0.101'\n\
+    \  - '@@||brightdata.com'\n  - '@@||gamedrive.org^$important'\n  - '@@||track.adtraction.com^$important'\n\
+    \  - \"\"\ndhcp:\n  enabled: false\n  interface_name: \"\"\n  local_domain_name:\
+    \ lan\n  dhcpv4:\n    gateway_ip: \"\"\n    subnet_mask: \"\"\n    range_start:\
+    \ \"\"\n    range_end: \"\"\n    lease_duration: 86400\n    icmp_timeout_msec:\
+    \ 1000\n    options: []\n  dhcpv6:\n    range_start: \"\"\n    lease_duration:\
+    \ 86400\n    ra_slaac_only: false\n    ra_allow_slaac: false\nfiltering:\n  blocking_ipv4:\
+    \ \"\"\n  blocking_ipv6: \"\"\n  blocked_services:\n    schedule:\n      time_zone:\
+    \ UTC\n    ids: []\n  protection_disabled_until: null\n  safe_search:\n    enabled:\
+    \ false\n    bing: true\n    duckduckgo: true\n    ecosia: true\n    google: true\n\
+    \    pixabay: true\n    yandex: true\n    youtube: true\n  blocking_mode: default\n\
+    \  parental_block_host: family-block.dns.adguard.com\n  safebrowsing_block_host:\
+    \ standard-block.dns.adguard.com\n  rewrites: []\n  safe_fs_patterns:\n    - /opt/adguardhome/work/data/userfilters/*\n\
+    \  safebrowsing_cache_size: 1048576\n  safesearch_cache_size: 1048576\n  parental_cache_size:\
+    \ 1048576\n  cache_time: 30\n  filters_update_interval: 24\n  blocked_response_ttl:\
+    \ 10\n  filtering_enabled: true\n  parental_enabled: false\n  safebrowsing_enabled:\
+    \ false\n  protection_enabled: true\nclients:\n  runtime_sources:\n    whois:\
+    \ true\n    arp: true\n    rdns: true\n    dhcp: true\n    hosts: true\n  persistent:\
+    \ []\nlog:\n  enabled: true\n  file: \"\"\n  max_backups: 0\n  max_size: 100\n\
+    \  max_age: 3\n  compress: false\n  local_time: false\n  verbose: false\nos:\n\
+    \  group: \"\"\n  user: \"\"\n  rlimit_nofile: 0\nschema_version: 29\n"
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: adguardhome
+  name: adguardhome-cm1
+  namespace: home
