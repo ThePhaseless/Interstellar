@@ -1,8 +1,7 @@
 - name: Check if Nvidia drivers are needed
   ansible.builtin.stat:
     path:
-      - /usr/bin/nvidia-smi
-      - /usr/bin/nvidia-settings
+      - /dev/nvidia0
   register: nvidia_drivers_needed
 - name: Check if Nvidia drivers are installed
   ansible.builtin.stat:
