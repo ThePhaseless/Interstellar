@@ -4,6 +4,8 @@
   tasks:
     - name: Install Nvidia Drivers
       ansible.builtin.include_tasks: tasks/install_nvidia_drivers.yaml
+      vars:
+        nvidia_driver_version: 580.76.05
     - name: Enable ip forwarding
       register: enable_ip_forward
       ansible.posix.sysctl:
@@ -59,6 +61,9 @@
   tasks:
     - name: Install Nvidia Drivers
       ansible.builtin.include_tasks: tasks/install_nvidia_drivers.yaml
+      vars:
+        no_kernel_modules: true
+        nvidia_driver_version: 580.76.05
     - name: Update apt packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
     - name: Make rootfs rshared on boot
