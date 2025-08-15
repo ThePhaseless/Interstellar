@@ -1,9 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: ./kompose -f ./compose.yaml convert
-    kompose.version: 1.34.0 (cbf2835db)
   labels:
     io.kompose.service: byparr
   name: byparr
@@ -15,9 +12,6 @@ spec:
       io.kompose.service: byparr
   template:
     metadata:
-      annotations:
-        kompose.cmd: ./kompose -f ./compose.yaml convert
-        kompose.version: 1.34.0 (cbf2835db)
       labels:
         io.kompose.service: byparr
     spec:
@@ -29,5 +23,3 @@ spec:
           name: byparr
           ports:
             - containerPort: 8191
-              protocol: TCP
-      restartPolicy: Always
