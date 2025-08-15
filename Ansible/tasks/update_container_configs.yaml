@@ -1,9 +1,45 @@
 ---
+- name: Check which devices exist
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: device_stats
+  loop: "{{ device_list }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Filter out devices that do not exist
+  ansible.builtin.set_fact:
+    present_devices: "{{ device_stats.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item') | list }}"
+
+- name: Create config lines
+  ansible.builtin.set_fact:
+    container_config_lines: "{{ container_config_lines | default([]) + ['dev' + (item | int) + ':' + present_devices[(item | int)]] }}"
+  loop: "{{ range(0, present_devices | length) | list }}"
+
+- name: Copy container config file
+  ansible.builtin.copy:
+    mode: preserve
+    src: "/etc/pve/lxc/{{ container_id }}.conf"
+    dest: "/etc/pve/lxc/{{ container_id }}.conf.new"
+  when: output_list | length > 0
+
+- name: Remove existing device entries
+  ansible.builtin.lineinfile:
+    path: "/etc/pve/lxc/{{ container_id }}.conf.new"
+    state: absent
+    regexp: "^dev\\d+:"
+
 - name: Add configuration to container config file
   ansible.builtin.lineinfile:
-    path: "/etc/pve/lxc/{{ container_id }}.conf"
+    path: "/etc/pve/lxc/{{ container_id }}.conf.new"
     line: "{{ item }}"
   loop: "{{ container_config_lines }}"
+
+- name: Copy new container config file
+  ansible.builtin.copy:
+    mode: preserve
+    src: "/etc/pve/lxc/{{ container_id }}.conf.new"
+    dest: "/etc/pve/lxc/{{ container_id }}.conf"
   register: configure_containers_config
 
 - name: Restart container if configuration changed
