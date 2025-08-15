@@ -19,6 +19,7 @@
 - name: Copy container config file
   ansible.builtin.copy:
     mode: preserve
+    remote_src: yes
     src: "/etc/pve/lxc/{{ container_id }}.conf"
     dest: "/etc/pve/lxc/{{ container_id }}.conf.new"
 
@@ -37,6 +38,7 @@
 - name: Copy new container config file
   ansible.builtin.copy:
     mode: preserve
+    remote_src: yes
     src: "/etc/pve/lxc/{{ container_id }}.conf.new"
     dest: "/etc/pve/lxc/{{ container_id }}.conf"
   register: configure_containers_config
