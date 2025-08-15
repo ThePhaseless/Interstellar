@@ -440,12 +440,14 @@ source = { virtual = "." }
 dependencies = [
     { name = "ansible-dev-tools" },
     { name = "oci-cli" },
+    { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "ansible-dev-tools", specifier = ">=25.5.2" },
     { name = "oci-cli", specifier = ">=3.63.0" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
 [[package]]
