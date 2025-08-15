@@ -6,6 +6,7 @@ container_config_lines:
   - 'lxc.mount.auto: "proc:rw sys:rw"'
 container_devices:
   - "/dev/net/tun"
+  - "/dev/dkms"
   - "/dev/nvidia0"
   - "/dev/nvidiactl"
   - "/dev/nvidia-uvm"
