@@ -32,12 +32,12 @@ spec:
             - mountPath: /opt/adguard-home/work
               name: adguard-home-claim0
             - mountPath: /opt/adguard-home/conf
-              name: adguard-home-initial_config
+              name: adguard-home-config
       restartPolicy: Always
       volumes:
         - name: adguard-home-claim0
           persistentVolumeClaim:
             claimName: adguard-home-claim0
         - configMap:
-            name: adguard-home-initial_config
-          name: adguard-home-initial_config
+            name: adguard-home-config
+          name: adguard-home-config
