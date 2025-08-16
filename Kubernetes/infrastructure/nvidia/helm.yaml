@@ -1,0 +1,13 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nvdp
+  namespace: nvidia-device-plugin
+spec:
+  project: default
+  source:
+    chart: nvdp
+    repoURL: https://nvidia.github.io/k8s-device-plugin
+  destination:
+    name: in-cluster
+    namespace: nvidia-device-plugin
