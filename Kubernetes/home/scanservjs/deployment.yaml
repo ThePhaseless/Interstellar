@@ -6,8 +6,6 @@ metadata:
   name: scanservjs
   namespace: home
 spec:
-  nodeSelector:
-    kubernetes.io/hostname: nickel
   selector:
     matchLabels:
       io.kompose.service: scanservjs
@@ -19,6 +17,8 @@ spec:
       containers:
         - image: sbs20/scanservjs:latest
           name: scanservjs
+          nodeSelector:
+            kubernetes.io/hostname: nickel
           volumeDevices:
             - devicePath: /dev/ttyUSB0
               name: scanservjs-usb

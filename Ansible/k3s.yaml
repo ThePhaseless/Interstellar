@@ -40,6 +40,6 @@
 - name: Setup K3S
   ansible.builtin.import_playbook: k3s.orchestration.site
   vars:
-    extra_server_args: "--flannel-iface=tailscale0"
+    extra_server_args: "--flannel-iface=tailscale0 --flannel-backend=wireguard-native --flannel-external-ip"
     extra_agent_args: "--flannel-iface=tailscale0"
     k3s_version: "{{ hostvars['localhost']['k3s_version'] }}"

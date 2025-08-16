@@ -6,8 +6,6 @@ metadata:
   name: radarr
   namespace: media
 spec:
-  nodeSelector:
-    kubernetes.io/hostname: nickel
   selector:
     matchLabels:
       io.kompose.service: radarr
@@ -24,6 +22,8 @@ spec:
               value: Europe/Warsaw
           image: linuxserver/radarr:5.26.2
           name: radarr
+          nodeSelector:
+            kubernetes.io/hostname: nickel
           ports:
             - containerPort: 7878
           volumeMounts:

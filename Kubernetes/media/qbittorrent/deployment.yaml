@@ -6,8 +6,6 @@ metadata:
   name: qbittorrent
   namespace: media
 spec:
-  nodeSelector:
-    kubernetes.io/hostname: nickel
   selector:
     matchLabels:
       io.kompose.service: qbittorrent
@@ -27,6 +25,8 @@ spec:
             - name: UMASK
               value: "002"
           image: linuxserver/qbittorrent:5.1.2
+          nodeSelector:
+            kubernetes.io/hostname: nickel
           name: qbittorrent
           ports:
             - containerPort: 8080
