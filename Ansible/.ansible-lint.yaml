@@ -1,6 +1,6 @@
 exclude_paths:
   - vars/
-  - requirements.yml
+  - requirements.yaml
 
 skip_list:
   - name[missing]

@@ -23,7 +23,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.ansible/collections
-          key: ${{ runner.os }}-ansible-collections-${{ hashFiles('./Ansible/requirements.yml') }}
+          key: ${{ runner.os }}-ansible-collections-${{ hashFiles('./Ansible/requirements.yaml') }}
           restore-keys: |
             ${{ runner.os }}-ansible-collections-
 
@@ -42,7 +42,7 @@ jobs:
 
       - name: Setup Ansible Environment
         working-directory: Ansible
-        run: ansible-galaxy install -r requirements.yml
+        run: ansible-galaxy install -r requirements.yaml
 
       - name: Setup Tailscale
         uses: tailscale/github-action@v3
