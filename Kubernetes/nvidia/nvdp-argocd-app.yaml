@@ -13,6 +13,18 @@ spec:
       parameters:
         - name: gfd.enabled
           value: "true"
+        - name: config.name
+          value: "time-slicing-config"
+      values: |
+        config:
+          map:
+            time-slicing-config: |-
+              version: v1
+              sharing:
+                timeSlicing:
+                  resources:
+                  - name: nvidia.com/gpu
+                    replicas: 2
   destination:
     server: https://kubernetes.default.svc
     namespace: nvidia-device-plugin
