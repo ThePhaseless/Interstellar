@@ -64,6 +64,8 @@
       vars:
         no_kernel_modules: true
         nvidia_driver_version: 580.76.05
+    - name: Install Nvidia Container Toolkit
+      ansible.builtin.include_tasks: tasks/install_nvidia_container_toolkit.yaml
     - name: Update apt packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
     - name: Make rootfs rshared on boot

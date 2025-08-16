@@ -1,10 +1,9 @@
 {
   "files.associations": {
-    "./Config/Home/HomeAssistant/*.yaml": "home-assistant",
-    "./Ansible/**/*.yaml": "ansible",
-    "./Ansible/**/*.yml": "ansible",
-    "./Kubernetes/**/values*.yml": "helm",
-    "./Kubernetes/**/values*.yaml": "helm"
+    "Config/Home/HomeAssistant/*.yaml": "home-assistant",
+    "Ansible/**/*.yaml": "ansible",
+    "Kubernetes/**/values*.yml": "helm",
+    "Kubernetes/**/values*.yaml": "helm"
   },
   "yaml.schemas": {
     "https://www.authelia.com/schemas/v4.38/json-schema/configuration.json": "./Config/Auth/authelia.yaml"
@@ -27,6 +26,7 @@
   "cSpell.ignoreRegExpList": [".*arr"],
   "yaml.customTags": ["!env_var", "!include_dir_merge_named"],
   "python.defaultInterpreterPath": "./.venv/bin/python",
+  "ansible.lightspeed.enabled": false,
   "ansible.python.interpreterPath": "/workspaces/Interstellar/.venv/bin/python",
   "vs-kubernetes": {
     "disable-linters": ["resource-limits"]
