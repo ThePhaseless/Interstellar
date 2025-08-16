@@ -13,12 +13,10 @@ spec:
       parameters:
         - name: gfd.enabled
           value: "true"
-        - name: config.name
-          value: "time-slicing-config"
       values: |
         config:
           map:
-            time-slicing-config: |-
+            default: |-
               version: v1
               sharing:
                 timeSlicing:
