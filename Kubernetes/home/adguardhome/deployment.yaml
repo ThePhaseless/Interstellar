@@ -6,8 +6,6 @@ metadata:
   name: adguard-home
   namespace: home
 spec:
-  nodeSelector:
-    kubernetes.io/hostname: nickel
   selector:
     matchLabels:
       io.kompose.service: adguard-home
@@ -22,6 +20,8 @@ spec:
               value: Europe/Warsaw
           image: adguard/adguard-home:v0.107.64
           name: adguard-home
+          nodeSelector:
+            kubernetes.io/hostname: nickel
           ports:
             - containerPort: 80
             - containerPort: 53

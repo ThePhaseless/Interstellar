@@ -6,8 +6,6 @@ metadata:
   name: bazarr
   namespace: media
 spec:
-  nodeSelector:
-    kubernetes.io/hostname: nickel
   selector:
     matchLabels:
       io.kompose.service: bazarr
@@ -22,6 +20,8 @@ spec:
               value: Europe/Warsaw
           image: linuxserver/bazarr:1.5.2
           name: bazarr
+          nodeSelector:
+            kubernetes.io/hostname: nickel
           ports:
             - containerPort: 6767
           volumeMounts:

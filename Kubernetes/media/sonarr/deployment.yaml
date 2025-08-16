@@ -6,8 +6,6 @@ metadata:
   name: sonarr
   namespace: media
 spec:
-  nodeSelector:
-    kubernetes.io/hostname: nickel
   selector:
     matchLabels:
       io.kompose.service: sonarr
@@ -24,6 +22,8 @@ spec:
               value: Europe/Warsaw
           image: linuxserver/sonarr:4.0.15
           name: sonarr
+          nodeSelector:
+            kubernetes.io/hostname: nickel
           ports:
             - containerPort: 8989
           volumeMounts:

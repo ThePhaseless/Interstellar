@@ -6,8 +6,6 @@ metadata:
   name: jellyfin
   namespace: media
 spec:
-  nodeSelector:
-    kubernetes.io/hostname: nickel
   selector:
     matchLabels:
       io.kompose.service: jellyfin
@@ -26,6 +24,8 @@ spec:
               value: Europe/Warsaw
           image: linuxserver/jellyfin:10.10.7
           name: jellyfin
+          nodeSelector:
+            kubernetes.io/hostname: nickel
           resources:
             limits:
               nvidia.com/gpu: "1"
