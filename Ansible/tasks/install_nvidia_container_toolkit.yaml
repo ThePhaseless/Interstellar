@@ -41,6 +41,7 @@
   ansible.builtin.apt:
     name:
       - nvidia-container-toolkit
+      - nvidia-container-runtime
       - nvidia-container-toolkit-base
       - libnvidia-container-tools
       - libnvidia-container1
