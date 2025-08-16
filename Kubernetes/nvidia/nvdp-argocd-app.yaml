@@ -1,13 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: nvdp
-  namespace: nvidia-device-plugin
+  name: nvidia-device-plugin
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    chart: nvdp
     repoURL: https://nvidia.github.io/k8s-device-plugin
+    path: nvdp
   destination:
-    name: in-cluster
+    name: "in-cluster"
     namespace: nvidia-device-plugin

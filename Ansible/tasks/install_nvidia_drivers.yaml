@@ -14,7 +14,11 @@
   when: nvidia_container_runtime.stat.exists
 - name: Install Nvidia Drivers
   when: nvidia_drivers_needed.stat.exists and
-    (not nvidia_container_runtime.stat.exists or current_nvidia_driver_version.stdout != nvidia_driver_version | default('') or current_nvidia_driver_version.rc != 0)
+    (
+    not nvidia_container_runtime.stat.exists
+    or current_nvidia_driver_version.stdout != nvidia_driver_version | default('')
+    or current_nvidia_driver_version.rc != 0
+    )
   block:
     - name: Get the latest Nvidia driver version
       ansible.builtin.uri:
@@ -29,7 +33,11 @@
         nvidia_latest_version_filename: "{{ nvidia_latest_version_raw.content.split()[1] }}"
     - name: Set Nvidia driver version
       ansible.builtin.set_fact:
-        nvidia_driver_path: "{{ nvidia_driver_version is defined | ternary(nvidia_driver_version + '/' + 'NVIDIA-Linux-x86_64-' + nvidia_driver_version + '.run',nvidia_latest_version_filename) }}"
+        nvidia_driver_path: >
+          {{ nvidia_driver_version is defined | ternary(
+              nvidia_driver_version + '/' + 'NVIDIA-Linux-x86_64-' + nvidia_driver_version + '.run',
+              nvidia_latest_version_filename
+          ) }}"
     - name: Download Nvidia driver
       changed_when: false
       ansible.builtin.get_url:
