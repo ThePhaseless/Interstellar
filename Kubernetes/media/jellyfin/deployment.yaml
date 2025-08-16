@@ -16,6 +16,7 @@ spec:
       labels:
         io.kompose.service: jellyfin
     spec:
+      runtimeClassName: nvidia
       containers:
         - env:
             - name: JELLYFIN_PublishedServerUrl
