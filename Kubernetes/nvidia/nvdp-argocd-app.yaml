@@ -10,6 +10,9 @@ spec:
   source:
     repoURL: https://nvidia.github.io/k8s-device-plugin
     path: nvdp
+    helm:
+      values:
+        gfd.enabled: true
   destination:
     name: "in-cluster"
     namespace: nvidia-device-plugin
