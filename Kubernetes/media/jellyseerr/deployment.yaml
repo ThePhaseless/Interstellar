@@ -26,9 +26,9 @@ spec:
             - containerPort: 5055
           volumeMounts:
             - mountPath: /app/config
-              name: jellyseerr-claim0
+              name: jellyseerr-data
       restartPolicy: Always
       volumes:
-        - name: jellyseerr-claim0
+        - name: jellyseerr-data
           persistentVolumeClaim:
-            claimName: jellyseerr-claim0
+            claimName: jellyseerr-data

@@ -30,9 +30,9 @@ spec:
           name: postfix
           volumeMounts:
             - mountPath: /data
-              name: postfix-claim0
+              name: postfix-data
       restartPolicy: Always
       volumes:
-        - name: postfix-claim0
+        - name: postfix-data
           persistentVolumeClaim:
-            claimName: postfix-claim0
+            claimName: postfix-data

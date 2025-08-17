@@ -2,8 +2,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   labels:
-    io.kompose.service: bazarr-claim0
-  name: bazarr-claim0
+    io.kompose.service: bazarr-data
+  name: bazarr-data
   namespace: media
 spec:
   accessModes:

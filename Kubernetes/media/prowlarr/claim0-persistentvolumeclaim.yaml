@@ -2,8 +2,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   labels:
-    io.kompose.service: prowlarr-claim0
-  name: prowlarr-claim0
+    io.kompose.service: prowlarr-data
+  name: prowlarr-data
   namespace: media
 spec:
   accessModes:

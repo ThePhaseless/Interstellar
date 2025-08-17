@@ -26,14 +26,14 @@ spec:
             - containerPort: 6767
           volumeMounts:
             - mountPath: /config
-              name: bazarr-claim0
+              name: bazarr-data
             - mountPath: /data
-              name: bazarr-claim1
+              name: bazarr-storage
       restartPolicy: Always
       volumes:
-        - name: bazarr-claim0
+        - name: bazarr-data
           persistentVolumeClaim:
-            claimName: bazarr-claim0
-        - name: bazarr-claim1
+            claimName: bazarr-data
+        - name: bazarr-storage
           hostPath:
             path: /Storage
