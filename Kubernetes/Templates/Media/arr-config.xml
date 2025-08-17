@@ -1,0 +1,7 @@
+<Config>
+  <BindAddress>*</BindAddress>
+  <AuthenticationRequired>Enabled</AuthenticationRequired>
+  <LogLevel>info</LogLevel>
+  <AuthenticationMethod>External</AuthenticationMethod>
+  <UpdateMechanism>Docker</UpdateMechanism>
+</Config>

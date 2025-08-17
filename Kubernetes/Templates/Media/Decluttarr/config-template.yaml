@@ -1,0 +1,56 @@
+general:
+  log_level: INFO
+  test_run: true
+  timer: 10
+  # ignored_download_clients: ["emulerr"]
+  # ssl_verification: false # Optional: Defaults to true
+  # private_tracker_handling: "obsolete_tag" # remove, skip, obsolete_tag. Optional. Default: remove
+  # public_tracker_handling: "remove"  # remove, skip, obsolete_tag. Optional. Default: remove
+  # obsolete_tag: "Obsolete" # optional. Default: "Obsolete"
+  # protected_tag: "Keep" # optional. Default: "Keep"
+
+job_defaults:
+  max_strikes: 3
+  min_days_between_searches: 7
+  max_concurrent_searches: 3
+
+jobs:
+  remove_bad_files:
+    # keep_archives: true
+  remove_failed_downloads:
+  remove_failed_imports:
+    message_patterns:
+      - "Not a Custom Format upgrade for existing*"
+      - "Not an upgrade for existing*"
+      - "*Found potentially dangerous file with extension*"
+      - "Invalid video file*"
+      - "No files found are eligible for import*"
+      - "One or more episodes expected in this release were not imported or missing from the release"
+  remove_metadata_missing:
+    # max_strikes: 3
+  remove_missing_files:
+  remove_orphans:
+  remove_slow:
+    # min_speed: 100
+    # max_strikes: 3
+  remove_stalled:
+    # max_strikes: 3
+  remove_unmonitored:
+  search_unmet_cutoff:
+    # min_days_between_searches: 7
+    # max_concurrent_searches: 3
+  search_missing:
+    # min_days_between_searches: 7
+    # max_concurrent_searches: 3
+
+instances:
+  sonarr:
+    - base_url: "http://sonarr:8989"
+      api_key: "SONARR_API_KEY_PLACEHOLDER"
+  radarr:
+    - base_url: "http://radarr:7878"
+      api_key: "RADARR_API_KEY_PLACEHOLDER"
+
+download_clients:
+  qbittorrent:
+    - base_url: "http://qbittorrent:8080"

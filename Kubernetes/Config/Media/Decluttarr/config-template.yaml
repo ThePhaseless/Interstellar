@@ -46,27 +46,11 @@ jobs:
 instances:
   sonarr:
     - base_url: "http://sonarr:8989"
-      api_key: "xxxx"
+      api_key: "SONARR_API_KEY_PLACEHOLDER"
   radarr:
     - base_url: "http://radarr:7878"
-      api_key: "xxxx"
-  readarr:
-    - base_url: "http://readarr:8787"
-      api_key: "xxxx"
-  lidarr:
-    - base_url: "http://lidarr:8686"
-      api_key: "xxxx"
-  whisparr:
-    - base_url: "http://whisparr:6969"
-      api_key: "xxxx"
+      api_key: "RADARR_API_KEY_PLACEHOLDER"
 
 download_clients:
   qbittorrent:
-    - base_url: "http://qbittorrent:8080" # You can use decluttarr without qbit (not all features available, see readme).
-      # username: xxxx # (optional -> if not provided, assuming not needed)
-      # password: xxxx # (optional -> if not provided, assuming not needed)
-      # name: "qBittorrent" # (optional -> if not provided, assuming "qBittorrent". Must correspond with what is specified in your *arr as download client name)
-  # sabnzbd:
-  #   - base_url: "http://sabnzbd:8080" # SABnzbd server URL
-  #     api_key: "your_api_key_here" # (required -> SABnzbd API key)
-  #     # name: "SABnzbd" # (optional -> if not provided, assuming "SABnzbd". Must correspond with what is specified in your *arr as download client name)
+    - base_url: "http://qbittorrent:8080"
