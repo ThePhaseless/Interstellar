@@ -17,25 +17,42 @@ spec:
         io.kompose.service: sonarr
     spec:
       containers:
-        - env:
-            - name: TZ
-              value: Europe/Warsaw
-          image: linuxserver/sonarr:4.0.15
+        - name: api-key-extractor
+          image: alpine:latest
+          command: ["/scripts/extract-api-key.sh"]
+          env:
+            - name: APP_NAME
+              value: "Sonarr"
+          volumeMounts:
+            - name: radarr-config
+              mountPath: /config
+              readOnly: true
+            - name: extractor-scripts
+              mountPath: /scripts
+              defaultMode: 0755
+        - image: linuxserver/sonarr:4.0.15
           name: sonarr
           nodeSelector:
             kubernetes.io/hostname: nickel
+          env:
+            - name: TZ
+              value: Europe/Warsaw
           ports:
             - containerPort: 8989
           volumeMounts:
             - mountPath: /config
-              name: sonarr-claim0
+              name: sonarr-data
             - mountPath: /data
-              name: sonarr-claim1
+              name: sonarr-storage
       restartPolicy: Always
       volumes:
-        - name: sonarr-claim0
+        - name: extractor-scripts
+          configMap:
+            name: universal-api-extractor
+            defaultMode: 0755
+        - name: sonarr-data
           persistentVolumeClaim:
-            claimName: sonarr-claim0
-        - name: sonarr-claim1
+            claimName: sonarr-data
+        - name: sonarr-storage
           hostPath:
             path: /Storage

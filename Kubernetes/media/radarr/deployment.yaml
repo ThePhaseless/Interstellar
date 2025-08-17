@@ -17,25 +17,42 @@ spec:
         io.kompose.service: radarr
     spec:
       containers:
-        - env:
-            - name: TZ
-              value: Europe/Warsaw
-          image: linuxserver/radarr:5.26.2
+        - name: api-key-extractor
+          image: alpine:latest
+          command: ["/scripts/extract-api-key.sh"]
+          env:
+            - name: APP_NAME
+              value: "Sonarr"
+          volumeMounts:
+            - name: sonarr-config
+              mountPath: /config
+              readOnly: true
+            - name: extractor-scripts
+              mountPath: /scripts
+              defaultMode: 0755
+        - image: linuxserver/radarr:5.26.2
           name: radarr
           nodeSelector:
             kubernetes.io/hostname: nickel
+          env:
+            - name: TZ
+              value: Europe/Warsaw
           ports:
             - containerPort: 7878
           volumeMounts:
             - mountPath: /config
-              name: radarr-claim0
+              name: radarr-data
             - mountPath: /data
-              name: radarr-claim1
+              name: radarr-storage
       restartPolicy: Always
       volumes:
-        - name: radarr-claim0
+        - name: extractor-scripts
+          configMap:
+            name: universal-api-extractor
+            defaultMode: 0755
+        - name: radarr-data
           persistentVolumeClaim:
-            claimName: radarr-claim0
-        - name: radarr-claim1
+            claimName: radarr-data
+        - name: radarr-storage
           hostPath:
             path: /Storage

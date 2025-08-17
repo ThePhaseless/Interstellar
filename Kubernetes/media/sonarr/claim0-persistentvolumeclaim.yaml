@@ -2,8 +2,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   labels:
-    io.kompose.service: sonarr-claim0
-  name: sonarr-claim0
+    io.kompose.service: sonarr-data
+  name: sonarr-data
   namespace: media
 spec:
   accessModes:
