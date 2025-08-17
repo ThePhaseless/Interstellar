@@ -16,24 +16,25 @@ spec:
       labels:
         io.kompose.service: sonarr
     spec:
-      containers:
-        - name: api-key-extractor
+      initContainers:
+        - name: config-initializer
           image: alpine:latest
-          command: ["/scripts/extract-api-key.sh"]
+          command: ["/scripts/init-arr-config.sh"]
           env:
             - name: APP_NAME
               value: "Sonarr"
           volumeMounts:
-            - name: radarr-config
+            - name: sonarr-data
               mountPath: /config
+            - name: arr-template-config
+              mountPath: /config-template
               readOnly: true
-            - name: extractor-scripts
+            - name: init-scripts
               mountPath: /scripts
               defaultMode: 0755
+      containers:
         - image: linuxserver/sonarr:4.0.15
           name: sonarr
-          nodeSelector:
-            kubernetes.io/hostname: nickel
           env:
             - name: TZ
               value: Europe/Warsaw
@@ -44,12 +45,32 @@ spec:
               name: sonarr-data
             - mountPath: /data
               name: sonarr-storage
+        - name: api-key-extractor
+          image: alpine:latest
+          command: ["/bin/sh", "-c", "apk add --no-cache curl && /scripts/extract-api-key.sh"]
+          env:
+            - name: APP_NAME
+              value: "Sonarr"
+          volumeMounts:
+            - name: sonarr-data
+              mountPath: /config
+              readOnly: true
+            - name: extractor-scripts
+              mountPath: /scripts
+              defaultMode: 0755
       restartPolicy: Always
       volumes:
+        - name: init-scripts
+          configMap:
+            name: init-scripts
+            defaultMode: 0755
         - name: extractor-scripts
           configMap:
-            name: universal-api-extractor
+            name: api-extractor-scripts
             defaultMode: 0755
+        - name: arr-template-config
+          configMap:
+            name: arr-template-config
         - name: sonarr-data
           persistentVolumeClaim:
             claimName: sonarr-data

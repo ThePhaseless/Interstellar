@@ -14,6 +14,22 @@ spec:
       labels:
         io.kompose.service: decluttarr
     spec:
+      initContainers:
+        - name: config-generator
+          image: alpine:latest
+          command: ["/scripts/generate-runtime-config.sh"]
+          env:
+            - name: CONFIG_TYPE
+              value: "decluttarr"
+          volumeMounts:
+            - name: decluttarr-templates
+              mountPath: /templates
+              readOnly: true
+            - name: decluttarr-config
+              mountPath: /config
+            - name: config-generator-scripts
+              mountPath: /scripts
+              defaultMode: 0755
       containers:
         - image: ghcr.io/manimatter/decluttarr:v1.50.2
           name: decluttarr
@@ -22,6 +38,12 @@ spec:
               name: decluttarr-config
       restartPolicy: Always
       volumes:
-        - name: decluttarr-config
+        - name: decluttarr-templates
           configMap:
-            name: decluttarr-config
+            name: decluttarr-templates
+        - name: decluttarr-config
+          emptyDir: {}
+        - name: config-generator-scripts
+          configMap:
+            name: config-generator-scripts
+            defaultMode: 0755

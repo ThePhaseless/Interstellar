@@ -16,19 +16,39 @@ spec:
       labels:
         io.kompose.service: recyclarr
     spec:
+      initContainers:
+        - name: config-generator
+          image: alpine:latest
+          command: ["/scripts/generate-runtime-config.sh"]
+          env:
+            - name: CONFIG_TYPE
+              value: "recyclarr"
+          volumeMounts:
+            - name: recyclarr-templates
+              mountPath: /templates
+              readOnly: true
+            - name: recyclarr-config
+              mountPath: /config
+            - name: config-generator-scripts
+              mountPath: /scripts
+              defaultMode: 0755
       containers:
         - env:
-            - name: RADARR_API_KEY
-            - name: SONARR_API_KEY
             - name: TZ
               value: Europe/Warsaw
           image: ghcr.io/recyclarr/recyclarr:7.4
           name: recyclarr
           volumeMounts:
             - mountPath: /config
-              name: recyclarr-cm0
+              name: recyclarr-config
       restartPolicy: Always
       volumes:
-        - configMap:
-            name: recyclarr-cm0
-          name: recyclarr-cm0
+        - name: recyclarr-templates
+          configMap:
+            name: recyclarr-templates
+        - name: recyclarr-config
+          emptyDir: {}
+        - name: config-generator-scripts
+          configMap:
+            name: config-generator-scripts
+            defaultMode: 0755
