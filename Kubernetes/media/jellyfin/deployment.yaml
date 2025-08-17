@@ -36,14 +36,14 @@ spec:
               protocol: UDP
           volumeMounts:
             - mountPath: /config
-              name: jellyfin-claim0
+              name: jellyfin-data
             - mountPath: /media
-              name: jellyfin-claim1
+              name: jellyfin-storage
       restartPolicy: Always
       volumes:
-        - name: jellyfin-claim0
+        - name: jellyfin-data
           persistentVolumeClaim:
-            claimName: jellyfin-claim0
-        - name: jellyfin-claim1
+            claimName: jellyfin-data
+        - name: jellyfin-storage
           hostPath:
             path: /Storage/Media

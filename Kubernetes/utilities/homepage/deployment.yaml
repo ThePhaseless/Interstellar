@@ -26,9 +26,9 @@ spec:
             - containerPort: 3000
           volumeMounts:
             - mountPath: /app/config
-              name: homepage-claim0
+              name: homepage-data
       restartPolicy: Always
       volumes:
-        - name: homepage-claim0
+        - name: homepage-data
           persistentVolumeClaim:
-            claimName: homepage-claim0
+            claimName: homepage-data

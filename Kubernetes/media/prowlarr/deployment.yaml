@@ -26,9 +26,9 @@ spec:
             - containerPort: 9696
           volumeMounts:
             - mountPath: /config
-              name: prowlarr-claim0
+              name: prowlarr-data
       restartPolicy: Always
       volumes:
-        - name: prowlarr-claim0
+        - name: prowlarr-data
           persistentVolumeClaim:
-            claimName: prowlarr-claim0
+            claimName: prowlarr-data

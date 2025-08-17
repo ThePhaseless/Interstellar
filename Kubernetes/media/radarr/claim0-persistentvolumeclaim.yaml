@@ -2,8 +2,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   labels:
-    io.kompose.service: radarr-claim0
-  name: radarr-claim0
+    io.kompose.service: radarr-data
+  name: radarr-data
   namespace: media
 spec:
   accessModes:

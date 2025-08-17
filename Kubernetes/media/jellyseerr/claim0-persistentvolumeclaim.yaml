@@ -2,8 +2,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   labels:
-    io.kompose.service: jellyseerr-claim0
-  name: jellyseerr-claim0
+    io.kompose.service: jellyseerr-data
+  name: jellyseerr-data
   namespace: media
 spec:
   accessModes:

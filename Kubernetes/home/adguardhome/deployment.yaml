@@ -30,14 +30,14 @@ spec:
             - containerPort: 3000
           volumeMounts:
             - mountPath: /opt/adguard-home/work
-              name: adguard-home-claim0
+              name: adguard-home-data
             - mountPath: /opt/adguard-home/conf
               name: adguard-home-config
       restartPolicy: Always
       volumes:
-        - name: adguard-home-claim0
+        - name: adguard-home-data
           persistentVolumeClaim:
-            claimName: adguard-home-claim0
+            claimName: adguard-home-data
         - configMap:
             name: adguard-home-config
           name: adguard-home-config
