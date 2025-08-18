@@ -47,7 +47,12 @@ spec:
               name: sonarr-storage
         - name: api-key-extractor
           image: alpine:latest
-          command: ["/bin/sh", "-c", "apk add --no-cache curl && /scripts/extract-api-key.sh"]
+          command:
+            [
+              "/bin/sh",
+              "-c",
+              "apk add --no-cache curl && /scripts/extract-api-key.sh",
+            ]
           env:
             - name: APP_NAME
               value: "Sonarr"
