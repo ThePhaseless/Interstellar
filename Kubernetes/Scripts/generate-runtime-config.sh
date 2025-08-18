@@ -11,12 +11,12 @@ mv kubectl /usr/local/bin/
 
 # Wait for API keys to be available
 echo "Waiting for Sonarr and Radarr API keys..."
-while ! kubectl get secret sonarr-api-key -n media > /dev/null 2>&1; do
+while ! kubectl get secret sonarr-api-key -n media >/dev/null 2>&1; do
     echo "Sonarr API key not ready, waiting..."
     sleep 10
 done
 
-while ! kubectl get secret radarr-api-key -n media > /dev/null 2>&1; do
+while ! kubectl get secret radarr-api-key -n media >/dev/null 2>&1; do
     echo "Radarr API key not ready, waiting..."
     sleep 10
 done
@@ -30,12 +30,12 @@ echo "Retrieved API keys, generating configs..."
 if [ "$CONFIG_TYPE" = "decluttarr" ]; then
     # Process Decluttarr config
     sed "s/SONARR_API_KEY_PLACEHOLDER/$SONARR_API_KEY/g; s/RADARR_API_KEY_PLACEHOLDER/$RADARR_API_KEY/g" \
-        /templates/config-template.yaml > /config/config.yaml
+        /templates/config-template.yaml >/config/config.yaml
     echo "Decluttarr config generated successfully"
 elif [ "$CONFIG_TYPE" = "recyclarr" ]; then
     # Process Recyclarr configs
-    sed "s/SONARR_API_KEY_PLACEHOLDER/$SONARR_API_KEY/g" /templates/sonarr.yaml > /config/sonarr.yaml
-    sed "s/RADARR_API_KEY_PLACEHOLDER/$RADARR_API_KEY/g" /templates/radarr.yaml > /config/radarr.yaml
+    sed "s/SONARR_API_KEY_PLACEHOLDER/$SONARR_API_KEY/g" /templates/sonarr.yaml >/config/sonarr.yaml
+    sed "s/RADARR_API_KEY_PLACEHOLDER/$RADARR_API_KEY/g" /templates/radarr.yaml >/config/radarr.yaml
     echo "Recyclarr configs generated successfully"
 fi
 

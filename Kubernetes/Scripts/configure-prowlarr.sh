@@ -12,19 +12,19 @@ echo "Configuring Prowlarr indexers..."
 
 # Wait for Prowlarr to be ready
 echo "Waiting for Prowlarr to be available..."
-while ! curl -s http://prowlarr:9696/api/v1/health > /dev/null; do
+while ! curl -s http://prowlarr:9696/api/v1/health >/dev/null; do
     echo "Prowlarr not ready, waiting..."
     sleep 10
 done
 
 # Wait for API keys to be available
 echo "Waiting for Sonarr and Radarr API keys..."
-while ! kubectl get secret sonarr-api-key -n media > /dev/null 2>&1; do
+while ! kubectl get secret sonarr-api-key -n media >/dev/null 2>&1; do
     echo "Sonarr API key not ready, waiting..."
     sleep 10
 done
 
-while ! kubectl get secret radarr-api-key -n media > /dev/null 2>&1; do
+while ! kubectl get secret radarr-api-key -n media >/dev/null 2>&1; do
     echo "Radarr API key not ready, waiting..."
     sleep 10
 done
