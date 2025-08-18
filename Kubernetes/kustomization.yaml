@@ -1,24 +1,41 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
 configMapGenerator:
   - name: adguard-home-config
     namespace: home
     files:
-      - ./Config/Home/AdGuard/conf/AdGuardHome.yaml
-  - name: decluttarr-config
-    namespace: media
-    files:
-      - ./Config/Media/Decluttarr/config.yaml
-  - name: recyclarr-config
-    namespace: media
-    files:
-      - ./Config/Media/Recyclarr/radarr.yaml
-      - ./Config/Media/Recyclarr/sonarr.yaml
+      - ./Templates/Home/AdGuard/conf/AdGuardHome.yaml
   - name: httpd-html
     namespace: infrastructure
     files:
-      - ./Config/Home/httpd/index.html
-  - name: extractor-scripts
+      - ./Templates/Home/httpd/index.html
+  - name: arr-template-config
     namespace: media
     files:
-      - ./scripts/extract-api-key.sh
+      - arr-config.xml=./Templates/Media/arr-config.xml
+  - name: init-scripts
+    namespace: media
+    files:
+      - init-arr-config.sh=./Scripts/init-arr-config.sh
+  - name: api-extractor-scripts
+    namespace: media
+    files:
+      - extract-api-key.sh=./Scripts/extract-api-key.sh
+  - name: prowlarr-configurator-scripts
+    namespace: media
+    files:
+      - configure-prowlarr.sh=./Scripts/configure-prowlarr.sh
+  - name: config-generator-scripts
+    namespace: media
+    files:
+      - generate-runtime-config.sh=./Scripts/generate-runtime-config.sh
+  - name: decluttarr-templates
+    namespace: media
+    files:
+      - config-template.yaml=./Templates/Media/Decluttarr/config-template.yaml
+  - name: recyclarr-templates
+    namespace: media
+    files:
+      - radarr.yaml=./Templates/Media/Recyclarr/radarr.yaml
+      - sonarr.yaml=./Templates/Media/Recyclarr/sonarr.yaml

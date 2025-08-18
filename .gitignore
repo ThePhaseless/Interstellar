@@ -2,8 +2,8 @@ Servers/*
 
 Logs/
 
-**/.env*
-!**/.env*.example
+.env*
+!.env*.example
 
 # Deploy
 .ansible/
@@ -12,4 +12,6 @@ Logs/
 # Act
 .secrets
 .vars
+
+/Config/
 
