@@ -1,9 +1,7 @@
 {
   "files.associations": {
     "Config/Home/HomeAssistant/*.yaml": "home-assistant",
-    "Ansible/**/*.yaml": "ansible",
-    "Kubernetes/**/values*.yml": "helm",
-    "Kubernetes/**/values*.yaml": "helm"
+    "Ansible/**/*.yaml": "ansible"
   },
   "yaml.schemas": {
     "https://www.authelia.com/schemas/v4.38/json-schema/configuration.json": "./Config/Auth/authelia.yaml"
