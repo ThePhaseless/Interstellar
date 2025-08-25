@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: sonarr
+  name: sonarr
+  namespace: media
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: sonarr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: sonarr
+    spec:
+      initContainers:
+        - name: config-initializer
+          image: alpine:latest
+          command: ["cp", "-rp", "/config-template/*", "/config/"]
+          env:
+            - name: APP_NAME
+              value: "Sonarr"
+          volumeMounts:
+            - name: sonarr-data
+              mountPath: /config
+            - name: arr-config
+              mountPath: /config-template
+              readOnly: true
+            - name: arr-scripts
+              mountPath: /scripts
+              defaultMode: 0755
+      containers:
+        - image: linuxserver/sonarr:4.0.15
+          name: sonarr
+          env:
+            - name: TZ
+              value: Europe/Warsaw
+          ports:
+            - containerPort: 8989
+          volumeMounts:
+            - mountPath: /config
+              name: sonarr-data
+            - mountPath: /data
+              name: sonarr-storage
+        - name: api-key-extractor
+          image: alpine:latest
+          command: ["/scripts/extract-api-key.sh"]
+          env:
+            - name: APP_NAME
+              value: "Sonarr"
+          volumeMounts:
+            - name: sonarr-data
+              mountPath: /config
+              readOnly: true
+            - name: arr-scripts
+              mountPath: /scripts
+              defaultMode: 0755
+      restartPolicy: Always
+      volumes:
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
+        - name: arr-config
+          configMap:
+            name: arr-config
+        - name: sonarr-data
+          persistentVolumeClaim:
+            claimName: sonarr-data
+        - name: sonarr-storage
+          hostPath:
+            path: /Storage

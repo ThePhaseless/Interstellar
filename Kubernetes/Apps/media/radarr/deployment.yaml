@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: radarr
+  name: radarr
+  namespace: media
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: radarr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: radarr
+    spec:
+      initContainers:
+        - name: config-initializer
+          image: alpine:latest
+          command: ["cp", "-rp", "/config-template/*", "/config/"]
+          volumeMounts:
+            - name: radarr-data
+              mountPath: /config
+            - name: arr-config
+              mountPath: /config-template
+              readOnly: true
+      containers:
+        - image: linuxserver/radarr:5.26.2
+          name: radarr
+          env:
+            - name: TZ
+              value: Europe/Warsaw
+          ports:
+            - containerPort: 7878
+          volumeMounts:
+            - mountPath: /config
+              name: radarr-data
+            - mountPath: /data
+              name: radarr-storage
+        - name: api-key-extractor
+          image: bitnami/kubectl:latest
+          command: [/scripts/extract-api-key.sh"]
+          env:
+            - name: APP_NAME
+              value: "Radarr"
+          volumeMounts:
+            - name: radarr-data
+              mountPath: /config
+              readOnly: true
+            - name: arr-scripts
+              mountPath: /scripts
+              defaultMode: 0755
+      volumes:
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
+        - name: arr-config
+          configMap:
+            name: arr-config
+        - name: radarr-data
+          persistentVolumeClaim:
+            claimName: radarr-data
+        - name: radarr-storage
+          hostPath:
+            path: /Storage

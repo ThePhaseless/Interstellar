@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  # Shared scripts for all Arr apps
+  - name: arr-scripts
+    namespace: media
+    files:
+      - extract-api-key.sh
+      - generate-runtime-config.sh
+
+  # Shared config template for all Arr apps
+  - name: arr-config
+    namespace: media
+    files:
+      - config.xml

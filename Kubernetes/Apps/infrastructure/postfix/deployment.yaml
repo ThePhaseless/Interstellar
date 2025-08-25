@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: postfix
+  name: postfix
+  namespace: infrastructure
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: postfix
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: postfix
+    spec:
+      containers:
+        - env:
+            - name: ALLOW_EMPTY_SENDER_DOMAINS
+              value: "true"
+            - name: RELAYHOST
+              value: smtp.gmail.com:587
+            - name: RELAYHOST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: RELAYHOST_PASSWORD
+                  name: postfix-credentials
+            - name: RELAYHOST_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: RELAYHOST_USERNAME
+                  name: postfix-credentials
+            - name: TZ
+              value: Europe/Warsaw
+          image: boky/postfix:4.4.0
+          name: postfix
+          volumeMounts:
+            - mountPath: /data
+              name: postfix-data
+      restartPolicy: Always
+      volumes:
+        - name: postfix-data
+          persistentVolumeClaim:
+            claimName: postfix-data

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: decluttarr
+  name: decluttarr
+  namespace: media
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: decluttarr
+  template:
+    metadata:
+      labels:
+        io.kompose.service: decluttarr
+    spec:
+      initContainers:
+        - name: secret-waiter
+          image: bitnami/kubectl:latest
+          command: ["/scripts/secret-wait.sh"]
+          args:
+            - "sonarr-api-key:api-key"
+            - "radarr-api-key:api-key"
+          env:
+            - name: NAMESPACE
+              value: "media"
+            - name: TIMEOUT
+              value: "600"
+          volumeMounts:
+            - name: arr-scripts
+              mountPath: /scripts
+        - name: config-generator
+          image: bitnami/kubectl:latest
+          command: ["/scripts/generate-runtime-config.sh"]
+          env:
+            - name: CONFIG_TYPE
+              value: "decluttarr"
+          volumeMounts:
+            - name: decluttarr-config-template
+              mountPath: /templates
+              readOnly: true
+            - name: decluttarr-config-runtime
+              mountPath: /config
+            - name: arr-scripts
+              mountPath: /scripts
+      containers:
+        - image: ghcr.io/manimatter/decluttarr:v1.50.2
+          name: decluttarr
+          volumeMounts:
+            - mountPath: /app/config
+              name: decluttarr-config-runtime
+      restartPolicy: Always
+      volumes:
+        - name: decluttarr-config-template
+          configMap:
+            name: decluttarr-config
+        - name: decluttarr-config-runtime
+          emptyDir: {}
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: jellyfin
+  name: jellyfin
+  namespace: media
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: jellyfin
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: jellyfin
+    spec:
+      runtimeClassName: nvidia
+      containers:
+        - env:
+            - name: JELLYFIN_PublishedServerUrl
+              value: watch.nerine.dev
+            - name: TZ
+              value: Europe/Warsaw
+          image: linuxserver/jellyfin:10.10.7
+          name: jellyfin
+          nodeName: nickel
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+          ports:
+            - containerPort: 8096
+            - containerPort: 7359
+              protocol: UDP
+          volumeMounts:
+            - mountPath: /config
+              name: jellyfin-data
+            - mountPath: /media
+              name: jellyfin-storage
+      restartPolicy: Always
+      volumes:
+        - name: jellyfin-data
+          persistentVolumeClaim:
+            claimName: jellyfin-data
+        - name: jellyfin-storage
+          hostPath:
+            path: /Storage/Media

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: scanservjs
+  name: scanservjs
+  namespace: home
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: scanservjs
+  template:
+    metadata:
+      labels:
+        io.kompose.service: scanservjs
+    spec:
+      nodeName: nickel
+      containers:
+        - image: sbs20/scanservjs:latest
+          name: scanservjs
+
+          volumeDevices:
+            - devicePath: /dev/ttyUSB0
+              name: scanservjs-usb
+      volumes:
+        - name: scanservjs-usb
+          hostPath:
+            path: /dev/ttyUSB0
