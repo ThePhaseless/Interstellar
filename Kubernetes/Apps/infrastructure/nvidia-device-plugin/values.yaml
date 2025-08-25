@@ -1,0 +1,12 @@
+gfd:
+  enabled: true
+
+config:
+  map:
+    default: |-
+      version: v1
+      sharing:
+        timeSlicing:
+          resources:
+          - name: nvidia.com/gpu
+            replicas: 2

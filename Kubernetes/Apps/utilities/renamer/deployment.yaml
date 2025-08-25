@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: renamer
+  name: renamer
+  namespace: utilities
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: renamer
+  template:
+    metadata:
+      labels:
+        io.kompose.service: renamer
+    spec:
+      containers:
+        - env:
+            - name: BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: BOT_TOKEN
+                  name: renamer-bot-token
+          image: ghcr.io/thephaseless/renamer:main
+          name: renamer
+      restartPolicy: Always

@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: prowlarr
+  name: prowlarr
+  namespace: media
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: prowlarr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: prowlarr
+    spec:
+      initContainers:
+        - name: config-initializer
+          image: alpine:latest
+          command: ["cp", "-rp", "/config-template/*", "/config/"]
+          env:
+            - name: APP_NAME
+              value: "Prowlarr"
+          volumeMounts:
+            - name: prowlarr-data
+              mountPath: /config
+            - name: arr-config
+              mountPath: /config-template
+              readOnly: true
+            - name: arr-scripts
+              mountPath: /scripts
+      containers:
+        - env:
+            - name: TZ
+              value: Europe/Warsaw
+          image: linuxserver/prowlarr:1.37.0
+          name: prowlarr
+          ports:
+            - containerPort: 9696
+          volumeMounts:
+            - mountPath: /config
+              name: prowlarr-data
+        - name: api-key-extractor
+          image: bitnami/kubectl:latest
+          command: ["/scripts/extract-api-key.sh"]
+          env:
+            - name: APP_NAME
+              value: "Prowlarr"
+          volumeMounts:
+            - name: prowlarr-data
+              mountPath: /config
+              readOnly: true
+            - name: arr-scripts
+              mountPath: /scripts
+        - name: secret-waiter
+          image: bitnami/kubectl:latest
+          command: ["/scripts/secret-wait.sh"]
+          args:
+            - "prowlarr-api-key:api-key"
+            - "radarr-api-key:api-key"
+            - "sonarr-api-key:api-key"
+          env:
+            - name: NAMESPACE
+              value: "media"
+            - name: TIMEOUT
+              value: "600"
+          volumeMounts:
+            - name: arr-scripts
+              mountPath: /scripts
+        - name: prowlarr-configurator
+          image: alpine/curl:latest
+          command: ["/scripts/configure-prowlarr.sh"]
+          env:
+            - name: PROWLARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: prowlarr-api-key
+                  key: api-key
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: radarr-api-key
+                  key: api-key
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sonarr-api-key
+                  key: api-key
+          volumeMounts:
+            - name: prowlarr-init-script
+              mountPath: /scripts
+      restartPolicy: Always
+      volumes:
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
+        - name: prowlarr-init-script
+          configMap:
+            name: prowlarr-init-script
+            defaultMode: 0755
+        - name: arr-config
+          configMap:
+            name: arr-config
+        - name: prowlarr-data
+          persistentVolumeClaim:
+            claimName: prowlarr-data

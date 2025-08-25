@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - bazarr
+  - byparr
+  - decluttarr
+  - jellyfin
+  - jellyseerr
+  - prowlarr
+  - qbittorrent
+  - radarr
+  - recyclarr
+  - sonarr
+
+configMapGenerator:
+  # Shared scripts for all Arr apps
+  - name: arr-scripts
+    namespace: media
+    files:
+      - common/extract-api-key.sh
+      - common/generate-runtime-config.sh
+      - common/secret-wait.sh
+
+  # Shared config template for all Arr apps
+  - name: arr-config
+    namespace: media
+    files:
+      - common/config.xml

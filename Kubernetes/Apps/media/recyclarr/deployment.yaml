@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: recyclarr
+  name: recyclarr
+  namespace: media
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: recyclarr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: recyclarr
+    spec:
+      initContainers:
+        - name: secret-waiter
+          image: bitnami/kubectl:latest
+          command: ["/scripts/secret-wait.sh"]
+          args:
+            - "sonarr-api-key:api-key"
+            - "radarr-api-key:api-key"
+          env:
+            - name: NAMESPACE
+              value: "media"
+            - name: TIMEOUT
+              value: "600"
+          volumeMounts:
+            - name: arr-scripts
+              mountPath: /scripts
+      containers:
+        - image: ghcr.io/recyclarr/recyclarr:7.4
+          name: recyclarr
+          env:
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: api-key
+                  name: radarr-api-key
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: api-key
+                  name: sonarr-api-key
+          volumeMounts:
+            - mountPath: /config
+              name: recyclarr-config
+      restartPolicy: Always
+      volumes:
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
+        - name: recyclarr-config
+          configMap:
+            name: recyclarr-config
