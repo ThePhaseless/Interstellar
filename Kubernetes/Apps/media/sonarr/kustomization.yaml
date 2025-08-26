@@ -5,11 +5,5 @@ resources:
   - deployment.yaml
   - service.yaml
   - pvc.yaml
-
-# Placeholder secret for build-time validation
-# Will be replaced by runtime-generated secret
-secretGenerator:
-  - name: sonarr-api-key
-    namespace: media
-    literals:
-      - api-key=placeholder
+  - api-extractor-job.yaml
+  - secret.yaml

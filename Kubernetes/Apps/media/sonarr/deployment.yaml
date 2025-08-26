@@ -19,19 +19,13 @@ spec:
       initContainers:
         - name: config-initializer
           image: alpine:latest
-          command: ["cp", "-rp", "/config-template/*", "/config/"]
-          env:
-            - name: APP_NAME
-              value: "Sonarr"
+          command: ["cp", "/config-template/config.xml", "/config/"]
           volumeMounts:
             - name: sonarr-data
               mountPath: /config
             - name: arr-config
               mountPath: /config-template
               readOnly: true
-            - name: arr-scripts
-              mountPath: /scripts
-              defaultMode: 0755
       containers:
         - image: linuxserver/sonarr:4.0.15
           name: sonarr
@@ -45,19 +39,6 @@ spec:
               name: sonarr-data
             - mountPath: /data
               name: sonarr-storage
-        - name: api-key-extractor
-          image: alpine:latest
-          command: ["/scripts/extract-api-key.sh"]
-          env:
-            - name: APP_NAME
-              value: "Sonarr"
-          volumeMounts:
-            - name: sonarr-data
-              mountPath: /config
-              readOnly: true
-            - name: arr-scripts
-              mountPath: /scripts
-              defaultMode: 0755
       restartPolicy: Always
       volumes:
         - name: arr-scripts
