@@ -19,7 +19,8 @@ spec:
       initContainers:
         - name: config-initializer
           image: alpine:latest
-          command: ["cp", "-rp", "/config-template/*", "/config/"]
+          command: ["cp", "/config-template/config.xml", "/config/"]
+          # command: ["ls", "-la", "/config-template"]
           volumeMounts:
             - name: radarr-data
               mountPath: /config
@@ -39,19 +40,6 @@ spec:
               name: radarr-data
             - mountPath: /data
               name: radarr-storage
-        - name: api-key-extractor
-          image: bitnami/kubectl:latest
-          command: [/scripts/extract-api-key.sh"]
-          env:
-            - name: APP_NAME
-              value: "Radarr"
-          volumeMounts:
-            - name: radarr-data
-              mountPath: /config
-              readOnly: true
-            - name: arr-scripts
-              mountPath: /scripts
-              defaultMode: 0755
       volumes:
         - name: arr-scripts
           configMap:

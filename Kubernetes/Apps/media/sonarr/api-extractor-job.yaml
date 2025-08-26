@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sonarr-api-extractor
+  namespace: media
+spec:
+  template:
+    spec:
+      serviceAccountName: arr-api-extractor
+      restartPolicy: OnFailure
+      containers:
+        - name: api-extractor
+          image: bitnami/kubectl:latest
+          command: ["/scripts/extract-api-key.sh"]
+          env:
+            - name: APP_NAME
+              value: "Sonarr"
+          volumeMounts:
+            - name: sonarr-data
+              mountPath: /config
+              readOnly: true
+            - name: arr-scripts
+              mountPath: /scripts
+      volumes:
+        - name: sonarr-data
+          persistentVolumeClaim:
+            claimName: sonarr-data
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
