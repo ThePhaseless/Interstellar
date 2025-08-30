@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prowlarr
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: HostRegexp(`prowlarr.{any:.+}`)
+      kind: Rule
+      observability:
+        accessLogs: true
+      services:
+        - name: prowlarr
+          port: 8096

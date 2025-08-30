@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: prowlarr-api-extractor
+  namespace: media
+spec:
+  template:
+    spec:
+      serviceAccountName: arr-api-extractor
+      restartPolicy: OnFailure
+      containers:
+        - name: api-extractor
+          image: alpine/k8s:1.31.12
+          command: ["/bin/sh", "-c"]
+          args:
+            ["/scripts/extract-api-key.sh && /scripts2/configure-prowlarr.sh"]
+          env:
+            - name: APP_NAME
+              value: "Prolwarr"
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: api-key
+                  name: radarr-api-key
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: api-key
+                  name: sonarr-api-key
+          volumeMounts:
+            - name: prowlarr-data
+              mountPath: /config
+            - name: arr-scripts
+              mountPath: /scripts
+            - name: prowlarr-scripts
+              mountPath: /scripts2
+      volumes:
+        - name: prowlarr-data
+          persistentVolumeClaim:
+            claimName: prowlarr-data
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
+        - name: prowlarr-scripts
+          configMap:
+            name: prowlarr-init-script
+            defaultMode: 0755

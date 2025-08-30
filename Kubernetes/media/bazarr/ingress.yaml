@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bazarr
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: HostRegexp(`bazarr.{any:.+}`)
+      kind: Rule
+      observability:
+        accessLogs: true
+      services:
+        - name: bazarr
+          port: 8096

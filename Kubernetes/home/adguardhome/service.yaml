@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-home
+  namespace: home
+spec:
+  ports:
+    - port: 84
+  selector:
+    io.kompose.service: adguard-home
