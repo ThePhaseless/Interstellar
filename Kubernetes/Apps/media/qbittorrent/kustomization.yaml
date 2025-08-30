@@ -5,3 +5,9 @@ resources:
   - deployment.yaml
   - service.yaml
   - pvc.yaml
+
+configMapGenerator:
+  - files:
+      - config.conf
+    name: qbittorrent-config
+    namespace: media

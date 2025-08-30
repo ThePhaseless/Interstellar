@@ -31,15 +31,21 @@ spec:
           ports:
             - containerPort: 8080
           volumeMounts:
+            - mountPath: /config/qBittorrent/qBittorrent.conf
+              name: qbittorrent-config
+              subPath: config.conf
             - mountPath: /config/qBittorrent
               name: qbittorrent-data
-            - mountPath: /data
+            - mountPath: /downloads
               name: qbittorrent-storage
       restartPolicy: Always
       volumes:
         - name: qbittorrent-data
           persistentVolumeClaim:
             claimName: qbittorrent-data
+        - name: qbittorrent-config
+          configMap:
+            name: qbittorrent-config
         - name: qbittorrent-storage
           hostPath:
             path: /Storage
