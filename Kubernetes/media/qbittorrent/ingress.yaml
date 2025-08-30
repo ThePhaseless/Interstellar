@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: HostRegexp(`download.{any:.+}`)
+      kind: Rule
+      observability:
+        accessLogs: true
+      services:
+        - name: qbittorrent
+          port: 8096

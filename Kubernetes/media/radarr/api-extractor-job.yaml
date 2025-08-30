@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: radarr-api-extractor
+  namespace: media
+spec:
+  template:
+    spec:
+      serviceAccountName: arr-api-extractor
+      restartPolicy: OnFailure
+      containers:
+        - name: api-extractor
+          image: alpine/k8s:1.31.12
+          command: ["/scripts/extract-api-key.sh"]
+          env:
+            - name: APP_NAME
+              value: "Radarr"
+          volumeMounts:
+            - name: radarr-data
+              mountPath: /config
+              readOnly: true
+            - name: arr-scripts
+              mountPath: /scripts
+      volumes:
+        - name: radarr-data
+          persistentVolumeClaim:
+            claimName: radarr-data
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755

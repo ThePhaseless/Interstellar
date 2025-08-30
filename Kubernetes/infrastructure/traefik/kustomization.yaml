@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+
+helmCharts:
+  - name: traefik
+    repo: https://traefik.github.io/charts
+    version: v37.0.0
+    releaseName: traefik
+    namespace: traefik
+    valuesInline:
+      api:
+        dashboard: true
+        insecure: true
+      providers:
+        kubernetesCRD: {}
+        kubernetesIngress: {}
