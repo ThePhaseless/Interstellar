@@ -6,8 +6,11 @@ metadata:
 spec:
   ports:
     - port: 84
+      name: http
     - port: 53
+      name: dns-tcp
     - port: 53
+      name: dns-udp
       protocol: UDP
   selector:
     io.kompose.service: adguard-home

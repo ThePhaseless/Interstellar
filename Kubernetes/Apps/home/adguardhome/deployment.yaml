@@ -32,7 +32,7 @@ spec:
             - mountPath: /opt/adguard-home/work
               name: adguard-home-data
             - mountPath: /opt/adguard-home/conf
-              name: adguard-config
+              name: adguard-home-config
       restartPolicy: Always
       volumes:
         - name: adguard-home-data

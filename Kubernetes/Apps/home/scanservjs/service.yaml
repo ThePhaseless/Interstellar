@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: scanservjs
+spec:
+  selector:
+    app: scanservjs
+  ports:
+    - protocol: TCP
+      port: 8080 # The port the Service exposes
+      targetPort: 8080 # The port the container is listening on

@@ -19,11 +19,17 @@ spec:
       containers:
         - image: sbs20/scanservjs:latest
           name: scanservjs
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /dev/ttyUSB0
+              subPath: ttyUSB0
+              name: devices
 
-          volumeDevices:
-            - devicePath: /dev/ttyUSB0
-              name: scanservjs-usb
+            - mountPath: /dev/bus/usb
+              subPath: bus/usb
+              name: devices
       volumes:
-        - name: scanservjs-usb
+        - name: devices
           hostPath:
-            path: /dev/ttyUSB0
+            path: /dev
