@@ -6,8 +6,7 @@ variable "ports" {
     stateless = optional(bool, false)
   }))
   default = {
-    SSH       = { port : 22 },
-    HTTP      = { port : 80 },
+    # SSH       = { port : 22 },
     HTTPS     = { port : 443 },
     Minecraft = { port : 25565 },
     Tailscale = { port : 41641, stateless : true, protocol : "UDP" },
