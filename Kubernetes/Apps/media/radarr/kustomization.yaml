@@ -6,4 +6,3 @@ resources:
   - service.yaml
   - pvc.yaml
   - api-extractor-job.yaml
-  - secret.yaml

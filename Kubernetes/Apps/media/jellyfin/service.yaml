@@ -8,7 +8,5 @@ metadata:
 spec:
   ports:
     - port: 8096
-    - port: 7359
-      protocol: UDP
   selector:
     io.kompose.service: jellyfin

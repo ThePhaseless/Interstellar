@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 # Wait for the application to start and generate config.xml
@@ -29,3 +29,5 @@ kubectl create secret generic "${APP_NAME_LOWER}-api-key" \
     --dry-run=client -o yaml | kubectl apply -f -
 
 echo "API key saved to secret ${APP_NAME_LOWER}-api-key"
+
+eval "export ${APP_NAME_LOWER}_API_KEY=$API_KEY"

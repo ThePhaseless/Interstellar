@@ -46,10 +46,10 @@ jobs:
 instances:
   sonarr:
     - base_url: "http://sonarr:8989"
-      api_key: SONARR_API_KEY
+      api_key: "ENV_SONARR_API_KEY"
   radarr:
     - base_url: "http://radarr:7878"
-      api_key: RADARR_API_KEY
+      api_key: "ENV_RADARR_API_KEY"
 
 download_clients:
   qbittorrent:
