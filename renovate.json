@@ -8,11 +8,8 @@
       "matchUpdateTypes": ["minor", "patch"],
       "matchPackageNames": ["*"]
     }
-    // {
-    //   "matchUpdateTypes": ["minor", "patch"],
-    //   "matchCurrentVersion": "!/^0/",
-    //   "automerge": true,
-    //   "ignoreTests": true
-    // }
-  ]
+  ],
+  "kubernetes": {
+    "managerFilePatterns": ["Kubernetes/**/*.yaml"]
+  }
 }
