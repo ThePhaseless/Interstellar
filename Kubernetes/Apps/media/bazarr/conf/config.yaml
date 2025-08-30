@@ -15,19 +15,19 @@ napiprojekt:
   only_authors: true
   only_real_names: false
 napisy24:
-  password: NAPISY24_PASSWORD
-  username: NAPISY24_USERNAME
+  password: ENV_NAPISY24_PASSWORD
+  username: ENV_NAPISY24_USERNAME
 opensubtitlescom:
   include_ai_translated: false
-  password: OPENSUBTITLES_PASSWORD
+  password: ENV_OPENSUBTITLES_PASSWORD
   use_hash: true
-  username: OPENSUBTITLES_USERNAME
+  username: ENV_OPENSUBTITLES_USERNAME
 radarr:
-  apikey: RADARR_API_KEY
+  apikey: ENV_RADARR_API_KEY
   ip: radarr
   only_monitored: true
 sonarr:
-  apikey: SONARR_API_KEY
+  apikey: ENV_SONARR_API_KEY
   ip: sonarr
   only_monitored: true
 subsync:
@@ -37,7 +37,7 @@ subsync:
   use_subsync_movie_threshold: true
   use_subsync_threshold: true
 translator:
-  gemini_key: GEMINI_API_KEY
+  gemini_key: ENV_GEMINI_API_KEY
   gemini_model: gemini-2.5-flash-lite
   translator_info: true
   translator_type: gemini

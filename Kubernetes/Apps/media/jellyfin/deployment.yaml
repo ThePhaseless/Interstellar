@@ -17,6 +17,8 @@ spec:
         io.kompose.service: jellyfin
     spec:
       runtimeClassName: nvidia
+      nodeSelector:
+        kubernetes.io/hostname: nickel
       containers:
         - env:
             - name: JELLYFIN_PublishedServerUrl
@@ -25,7 +27,6 @@ spec:
               value: Europe/Warsaw
           image: linuxserver/jellyfin:10.10.7
           name: jellyfin
-          nodeName: nickel
           resources:
             limits:
               nvidia.com/gpu: "1"

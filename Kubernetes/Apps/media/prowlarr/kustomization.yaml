@@ -10,12 +10,4 @@ configMapGenerator:
   - name: prowlarr-init-script
     namespace: media
     files:
-      - configure-prowlarr.sh=scripts/configure-prowlarr.sh
-
-# Placeholder secret for build-time validation
-# Will be replaced by runtime-generated secret
-secretGenerator:
-  - name: prowlarr-api-key
-    namespace: media
-    literals:
-      - api-key=placeholder
+      - scripts/configure-prowlarr.sh

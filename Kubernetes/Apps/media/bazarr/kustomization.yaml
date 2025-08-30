@@ -8,25 +8,6 @@ resources:
 
 configMapGenerator:
   - files:
-      - config.yaml=conf/config.yaml
+      - conf/config.yaml
     name: bazarr-config
-
-# Placeholder secrets for build-time validation
-# These will be replaced by runtime-generated secrets
-secretGenerator:
-  - name: opensubtitles-username
     namespace: media
-    literals:
-      - username=placeholder
-  - name: opensubtitles-password
-    namespace: media
-    literals:
-      - password=placeholder
-  - name: napisy24-username
-    namespace: media
-    literals:
-      - username=placeholder
-  - name: napisy24-password
-    namespace: media
-    literals:
-      - password=placeholder

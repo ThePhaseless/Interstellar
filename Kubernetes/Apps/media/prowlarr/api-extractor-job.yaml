@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sonarr-api-extractor
+  namespace: media
+spec:
+  template:
+    spec:
+      serviceAccountName: arr-api-extractor
+      restartPolicy: OnFailure
+
+      containers:
+        - name: api-extractor
+          image: bitnami/kubectl:latest
+          command: ["/bin/sh", "-c"]
+          args: ["/scripts/extract-api-key.sh && /scripts2/prowlarr-init.sh"]
+          env:
+            - name: APP_NAME
+              value: "Prolwarr"
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: api-key
+                  name: radarr-api-key
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: api-key
+                  name: sonarr-api-key
+          volumeMounts:
+            - name: sonarr-data
+              mountPath: /config
+              readOnly: true
+            - name: arr-scripts
+              mountPath: /scripts
+            - name: prowlarr-scripts
+              mountPath: /scripts2/prowlarr-init.sh
+              subPath: prowlarr-init.sh
+      volumes:
+        - name: sonarr-data
+          persistentVolumeClaim:
+            claimName: sonarr-data
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
+        - name: prowlarr-scripts
+          configMap:
+            name: prowlarr-init-script
+            defaultMode: 0755

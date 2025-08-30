@@ -15,46 +15,57 @@ spec:
         io.kompose.service: decluttarr
     spec:
       initContainers:
-        - name: secret-waiter
-          image: bitnami/kubectl:latest
-          command: ["/scripts/secret-wait.sh"]
+        - name: config-initializer
+          image: alpine:latest
+          command: ["/bin/sh", "-c"]
           args:
-            - "sonarr-api-key:api-key"
-            - "radarr-api-key:api-key"
+            [
+              "cp /config-template/config.yaml /config/ && /scripts/replace-with-envs.sh /config/config.yaml",
+            ]
           env:
-            - name: NAMESPACE
-              value: "media"
-            - name: TIMEOUT
-              value: "600"
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sonarr-api-key
+                  key: api-key
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: radarr-api-key
+                  key: api-key
           volumeMounts:
-            - name: arr-scripts
-              mountPath: /scripts
-        - name: config-generator
-          image: bitnami/kubectl:latest
-          command: ["/scripts/generate-runtime-config.sh"]
-          env:
-            - name: CONFIG_TYPE
-              value: "decluttarr"
-          volumeMounts:
-            - name: decluttarr-config-template
-              mountPath: /templates
-              readOnly: true
-            - name: decluttarr-config-runtime
+            - name: decluttarr-data
               mountPath: /config
+            - name: decluttarr-config
+              mountPath: /config-template
+              readOnly: true
             - name: arr-scripts
               mountPath: /scripts
+              readOnly: true
       containers:
-        - image: ghcr.io/manimatter/decluttarr:v1.50.2
+        - image: ghcr.io/manimatter/decluttarr:dev
           name: decluttarr
+          env:
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sonarr-api-key
+                  key: api-key
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: radarr-api-key
+                  key: api-key
           volumeMounts:
-            - mountPath: /app/config
-              name: decluttarr-config-runtime
+            - mountPath: /app/config/config.yaml
+              name: decluttarr-data
+              subPath: config.yaml
       restartPolicy: Always
       volumes:
-        - name: decluttarr-config-template
+        - name: decluttarr-config
           configMap:
             name: decluttarr-config
-        - name: decluttarr-config-runtime
+        - name: decluttarr-data
           emptyDir: {}
         - name: arr-scripts
           configMap:

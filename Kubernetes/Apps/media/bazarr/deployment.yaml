@@ -14,23 +14,43 @@ spec:
       labels:
         io.kompose.service: bazarr
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: nickel
       initContainers:
         - name: config-initializer
           image: alpine:latest
-          command: ["cp", "-rp", "/config-template/*", "/config/"]
+          command: ["/bin/sh", "-c"]
+          args: [
+              "cp /config-template/config.yaml /config/ && /scripts/replace-with-envs.sh /config/config.yaml",
+              # "sleep infinity",
+            ]
+          env:
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sonarr-api-key
+                  key: api-key
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: radarr-api-key
+                  key: api-key
           volumeMounts:
             - name: bazarr-data
               mountPath: /config
-            - name: arr-config
+            - name: bazarr-config
               mountPath: /config-template
               readOnly: true
+            - name: arr-scripts
+              mountPath: /scripts
+
       containers:
         - env:
             - name: TZ
               value: Europe/Warsaw
           image: linuxserver/bazarr:1.5.2
           name: bazarr
-          nodeName: nickel
+
           ports:
             - containerPort: 6767
           volumeMounts:
@@ -39,6 +59,7 @@ spec:
             - mountPath: /data
               name: bazarr-storage
       restartPolicy: Always
+
       volumes:
         - name: bazarr-config
           configMap:
@@ -49,3 +70,7 @@ spec:
         - name: bazarr-storage
           hostPath:
             path: /Storage
+        - name: arr-scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
