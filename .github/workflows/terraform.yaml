@@ -21,6 +21,8 @@ jobs:
       TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
       TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
       TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
 
       # For OCI Backend
       OCI_user: ${{ secrets.TF_VAR_USER_OCID }}
