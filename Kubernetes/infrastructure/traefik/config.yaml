@@ -4,56 +4,7 @@ metadata:
   name: traefik
   namespace: kube-system
 spec:
-  valuesContent: |-
-    hostNetwork: true
-    ports:
-      dns-tcp:
-        protocol: TCP
-        expose:
-          default: true
-        port: 53
-        exposedPort: 53
-      dns-udp:
-        protocol: UDP
-        expose:
-          default: true
-        port: 53
-        exposedPort: 53
-      web:
-        port: 80
-        expose:
-          default: true
-        exposedPort: 80
-      websecure:
-        port: 443
-        expose:
-          default: true
-        exposedPort: 443
-    service:
-      spec:
-        externalTrafficPolicy: Local
-        ports:
-        - name: dns-tcp
-          port: 53
-          protocol: TCP
-          targetPort: dns-tcp
-        - name: dns-udp
-          port: 53
-          protocol: UDP
-          targetPort: dns-udp
-        - name: web
-          port: 80
-          protocol: TCP
-          targetPort: web
-        - name: websecure
-          port: 443
-          protocol: TCP
-          targetPort: websecure
-    forwardedHeaders:
-      trustedIPs:
-      - 100.0.0.0/8
-      - 127.0.0.1/32
-      - 10.0.0.0/8
-      - 172.16.0.0/12
-      - 192.168.0.0/16
-      insecure: true
+  valuesFrom:
+    - configMapKeyRef:
+        name: traefik-values
+        key: values.yaml

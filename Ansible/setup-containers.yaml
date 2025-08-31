@@ -15,6 +15,12 @@
         sysctl_file: /etc/sysctl.d/99-ipv4-forward.conf
         reload: true
 
+    - name: Disable DNSStubListener
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/resolved.conf
+        regexp: "^#?DNSStubListener="
+        line: "DNSStubListener=no"
+
     - name: Disable swap for current session
       ansible.builtin.command: swapoff -a
       when: ansible_swaptotal_mb > 0

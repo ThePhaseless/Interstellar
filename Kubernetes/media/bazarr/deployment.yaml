@@ -14,8 +14,6 @@ spec:
       labels:
         io.kompose.service: bazarr
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: nickel
       initContainers:
         - name: config-initializer
           image: alpine:latest

@@ -5,6 +5,7 @@ namespace: nvidia-device-plugin
 
 resources:
   - test-pod.yaml
+  - namespace.yaml
 
 helmCharts:
   - name: nvidia-device-plugin

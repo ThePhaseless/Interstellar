@@ -3,3 +3,9 @@ kind: Kustomization
 
 resources:
   - config.yaml
+
+configMapGenerator:
+  - name: traefik-values
+    namespace: kube-system
+    files:
+      - values.yaml

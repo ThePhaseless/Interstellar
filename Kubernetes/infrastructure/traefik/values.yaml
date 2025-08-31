@@ -1,0 +1,44 @@
+hostNetwork: true
+service:
+  enabled: false
+ports:
+  dns-tcp:
+    protocol: TCP
+    expose:
+      default: true
+    port: 53
+    exposedPort: 53
+  dns-udp:
+    protocol: UDP
+    expose:
+      default: true
+    port: 53
+    exposedPort: 53
+  web:
+    forwardedHeaders:
+      trustedIPs:
+        - 100.0.0.0/8
+    proxyProtocol:
+      trustedIPs:
+        - 100.0.0.0/8
+    port: 80
+    protocol: TCP
+    exposePort: 80
+  websecure:
+    forwardedHeaders:
+      trustedIPs:
+        - 100.0.0.0/8
+    proxyProtocol:
+      trustedIPs:
+        - 100.0.0.0/8
+    port: 443
+    protocol: TCP
+    exposePort: 443
+    tls:
+      enable: true
+securityContext:
+  capabilities:
+    add:
+      - NET_BIND_SERVICE
+  runAsNonRoot: false
+  runAsUser: 0

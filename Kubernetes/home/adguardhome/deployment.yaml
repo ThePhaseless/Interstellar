@@ -14,8 +14,6 @@ spec:
       labels:
         io.kompose.service: adguard-home
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: nickel
       initContainers:
         - name: copy-config
           image: busybox
