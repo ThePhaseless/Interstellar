@@ -17,8 +17,7 @@ spec:
         io.kompose.service: jellyfin
     spec:
       runtimeClassName: nvidia
-      nodeSelector:
-        kubernetes.io/hostname: nickel
+
       containers:
         - env:
             - name: JELLYFIN_PublishedServerUrl

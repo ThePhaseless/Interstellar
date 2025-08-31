@@ -14,8 +14,6 @@ spec:
       labels:
         io.kompose.service: scanservjs
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: nickel
       containers:
         - image: sbs20/scanservjs:latest
           name: scanservjs

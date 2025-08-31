@@ -16,8 +16,6 @@ spec:
       labels:
         io.kompose.service: qbittorrent
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: nickel
       containers:
         - env:
             - name: DOCKER_MODS
