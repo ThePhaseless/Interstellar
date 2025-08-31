@@ -47,19 +47,9 @@ variable "proxmox_user" {
 #   ]
 # }
 
-variable "cloudflare_api_token" {
-  description = "Cloudflare API token for DNS management"
-  type        = string
-  sensitive   = true
-}
-
 variable "cloudflare_zone_id" {
   description = "Cloudflare zone ID for the domain"
   type        = string
 }
 
-variable "cloudflare_domain" {
-  description = "Domain name to create DNS record for"
-  type        = string
-}
 
