@@ -7,10 +7,10 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: HostRegexp(`sonarr.{any:.+}`)
+    - match: HostRegexp(`^sonarr\.(.+)`)
       kind: Rule
       observability:
         accessLogs: true
       services:
         - name: sonarr
-          port: 8096
+          port: 8989

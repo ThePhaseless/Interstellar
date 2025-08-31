@@ -7,10 +7,10 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: HostRegexp(`prowlarr.{any:.+}`)
+    - match: HostRegexp(`^prowlarr\.(.+)`)
       kind: Rule
       observability:
         accessLogs: true
       services:
         - name: prowlarr
-          port: 8096
+          port: 9696

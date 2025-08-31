@@ -1,3 +1,4 @@
+schema_version: 29
 dns:
   upstream_dns:
     - 1.1.1.1

@@ -1,0 +1,39 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      dns-tcp:
+        protocol: TCP
+        expose:
+          default: true
+        port: 53
+        exposedPort: 53
+      dns-udp:
+        protocol: UDP
+        expose:
+          default: true
+        port: 53
+        exposedPort: 53
+    service:
+      spec:
+        ports:
+        - name: dns-tcp
+          port: 53
+          protocol: TCP
+          targetPort: dns-tcp
+        - name: dns-udp
+          port: 53
+          protocol: UDP
+          targetPort: dns-udp
+        - name: web
+          port: 80
+          protocol: TCP
+          targetPort: web
+        - name: websecure
+          port: 443
+          protocol: TCP
+          targetPort: websecure

@@ -7,10 +7,10 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: HostRegexp(`add.{any:.+}`)
+    - match: HostRegexp(`^add\.(.+)`)
       kind: Rule
       observability:
         accessLogs: true
       services:
         - name: jellyseerr
-          port: 8096
+          port: 5055

@@ -20,9 +20,9 @@ spec:
         - name: config-initializer
           image: alpine:latest
           command: ["/bin/sh", "-c"]
-          args: [
+          args:
+            [
               "cp /config-template/config.yaml /config/ && /scripts/replace-with-envs.sh /config/config.yaml",
-              # "sleep infinity",
             ]
           env:
             - name: SONARR_API_KEY

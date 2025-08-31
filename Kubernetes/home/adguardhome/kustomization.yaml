@@ -5,6 +5,9 @@ resources:
   - deployment.yaml
   - service.yaml
   - pvc.yaml
+  - ingressWeb.yaml
+  - ingressDnsTcp.yaml
+  - ingressDnsUdp.yaml
 
 configMapGenerator:
   - name: adguard-home-config
