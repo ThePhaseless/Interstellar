@@ -5,7 +5,7 @@ metadata:
   namespace: infrastructure
 spec:
   entryPoints:
-    - web
+    - websecure
   routes:
     - match: HostRegexp(`^whoami\.(.+)`)
       kind: Rule
