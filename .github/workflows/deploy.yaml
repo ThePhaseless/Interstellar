@@ -87,8 +87,8 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/ansible-setup.yaml
 
-  ansible_k3s:
-    needs: changes
-    if: needs.changes.outputs.k3s == 'true'
-    secrets: inherit
-    uses: ./.github/workflows/ansible-k3s.yaml
+  # ansible_k3s:
+  #   needs: changes
+  #   if: needs.changes.outputs.k3s == 'true'
+  #   secrets: inherit
+  #   uses: ./.github/workflows/ansible-k3s.yaml
