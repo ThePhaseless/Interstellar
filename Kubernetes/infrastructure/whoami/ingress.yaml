@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: whoami
+  namespace: infrastructure
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: HostRegexp(`^whoami\.(.+)`)
+      kind: Rule
+      services:
+        - name: whoami
+          port: 80
