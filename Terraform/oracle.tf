@@ -165,3 +165,12 @@ resource "oci_core_instance" "instance" {
 
   preserve_boot_volume = false
 }
+
+resource "cloudflare_record" "dns_record" {
+  zone_id = var.cloudflare_zone_id
+  name    = "@"
+  value   = oci_core_instance.instance.public_ip
+  type    = "A"
+  ttl     = 1
+  proxied = false
+}
