@@ -4,7 +4,76 @@ metadata:
   name: traefik
   namespace: kube-system
 spec:
-  valuesFrom:
-    - configMapKeyRef:
-        name: traefik-values
-        key: values.yaml
+  valuesContent: |-
+    hostNetwork: true
+    service:
+      enabled: false
+    ports:
+      dns-tcp:
+        protocol: TCP
+        expose:
+          default: true
+        port: 53
+        exposedPort: 53
+      dns-udp:
+        protocol: UDP
+        expose:
+          default: true
+        port: 53
+        exposedPort: 53
+      web:
+        forwardedHeaders:
+          trustedIPs:
+            - 100.0.0.0/8
+        proxyProtocol:
+          trustedIPs:
+            - 100.0.0.0/8
+        port: 80
+        protocol: TCP
+        exposePort: 80
+      websecure:
+        forwardedHeaders:
+          trustedIPs:
+            - 100.0.0.0/8
+        proxyProtocol:
+          trustedIPs:
+            - 100.0.0.0/8
+        port: 443
+        protocol: TCP
+        exposePort: 443
+        tls:
+          enabled: true
+          certResolver: cloudflare
+          domains:
+              - main: "nerine.dev"
+                sans:
+                  - "*.nerine.dev"
+
+    securityContext:
+      capabilities:
+        add:
+          - NET_BIND_SERVICE
+      runAsNonRoot: false
+      runAsUser: 0
+    certificatesResolvers:
+      cloudflare:
+        acme:
+          storage: "/data/acme.json"
+          dnsChallenge:
+            provider: "cloudflare"
+            resolvers:
+              - "1.1.1.1"
+    persistentVolumeClaim:
+      enabled: true
+      name: traefik-certificates
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      storageClass: ""
+      path: /data
+    env:
+      - name: CF_DNS_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: traefik-cloudflare-secret
+            key: cf-dns-api-token
+    additionalArguments:
