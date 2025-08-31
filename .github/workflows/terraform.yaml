@@ -91,7 +91,7 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/ansible-setup.yaml
 
-  ansible_k3s:
-    needs: ansible_setup
-    secrets: inherit
-    uses: ./.github/workflows/ansible-k3s.yaml
+  # ansible_k3s:
+  #   needs: ansible_setup
+  #   secrets: inherit
+  #   uses: ./.github/workflows/ansible-k3s.yaml
