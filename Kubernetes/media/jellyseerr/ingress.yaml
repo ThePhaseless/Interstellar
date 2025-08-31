@@ -5,7 +5,7 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - web
+    - websecure
   routes:
     - match: HostRegexp(`^add\.(.+)`)
       kind: Rule

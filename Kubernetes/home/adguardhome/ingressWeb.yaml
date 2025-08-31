@@ -5,7 +5,7 @@ metadata:
   namespace: home
 spec:
   entryPoints:
-    - web
+    - websecure
   routes:
     - match: HostRegexp(`^dns\.(.+)`)
       kind: Rule
