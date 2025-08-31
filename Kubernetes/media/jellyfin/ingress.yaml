@@ -7,7 +7,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: HostRegexp(`watch.{any:.+}`)
+    - match: HostRegexp(`^watch\.(.+)`)
       kind: Rule
       observability:
         accessLogs: true

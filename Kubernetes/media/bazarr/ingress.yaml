@@ -7,10 +7,10 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: HostRegexp(`bazarr.{any:.+}`)
+    - match: HostRegexp(`^bazarr\.(.+)`)
       kind: Rule
       observability:
         accessLogs: true
       services:
         - name: bazarr
-          port: 8096
+          port: 6767

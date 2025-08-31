@@ -16,6 +16,17 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: nickel
+      initContainers:
+        - name: copy-config
+          image: busybox
+          command: ["sh", "-c"]
+          args: ["cp /config/AdGuardHome.yaml /config-out/AdGuardHome.yaml"]
+          volumeMounts:
+            - mountPath: /config
+              name: adguard-home-config
+            - mountPath: /config-out
+              subPath: conf
+              name: adguard-home-data
       containers:
         - env:
             - name: TZ
@@ -23,21 +34,22 @@ spec:
           image: adguard/adguardhome:v0.107.64
           name: adguard-home
           ports:
-            - containerPort: 80
+            - containerPort: 3000
             - containerPort: 53
             - containerPort: 53
               protocol: UDP
-            - containerPort: 3000
           volumeMounts:
-            - mountPath: /opt/adguard-home/work
+            - mountPath: /opt/adguardhome/work
+              subPath: work
               name: adguard-home-data
-            - mountPath: /opt/adguard-home/conf
-              name: adguard-home-config
+            - mountPath: /opt/adguardhome/conf
+              subPath: conf
+              name: adguard-home-data
       restartPolicy: Always
       volumes:
         - name: adguard-home-data
           persistentVolumeClaim:
             claimName: adguard-home-data
-        - configMap:
+        - name: adguard-home-config
+          configMap:
             name: adguard-home-config
-          name: adguard-home-config

@@ -7,10 +7,10 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: HostRegexp(`download.{any:.+}`)
+    - match: HostRegexp(`^download\.(.+)`)
       kind: Rule
       observability:
         accessLogs: true
       services:
         - name: qbittorrent
-          port: 8096
+          port: 8080

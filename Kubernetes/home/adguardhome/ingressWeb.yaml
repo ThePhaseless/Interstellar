@@ -1,16 +1,16 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: jellyfin
-  namespace: media
+  name: adguard-home-web
+  namespace: home
 spec:
   entryPoints:
     - web
   routes:
-    - match: HostRegexp(`watch.{any:.+}`)
+    - match: HostRegexp(`^dns\.(.+)`)
       kind: Rule
       observability:
         accessLogs: true
       services:
-        - name: jellyfin
-          port: 8096
+        - name: adguard-home
+          port: 3000
