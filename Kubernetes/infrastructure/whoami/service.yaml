@@ -7,8 +7,6 @@ metadata:
   namespace: infrastructure
 spec:
   ports:
-    - name: "1337"
-      port: 1337
-      targetPort: 80
+    - port: 80
   selector:
     io.kompose.service: whoami

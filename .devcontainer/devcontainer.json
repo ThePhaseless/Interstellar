@@ -15,33 +15,23 @@
     "vscode": {
       "extensions": [
         "mads-hartmann.bash-ide-vscode",
-        "rogalmic.bash-debug",
-        "jeff-hykin.better-shellscript-syntax",
         "keesschollaart.vscode-home-assistant",
         "fengtan.ldap-explorer",
         "ms-python.python",
         "redhat.ansible",
-        "opentofu.vscode-opentofu",
-        "SanjulaGanepola.github-local-actions",
         "samuelcolvin.jinjahtml",
         "IkBenGeenRobot.ansible-variable-lookup",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
         "Tim-Koehler.helm-intellisense"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "./.venv/bin/python",
-        "containers.composeCommand": "docker compose",
-        "dev.containers.dockerPath": "docker"
+        "python.defaultInterpreterPath": "./.venv/bin/python"
       }
     }
   },
   "features": {
     "ghcr.io/devcontainers/features/terraform:1": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    "ghcr.io/devcontainers-extra/features/act:1": {},
     "ghcr.io/devcontainers-extra/features/actionlint:1": {},
     "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {}
   }
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
 }
