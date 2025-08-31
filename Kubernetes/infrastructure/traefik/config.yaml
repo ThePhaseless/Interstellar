@@ -5,6 +5,7 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    hostNetwork: true
     ports:
       dns-tcp:
         protocol: TCP
@@ -18,8 +19,19 @@ spec:
           default: true
         port: 53
         exposedPort: 53
+      web:
+        port: 80
+        expose:
+          default: true
+        exposedPort: 80
+      websecure:
+        port: 443
+        expose:
+          default: true
+        exposedPort: 443
     service:
       spec:
+        externalTrafficPolicy: Local
         ports:
         - name: dns-tcp
           port: 53
@@ -39,6 +51,7 @@ spec:
           targetPort: websecure
     forwardedHeaders:
       trustedIPs:
+      - 100.0.0.0/8
       - 127.0.0.1/32
       - 10.0.0.0/8
       - 172.16.0.0/12
