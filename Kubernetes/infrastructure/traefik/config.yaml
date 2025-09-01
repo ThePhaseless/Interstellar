@@ -5,22 +5,11 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+
     hostNetwork: true
     service:
       enabled: false
     ports:
-      dns-tcp:
-        protocol: TCP
-        expose:
-          default: true
-        port: 53
-        exposedPort: 53
-      dns-udp:
-        protocol: UDP
-        expose:
-          default: true
-        port: 53
-        exposedPort: 53
       web:
         forwardedHeaders:
           trustedIPs:

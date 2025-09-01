@@ -20,7 +20,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             [
-              "cp /config-template/config.yaml /config/ && /scripts/replace-with-envs.sh /config/config.yaml",
+              " if [ ! -f /config/config.yaml ]; then cp /config-template/config.yaml /config/; fi && /scripts/replace-with-envs.sh /config/config.yaml ",
             ]
           env:
             - name: SONARR_API_KEY
@@ -36,6 +36,7 @@ spec:
           volumeMounts:
             - name: bazarr-data
               mountPath: /config
+              subPath: config
             - name: bazarr-config
               mountPath: /config-template
               readOnly: true

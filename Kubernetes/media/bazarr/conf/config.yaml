@@ -7,6 +7,7 @@ general:
     - podnapisi
     - gestdown
     - opensubtitlescom
+    - embeddedsubtitles
   subzero_mods: OCR_fixes,common,remove_HI
   use_radarr: true
   use_scenename: true

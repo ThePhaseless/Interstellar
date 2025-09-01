@@ -49,8 +49,8 @@ filters:
     id: 1739377959
 whitelist_filters: []
 user_rules:
-  - "||nerine.dev^$client=100.0.0.0/8,dnsrewrite=NOERROR;A;100.100.100.100" # Replace with your actual IP
-  - "||nerine.dev^$client=192.168.0.0/24,dnsrewrite=NOERROR;A;192.168.0.100" # Replace with your actual IP
+  - /nerine(\.dev)?/$client=100.0.0.0/8,dnsrewrite=100.92.126.78
+  - /nerine(\.dev)?/$client=192.168.0.0/24,dnsrewrite=192.168.0.35
 filtering:
   safe_search:
     enabled: false
