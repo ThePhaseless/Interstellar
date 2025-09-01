@@ -1,5 +1,0 @@
-services:
-  nginx:
-    image: traefik/whoami:latest
-    ports:
-      - "80:80"
