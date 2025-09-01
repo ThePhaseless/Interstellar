@@ -10,7 +10,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: api-extractor
-          image: alpine/k8s:1.34.0
+          image: bitnami/kubectl:latest
           command: ["/scripts/extract-api-key.sh"]
           env:
             - name: APP_NAME
