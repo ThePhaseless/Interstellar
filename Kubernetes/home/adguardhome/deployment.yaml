@@ -14,11 +14,15 @@ spec:
       labels:
         io.kompose.service: adguard-home
     spec:
+      hostNetwork: true
       initContainers:
         - name: copy-config
           image: busybox
           command: ["sh", "-c"]
-          args: ["cp /config/AdGuardHome.yaml /config-out/AdGuardHome.yaml"]
+          args:
+            [
+              " if [ ! -f /config-out/AdGuardHome.yaml ]; then cp /config/AdGuardHome.yaml /config-out/AdGuardHome.yaml; fi ",
+            ]
           volumeMounts:
             - mountPath: /config
               name: adguard-home-config
@@ -33,9 +37,6 @@ spec:
           name: adguard-home
           ports:
             - containerPort: 3000
-            - containerPort: 53
-            - containerPort: 53
-              protocol: UDP
           volumeMounts:
             - mountPath: /opt/adguardhome/work
               subPath: work

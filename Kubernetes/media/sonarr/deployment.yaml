@@ -18,8 +18,12 @@ spec:
     spec:
       initContainers:
         - name: config-initializer
-          image: alpine:latest
-          command: ["cp", "/config-template/config.xml", "/config/"]
+          image: busybox:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            [
+              " if [ ! -f /config/config.xml ]; then cp /config-template/config.xml /config/; fi ",
+            ]
           volumeMounts:
             - name: sonarr-data
               mountPath: /config
@@ -39,7 +43,6 @@ spec:
               name: sonarr-data
             - mountPath: /data
               name: sonarr-storage
-      restartPolicy: Always
       volumes:
         - name: arr-scripts
           configMap:

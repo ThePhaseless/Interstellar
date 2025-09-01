@@ -7,10 +7,5 @@ spec:
   ports:
     - port: 3000
       name: web
-    - port: 53
-      name: dns-tcp
-    - port: 53
-      name: dns-udp
-      protocol: UDP
   selector:
     io.kompose.service: adguard-home

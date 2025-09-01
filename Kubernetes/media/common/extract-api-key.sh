@@ -20,8 +20,6 @@ if [ -z "$API_KEY" ]; then
     exit 1
 fi
 
-echo "Found API key for $APP_NAME: $API_KEY"
-
 # Create or update the secret
 APP_NAME_LOWER=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]')
 kubectl create secret generic "${APP_NAME_LOWER}-api-key" \
@@ -30,4 +28,3 @@ kubectl create secret generic "${APP_NAME_LOWER}-api-key" \
 
 echo "API key saved to secret ${APP_NAME_LOWER}-api-key"
 
-eval "export ${APP_NAME_LOWER}_API_KEY=$API_KEY"

@@ -16,6 +16,16 @@ spec:
       labels:
         io.kompose.service: qbittorrent
     spec:
+      initContainers:
+        - name: copy-config
+          image: busybox:latest
+          command: ["/bin/sh", "-c"]
+          args: ["cp /defaults/config.conf /config/qBittorrent.conf"]
+          volumeMounts:
+            - mountPath: /config
+              name: qbittorrent-data
+            - mountPath: /defaults
+              name: qbittorrent-config
       containers:
         - env:
             - name: DOCKER_MODS
@@ -29,12 +39,9 @@ spec:
           ports:
             - containerPort: 8080
           volumeMounts:
-            - mountPath: /config/qBittorrent/qBittorrent.conf
-              name: qbittorrent-config
-              subPath: config.conf
             - mountPath: /config/qBittorrent
               name: qbittorrent-data
-            - mountPath: /downloads
+            - mountPath: /data
               name: qbittorrent-storage
       restartPolicy: Always
       volumes:

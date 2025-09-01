@@ -18,8 +18,12 @@ spec:
     spec:
       initContainers:
         - name: config-initializer
-          image: alpine:latest
-          command: ["cp", "/config-template/config.xml", "/config/"]
+          image: busybox:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            [
+              " if [ ! -f /config/config.xml ]; then cp /config-template/config.xml /config/; fi ",
+            ]
           volumeMounts:
             - name: prowlarr-data
               mountPath: /config

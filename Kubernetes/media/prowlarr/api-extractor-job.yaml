@@ -11,12 +11,24 @@ spec:
       containers:
         - name: api-extractor
           image: alpine/k8s:1.31.12
-          command: ["/bin/sh", "-c"]
-          args:
-            ["/scripts/extract-api-key.sh && /scripts2/configure-prowlarr.sh"]
+          command: ["/scripts/extract-api-key.sh"]
           env:
             - name: APP_NAME
-              value: "Prolwarr"
+              value: Prowlarr
+          volumeMounts:
+            - name: prowlarr-data
+              mountPath: /config
+            - name: arr-scripts
+              mountPath: /scripts
+        - name: configure-prowlarr
+          image: alpine/curl:latest
+          command: ["/scripts/configure-prowlarr.sh"]
+          env:
+            - name: PROWLARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: prowlarr-api-key
+                  key: api-key
             - name: RADARR_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -30,10 +42,8 @@ spec:
           volumeMounts:
             - name: prowlarr-data
               mountPath: /config
-            - name: arr-scripts
-              mountPath: /scripts
             - name: prowlarr-scripts
-              mountPath: /scripts2
+              mountPath: /scripts
       volumes:
         - name: prowlarr-data
           persistentVolumeClaim:
