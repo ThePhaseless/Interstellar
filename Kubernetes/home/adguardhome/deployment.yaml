@@ -33,7 +33,7 @@ spec:
         - env:
             - name: TZ
               value: Europe/Warsaw
-          image: adguard/adguardhome:v0.107.64
+          image: adguard/adguardhome:v0.107.65
           name: adguard-home
           ports:
             - containerPort: 3000
