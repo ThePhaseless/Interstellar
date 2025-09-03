@@ -6,6 +6,10 @@ metadata:
 spec:
   valuesContent: |-
 
+    persistence:
+      enabled: true
+      size: 50Mi
+      path: /data
     hostNetwork: true
     service:
       enabled: false
