@@ -6,6 +6,8 @@ metadata:
   name: adguard-home
   namespace: home
 spec:
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       io.kompose.service: adguard-home
