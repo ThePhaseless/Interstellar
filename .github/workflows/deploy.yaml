@@ -17,6 +17,7 @@ jobs:
       terraform: ${{ steps.decide.outputs.run_terraform }}
       ansible: ${{ steps.decide.outputs.run_ansible }}
       k3s: ${{ steps.decide.outputs.run_k3s }}
+      k8s: ${{ steps.decide.outputs.run_k8s }}
 
     steps:
       - name: Checkout code
@@ -40,6 +41,10 @@ jobs:
             terraform:
               - 'Terraform/**'
               - '.github/workflows/terraform.yaml'
+
+            k8s:
+              - 'Kubernetes/**'
+              - '.github/workflows/kubernetes.yaml'
 
       - name: Decide which job to run
         id: decide
@@ -92,3 +97,9 @@ jobs:
   #   if: needs.changes.outputs.k3s == 'true'
   #   secrets: inherit
   #   uses: ./.github/workflows/ansible-k3s.yaml
+
+  kubernetes:
+    needs: changes
+    if: needs.changes.outputs.k8s == 'true'
+    secrets: inherit
+    uses: ./.github/workflows/kubernetes.yaml
