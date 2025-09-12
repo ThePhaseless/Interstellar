@@ -1,6 +1,6 @@
 general:
   log_level: INFO
-  test_run: true
+  test_run: false
   timer: 10
   # ignored_download_clients: ["emulerr"]
   # ssl_verification: false # Optional: Defaults to true
