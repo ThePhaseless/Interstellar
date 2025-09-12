@@ -31,7 +31,7 @@
   },
   "features": {
     "ghcr.io/devcontainers/features/terraform:1": {},
-    "ghcr.io/devcontainers-extra/features/actionlint:1": {},
-    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {}
+    "ghcr.io/devcontainers-extra/features/actionlint:1": {}
+    // "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {}
   }
 }
