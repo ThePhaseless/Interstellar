@@ -31,4 +31,4 @@ jobs:
 
       - name: Apply Kubernetes manifests
         run: |
-          kubectl kustomize Kubernetes/ | kubectl apply -f -
+          kubectl kustomize Kubernetes/ --enable-helm | kubectl apply -f -
