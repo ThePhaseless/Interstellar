@@ -3,10 +3,11 @@
   "extends": ["config:recommended"],
   "packageRules": [
     {
-      "groupName": "all non-major dependencies",
+      "groupName": "All non-major dependencies",
       "groupSlug": "all-minor-patch",
       "matchUpdateTypes": ["minor", "patch"],
-      "matchPackageNames": ["*"]
+      "matchPackageNames": ["*"],
+      "automerge": true
     }
   ],
   "kubernetes": {
