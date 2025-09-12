@@ -1,0 +1,34 @@
+name: Ansible K3S
+
+on:
+  workflow_call:
+  workflow_dispatch:
+jobs:
+  k3s:
+    runs-on: ubuntu-latest
+    environment: server
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          use-cache: "true"
+          version: latest
+
+      - name: Get kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@nickel:/etc/rancher/k3s/k3s.yaml $HOME/.kube/config
+          sed -i 's/127.0.0.1/nickel/' $HOME/.kube/config
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl kustomize Kubernetes/ | kubectl apply -f -
