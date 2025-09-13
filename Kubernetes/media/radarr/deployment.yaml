@@ -31,7 +31,7 @@ spec:
               mountPath: /config-template
               readOnly: true
       containers:
-        - image: linuxserver/radarr:5.26.2
+        - image: linuxserver/radarr:5.27.5
           name: radarr
           env:
             - name: TZ
