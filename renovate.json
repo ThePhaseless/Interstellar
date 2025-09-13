@@ -7,7 +7,8 @@
       "groupSlug": "all-minor-patch",
       "matchUpdateTypes": ["minor", "patch"],
       "matchPackageNames": ["*"],
-      "automerge": true
+      "automerge": true,
+      "ignoreTests": true
     }
   ],
   "kubernetes": {
