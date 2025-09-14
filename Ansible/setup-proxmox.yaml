@@ -1,0 +1,41 @@
+- name: Setup Containers
+  hosts: proxmox
+  vars_files:
+    - ../.private/variables.yaml
+  tasks:
+    - name: Enable ip forwarding
+      register: enable_ip_forward
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        state: present
+        sysctl_file: /etc/sysctl.d/99-ipv4-forward.conf
+        reload: true
+
+    - name: Disable swap for current session
+      ansible.builtin.command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+      changed_when: false
+      become: true
+
+    - name: Add nomodeset to GRUB_CMDLINE_LINUX_DEFAULT
+      ansible.builtin.lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT="(.*)"'
+        line: 'GRUB_CMDLINE_LINUX_DEFAULT="\1 nomodeset"'
+        backrefs: true
+      when: not (lookup('file', '/etc/default/grub') | regex_search('GRUB_CMDLINE_LINUX_DEFAULT=".*nomodeset.*"'))
+
+    - name: Disable swap permanently, persist reboots
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: "/dev/pve/swap none swap sw 0 0"
+
+    - name: Reboot ProxmoxVE
+      ansible.builtin.reboot:
+        msg: "Rebooting to apply sysctl changes"
+        connect_timeout: 5
+      tags:
+        - skip_ansible_lint
+      register: reboot_result
+      ignore_errors: true

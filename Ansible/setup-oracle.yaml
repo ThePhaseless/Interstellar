@@ -1,17 +1,15 @@
----
-- name: Deploy Tailscale on Oracle
-  hosts: oracle
-  vars_files:
-    - vars/oracle.yaml
-  roles:
-    - role: artis3n.tailscale.machine
-
 - name: Configure
   hosts: oracle
   tasks:
     - name: Update packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
-    - name: Disable swap
-      ansible.builtin.command: swapoff -a
-      when: ansible_swaps is defined and ansible_swaps | length > 0
-      changed_when: false
+- name: Setup Tailscale
+  hosts: oracle
+  vars_files:
+    - vars/oracle.yaml
+  roles:
+    - role: artis3n.tailscale.machine
+- name: Install Docker
+  hosts: oracle
+  roles:
+    - geerlingguy.docker

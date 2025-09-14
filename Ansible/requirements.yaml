@@ -1,4 +1,5 @@
 collections:
+  - name: ansible.posix
   - name: artis3n.tailscale
   - name: community.docker
   - source: https://github.com/k3s-io/k3s-ansible

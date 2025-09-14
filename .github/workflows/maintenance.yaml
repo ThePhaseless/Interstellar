@@ -1,26 +1,20 @@
-name: Ansible Setup
-
+name: Update and Maintenance
 on:
-  workflow_call:
-  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1" # Every Monday at 3 AM
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/maintenance.yaml"
+      - "Ansible/maintenance.yaml"
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     environment: server
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      matrix:
-        playbook: [containers, oracle]
     env:
       UV_LINK_MODE: copy
-      OCI_CLI_USER: ${{ secrets.TF_VAR_USER_OCID }}
-      OCI_CLI_TENANCY: ${{ secrets.TF_VAR_TENANCY_OCID }}
-      OCI_CLI_FINGERPRINT: ${{ secrets.TF_VAR_FINGERPRINT }}
-      OCI_CLI_KEY_CONTENT: ${{ secrets.TF_VAR_PRIVATE_KEY }}
-      OCI_CLI_REGION: ${{ secrets.TF_VAR_REGION }}
 
     steps:
       - name: Checkout code
@@ -44,9 +38,6 @@ jobs:
       - name: Install Project Dependencies
         run: uv sync --locked
 
-      - name: Get Ansible configuration files
-        run: oci os object bulk-download -bn "${{ vars.ANSIBLE_BUCKET_NAME }}" -ns "${{ secrets.TF_NAMESPACE }}" --dest-dir .private/ && chmod 600 .private/deployment_key.pem
-
       - name: Setup Ansible Environment
         working-directory: Ansible
         run: ansible-galaxy install -r requirements.yaml
@@ -59,12 +50,6 @@ jobs:
           use-cache: "true"
           version: latest
 
-      - name: Create Tailscale Auth Key variable
-        id: create_authkey
-        run: |
-          playbook="TS_${{ matrix.playbook }}_AUTHKEY"
-          echo "tailscale_authkey_name=${playbook@U}" >> $GITHUB_OUTPUT
-
-      - name: Deploy ${{ matrix.playbook }}
-        run: ansible-playbook setup-${{ matrix.playbook }}.yaml --extra-vars "tailscale_authkey=${{ secrets[steps.create_authkey.outputs.tailscale_authkey_name] }}"
+      - name: Run maintenance playbook
+        run: ansible-playbook maintenance.yaml
         working-directory: Ansible
