@@ -1,4 +1,4 @@
-name: Ansible K3S
+name: Kubernetes Apply
 
 on:
   push:

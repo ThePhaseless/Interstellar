@@ -1,3 +1,4 @@
+name: Deploy Proxy Services
 on:
   push:
     branches:
