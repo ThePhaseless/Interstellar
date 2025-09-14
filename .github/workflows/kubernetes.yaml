@@ -7,6 +7,9 @@ on:
     paths:
       - "Kubernetes/**"
       - ".github/workflows/kubernetes.yaml"
+
+concurrency:
+  group: concurrency-lock
 jobs:
   kubectl-apply:
     runs-on: ubuntu-latest

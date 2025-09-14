@@ -9,6 +9,9 @@ on:
       - ".github/workflows/maintenance.yaml"
       - "Ansible/maintenance.yaml"
 
+concurrency:
+  group: concurrency-lock
+
 jobs:
   setup:
     runs-on: ubuntu-latest
