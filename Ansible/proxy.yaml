@@ -1,0 +1,13 @@
+- name: Discover Tailscale Machines
+  hosts: localhost
+  tasks:
+    - name: Discover Tailscale Machines
+      ansible.builtin.include_tasks: tasks/discover_tailscale.yaml
+- name: Run proxy compose
+  hosts: argon
+  tasks:
+    - name: Run proxy compose
+      community.docker.docker_compose_v2:
+        project_src: compose.proxy.yaml
+        pull: always
+        state: present

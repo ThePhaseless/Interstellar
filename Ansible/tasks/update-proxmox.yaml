@@ -1,0 +1,14 @@
+- name: Update packages
+  changed_when: true
+  ansible.builtin.command:
+    cmd: pveupdate && pveupgrade
+
+- name: Get reboot-required file status
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+
+- name: Reboot the system if needed
+  become: true
+  ansible.builtin.reboot:
+  when: reboot_required.stat.exists

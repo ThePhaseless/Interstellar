@@ -20,26 +20,20 @@
     or current_nvidia_driver_version.rc != 0
     )
   block:
-    - name: Get the latest Nvidia driver version
-      ansible.builtin.uri:
-        url: "https://download.nvidia.com/XFree86/Linux-x86_64/latest.txt"
-        return_content: true
-      register: nvidia_latest_version_raw
-      when: nvidia_driver_version is not defined
-    - name: Extract Nvidia driver version from response
-      when: nvidia_driver_version is not defined
-      ansible.builtin.set_fact:
-        nvidia_latest_version: "{{ nvidia_latest_version_raw.content.split()[0] }}"
-        nvidia_latest_version_filename: "{{ nvidia_latest_version_raw.content.split()[1] }}"
-    - name: Set Nvidia driver version
-      ansible.builtin.set_fact:
-        nvidia_driver_path: >
-          {{ nvidia_driver_version is defined | ternary(
-              nvidia_driver_version + '/' + 'NVIDIA-Linux-x86_64-' + nvidia_driver_version + '.run',
-              nvidia_latest_version_filename
-          ) }}"
+    - name: Install prerequisites for Nvidia driver
+      tags:
+        - skip_ansible_lint
+      ansible.builtin.package:
+        name:
+          - binutils
+          - make
+          - gcc
+          - "{{ linux_headers_package | default('linux-headers-{{ ansible_kernel }}') }}"
+        state: latest
     - name: Download Nvidia driver
       changed_when: false
+      vars:
+        nvidia_driver_path: "{{ nvidia_driver_version }} + '/' + 'NVIDIA-Linux-x86_64-' + {{ nvidia_driver_version }} + '.run'"
       ansible.builtin.get_url:
         url: "https://us.download.nvidia.com/XFree86/Linux-x86_64/{{ nvidia_driver_path }}"
         dest: /tmp/nvidia_driver.run
@@ -47,7 +41,4 @@
     - name: Install Nvidia driver
       changed_when: true
       ansible.builtin.command: >-
-        /tmp/nvidia_driver.run --silent
-        {% if no_kernel_modules is defined %}
-        --no-kernel-module
-        {% endif %}
+        /tmp/nvidia_driver.run --silent {{ '--no-kernel-module' if kernel_modules | default(true) else '' }}

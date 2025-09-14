@@ -1,0 +1,22 @@
+- name: Discover Tailscale Machines
+  hosts: localhost
+  tasks:
+    - name: Discover Tailscale Machines
+      ansible.builtin.include_tasks: tasks/discover_tailscale.yaml
+- name: Update ProxmoxVE
+  hosts: proxmox
+  vars_files:
+    - ../.private/variables.yaml
+  tasks:
+    - name: Update packages
+      ansible.builtin.include_tasks: tasks/update-proxmox.yaml
+- name: Setup Containers
+  hosts: localhost
+  tasks:
+    - name: Discover Proxmox Containers
+      ansible.builtin.include_tasks: tasks/discover_tailscale.yaml
+- name: Update packages
+  hosts: provisioned
+  tasks:
+    - name: Update packages
+      ansible.builtin.import_tasks: tasks/update-apt.yaml
