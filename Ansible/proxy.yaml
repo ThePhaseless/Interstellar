@@ -8,7 +8,7 @@
   tasks:
     - name: Run proxy compose
       community.docker.docker_compose_v2:
-        project_src: "{{ playbook_dir }}/../"
+        project_src: "{{ playbook_dir | dirname }}"
         files:
           - compose.proxy.yaml
         pull: always
