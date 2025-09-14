@@ -9,6 +9,6 @@
     - name: Run proxy compose
       community.docker.docker_compose_v2:
         project_src: "{{ playbook_dir }}/../"
-        files: compose.proxy.yaml
+        files:
+          - compose.proxy.yaml
         pull: always
-        state: present
