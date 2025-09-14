@@ -8,6 +8,9 @@ on:
       - "Terraform/**"
       - ".github/workflows/terraform.yaml"
 
+concurrency:
+  group: concurrency-lock
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
@@ -92,12 +95,3 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -input=false tfplan
         working-directory: Terraform
-  ansible_setup:
-    needs: terraform
-    secrets: inherit
-    uses: ./.github/workflows/ansible-setup.yaml
-
-  # ansible_k3s:
-  #   needs: ansible_setup
-  #   secrets: inherit
-  #   uses: ./.github/workflows/ansible-k3s.yaml

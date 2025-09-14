@@ -7,6 +7,9 @@ on:
       - "Ansible/proxy.yaml"
       - "compose.proxy.yaml"
 
+concurrency:
+  group: concurrency-lock
+
 jobs:
   setup:
     runs-on: ubuntu-latest
