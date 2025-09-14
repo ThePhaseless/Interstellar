@@ -5,9 +5,8 @@ on:
     branches:
       - main
     paths:
-      - ".github/workflows/proxy.yaml"
-      - "Ansible/proxy.yaml"
-      - "compose.proxy.yaml"
+      - ".github/workflows/nvidia.yaml"
+      - "Ansible/setup-nvidia.yaml"
 
 concurrency:
   group: concurrency-lock
