@@ -9,7 +9,8 @@ variable "ports" {
     SSH = { port : 22 },
     # HTTPS = { port : 443 },
     # Minecraft = { port : 25565 },
-    Tailscale = { port : 41641, stateless : true, protocol : "UDP" },
+    Tailscale = { port : 41641, protocol : "UDP" },
+    WireGuard = { port : 51820, protocol : "UDP" },
   }
 }
 
