@@ -81,7 +81,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Setup Tailscale
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@v4
         with:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
