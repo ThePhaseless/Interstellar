@@ -31,7 +31,7 @@ spec:
               mountPath: /config-template
               readOnly: true
       containers:
-        - image: linuxserver/sonarr:4.0.15
+        - image: linuxserver/sonarr:4.0.16
           name: sonarr
           env:
             - name: TZ
