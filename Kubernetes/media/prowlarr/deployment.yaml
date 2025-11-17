@@ -34,7 +34,7 @@ spec:
         - env:
             - name: TZ
               value: Europe/Warsaw
-          image: linuxserver/prowlarr:2.1.5
+          image: linuxserver/prowlarr:2.3.0
           name: prowlarr
           ports:
             - containerPort: 9696
