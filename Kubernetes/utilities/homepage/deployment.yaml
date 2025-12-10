@@ -20,7 +20,7 @@ spec:
         - env:
             - name: TZ
               value: Europe/Warsaw
-          image: ghcr.io/gethomepage/homepage:v1.7.0
+          image: ghcr.io/gethomepage/homepage:v1.8.0
           name: homepage
           ports:
             - containerPort: 3000
