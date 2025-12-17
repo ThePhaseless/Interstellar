@@ -545,6 +545,7 @@ watchtower:
 ```
 
 Watchtower automatically:
+
 - Checks for new image versions daily
 - Pulls latest images (HAProxy, Tailscale)
 - Stops old containers
