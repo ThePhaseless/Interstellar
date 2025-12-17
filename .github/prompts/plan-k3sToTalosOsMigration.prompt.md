@@ -385,21 +385,21 @@ post-down iptables -t nat -D POSTROUTING -s 10.100.0.0/24 -o vmbr0 -j MASQUERADE
 resource "oci_core_instance" "haproxy" {
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   compartment_id      = var.compartment_id
-  
+
   # Boot from Oracle Linux 8
   image_id = data.oci_core_images.oracle_linux.images[0].id
   shape    = "VM.Standard.A1.Flex" # ARM-based, cost-effective
-  
+
   shape_config {
     memory_in_gbs             = 1  # Minimal: HAProxy doesn't need much
     ocpus                     = 1
   }
-  
+
   create_vnic_details {
     assign_public_ip = true
     subnet_id        = oci_core_subnet.public.id
   }
-  
+
   metadata = {
     ssh_authorized_keys = file("${path.module}/../.private/oracle_ssh_key.pub")
   }
@@ -2570,38 +2570,38 @@ The following files are removed as they're for the old K3s on LXC architecture:
 
 ### Terraform (LXC Container Provisioning)
 
-| File                           | Reason                               |
-| ------------------------------ | ------------------------------------ |
-| `Terraform/proxmox.tf`         | LXC container provisioning           |
-| `Terraform/deployment.tf`      | K3s deployment key & OCI inventory   |
-| `Terraform/oracle.tf`          | Old OCI instance (rewrite for state) |
-| `Terraform/variables.tf`       | LXC-focused variables                |
-| `Terraform/setup.sh`           | Old OCI authentication script        |
-| `Terraform/.terraform.lock.hcl`| Lock file for old providers          |
+| File                            | Reason                               |
+| ------------------------------- | ------------------------------------ |
+| `Terraform/proxmox.tf`          | LXC container provisioning           |
+| `Terraform/deployment.tf`       | K3s deployment key & OCI inventory   |
+| `Terraform/oracle.tf`           | Old OCI instance (rewrite for state) |
+| `Terraform/variables.tf`        | LXC-focused variables                |
+| `Terraform/setup.sh`            | Old OCI authentication script        |
+| `Terraform/.terraform.lock.hcl` | Lock file for old providers          |
 
 ### Ansible (K3s/LXC Management)
 
-| File                                             | Reason                            |
-| ------------------------------------------------ | --------------------------------- |
-| `Ansible/k3s.yaml`                               | K3s installation playbook         |
-| `Ansible/setup-containers.yaml`                  | LXC container setup               |
-| `Ansible/setup-nvidia.yaml`                      | NVIDIA for containers (not VMs)   |
-| `Ansible/proxy.yaml`                             | Old proxy on argon host           |
-| `Ansible/vars/containers.yaml`                   | LXC container config              |
-| `Ansible/vars/nvidia.yaml`                       | NVIDIA driver version             |
-| `Ansible/tasks/update_container_configs.yaml`    | LXC config tasks                  |
-| `Ansible/tasks/discover_proxmox.yaml`            | Proxmox container discovery       |
-| `Ansible/tasks/install_nvidia_drivers.yaml`      | NVIDIA driver installation        |
-| `Ansible/tasks/install_nvidia_container_toolkit.yaml` | NVIDIA container toolkit     |
+| File                                                  | Reason                          |
+| ----------------------------------------------------- | ------------------------------- |
+| `Ansible/k3s.yaml`                                    | K3s installation playbook       |
+| `Ansible/setup-containers.yaml`                       | LXC container setup             |
+| `Ansible/setup-nvidia.yaml`                           | NVIDIA for containers (not VMs) |
+| `Ansible/proxy.yaml`                                  | Old proxy on argon host         |
+| `Ansible/vars/containers.yaml`                        | LXC container config            |
+| `Ansible/vars/nvidia.yaml`                            | NVIDIA driver version           |
+| `Ansible/tasks/update_container_configs.yaml`         | LXC config tasks                |
+| `Ansible/tasks/discover_proxmox.yaml`                 | Proxmox container discovery     |
+| `Ansible/tasks/install_nvidia_drivers.yaml`           | NVIDIA driver installation      |
+| `Ansible/tasks/install_nvidia_container_toolkit.yaml` | NVIDIA container toolkit        |
 
 ### Root Files
 
-| File                    | Reason                                     |
-| ----------------------- | ------------------------------------------ |
-| `.env.authentik.example`| Authentik replaced by Google OAuth         |
-| `.secrets.exmaple`      | Old secrets format (Bitwarden now)         |
-| `current_acls.json`     | Tailscale ACLs managed via Terraform       |
-| `scripts/setup.sh`      | Old OCI download script                    |
+| File                     | Reason                               |
+| ------------------------ | ------------------------------------ |
+| `.env.authentik.example` | Authentik replaced by Google OAuth   |
+| `.secrets.exmaple`       | Old secrets format (Bitwarden now)   |
+| `current_acls.json`      | Tailscale ACLs managed via Terraform |
+| `scripts/setup.sh`       | Old OCI download script              |
 
 ### Kept for Reference
 
@@ -2611,13 +2611,13 @@ The following files are removed as they're for the old K3s on LXC architecture:
 
 ### GitHub Actions (Removed)
 
-| Workflow            | Reason                                  |
-| ------------------- | --------------------------------------- |
-| `kubernetes.yaml`   | K3s `kubectl apply` to `nickel` host    |
-| `terraform.yaml`    | Old LXC Terraform & OCI bucket setup    |
-| `maintenance.yaml`  | References deleted playbooks            |
-| `nvidia.yaml`       | NVIDIA driver setup for containers      |
-| `proxy.yaml`        | Old proxy setup (deleted playbook)      |
+| Workflow           | Reason                               |
+| ------------------ | ------------------------------------ |
+| `kubernetes.yaml`  | K3s `kubectl apply` to `nickel` host |
+| `terraform.yaml`   | Old LXC Terraform & OCI bucket setup |
+| `maintenance.yaml` | References deleted playbooks         |
+| `nvidia.yaml`      | NVIDIA driver setup for containers   |
+| `proxy.yaml`       | Old proxy setup (deleted playbook)   |
 
 ---
 
@@ -2634,7 +2634,7 @@ env:
   # From BW_ACCESS_TOKEN secret
   BW_CLIENTID: ${{ secrets.BW_CLIENTID }}
   BW_CLIENTSECRET: ${{ secrets.BW_CLIENTSECRET }}
-  
+
   # From BW_OCI_ACCESS_TOKEN secret (for OCIAccess project)
   BW_OCI_CLIENTID: ${{ secrets.BW_OCI_CLIENTID }}
   BW_OCI_CLIENTSECRET: ${{ secrets.BW_OCI_CLIENTSECRET }}
