@@ -1,14 +1,7 @@
 name: Update and Maintenance
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 3 * * 1" # Every Monday at 3 AM
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/maintenance.yaml"
-      - "Ansible/maintenance.yaml"
+
 
 concurrency:
   group: concurrency-lock
