@@ -525,6 +525,73 @@ backend traefik-https
         pull: always
 ```
 
+**Auto-Updates on Oracle VPS:**
+
+**Container Updates (Watchtower):**
+
+Already configured in `compose.proxy.yaml`:
+
+```yaml
+watchtower:
+  container_name: watchtower
+  image: containrrr/watchtower:latest
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  restart: unless-stopped
+  environment:
+    - WATCHTOWER_CLEANUP=true
+    - WATCHTOWER_POLL_INTERVAL=86400 # Daily: check for updates at 2 AM UTC
+    - WATCHTOWER_SCHEDULE=0 2 * * * # Cron: 2 AM UTC daily
+```
+
+Watchtower automatically:
+- Checks for new image versions daily
+- Pulls latest images (HAProxy, Tailscale)
+- Stops old containers
+- Starts new containers with same config
+- Cleans up old images
+
+**System Package Updates (Ansible scheduled task):**
+
+Add to `setup-oracle.yaml`:
+
+```yaml
+- name: Configure unattended-upgrades
+  ansible.builtin.apt:
+    name: unattended-upgrades
+    state: present
+
+- name: Configure unattended-upgrades to auto-reboot
+  ansible.builtin.copy:
+    content: |
+      Unattended-Upgrade::Allowed-Origins {
+        "${distro_id}:${distro_codename}";
+        "${distro_id}:${distro_codename}-security";
+        "${distro_id}ESMApps:${distro_codename}-apps-security";
+        "${distro_id}ESM:${distro_codename}-infra-security";
+      };
+      Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+      Unattended-Upgrade::MinimalSteps "true";
+      Unattended-Upgrade::InstallOnShutdown "false";
+      Unattended-Upgrade::Automatic-Reboot "true";
+      Unattended-Upgrade::Automatic-Reboot-Time "03:00"; # 3 AM UTC
+      Unattended-Upgrade::SyslogReport "only-on-change";
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+
+- name: Enable unattended-upgrades
+  ansible.builtin.systemd:
+    name: unattended-upgrades
+    enabled: yes
+    state: started
+```
+
+**Update Flow:**
+
+1. **2 AM UTC daily:** Watchtower checks for new container images
+2. **3 AM UTC daily:** unattended-upgrades applies system package updates
+3. **Auto-reboot if needed:** System reboots if kernel updates require it
+4. **Container restart on reboot:** Docker services restart automatically (due to `restart: unless-stopped`)
+
 ---
 
 ## 3. Kubernetes Bootstrap Components
