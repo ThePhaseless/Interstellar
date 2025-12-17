@@ -2,12 +2,6 @@ name: Kubernetes Apply
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "Kubernetes/**"
-      - ".github/workflows/kubernetes.yaml"
 
 concurrency:
   group: concurrency-lock
