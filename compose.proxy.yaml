@@ -8,24 +8,33 @@ services:
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     restart: unless-stopped
+    network_mode: host # For Tailscale IP resolution
+
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower:latest
-  wg-easy:
-    image: ghcr.io/wg-easy/wg-easy:15
-    container_name: wg-easy
     volumes:
-      - ./wg-easy-data:/etc/wireguard
-      - /lib/modules:/lib/modules:ro
-    ports:
-      - "51820:51820/udp"
-      - "51821:51821/tcp"
-    environment:
-      - INSECURE=true
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=86400 # Daily updates
+
+  tailscale:
+    container_name: tailscale
+    image: tailscale/tailscale:latest
+    hostname: oracle-haproxy
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
-      - SYS_MODULE
-    sysctls:
-      - net.ipv4.ip_forward=1
-      - net.ipv4.conf.all.src_valid_mark=1
+      - NET_RAW
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY} # From Bitwarden, one-time use
+      - TS_EXTRA_ARGS=--advertise-tags=tag:oracle
+      - TS_STATE_DIR=/var/lib/tailscale
+    restart: unless-stopped
+
+volumes:
+  tailscale-state:

@@ -1,6 +1,17 @@
 terraform {
   required_version = ">= 1.12.2"
+  
+  # OCI Object Storage backend for state storage
+  # Authentication via environment variables (OCI_ prefix):
+  #   OCI_tenancy_ocid, OCI_user_ocid, OCI_fingerprint, OCI_private_key, OCI_region
+  # 
+  # First deployment bootstrap:
+  # 1. Comment out backend "oci" block, use local state
+  # 2. terraform apply -target=oci_objectstorage_bucket.terraform_state
+  # 3. Uncomment backend block
+  # 4. terraform init -migrate-state -backend-config="bucket=terraform-state" -backend-config="namespace=<your-namespace>"
   backend "oci" {
+    key = "interstellar/terraform.tfstate"
   }
 
   required_providers {

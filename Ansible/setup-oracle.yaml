@@ -3,13 +3,51 @@
   tasks:
     - name: Update packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
+
 - name: Setup Tailscale
   hosts: oracle
   vars_files:
     - vars/oracle.yaml
   roles:
     - role: artis3n.tailscale.machine
+
 - name: Install Docker
   hosts: oracle
   roles:
     - geerlingguy.docker
+
+- name: Deploy HAProxy Stack
+  hosts: oracle
+  tasks:
+    - name: Create HAProxy directory
+      ansible.builtin.file:
+        path: /opt/haproxy
+        state: directory
+        mode: "0755"
+
+    - name: Copy Docker Compose file
+      ansible.builtin.copy:
+        src: ../compose.proxy.yaml
+        dest: /opt/haproxy/compose.yaml
+        mode: "0644"
+
+    - name: Copy HAProxy config
+      ansible.builtin.copy:
+        src: ../haproxy.cfg
+        dest: /opt/haproxy/haproxy.cfg
+        mode: "0644"
+      notify: Restart HAProxy
+
+    - name: Start HAProxy stack
+      community.docker.docker_compose_v2:
+        project_src: /opt/haproxy
+        state: present
+        pull: always
+
+  handlers:
+    - name: Restart HAProxy
+      community.docker.docker_compose_v2:
+        project_src: /opt/haproxy
+        state: restarted
+        services:
+          - haproxy
