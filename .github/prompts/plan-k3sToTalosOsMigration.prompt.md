@@ -642,6 +642,33 @@ Add to `setup-oracle.yaml`:
 - **Traefik Bouncer** - Middleware for blocking malicious IPs
 - **Collections** - crowdsecurity/traefik, crowdsecurity/http-cve
 
+### 3.4.1 Antivirus / Malware Scanning (Requirement)
+
+**Goal:** scan _file ingress_ for malware (user uploads + torrent downloads) before files are made broadly accessible.
+
+- **TalosOS nodes:** no traditional host AV agent (immutable OS); implement scanning as Kubernetes workloads (CronJob/Job/sidecar) and rely on image provenance/scanning and Kubernetes security controls.
+
+**Scanning scope (what MUST be covered):**
+
+- **User ingress from Copyparty** (new uploads)
+- **qBittorrent ingress** (newly completed downloads, before import/move into libraries)
+
+**Recommended GitOps implementation (Kubernetes):**
+
+- Deploy a **ClamAV scanning workload** (CronJob/Job/sidecar) that mounts the **PVCs used for ingress** and scans on a schedule or event-driven.
+- Use a **quarantine workflow**:
+  - write to an _ingress/quarantine_ directory first
+  - scan
+  - on clean result, move to the “published” share/library
+  - on detection, keep quarantined and alert
+- Configure scan targets via env vars/values (e.g., `SCAN_PATHS`) so PVC names/paths can be finalized later without rewriting the approach.
+- Run signature updates (`freshclam`) before each scan, caching the signature DB on a small PVC.
+- Emit findings to logs and forward to the observability stack (Grafana/Loki) for alerting.
+
+**Notes:**
+
+- Full recursive scans of entire libraries are optional and can be expensive; prioritize scanning _write-ingress paths_ (uploads/downloads).
+
 ### 3.5 External Secrets Operator
 
 **Provider:** Bitwarden Secrets Manager via SDK Server
@@ -2155,6 +2182,7 @@ spec:
 4. [ ] Deploy Traefik with PROXY protocol
 5. [ ] Deploy CrowdSec (LAPI + bouncer)
 6. [ ] Deploy External Secrets Operator + Bitwarden
+7. [ ] Deploy malware scanning for file ingress (Copyparty uploads + qBittorrent completed downloads)
 
 ### Phase 3: GitOps Setup
 
