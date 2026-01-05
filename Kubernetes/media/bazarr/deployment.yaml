@@ -47,7 +47,7 @@ spec:
         - env:
             - name: TZ
               value: Europe/Warsaw
-          image: linuxserver/bazarr:1.5.3
+          image: linuxserver/bazarr:1.5.4
           name: bazarr
 
           ports:
