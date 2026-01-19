@@ -24,7 +24,7 @@ spec:
               value: watch.nerine.dev
             - name: TZ
               value: Europe/Warsaw
-          image: linuxserver/jellyfin:10.11.5
+          image: linuxserver/jellyfin:10.11.6
           name: jellyfin
           resources:
             limits:
