@@ -1,5 +1,5 @@
 # =============================================================================
-# Immich Ingress (Public - public-chain middleware)
+# Immich Ingress (Protected by OAuth2 Proxy)
 # =============================================================================
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -17,6 +17,8 @@ spec:
           port: 3001
       middlewares:
         - name: public-chain
+          namespace: traefik
+        - name: oauth2-proxy
           namespace: traefik
   tls:
     certResolver: letsencrypt
