@@ -2,7 +2,7 @@
 # =============================================================================
 # Local Environment Setup Script
 # =============================================================================
-# This script sets up environment variables for running OpenTofu and Ansible
+# This script sets up environment variables for running Terraform and Ansible
 # locally. It fetches secrets from Bitwarden and exports them.
 #
 # Prerequisites:
@@ -14,7 +14,7 @@
 #   source scripts/setup-env.sh
 #
 # After sourcing, you can run:
-#   cd Terraform && tofu init && tofu plan
+#   cd Terraform && terraform init && terraform plan
 #   cd Ansible && ansible-playbook -i inventory setup-proxmox.yaml
 # =============================================================================
 
@@ -158,7 +158,7 @@ fetch_secrets() {
             echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
         fi
 
-        # Extract tenancy for OpenTofu variable
+        # Extract tenancy for Terraform variable
         local tenancy
         tenancy=$(grep -E '^tenancy=' "$HOME/.oci/config" | head -n1 | cut -d= -f2-)
         if [[ -n "$tenancy" ]]; then
@@ -177,10 +177,10 @@ fetch_secrets() {
     if [[ $? -eq 0 ]]; then
         log_success "OCI backend secrets loaded"
     else
-        log_warn "Some OCI backend secrets are missing. OpenTofu state operations may fail."
+        log_warn "Some OCI backend secrets are missing. Terraform state operations may fail."
     fi
 
-    # Infrastructure secrets (for OpenTofu apply)
+    # Infrastructure secrets (for Terraform apply)
     log_info "Fetching infrastructure secrets..."
 
     fetch_batch \
@@ -217,7 +217,7 @@ main() {
     log_success "Environment ready!"
     echo ""
     log_info "You can now run:"
-    echo "  cd Terraform && tofu init && tofu plan"
+    echo "  cd Terraform && terraform init && terraform plan"
     echo "  cd Ansible && ansible-playbook setup-proxmox.yaml"
     echo ""
 }
