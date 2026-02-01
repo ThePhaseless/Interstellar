@@ -1,21 +1,21 @@
-# Terraform Linting Workflow
-name: Terraform Lint
+# OpenTofu Linting Workflow
+name: OpenTofu Lint
 
 on:
   push:
     branches: [main]
     paths:
-      - "Terraform/**"
-      - ".github/workflows/terraform-lint.yaml"
+      - "OpenTofu/**"
+      - ".github/workflows/opentofu-lint.yaml"
   pull_request:
     branches: [main]
     paths:
-      - "Terraform/**"
-      - ".github/workflows/terraform-lint.yaml"
+      - "OpenTofu/**"
+      - ".github/workflows/opentofu-lint.yaml"
 
 jobs:
   lint:
-    name: Lint Terraform
+    name: Lint OpenTofu
     runs-on: ubuntu-latest
 
     steps:
@@ -29,8 +29,8 @@ jobs:
 
       - name: Initialize TFLint
         run: tflint --init
-        working-directory: Terraform
+        working-directory: OpenTofu
 
       - name: Run TFLint
         run: tflint --format=compact
-        working-directory: Terraform
+        working-directory: OpenTofu
