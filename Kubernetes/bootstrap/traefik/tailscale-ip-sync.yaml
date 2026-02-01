@@ -1,0 +1,28 @@
+# =============================================================================
+# Tailscale IP Sync - RBAC & Secrets
+# =============================================================================
+# The sync logic runs as a sidecar in the Traefik deployment.
+# This file contains the supporting ExternalSecret resource.
+# =============================================================================
+---
+# ExternalSecret for Bitwarden access token (used by sidecar)
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: bitwarden-access-token
+  namespace: traefik
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-store
+    kind: ClusterSecretStore
+  target:
+    name: bitwarden-access-token
+    creationPolicy: Owner
+  data:
+    - secretKey: token
+      remoteRef:
+        key: bws-access-token
+    - secretKey: project-id
+      remoteRef:
+        key: bws-project-id
