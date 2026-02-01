@@ -96,8 +96,8 @@ Media apps use init containers + sidecars for auto-configuration:
 # Ansible playbooks
 ./scripts/lint-ansible.sh
 
-# OpenTofu/Terraform
-./scripts/lint-opentofu.sh
+# Terraform
+./scripts/lint-terraform.sh
 ```
 
 Disabled kube-linter checks (see `.kube-linter.yaml`):
@@ -106,7 +106,7 @@ Disabled kube-linter checks (see `.kube-linter.yaml`):
 - `run-as-non-root` - Many apps require root
 - `unset-cpu-requirements` / `unset-memory-requirements` - Init containers
 
-## OpenTofu Patterns
+## Terraform Patterns
 
 - State stored in OCI Object Storage
 - Secrets fetched from Bitwarden via `bws` CLI in CI
@@ -115,12 +115,12 @@ Disabled kube-linter checks (see `.kube-linter.yaml`):
 
 ## CI/CD Workflows
 
-| Path changes    | Workflow triggered                           |
-| --------------- | -------------------------------------------- |
-| `Kubernetes/**` | `kubernetes-lint.yaml`                       |
-| `Terraform/**`  | `opentofu.yaml` (plan on PR, apply on merge) |
-| `Ansible/**`    | `ansible.yaml`                               |
-| `Tailscale/**`  | `tailscale-acl.yaml`                         |
+| Path changes    | Workflow triggered                            |
+| --------------- | --------------------------------------------- |
+| `Kubernetes/**` | `kubernetes-lint.yaml`                        |
+| `Terraform/**`  | `terraform.yaml` (plan on PR, apply on merge) |
+| `Ansible/**`    | `ansible.yaml`                                |
+| `Tailscale/**`  | `tailscale-acl.yaml`                          |
 
 ## Common Tasks
 

@@ -75,7 +75,7 @@
       "src":    ["tag:ci"],
       "dst": [
         "tag:proxmox:22",      // SSH to Proxmox
-        "tag:proxmox:8006",    // Proxmox API (for OpenTofu)
+        "tag:proxmox:8006",    // Proxmox API (for Terraform)
         "tag:oracle:22",       // SSH to Oracle VPS
         "tag:cluster:6443",    // Kubernetes API
         "tag:cluster:50000"    // Talos API
