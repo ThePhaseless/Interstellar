@@ -27,6 +27,8 @@ resources:
   - immich/
   - mcpjungle/
   - adguard/
+  - oauth2-proxy/
+  - whoami/
 
 commonLabels:
   managed-by: argocd

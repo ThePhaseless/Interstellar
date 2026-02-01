@@ -10,9 +10,10 @@ resources:
   - externalsecrets.yaml
 
 configMapGenerator:
-  - name: arr-configurator-scripts
+  - name: arr-scripts
     namespace: media
     files:
       - scripts/extract-api-key.sh
       - scripts/configure-download-client.sh
       - scripts/configure-prowlarr.sh
+      - scripts/configure-jellyseerr.sh
