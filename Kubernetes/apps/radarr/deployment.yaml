@@ -114,5 +114,5 @@ spec:
             claimName: media-pvc
         - name: scripts
           configMap:
-            name: arr-configurator-scripts
+            name: arr-scripts
             defaultMode: 0755

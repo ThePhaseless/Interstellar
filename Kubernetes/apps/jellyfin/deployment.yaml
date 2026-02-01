@@ -8,6 +8,9 @@ metadata:
   namespace: media
   labels:
     app: jellyfin
+  annotations:
+    # Auto-restart on config/secret changes
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: 1
   strategy:
@@ -33,6 +36,9 @@ spec:
           env:
             - name: JELLYFIN_PublishedServerUrl
               value: "https://watch.nerine.dev"
+            # Note: Jellyfin uses its own native authentication
+            # Users log in directly with Jellyfin accounts
+            # Jellyseerr uses Jellyfin as its auth provider
           volumeMounts:
             - name: config
               mountPath: /config
