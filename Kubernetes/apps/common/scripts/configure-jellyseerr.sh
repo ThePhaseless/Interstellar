@@ -64,7 +64,7 @@ RADARR_COUNT=$(echo "$RADARR_SERVERS" | grep -c '"id":' || echo "0")
 
 if [ "$RADARR_COUNT" = "0" ]; then
   echo "Configuring Radarr..."
-  
+
   # Get Radarr API key from secret
   RADARR_API_KEY="${RADARR_API_KEY:-}"
   if [ -z "$RADARR_API_KEY" ]; then
@@ -74,11 +74,11 @@ if [ "$RADARR_COUNT" = "0" ]; then
     RADARR_URL="http://radarr.media.svc.cluster.local:7878"
     PROFILES=$(curl -s "${RADARR_URL}/api/v3/qualityprofile" -H "X-Api-Key: ${RADARR_API_KEY}")
     PROFILE_ID=$(echo "$PROFILES" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2 || echo "1")
-    
+
     # Get root folders
     FOLDERS=$(curl -s "${RADARR_URL}/api/v3/rootfolder" -H "X-Api-Key: ${RADARR_API_KEY}")
     ROOT_FOLDER=$(echo "$FOLDERS" | grep -o '"path":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "/movies")
-    
+
     curl -s -X POST "${JELLYSEERR_URL}/api/v1/settings/radarr" \
       -H "Content-Type: application/json" \
       -d '{
@@ -110,7 +110,7 @@ SONARR_COUNT=$(echo "$SONARR_SERVERS" | grep -c '"id":' || echo "0")
 
 if [ "$SONARR_COUNT" = "0" ]; then
   echo "Configuring Sonarr..."
-  
+
   # Get Sonarr API key from secret
   SONARR_API_KEY="${SONARR_API_KEY:-}"
   if [ -z "$SONARR_API_KEY" ]; then
@@ -120,11 +120,11 @@ if [ "$SONARR_COUNT" = "0" ]; then
     SONARR_URL="http://sonarr.media.svc.cluster.local:8989"
     PROFILES=$(curl -s "${SONARR_URL}/api/v3/qualityprofile" -H "X-Api-Key: ${SONARR_API_KEY}")
     PROFILE_ID=$(echo "$PROFILES" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2 || echo "1")
-    
+
     # Get root folders
     FOLDERS=$(curl -s "${SONARR_URL}/api/v3/rootfolder" -H "X-Api-Key: ${SONARR_API_KEY}")
     ROOT_FOLDER=$(echo "$FOLDERS" | grep -o '"path":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "/tv")
-    
+
     curl -s -X POST "${JELLYSEERR_URL}/api/v1/settings/sonarr" \
       -H "Content-Type: application/json" \
       -d '{

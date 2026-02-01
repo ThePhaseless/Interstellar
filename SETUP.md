@@ -40,28 +40,29 @@ All secrets should be stored in a single Bitwarden Secrets Manager project:
 
 #### Infrastructure Secrets
 
-| Key                                   | Description                                 | Required Permissions                                                          |
-| ------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- |
-| `tailscale-oauth-client-id`           | Tailscale OAuth client ID                   | Scopes: `devices:core`, `keys:auth_keys` (Write) — Tags: `tag:cluster,tag:ci` |
-| `tailscale-oauth-secret`              | Tailscale OAuth client secret               | -                                                                             |
-| `tailscale-tailnet`                   | Tailscale tailnet name (e.g. `example.org`) | -                                                                             |
-| `cloudflare-api-token`                | Cloudflare API token                        | `Zone:DNS:Edit`, `Zone:Zone:Read` for your domain                             |
-| `cloudflare-zone-id`                  | Cloudflare Zone ID                          | -                                                                             |
-| `proxmox-api-token`                   | Proxmox API token (`user@realm!token=secret`) | Full permissions on `/` or VM management                                      |
-| `discord-webhook-url`                 | Discord webhook for alerts                  | -                                                                             |
-| `crowdsec-api-key`                    | CrowdSec enrollment key                     | -                                                                             |
-| `copyparty-admins`                    | Comma-separated admin emails                | -                                                                             |
-| `copyparty-writers`                   | Comma-separated writer emails               | -                                                                             |
+| Key                         | Description                                   | Required Permissions                                                          |
+| --------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------- |
+| `tailscale-oauth-client-id` | Tailscale OAuth client ID                     | Scopes: `devices:core`, `keys:auth_keys` (Write) — Tags: `tag:cluster,tag:ci` |
+| `tailscale-oauth-secret`    | Tailscale OAuth client secret                 | -                                                                             |
+| `tailscale-tailnet`         | Tailscale tailnet name (e.g. `example.org`)   | -                                                                             |
+| `cloudflare-api-token`      | Cloudflare API token                          | `Zone:DNS:Edit`, `Zone:Zone:Read` for your domain                             |
+| `cloudflare-zone-id`        | Cloudflare Zone ID                            | -                                                                             |
+| `proxmox-api-token`         | Proxmox API token (`user@realm!token=secret`) | Full permissions on `/` or VM management                                      |
+| `discord-webhook-url`       | Discord webhook for alerts                    | -                                                                             |
+| `crowdsec-api-key`          | CrowdSec enrollment key                       | -                                                                             |
+| `copyparty-admins`          | Comma-separated admin emails                  | -                                                                             |
+| `copyparty-writers`         | Comma-separated writer emails                 | -                                                                             |
 
 #### OAuth2 Proxy Secrets (Google OAuth)
 
-| Key                                   | Description                                 | Required Permissions                                                          |
-| ------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- |
-| `oauth2-proxy-google-client-id`       | Google OAuth Client ID                      | Google Cloud Console → APIs & Services → Credentials                          |
-| `oauth2-proxy-google-client-secret`   | Google OAuth Client Secret                  | Same as above                                                                 |
-| `oauth2-proxy-cookie-secret`          | Cookie encryption secret (32 bytes, base64) | Generate with `openssl rand -base64 32`                                       |
+| Key                                 | Description                                 | Required Permissions                                 |
+| ----------------------------------- | ------------------------------------------- | ---------------------------------------------------- |
+| `oauth2-proxy-google-client-id`     | Google OAuth Client ID                      | Google Cloud Console → APIs & Services → Credentials |
+| `oauth2-proxy-google-client-secret` | Google OAuth Client Secret                  | Same as above                                        |
+| `oauth2-proxy-cookie-secret`        | Cookie encryption secret (32 bytes, base64) | Generate with `openssl rand -base64 32`              |
 
 **Google OAuth Setup:**
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Create a new project or select existing
 3. Enable "Google+ API" or "Google Identity"
