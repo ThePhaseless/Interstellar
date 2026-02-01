@@ -85,7 +85,9 @@ jobs:
                   if [ ! -z "$proxmox_resources" ]; then
                     echo "Removing Proxmox resources from state to preserve them (they will become unmanaged):"
                     echo "$proxmox_resources"
-                    echo "$proxmox_resources" | xargs -L1 terraform state rm
+                    echo "$proxmox_resources" | while read -r resource; do
+                      terraform state rm "$resource"
+                    done
                   else
                     echo "No Proxmox resources found in state."
                   fi
