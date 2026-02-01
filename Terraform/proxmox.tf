@@ -9,8 +9,6 @@
 provider "proxmox" {
   endpoint = var.proxmox_endpoint
   insecure = true # Self-signed cert
-
-  api_token = "${data.bitwarden_secret.proxmox_api_token_id.value}=${data.bitwarden_secret.proxmox_api_token_secret.value}"
 }
 
 # -----------------------------------------------------------------------------

@@ -19,12 +19,31 @@ provider "oci" {
 
 # Get availability domains
 data "oci_identity_availability_domains" "ads" {
-  compartment_id = data.bitwarden_secret.oci_compartment_id.value
+  compartment_id = oci_identity_compartment.main.id
+}
+
+resource "oci_identity_compartment" "main" {
+  compartment_id = var.oci_tenancy_ocid
+  description    = "Compartment for Terraform resources."
+  name           = "TerraformCompartment"
+  enable_delete  = true
+}
+
+data "oci_objectstorage_namespace" "ns" {
+  compartment_id = oci_identity_compartment.main.id
+}
+
+resource "oci_objectstorage_bucket" "tf_state" {
+  compartment_id = oci_identity_compartment.main.id
+  name           = var.tf_state_bucket
+  namespace      = data.oci_objectstorage_namespace.ns.namespace
+  access_type    = "NoPublicAccess"
+  versioning     = "Enabled"
 }
 
 # Get Ubuntu image
 data "oci_core_images" "ubuntu" {
-  compartment_id           = data.bitwarden_secret.oci_compartment_id.value
+  compartment_id           = oci_identity_compartment.main.id
   operating_system         = "Canonical Ubuntu"
   operating_system_version = "24.04"
   shape                    = "VM.Standard.A1.Flex"
@@ -38,7 +57,7 @@ data "oci_core_images" "ubuntu" {
 
 # VCN (Virtual Cloud Network)
 resource "oci_core_vcn" "main" {
-  compartment_id = data.bitwarden_secret.oci_compartment_id.value
+  compartment_id = oci_identity_compartment.main.id
   display_name   = "interstellar-vcn"
   cidr_blocks    = ["10.0.0.0/16"]
   dns_label      = "interstellar"
@@ -46,7 +65,7 @@ resource "oci_core_vcn" "main" {
 
 # Internet Gateway
 resource "oci_core_internet_gateway" "main" {
-  compartment_id = data.bitwarden_secret.oci_compartment_id.value
+  compartment_id = oci_identity_compartment.main.id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "interstellar-igw"
   enabled        = true
@@ -54,7 +73,7 @@ resource "oci_core_internet_gateway" "main" {
 
 # Route Table
 resource "oci_core_route_table" "main" {
-  compartment_id = data.bitwarden_secret.oci_compartment_id.value
+  compartment_id = oci_identity_compartment.main.id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "interstellar-rt"
 
@@ -67,7 +86,7 @@ resource "oci_core_route_table" "main" {
 
 # Security List
 resource "oci_core_security_list" "main" {
-  compartment_id = data.bitwarden_secret.oci_compartment_id.value
+  compartment_id = oci_identity_compartment.main.id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "interstellar-sl"
 
@@ -133,7 +152,7 @@ resource "oci_core_security_list" "main" {
 
 # Subnet
 resource "oci_core_subnet" "main" {
-  compartment_id             = data.bitwarden_secret.oci_compartment_id.value
+  compartment_id             = oci_identity_compartment.main.id
   vcn_id                     = oci_core_vcn.main.id
   display_name               = "interstellar-subnet"
   cidr_block                 = "10.0.1.0/24"
@@ -156,7 +175,7 @@ resource "tls_private_key" "oracle_ssh" {
 # Proxy VPS (Minimal - just HAProxy)
 # -----------------------------------------------------------------------------
 resource "oci_core_instance" "proxy" {
-  compartment_id      = data.bitwarden_secret.oci_compartment_id.value
+  compartment_id      = oci_identity_compartment.main.id
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   display_name        = "oracle-proxy"
   shape               = "VM.Standard.A1.Flex"
@@ -211,7 +230,7 @@ UPGRADES
 # Compute VPS (Remaining resources for general workloads)
 # -----------------------------------------------------------------------------
 resource "oci_core_instance" "compute" {
-  compartment_id      = data.bitwarden_secret.oci_compartment_id.value
+  compartment_id      = oci_identity_compartment.main.id
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   display_name        = "oracle-compute"
   shape               = "VM.Standard.A1.Flex"
