@@ -80,7 +80,7 @@ jobs:
                   resources=$(terraform state list)
 
                   # Filter out excluded patterns: data sources and proxmox related resources
-                  targets=$(echo "$resources" | grep -vE "^data\.|^proxmox" | sed 's/^/-target=/' | tr '\n' ' ')
+                  targets=$(echo "$resources" | grep -vE "^data\.|^proxmox|^oci_objectstorage_bucket\.terraform_state" | sed 's/^/-target=/' | tr '\n' ' ')
 
                   if [ -z "$targets" ]; then
                     echo "No resources to destroy found."
