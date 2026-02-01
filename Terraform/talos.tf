@@ -153,7 +153,7 @@ data "talos_machine_configuration" "controlplane" {
         apiServer = {
           certSANs = [
             var.cluster_vip,
-            "talos-operator.${var.tailscale_tailnet}.ts.net",
+            "talos-operator.${local.tailscale_tailnet}.ts.net",
             "kubernetes.${var.cluster_domain}"
           ]
         }
@@ -213,30 +213,8 @@ data "talos_cluster_health" "cluster" {
 }
 
 # -----------------------------------------------------------------------------
-# Kubeconfig
-# -----------------------------------------------------------------------------
-data "talos_cluster_kubeconfig" "cluster" {
-  client_configuration = talos_machine_secrets.cluster.client_configuration
-  node                 = var.nodes["talos-1"].ip
-
-  depends_on = [talos_machine_bootstrap.cluster, data.talos_cluster_health.cluster]
-}
-
-# -----------------------------------------------------------------------------
 # Outputs
 # -----------------------------------------------------------------------------
-output "talosconfig" {
-  description = "Talosconfig for talosctl CLI access"
-  value       = data.talos_client_configuration.cluster.talos_config
-  sensitive   = true
-}
-
-output "kubeconfig" {
-  description = "Kubeconfig for kubectl access"
-  value       = data.talos_cluster_kubeconfig.cluster.kubeconfig_raw
-  sensitive   = true
-}
-
 output "talos_schematic_id" {
   description = "Talos Factory schematic ID for the custom image"
   value       = talos_image_factory_schematic.cluster.id

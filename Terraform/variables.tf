@@ -101,22 +101,6 @@ variable "storage_pool" {
 }
 
 # -----------------------------------------------------------------------------
-# Oracle Cloud Configuration
-# -----------------------------------------------------------------------------
-variable "oci_tenancy_ocid" {
-  description = "OCI Tenancy OCID"
-  type        = string
-}
-
-# -----------------------------------------------------------------------------
-# Tailscale Configuration
-# -----------------------------------------------------------------------------
-variable "tailscale_tailnet" {
-  description = "Tailscale tailnet name"
-  type        = string
-}
-
-# -----------------------------------------------------------------------------
 # TalosOS Extensions
 # -----------------------------------------------------------------------------
 variable "talos_extensions" {
@@ -155,5 +139,5 @@ variable "tf_state_bucket" {
 variable "tailscale_traefik_ip" {
   description = "Tailscale IP of talos-traefik service for fallback DNS. Set after initial deployment."
   type        = string
-  default     = ""  # Set this after running: tailscale status | grep talos-traefik
+  default     = "" # Set this after running: tailscale status | grep talos-traefik
 }

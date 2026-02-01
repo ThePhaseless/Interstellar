@@ -23,7 +23,7 @@ data "oci_identity_availability_domains" "ads" {
 }
 
 resource "oci_identity_compartment" "main" {
-  compartment_id = var.oci_tenancy_ocid
+  compartment_id = local.oci_tenancy_ocid
   description    = "Compartment for Terraform resources."
   name           = "TerraformCompartment"
   enable_delete  = true
@@ -284,10 +284,10 @@ UPGRADES
 # -----------------------------------------------------------------------------
 # Store SSH Key in Bitwarden
 # -----------------------------------------------------------------------------
-resource "bitwarden_secret" "oracle_ssh_private_key" {
+resource "bitwarden-secrets_secret" "oracle_ssh_private_key" {
   key        = "oracle-ssh-private-key"
   value      = tls_private_key.oracle_ssh.private_key_openssh
-  project_id = data.bitwarden_project.interstellar.id
+  project_id = local.bitwarden_project_id
   note       = "SSH private key for Oracle VPS instances. Managed by Terraform."
 }
 

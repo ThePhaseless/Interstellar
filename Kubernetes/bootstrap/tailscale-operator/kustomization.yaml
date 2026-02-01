@@ -27,12 +27,6 @@ helmCharts:
         # Enable API server proxy for kubectl access
         apiServerProxyConfig:
           enabled: true
-        # Enable subnet router
-        subnetRouter:
-          enabled: true
-          routes:
-            - "10.244.0.0/16" # Pod CIDR
-            - "10.96.0.0/12" # Service CIDR
       # Resource limits
       resources:
         requests:

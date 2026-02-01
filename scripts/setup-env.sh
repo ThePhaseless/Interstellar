@@ -135,12 +135,30 @@ check_prerequisites() {
 fetch_secrets() {
     log_info "Fetching secrets from Bitwarden..."
 
-    # OCI config file and private key
-    log_info "Setting up OCI config..."
-    local oci_config oci_private_key secrets_json
+    # Set up Bitwarden provider environment variables
+    # The provider expects BW_ACCESS_TOKEN (same as BWS_ACCESS_TOKEN)
+    if [[ -n "${BWS_ACCESS_TOKEN:-}" ]]; then
+        export BW_ACCESS_TOKEN="$BWS_ACCESS_TOKEN"
+        log_success "BW_ACCESS_TOKEN set from BWS_ACCESS_TOKEN"
+    fi
 
     # Fetch all secrets once for efficiency
+    local secrets_json
     secrets_json=$(bws secret list --output json 2>/dev/null)
+
+    # Get organization ID from any secret (they all have the same org)
+    local org_id
+    org_id=$(echo "$secrets_json" | jq -r '.[0].organizationId // empty' 2>/dev/null)
+    if [[ -n "$org_id" ]]; then
+        export BW_ORGANIZATION_ID="$org_id"
+        log_success "BW_ORGANIZATION_ID set"
+    else
+        log_warn "Could not determine Bitwarden organization ID"
+    fi
+
+    # OCI config file and private key
+    log_info "Setting up OCI config..."
+    local oci_config oci_private_key
 
     oci_config=$(echo "$secrets_json" | jq -r '.[] | select(.key == "oci-config") | .value' 2>/dev/null)
     oci_private_key=$(echo "$secrets_json" | jq -r '.[] | select(.key == "oci-private-key") | .value' 2>/dev/null)
