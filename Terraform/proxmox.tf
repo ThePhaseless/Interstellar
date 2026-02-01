@@ -85,7 +85,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   # Boot from ISO for initial install
   cdrom {
-    enabled   = true
     file_id   = proxmox_virtual_environment_download_file.talos_iso.id
     interface = "ide2"
   }
