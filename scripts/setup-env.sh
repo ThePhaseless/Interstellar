@@ -2,7 +2,7 @@
 # =============================================================================
 # Local Environment Setup Script
 # =============================================================================
-# This script sets up environment variables for running Terraform and Ansible
+# This script sets up environment variables for running OpenTofu and Ansible
 # locally. It fetches secrets from Bitwarden and exports them.
 #
 # Prerequisites:
@@ -14,7 +14,7 @@
 #   source scripts/setup-env.sh
 #
 # After sourcing, you can run:
-#   cd Terraform && terraform init && terraform plan
+#   cd Terraform && tofu init && tofu plan
 #   cd Ansible && ansible-playbook -i inventory setup-proxmox.yaml
 # =============================================================================
 
@@ -31,14 +31,14 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # -----------------------------------------------------------------------------
-# Fetch a single secret and export it
+# Fetch a single secret by key name and export it
 # -----------------------------------------------------------------------------
 fetch_and_export_secret() {
     local bws_name="$1"
     local env_name="$2"
     local value
 
-    value=$(bws secret get "$bws_name" --output json 2>/dev/null | jq -r '.value' 2>/dev/null)
+    value=$(bws secret list --output json 2>/dev/null | jq -r --arg key "$bws_name" '.[] | select(.key == $key) | .value' 2>/dev/null)
     if [[ $? -eq 0 && "$value" != "null" && -n "$value" ]]; then
         export "$env_name"="$value"
         return 0
@@ -135,28 +135,59 @@ check_prerequisites() {
 fetch_secrets() {
     log_info "Fetching secrets from Bitwarden..."
 
-    # OCI Backend secrets (for Terraform state)
-    log_info "Fetching OCI backend secrets..."
+    # OCI config file and private key
+    log_info "Setting up OCI config..."
+    local oci_config oci_private_key secrets_json
+
+    # Fetch all secrets once for efficiency
+    secrets_json=$(bws secret list --output json 2>/dev/null)
+
+    oci_config=$(echo "$secrets_json" | jq -r '.[] | select(.key == "oci-config") | .value' 2>/dev/null)
+    oci_private_key=$(echo "$secrets_json" | jq -r '.[] | select(.key == "oci-private-key") | .value' 2>/dev/null)
+
+    if [[ -n "$oci_config" && "$oci_config" != "null" ]]; then
+        mkdir -p "$HOME/.oci"
+        printf "%s" "$oci_config" > "$HOME/.oci/config"
+        printf "%s" "$oci_private_key" > "$HOME/.oci/oci_api_key.pem"
+        chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
+
+        # Update key_file path in config
+        if grep -q '^key_file=' "$HOME/.oci/config"; then
+            sed -i "s|^key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|" "$HOME/.oci/config"
+        else
+            echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
+        fi
+
+        # Extract tenancy for OpenTofu variable
+        local tenancy
+        tenancy=$(grep -E '^tenancy=' "$HOME/.oci/config" | head -n1 | cut -d= -f2-)
+        if [[ -n "$tenancy" ]]; then
+            export TF_VAR_oci_tenancy_ocid="$tenancy"
+        fi
+        log_success "OCI config written to ~/.oci/config"
+    else
+        log_warn "OCI config not found in Bitwarden. OCI operations may fail."
+    fi
+
+    # Other OCI secrets
     fetch_batch \
-        "oci-tenancy-ocid" "OCI_tenancy_ocid" \
-        "oci-user-ocid" "OCI_user_ocid" \
-        "oci-fingerprint" "OCI_fingerprint" \
-        "oci-private-key" "OCI_private_key" \
-        "oci-region" "OCI_region" \
         "oci-namespace" "TF_VAR_oci_namespace" \
         "tf-state-bucket" "TF_STATE_BUCKET"
 
     if [[ $? -eq 0 ]]; then
         log_success "OCI backend secrets loaded"
     else
-        log_warn "Some OCI backend secrets are missing. Terraform state operations may fail."
+        log_warn "Some OCI backend secrets are missing. OpenTofu state operations may fail."
     fi
 
-    # Infrastructure secrets (for Terraform apply)
+    # Infrastructure secrets (for OpenTofu apply)
     log_info "Fetching infrastructure secrets..."
+
     fetch_batch \
         "tailscale-tailnet" "TF_VAR_tailscale_tailnet" \
-        "oci-compartment-id" "TF_VAR_oci_compartment_id"
+        "cloudflare-api-token" "CLOUDFLARE_API_TOKEN" \
+        "cloudflare-zone-id" "TF_VAR_cloudflare_zone_id" \
+        "proxmox-api-token" "PROXMOX_VE_API_TOKEN"
 
     if [[ $? -eq 0 ]]; then
         log_success "Infrastructure secrets loaded"
@@ -186,7 +217,7 @@ main() {
     log_success "Environment ready!"
     echo ""
     log_info "You can now run:"
-    echo "  cd Terraform && terraform init && terraform plan"
+    echo "  cd Terraform && tofu init && tofu plan"
     echo "  cd Ansible && ansible-playbook setup-proxmox.yaml"
     echo ""
 }
