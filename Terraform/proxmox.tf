@@ -23,7 +23,7 @@ resource "proxmox_lxc" "containers" {
   for_each = local.containers
 
   ostemplate      = "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
-  target_node     = var.proxmox_host
+  target_node     = "carbon"
   hostname        = each.key
   memory          = each.value.memory
   swap            = each.value.swap
