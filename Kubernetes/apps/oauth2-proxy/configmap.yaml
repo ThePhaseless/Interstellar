@@ -1,0 +1,89 @@
+# =============================================================================
+# OAuth2 Proxy Configuration
+# =============================================================================
+# Google OAuth provider with email-based access control
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-config
+  namespace: utilities
+data:
+  oauth2-proxy.cfg: |
+    # ==========================================================================
+    # OAuth2 Proxy Configuration
+    # ==========================================================================
+    
+    # HTTP server settings
+    http_address = "0.0.0.0:4180"
+    metrics_address = "0.0.0.0:44180"
+    
+    # Provider: Google OAuth
+    provider = "google"
+    
+    # Cookie settings
+    cookie_name = "_oauth2_proxy"
+    cookie_secure = true
+    cookie_httponly = true
+    cookie_samesite = "lax"
+    cookie_expire = "168h"  # 1 week
+    cookie_refresh = "1h"   # Refresh every hour
+    cookie_domains = [".nerine.dev"]
+    
+    # Session settings
+    session_store_type = "cookie"
+    
+    # Upstream configuration (not used - we use ForwardAuth)
+    upstreams = ["static://202"]
+    
+    # Email domain restriction - only allow specific domain
+    # Leave empty to allow any Google account, or set your domain
+    # email_domains = ["yourdomain.com"]
+    email_domains = ["*"]  # Allow all Google accounts
+    
+    # Whitelist specific emails (loaded from authenticated_emails_file)
+    # authenticated_emails_file = "/config/authenticated-emails.txt"
+    
+    # Reverse proxy / ForwardAuth settings
+    reverse_proxy = true
+    set_xauthrequest = true
+    set_authorization_header = true
+    pass_access_token = true
+    pass_authorization_header = true
+    pass_user_headers = true
+    
+    # Headers to pass to upstream
+    # X-Auth-Request-User: user email
+    # X-Auth-Request-Email: user email  
+    # X-Auth-Request-Groups: groups (if available)
+    # X-Auth-Request-Access-Token: OAuth access token
+    
+    # Skip authentication for health checks
+    skip_auth_routes = [
+      "^/ping$",
+      "^/ready$",
+      "^/metrics$"
+    ]
+    
+    # Logging
+    standard_logging = true
+    request_logging = true
+    auth_logging = true
+    
+    # SSL/TLS (handled by Traefik)
+    ssl_insecure_skip_verify = false
+    
+    # OIDC settings for Google
+    oidc_issuer_url = "https://accounts.google.com"
+    
+    # Scopes to request
+    scope = "openid email profile"
+    
+    # Redirect URL (must match Google OAuth console)
+    redirect_url = "https://auth.nerine.dev/oauth2/callback"
+    
+    # Whitelist redirect domains
+    whitelist_domains = [".nerine.dev"]
+    
+    # Skip provider button (go directly to Google)
+    skip_provider_button = true
