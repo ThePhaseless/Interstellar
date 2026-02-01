@@ -26,13 +26,16 @@ data "oci_core_instance" "oracle_vps" {
 
 locals {
   oracle_public_ip = data.oci_core_instance.oracle_vps.public_ip
+  # Tailscale IP from Bitwarden (synced by Kubernetes CronJob)
+  # Falls back to empty string if secret doesn't exist yet
+  tailscale_traefik_ip = try(data.bitwarden_secret.tailscale_traefik_ip.value, "")
 }
 
 # -----------------------------------------------------------------------------
 # Public DNS Records (pointing to Oracle VPS)
 # -----------------------------------------------------------------------------
 
-# Wildcard record for all services
+# Wildcard record for all services (Oracle VPS - public fallback)
 resource "cloudflare_dns_record" "wildcard" {
   zone_id = data.cloudflare_zone.main.id
   name    = "*"
@@ -40,10 +43,23 @@ resource "cloudflare_dns_record" "wildcard" {
   type    = "A"
   ttl     = 300
   proxied = false # DNS-only, no Cloudflare proxy (TLS at Traefik)
-  comment = "Wildcard for all cluster services via Oracle HAProxy"
+  comment = "Wildcard for all cluster services via Oracle HAProxy (public fallback)"
 }
 
-# Root domain
+# Wildcard record for Tailscale direct access (preferred when reachable)
+# Clients use "Happy Eyeballs" - will prefer Tailscale if connected, fallback to VPS otherwise
+resource "cloudflare_dns_record" "wildcard_tailscale" {
+  count   = local.tailscale_traefik_ip != "" ? 1 : 0
+  zone_id = data.cloudflare_zone.main.id
+  name    = "*"
+  content = local.tailscale_traefik_ip
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Wildcard for Tailscale direct access (preferred for Tailscale users)"
+}
+
+# Root domain (Oracle VPS)
 resource "cloudflare_dns_record" "root" {
   zone_id = data.cloudflare_zone.main.id
   name    = "@"
@@ -54,11 +70,24 @@ resource "cloudflare_dns_record" "root" {
   comment = "Root domain via Oracle HAProxy"
 }
 
+# Root domain Tailscale (preferred when reachable)
+resource "cloudflare_dns_record" "root_tailscale" {
+  count   = local.tailscale_traefik_ip != "" ? 1 : 0
+  zone_id = data.cloudflare_zone.main.id
+  name    = "@"
+  content = local.tailscale_traefik_ip
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Root domain via Tailscale direct (preferred)"
+}
+
 # -----------------------------------------------------------------------------
 # Specific Service Records (for clarity and documentation)
+# Each service has two A records: Tailscale (preferred) + Oracle VPS (fallback)
 # -----------------------------------------------------------------------------
 
-# Public services
+# Public services - Oracle VPS (fallback)
 resource "cloudflare_dns_record" "watch" {
   zone_id = data.cloudflare_zone.main.id
   name    = "watch"
@@ -66,7 +95,18 @@ resource "cloudflare_dns_record" "watch" {
   type    = "A"
   ttl     = 300
   proxied = false
-  comment = "Jellyfin media streaming"
+  comment = "Jellyfin media streaming (Oracle VPS fallback)"
+}
+
+resource "cloudflare_dns_record" "watch_tailscale" {
+  count   = local.tailscale_traefik_ip != "" ? 1 : 0
+  zone_id = data.cloudflare_zone.main.id
+  name    = "watch"
+  content = local.tailscale_traefik_ip
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Jellyfin media streaming (Tailscale preferred)"
 }
 
 resource "cloudflare_dns_record" "add" {
@@ -76,7 +116,18 @@ resource "cloudflare_dns_record" "add" {
   type    = "A"
   ttl     = 300
   proxied = false
-  comment = "Jellyseerr request management"
+  comment = "Jellyseerr request management (Oracle VPS fallback)"
+}
+
+resource "cloudflare_dns_record" "add_tailscale" {
+  count   = local.tailscale_traefik_ip != "" ? 1 : 0
+  zone_id = data.cloudflare_zone.main.id
+  name    = "add"
+  content = local.tailscale_traefik_ip
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Jellyseerr request management (Tailscale preferred)"
 }
 
 resource "cloudflare_dns_record" "files" {
@@ -86,7 +137,18 @@ resource "cloudflare_dns_record" "files" {
   type    = "A"
   ttl     = 300
   proxied = false
-  comment = "Copyparty file server"
+  comment = "Copyparty file server (Oracle VPS fallback)"
+}
+
+resource "cloudflare_dns_record" "files_tailscale" {
+  count   = local.tailscale_traefik_ip != "" ? 1 : 0
+  zone_id = data.cloudflare_zone.main.id
+  name    = "files"
+  content = local.tailscale_traefik_ip
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Copyparty file server (Tailscale preferred)"
 }
 
 resource "cloudflare_dns_record" "photos" {
@@ -96,7 +158,18 @@ resource "cloudflare_dns_record" "photos" {
   type    = "A"
   ttl     = 300
   proxied = false
-  comment = "Immich photo management"
+  comment = "Immich photo management (Oracle VPS fallback)"
+}
+
+resource "cloudflare_dns_record" "photos_tailscale" {
+  count   = local.tailscale_traefik_ip != "" ? 1 : 0
+  zone_id = data.cloudflare_zone.main.id
+  name    = "photos"
+  content = local.tailscale_traefik_ip
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Immich photo management (Tailscale preferred)"
 }
 
 resource "cloudflare_dns_record" "mcp" {
@@ -106,7 +179,18 @@ resource "cloudflare_dns_record" "mcp" {
   type    = "A"
   ttl     = 300
   proxied = false
-  comment = "MCPJungle MCP server registry"
+  comment = "MCPJungle MCP server registry (Oracle VPS fallback)"
+}
+
+resource "cloudflare_dns_record" "mcp_tailscale" {
+  count   = local.tailscale_traefik_ip != "" ? 1 : 0
+  zone_id = data.cloudflare_zone.main.id
+  name    = "mcp"
+  content = local.tailscale_traefik_ip
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "MCPJungle MCP server registry (Tailscale preferred)"
 }
 
 # -----------------------------------------------------------------------------
