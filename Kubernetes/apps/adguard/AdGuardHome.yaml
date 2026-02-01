@@ -68,7 +68,14 @@ filtering:
   blocking_mode: default
   parental_block_host: family-block.dns.adguard.com
   safebrowsing_block_host: standard-block.dns.adguard.com
-  rewrites: []
+  # DNS rewrites for Tailscale fallback access
+  # When friends use this AdGuard via Tailscale, domains resolve to Traefik's Tailscale IP
+  # Replace 100.x.y.z with actual talos-traefik Tailscale IP after deployment
+  rewrites:
+    - domain: "*.nerine.dev"
+      answer: "100.x.y.z"
+    - domain: "nerine.dev"
+      answer: "100.x.y.z"
   safebrowsing_cache_size: 1048576
   safesearch_cache_size: 1048576
   parental_cache_size: 1048576
