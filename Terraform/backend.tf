@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.12.2"
+  required_version = ">= 1.11.4"
 
   # OCI Object Storage backend for state storage
   # Authentication via ~/.oci/config file (SDK/CLI standard config)
@@ -45,7 +45,7 @@ terraform {
     # Bitwarden Secrets Manager
     bitwarden = {
       source  = "bitwarden/bitwarden-secrets"
-      version = ">= 0.1.0"
+      version = "0.5.4-pre"
     }
 
     # Standard providers
