@@ -1,13 +1,13 @@
-name: Terraform
+name: Terraform Plan
 
 on:
   workflow_dispatch:
 
 concurrency:
-  group: concurrency-lock
+  group: terraform-plan
 
 jobs:
-  terraform:
+  plan:
     runs-on: ubuntu-latest
     environment: server
     env:
@@ -24,7 +24,7 @@ jobs:
       TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
       TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+      TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
 
       # For OCI Backend
       OCI_user: ${{ secrets.TF_VAR_USER_OCID }}
@@ -61,6 +61,14 @@ jobs:
       - name: Create OCI Private Key
         run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}
 
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          use-cache: "true"
+          version: latest
+
       - name: Terraform Init
         working-directory: Terraform
         run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
@@ -74,19 +82,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Setup Tailscale
-        uses: tailscale/github-action@v4
-        with:
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
-          use-cache: "true"
-          version: latest
-
       - name: Terraform Plan
         run: terraform plan -input=false -out=tfplan
         working-directory: Terraform
         id: plan
-
-      - name: Terraform Apply
-        run: terraform apply -input=false tfplan
-        working-directory: Terraform
