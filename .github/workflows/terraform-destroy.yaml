@@ -1,189 +1,189 @@
 name: Terraform Destroy
 
 on:
-  workflow_dispatch:
+    workflow_dispatch:
 
 concurrency:
-  group: concurrency-lock
+    group: concurrency-lock
 
 jobs:
-  plan-destroy:
-    runs-on: ubuntu-latest
-    outputs:
-      destroy_needed: ${{ steps.plan.outputs.destroy_needed }}
-    env:
-      UV_LINK_MODE: copy
-      PM_PASS: ${{ secrets.PM_PASS }}
-      TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
-      TF_VAR_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
-      TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
-      TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
-      TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
-      TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
-      TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
-      TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
-      OCI_user: ${{ secrets.TF_VAR_USER_OCID }}
-      OCI_tenancy: ${{ secrets.TF_VAR_TENANCY_OCID }}
-      OCI_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
-      OCI_region: ${{ secrets.TF_VAR_REGION }}
-      OCI_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          activate-environment: true
-          enable-cache: true
-          cache-local-path: .venv
-
-      - name: Install Project Dependencies
-        run: uv sync --locked --link-mode=copy
-
-      - name: Cache Terraform Providers
-        uses: actions/cache@v4
-        with:
-          path: Terraform/.terraform
-          key: ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl') }}
-          restore-keys: |
-            ${{ runner.os }}-terraform-
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Create OCI Private Key
-        run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}
-
-      - name: Setup Tailscale
-        uses: tailscale/github-action@v4
-        with:
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
-          use-cache: "true"
-          version: latest
-
-      - name: Terraform Init
-        working-directory: Terraform
-        run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
-
-      - name: Plan Terraform Destroy (Excluding Proxmox)
-        working-directory: Terraform
-        id: plan
-        run: |
-            # Get list of all resources
-            resources=$(terraform state list)
-            
-            # Filter out excluded patterns: data sources and proxmox related resources
-            targets=$(echo "$resources" | grep -vE "^data\.|^proxmox" | sed 's/^/-target=/' | tr '\n' ' ')
-            
-            if [ -z "$targets" ]; then
-              echo "No resources to destroy found."
-              echo "destroy_needed=false" >> $GITHUB_OUTPUT
-            else
-              echo "Planning destroy for targets: $targets"
-              terraform plan -destroy -out=tfdestroyplan $targets
-              echo "destroy_needed=true" >> $GITHUB_OUTPUT
-            fi
-
-      - name: Encrypt Terraform Plan
-        if: steps.plan.outputs.destroy_needed == 'true'
-        working-directory: Terraform
+    plan-destroy:
+        runs-on: ubuntu-latest
+        outputs:
+            destroy_needed: ${{ steps.plan.outputs.destroy_needed }}
         env:
-          PLAN_ENCRYPTION_KEY: ${{ secrets.PM_PASS }}
-        run: |
-          gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase "$PLAN_ENCRYPTION_KEY" --output tfdestroyplan.gpg tfdestroyplan
+            UV_LINK_MODE: copy
+            PM_PASS: ${{ secrets.PM_PASS }}
+            TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
+            TF_VAR_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
+            TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
+            TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
+            TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
+            TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
+            TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
+            TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
+            CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+            TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
+            OCI_user: ${{ secrets.TF_VAR_USER_OCID }}
+            OCI_tenancy: ${{ secrets.TF_VAR_TENANCY_OCID }}
+            OCI_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
+            OCI_region: ${{ secrets.TF_VAR_REGION }}
+            OCI_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
 
-      - name: Upload Terraform Plan
-        if: steps.plan.outputs.destroy_needed == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfdestroyplan
-          path: Terraform/tfdestroyplan.gpg
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
 
-  apply-destroy:
-    needs: plan-destroy
-    if: needs.plan-destroy.outputs.destroy_needed == 'true'
-    runs-on: ubuntu-latest
-    environment: 
-      name: server
-      url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-    # ⚠️ IMPORTANT: To enforce manual approval, go to Settings -> Environments -> server -> "Required reviewers" in your Repo.
-    env:
-      UV_LINK_MODE: copy
-      PM_PASS: ${{ secrets.PM_PASS }}
-      TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
-      TF_VAR_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
-      TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
-      TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
-      TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
-      TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
-      TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
-      TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
-      OCI_user: ${{ secrets.TF_VAR_USER_OCID }}
-      OCI_tenancy: ${{ secrets.TF_VAR_TENANCY_OCID }}
-      OCI_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
-      OCI_region: ${{ secrets.TF_VAR_REGION }}
-      OCI_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  activate-environment: true
+                  enable-cache: true
+                  cache-local-path: .venv
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+            - name: Install Project Dependencies
+              run: uv sync --locked --link-mode=copy
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          activate-environment: true
-          enable-cache: true
-          cache-local-path: .venv
+            - name: Cache Terraform Providers
+              uses: actions/cache@v4
+              with:
+                  path: Terraform/.terraform
+                  key: ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl') }}
+                  restore-keys: |
+                      ${{ runner.os }}-terraform-
 
-      - name: Install Project Dependencies
-        run: uv sync --locked --link-mode=copy
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
 
-      - name: Cache Terraform Providers
-        uses: actions/cache@v4
-        with:
-          path: Terraform/.terraform
-          key: ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl') }}
-          restore-keys: |
-            ${{ runner.os }}-terraform-
+            - name: Create OCI Private Key
+              run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+            - name: Setup Tailscale
+              uses: tailscale/github-action@v4
+              with:
+                  oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+                  tags: tag:ci
+                  use-cache: "true"
+                  version: latest
 
-      - name: Create OCI Private Key
-        run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}
+            - name: Terraform Init
+              working-directory: Terraform
+              run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
 
-      - name: Setup Tailscale
-        uses: tailscale/github-action@v4
-        with:
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
-          use-cache: "true"
-          version: latest
+            - name: Plan Terraform Destroy (Excluding Proxmox)
+              working-directory: Terraform
+              id: plan
+              run: |
+                  # Get list of all resources
+                  resources=$(terraform state list)
 
-      - name: Terraform Init
-        working-directory: Terraform
-        run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
+                  # Filter out excluded patterns: data sources and proxmox related resources
+                  targets=$(echo "$resources" | grep -vE "^data\.|^proxmox" | sed 's/^/-target=/' | tr '\n' ' ')
 
-      - name: Download Terraform Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfdestroyplan
-          path: Terraform
+                  if [ -z "$targets" ]; then
+                    echo "No resources to destroy found."
+                    echo "destroy_needed=false" >> $GITHUB_OUTPUT
+                  else
+                    echo "Planning destroy for targets: $targets"
+                    terraform plan -destroy -out=tfdestroyplan $targets
+                    echo "destroy_needed=true" >> $GITHUB_OUTPUT
+                  fi
 
-      - name: Decrypt Terraform Plan
-        working-directory: Terraform
+            - name: Encrypt Terraform Plan
+              if: steps.plan.outputs.destroy_needed == 'true'
+              working-directory: Terraform
+              env:
+                  PLAN_ENCRYPTION_KEY: ${{ secrets.PM_PASS }}
+              run: |
+                  gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase "$PLAN_ENCRYPTION_KEY" --output tfdestroyplan.gpg tfdestroyplan
+
+            - name: Upload Terraform Plan
+              if: steps.plan.outputs.destroy_needed == 'true'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: tfdestroyplan
+                  path: Terraform/tfdestroyplan.gpg
+
+    apply-destroy:
+        needs: plan-destroy
+        if: needs.plan-destroy.outputs.destroy_needed == 'true'
+        runs-on: ubuntu-latest
+        environment:
+            name: server
+            url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        # ⚠️ IMPORTANT: To enforce manual approval, go to Settings -> Environments -> server -> "Required reviewers" in your Repo.
         env:
-          PLAN_ENCRYPTION_KEY: ${{ secrets.PM_PASS }}
-        run: |
-          gpg --decrypt --batch --yes --passphrase "$PLAN_ENCRYPTION_KEY" --output tfdestroyplan tfdestroyplan.gpg
+            UV_LINK_MODE: copy
+            PM_PASS: ${{ secrets.PM_PASS }}
+            TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
+            TF_VAR_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
+            TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
+            TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
+            TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
+            TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
+            TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
+            TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
+            CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+            TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
+            OCI_user: ${{ secrets.TF_VAR_USER_OCID }}
+            OCI_tenancy: ${{ secrets.TF_VAR_TENANCY_OCID }}
+            OCI_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
+            OCI_region: ${{ secrets.TF_VAR_REGION }}
+            OCI_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
 
-      - name: Apply Terraform Destroy
-        working-directory: Terraform
-        run: terraform apply -auto-approve tfdestroyplan
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  activate-environment: true
+                  enable-cache: true
+                  cache-local-path: .venv
+
+            - name: Install Project Dependencies
+              run: uv sync --locked --link-mode=copy
+
+            - name: Cache Terraform Providers
+              uses: actions/cache@v4
+              with:
+                  path: Terraform/.terraform
+                  key: ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl') }}
+                  restore-keys: |
+                      ${{ runner.os }}-terraform-
+
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
+
+            - name: Create OCI Private Key
+              run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}
+
+            - name: Setup Tailscale
+              uses: tailscale/github-action@v4
+              with:
+                  oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+                  tags: tag:ci
+                  use-cache: "true"
+                  version: latest
+
+            - name: Terraform Init
+              working-directory: Terraform
+              run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
+
+            - name: Download Terraform Plan
+              uses: actions/download-artifact@v4
+              with:
+                  name: tfdestroyplan
+                  path: Terraform
+
+            - name: Decrypt Terraform Plan
+              working-directory: Terraform
+              env:
+                  PLAN_ENCRYPTION_KEY: ${{ secrets.PM_PASS }}
+              run: |
+                  gpg --decrypt --batch --yes --passphrase "$PLAN_ENCRYPTION_KEY" --output tfdestroyplan tfdestroyplan.gpg
+
+            - name: Apply Terraform Destroy
+              working-directory: Terraform
+              run: terraform apply -auto-approve tfdestroyplan
