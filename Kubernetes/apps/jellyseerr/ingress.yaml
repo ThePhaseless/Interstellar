@@ -1,5 +1,5 @@
 # =============================================================================
-# Jellyseerr Ingress (Public - public-chain middleware)
+# Jellyseerr Ingress (Uses Jellyfin login - no external auth)
 # =============================================================================
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -10,7 +10,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`add.nerine.dev`)
+    - match: Host(`jellyseerr.nerine.dev`)
       kind: Rule
       services:
         - name: jellyseerr

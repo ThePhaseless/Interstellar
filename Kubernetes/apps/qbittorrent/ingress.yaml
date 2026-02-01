@@ -1,5 +1,5 @@
 # =============================================================================
-# qBittorrent Ingress (Tailscale-only)
+# qBittorrent Ingress (Protected by OAuth2 Proxy)
 # =============================================================================
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -16,7 +16,9 @@ spec:
         - name: qbittorrent
           port: 8080
       middlewares:
-        - name: tailscale-only
+        - name: public-chain
+          namespace: traefik
+        - name: oauth2-proxy
           namespace: traefik
   tls:
     certResolver: letsencrypt

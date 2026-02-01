@@ -1,5 +1,5 @@
 # =============================================================================
-# Radarr Ingress (Tailscale-only)
+# Radarr Ingress (Protected by OAuth2 Proxy)
 # =============================================================================
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -16,7 +16,9 @@ spec:
         - name: radarr
           port: 7878
       middlewares:
-        - name: tailscale-only
+        - name: public-chain
+          namespace: traefik
+        - name: oauth2-proxy
           namespace: traefik
   tls:
     certResolver: letsencrypt
