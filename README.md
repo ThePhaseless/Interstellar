@@ -58,7 +58,7 @@ flowchart TB
 | **Secrets**       | Bitwarden Secrets Manager + External Secrets Operator         |
 | **Security**      | CrowdSec WAF (Traefik plugin v1.5.0), ClamAV malware scanning |
 | **Observability** | Grafana, Loki, Mimir, Promtail, Alloy                         |
-| **IaC**           | Terraform, Ansible, GitHub Actions                            |
+| **IaC**           | OpenTofu, Ansible, GitHub Actions                             |
 
 ## 🖥️ Hardware
 
@@ -134,7 +134,7 @@ flowchart TB
 ```
 Interstellar/
 ├── .github/workflows/       # CI/CD pipelines
-│   ├── terraform.yaml       # Infrastructure deployment
+│   ├── opentofu.yaml        # Infrastructure deployment
 │   ├── ansible.yaml         # Host configuration
 │   ├── kubernetes-lint.yaml # Manifest linting
 │   └── tailscale-acl.yaml   # ACL policy sync
