@@ -65,6 +65,7 @@ jobs:
               uses: tailscale/github-action@v4
               with:
                   oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+                  oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
                   tags: tag:ci
                   use-cache: "true"
                   version: latest
