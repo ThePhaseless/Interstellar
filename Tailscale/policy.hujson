@@ -16,7 +16,6 @@
     "tag:oracle":       ["autogroup:admin"],
     "tag:cluster":      ["autogroup:admin"],
     "tag:k8s-operator": ["autogroup:admin"],
-    // Shared nodes - can be shared with external Tailscale users
     "tag:shared":       ["autogroup:admin"]
   },
 

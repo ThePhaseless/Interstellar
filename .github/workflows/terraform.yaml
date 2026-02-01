@@ -45,13 +45,18 @@ jobs:
           secrets: |
             oci-config > OCI_CONFIG
             oci-private-key > OCI_PRIVATE_KEY
-            oci-namespace > TF_VAR_oci_namespace
-            tailscale-tailnet > TF_VAR_tailscale_tailnet
+            oci-namespace > OCI_NAMESPACE
             tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
             tailscale-oauth-secret > TS_OAUTH_SECRET
             tf-state-bucket > TF_STATE_BUCKET
-            cloudflare-api-token > CLOUDFLARE_API_TOKEN
-            cloudflare-zone-id > TF_VAR_cloudflare_zone_id
+            proxmox-api-token > PROXMOX_API_TOKEN_VALUE
+
+      # Set Bitwarden provider environment variables
+      - name: Set Provider Environment Variables
+        run: |
+          echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          echo "BW_ORGANIZATION_ID=${{ secrets.BW_ORGANIZATION_ID }}" >> $GITHUB_ENV
+          echo "PROXMOX_VE_API_TOKEN=root@pam!terraform=$PROXMOX_API_TOKEN_VALUE" >> $GITHUB_ENV
 
       # Connect to Tailscale for Proxmox access
       - name: Connect to Tailscale
@@ -75,11 +80,6 @@ jobs:
             echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
           fi
 
-          tenancy=$(grep -E '^tenancy=' "$HOME/.oci/config" | head -n1 | cut -d= -f2-)
-          if [[ -n "$tenancy" ]]; then
-            echo "TF_VAR_oci_tenancy_ocid=$tenancy" >> "$GITHUB_ENV"
-          fi
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -96,7 +96,7 @@ jobs:
         run: |
           terraform init \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="namespace=${{ env.TF_VAR_oci_namespace }}"
+            -backend-config="namespace=${{ env.OCI_NAMESPACE }}"
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
@@ -178,13 +178,18 @@ jobs:
           secrets: |
             oci-config > OCI_CONFIG
             oci-private-key > OCI_PRIVATE_KEY
-            oci-namespace > TF_VAR_oci_namespace
-            tailscale-tailnet > TF_VAR_tailscale_tailnet
+            oci-namespace > OCI_NAMESPACE
             tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
             tailscale-oauth-secret > TS_OAUTH_SECRET
             tf-state-bucket > TF_STATE_BUCKET
-            cloudflare-api-token > CLOUDFLARE_API_TOKEN
-            cloudflare-zone-id > TF_VAR_cloudflare_zone_id
+            proxmox-api-token > PROXMOX_API_TOKEN_VALUE
+
+      # Set Bitwarden provider environment variables
+      - name: Set Provider Environment Variables
+        run: |
+          echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          echo "BW_ORGANIZATION_ID=${{ secrets.BW_ORGANIZATION_ID }}" >> $GITHUB_ENV
+          echo "PROXMOX_VE_API_TOKEN=root@pam!terraform=$PROXMOX_API_TOKEN_VALUE" >> $GITHUB_ENV
 
       # Connect to Tailscale for Proxmox access
       - name: Connect to Tailscale
@@ -208,11 +213,6 @@ jobs:
             echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
           fi
 
-          tenancy=$(grep -E '^tenancy=' "$HOME/.oci/config" | head -n1 | cut -d= -f2-)
-          if [[ -n "$tenancy" ]]; then
-            echo "TF_VAR_oci_tenancy_ocid=$tenancy" >> "$GITHUB_ENV"
-          fi
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -228,13 +228,9 @@ jobs:
         run: |
           terraform init \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="namespace=${{ env.TF_VAR_oci_namespace }}"
+            -backend-config="namespace=${{ env.OCI_NAMESPACE }}"
         working-directory: ${{ env.TF_WORKING_DIR }}
-        env:
-          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
-        env:
-          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}

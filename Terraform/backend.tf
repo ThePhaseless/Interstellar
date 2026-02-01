@@ -7,9 +7,9 @@ terraform {
   #
   # Bootstrap: terraform init -backend=false && terraform apply
   # Then: terraform init -migrate-state -backend-config="bucket=..." -backend-config="namespace=..."
-  backend "oci" {
-    key = "interstellar/terraform.tfstate"
-  }
+  # backend "oci" {
+  #   key = "interstellar/terraform.tfstate"
+  # }
 
   required_providers {
     # Proxmox VM provisioning with GPU passthrough
@@ -21,7 +21,7 @@ terraform {
     # TalosOS cluster configuration
     talos = {
       source  = "siderolabs/talos"
-      version = ">= 0.7.0"
+      version = ">= 0.10.0"
     }
 
     # Oracle Cloud Infrastructure (VPS instance)
@@ -43,7 +43,7 @@ terraform {
     }
 
     # Bitwarden Secrets Manager
-    bitwarden = {
+    bitwarden-secrets = {
       source  = "bitwarden/bitwarden-secrets"
       version = "0.5.4-pre"
     }

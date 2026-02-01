@@ -31,22 +31,19 @@ output "access_instructions" {
     TalosOS Cluster Access Instructions
     ============================================================
 
-    1. Save talosconfig:
-       terraform output -raw talosconfig > ~/.talos/config
+    1. Get talosconfig from Bitwarden:
+       bws secret get talosconfig --output json | jq -r '.value' > ~/.talos/config
 
-    2. Save kubeconfig:
-       terraform output -raw kubeconfig > ~/.kube/config
-
-    3. Or use Tailscale for kubectl access:
+    2. Configure kubectl via Tailscale:
        tailscale configure kubeconfig talos-operator
 
-    4. Verify cluster health:
+    3. Verify cluster health:
        talosctl health --nodes ${join(",", [for n in var.nodes : n.ip])}
        kubectl get nodes
 
-    5. Access via Tailscale MagicDNS:
-       - API Server: talos-operator.${var.tailscale_tailnet}.ts.net:6443
-       - Traefik: talos-traefik.${var.tailscale_tailnet}.ts.net
+    4. Access via Tailscale MagicDNS:
+       - API Server: talos-operator.<tailnet>.ts.net:6443
+       - Traefik: talos-traefik.<tailnet>.ts.net
 
     ============================================================
   EOT
@@ -61,7 +58,7 @@ output "ansible_inventory" {
     all = {
       hosts = {
         oracle = {
-          ansible_host                 = oci_core_instance.oracle_vps.public_ip
+          ansible_host                 = oci_core_instance.proxy.public_ip
           ansible_user                 = "ubuntu"
           ansible_ssh_private_key_file = "~/.ssh/oracle_ed25519"
         }

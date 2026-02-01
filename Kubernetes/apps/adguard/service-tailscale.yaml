@@ -24,6 +24,8 @@ metadata:
     tailscale.com/tags: "tag:shared"
 spec:
   type: LoadBalancer
+  # Preserve client Tailscale IPs for per-device stats
+  externalTrafficPolicy: Local
   selector:
     app: adguard
   ports:

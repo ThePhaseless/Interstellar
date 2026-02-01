@@ -7,9 +7,9 @@
 # Provider Configuration
 # -----------------------------------------------------------------------------
 provider "tailscale" {
-  oauth_client_id     = data.bitwarden_secret.tailscale_oauth_client_id.value
-  oauth_client_secret = data.bitwarden_secret.tailscale_oauth_secret.value
-  tailnet             = data.bitwarden_secret.tailscale_tailnet.value
+  oauth_client_id     = data.bitwarden-secrets_secret.tailscale_oauth_client_id.value
+  oauth_client_secret = data.bitwarden-secrets_secret.tailscale_oauth_secret.value
+  tailnet             = data.bitwarden-secrets_secret.tailscale_tailnet.value
   scopes              = ["devices:core", "keys:auth_keys"]
 }
 
@@ -20,21 +20,16 @@ resource "tailscale_tailnet_key" "cluster" {
   reusable      = true
   preauthorized = true
   expiry        = 7776000 # 90 days in seconds
-  tags          = ["tag:cluster"]
+  tags          = ["tag:cluster", "tag:k8s-operator"]
   description   = "TalosOS cluster nodes auth key"
 }
 
 # Store the auth key in Bitwarden for External Secrets Operator
-resource "bitwarden_secret" "tailscale_auth_key" {
+resource "bitwarden-secrets_secret" "tailscale_auth_key" {
   key        = "tailscale-auth-key"
   value      = tailscale_tailnet_key.cluster.key
-  project_id = data.bitwarden_project.interstellar.id
+  project_id = local.bitwarden_project_id
   note       = "Tailscale auth key for TalosOS cluster nodes. Managed by Terraform."
-}
-
-# Reference the interstellar project
-data "bitwarden_project" "interstellar" {
-  id = data.bitwarden_secret.tailscale_oauth_client_id.project_id
 }
 
 # -----------------------------------------------------------------------------
@@ -48,40 +43,36 @@ resource "random_password" "oauth_cookie_secret" {
 }
 
 # Store the cookie secret in Bitwarden
-resource "bitwarden_secret" "oauth_cookie_secret" {
+resource "bitwarden-secrets_secret" "oauth_cookie_secret" {
   key        = "google-oauth-cookie-secret"
   value      = random_password.oauth_cookie_secret.result
-  project_id = data.bitwarden_project.interstellar.id
+  project_id = local.bitwarden_project_id
   note       = "OAuth2 Proxy cookie secret. Managed by Terraform."
-}
-
-# -----------------------------------------------------------------------------
-# Tailscale ACL Policy
-# -----------------------------------------------------------------------------
-# Note: The full ACL policy is maintained in Tailscale/policy.hujson
-# and synced via GitHub Actions. This resource ensures Terraform
-# can manage specific aspects if needed.
-
-resource "tailscale_acl" "policy" {
-  acl = file("${path.module}/../Tailscale/policy.hujson")
-
-  # Only apply when the policy file changes
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 # -----------------------------------------------------------------------------
 # Tailscale DNS Configuration
 # -----------------------------------------------------------------------------
-resource "tailscale_dns_nameservers" "cluster" {
-  nameservers = [
-    "100.100.100.100", # MagicDNS
-  ]
-}
+# MagicDNS is enabled for *.ts.net resolution.
+# AdGuard DNS (adguard-shared) should be added manually in Tailscale Admin Console
+# after the cluster is deployed:
+#   1. Go to DNS settings in Tailscale Admin
+#   2. Add adguard-shared's IP as a nameserver
+#   3. Enable "Override local DNS"
+# 
+# Fallback DNS (1.1.1.1) is configured for when AdGuard is offline.
+# -----------------------------------------------------------------------------
+resource "tailscale_dns_configuration" "cluster" {
+  magic_dns          = true
+  override_local_dns = true
 
-resource "tailscale_dns_preferences" "cluster" {
-  magic_dns = true
+  nameservers {
+    address = "100.100.100.100" # MagicDNS
+  }
+
+  nameservers {
+    address = "1.1.1.1" # Cloudflare fallback
+  }
 }
 
 # -----------------------------------------------------------------------------

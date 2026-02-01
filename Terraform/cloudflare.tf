@@ -7,7 +7,7 @@
 # Provider Configuration
 # -----------------------------------------------------------------------------
 provider "cloudflare" {
-  api_token = data.bitwarden_secret.cloudflare_api_token.value
+  api_token = data.bitwarden-secrets_secret.cloudflare_api_token.value
 }
 
 # -----------------------------------------------------------------------------
@@ -19,16 +19,11 @@ data "cloudflare_zone" "main" {
   }
 }
 
-# Oracle VPS public IP (fetched from OCI instance)
-data "oci_core_instance" "oracle_vps" {
-  instance_id = oci_core_instance.oracle_vps.id
-}
-
 locals {
-  oracle_public_ip = data.oci_core_instance.oracle_vps.public_ip
+  oracle_public_ip = oci_core_instance.proxy.public_ip
   # Tailscale IP from Bitwarden (synced by Kubernetes CronJob)
   # Falls back to empty string if secret doesn't exist yet
-  tailscale_traefik_ip = try(data.bitwarden_secret.tailscale_traefik_ip.value, "")
+  tailscale_traefik_ip = length(data.bitwarden-secrets_secret.tailscale_traefik_ip) > 0 ? data.bitwarden-secrets_secret.tailscale_traefik_ip[0].value : ""
 }
 
 # -----------------------------------------------------------------------------
