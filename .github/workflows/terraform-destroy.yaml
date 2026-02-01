@@ -93,7 +93,7 @@ jobs:
                   # Plan destroy for everything remaining in state
                   # This will include the state bucket itself if it is in the state
                   echo "Planning destroy for remaining resources..."
-                  
+
                   # Check if there's anything left to destroy
                   remaining=$(terraform state list)
                   if [ -z "$remaining" ]; then
