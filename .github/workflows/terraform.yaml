@@ -1,30 +1,30 @@
 # =============================================================================
-# OpenTofu CI/CD Workflow
+# Terraform CI/CD Workflow
 # =============================================================================
-# Runs OpenTofu plan on PRs and apply on main branch pushes.
+# Runs Terraform plan on PRs and apply on main branch pushes.
 # Uses Bitwarden Secrets Manager for all credentials.
 
-name: OpenTofu
+name: Terraform
 
 on:
   push:
     branches: [main]
     paths:
-      - "OpenTofu/**"
-      - ".github/workflows/opentofu.yaml"
+      - "Terraform/**"
+      - ".github/workflows/terraform.yaml"
   pull_request:
     branches: [main]
     paths:
-      - "OpenTofu/**"
-      - ".github/workflows/opentofu.yaml"
+      - "Terraform/**"
+      - ".github/workflows/terraform.yaml"
 
 env:
-  TOFU_VERSION: "1.9.0"
-  TOFU_WORKING_DIR: "./OpenTofu"
+  TF_VERSION: "1.11.4"
+  TF_WORKING_DIR: "./Terraform"
 
 jobs:
   # ---------------------------------------------------------------------------
-  # OpenTofu Plan (runs on all PRs and pushes)
+  # Terraform Plan (runs on all PRs and pushes)
   # ---------------------------------------------------------------------------
   plan:
     name: Plan
@@ -80,36 +80,36 @@ jobs:
             echo "TF_VAR_oci_tenancy_ocid=$tenancy" >> "$GITHUB_ENV"
           fi
 
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
-          tofu_version: ${{ env.TOFU_VERSION }}
+          terraform_version: ${{ env.TF_VERSION }}
 
-      - name: OpenTofu Format Check
+      - name: Terraform Format Check
         id: fmt
-        run: tofu fmt -check -recursive
-        working-directory: ${{ env.TOFU_WORKING_DIR }}
+        run: terraform fmt -check -recursive
+        working-directory: ${{ env.TF_WORKING_DIR }}
         continue-on-error: true
 
-      - name: OpenTofu Init
+      - name: Terraform Init
         id: init
         run: |
-          tofu init \
+          terraform init \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
             -backend-config="namespace=${{ env.TF_VAR_oci_namespace }}"
-        working-directory: ${{ env.TOFU_WORKING_DIR }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
 
-      - name: OpenTofu Validate
+      - name: Terraform Validate
         id: validate
-        run: tofu validate -no-color
-        working-directory: ${{ env.TOFU_WORKING_DIR }}
+        run: terraform validate -no-color
+        working-directory: ${{ env.TF_WORKING_DIR }}
 
-      - name: OpenTofu Plan
+      - name: Terraform Plan
         id: plan
-        run: tofu plan -no-color -out=tfplan
-        working-directory: ${{ env.TOFU_WORKING_DIR }}
+        run: terraform plan -no-color -out=tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
         continue-on-error: true
@@ -123,10 +123,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### OpenTofu Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### OpenTofu Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### OpenTofu Validation 🤖\`${{ steps.validate.outcome }}\`
-            #### OpenTofu Plan 📖\`${{ steps.plan.outcome }}\`
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
 
             <details><summary>Show Plan</summary>
 
@@ -145,19 +145,19 @@ jobs:
               body: output
             })
 
-      - name: OpenTofu Plan Status
+      - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
       # Upload plan for apply job
-      - name: Upload OpenTofu Plan
+      - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
-          path: ${{ env.TOFU_WORKING_DIR }}/tfplan
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
 
   # ---------------------------------------------------------------------------
-  # OpenTofu Apply (only on main branch)
+  # Terraform Apply (only on main branch)
   # ---------------------------------------------------------------------------
   apply:
     name: Apply
@@ -213,28 +213,28 @@ jobs:
             echo "TF_VAR_oci_tenancy_ocid=$tenancy" >> "$GITHUB_ENV"
           fi
 
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
-          tofu_version: ${{ env.TOFU_VERSION }}
+          terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Download OpenTofu Plan
+      - name: Download Terraform Plan
         uses: actions/download-artifact@v4
         with:
           name: tfplan
-          path: ${{ env.TOFU_WORKING_DIR }}
+          path: ${{ env.TF_WORKING_DIR }}
 
-      - name: OpenTofu Init
+      - name: Terraform Init
         run: |
-          tofu init \
+          terraform init \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
             -backend-config="namespace=${{ env.TF_VAR_oci_namespace }}"
-        working-directory: ${{ env.TOFU_WORKING_DIR }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
 
-      - name: OpenTofu Apply
-        run: tofu apply -auto-approve tfplan
-        working-directory: ${{ env.TOFU_WORKING_DIR }}
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
