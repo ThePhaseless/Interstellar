@@ -32,5 +32,7 @@
   },
   "chat.tools.terminal.autoApprove": {
     "./scripts/lint-kubernetes.sh": true
-  }
+  },
+  "opentofu.experimentalFeatures.validateOnSave": true,
+  "opentofu.experimentalFeatures.prefillRequiredFields": true
 }
