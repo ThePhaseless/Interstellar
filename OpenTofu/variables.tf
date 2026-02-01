@@ -53,4 +53,7 @@ variable "cloudflare_zone_id" {
   type        = string
 }
 
-
+variable "tenancy_ocid" {
+  description = "OCI Tenancy OCID (parent for the new compartment)"
+  type        = string
+}

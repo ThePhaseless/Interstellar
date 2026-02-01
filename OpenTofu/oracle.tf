@@ -18,8 +18,9 @@ locals {
 }
 
 resource "oci_identity_compartment" "compartment" {
-  description = "Compartment for Terraform resources."
-  name        = "TerraformCompartment"
+  compartment_id = var.tenancy_ocid
+  description    = "Compartment for Terraform resources."
+  name           = "TerraformCompartment"
 }
 
 data "oci_objectstorage_namespace" "namespace" {
@@ -31,6 +32,9 @@ resource "oci_objectstorage_bucket" "terraform_state" {
   name           = var.state_bucket_name
   namespace      = data.oci_objectstorage_namespace.namespace.namespace
   versioning     = "Enabled"
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "oci_objectstorage_bucket" "ansible_files" {
