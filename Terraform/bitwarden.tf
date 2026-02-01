@@ -18,15 +18,7 @@ provider "bitwarden" {
 # Data Sources - Infrastructure Secrets from 'interstellar' Project
 # -----------------------------------------------------------------------------
 
-# Tailscale API credentials
-data "bitwarden_secret" "tailscale_api_key" {
-  key = "tailscale-api-key"
-}
-
-data "bitwarden_secret" "tailscale_tailnet" {
-  key = "tailscale-tailnet"
-}
-
+# Tailscale OAuth credentials
 data "bitwarden_secret" "tailscale_oauth_client_id" {
   key = "tailscale-oauth-client-id"
 }
@@ -35,13 +27,8 @@ data "bitwarden_secret" "tailscale_oauth_secret" {
   key = "tailscale-oauth-secret"
 }
 
-# Proxmox API credentials
-data "bitwarden_secret" "proxmox_api_token_id" {
-  key = "proxmox-api-token-id"
-}
-
-data "bitwarden_secret" "proxmox_api_token_secret" {
-  key = "proxmox-api-token-secret"
+data "bitwarden_secret" "tailscale_tailnet" {
+  key = "tailscale-tailnet"
 }
 
 # Cloudflare API token
@@ -59,25 +46,7 @@ data "bitwarden_secret" "crowdsec_api_key" {
   key = "crowdsec-api-key"
 }
 
-# Google OAuth credentials (Copyparty)
-data "bitwarden_secret" "google_oauth_client_id" {
-  key = "google-oauth-client-id"
-}
-
-data "bitwarden_secret" "google_oauth_client_secret" {
-  key = "google-oauth-client-secret"
-}
-
-# Google OAuth credentials (Jellyfin)
-data "bitwarden_secret" "jellyfin_google_oauth_client_id" {
-  key = "jellyfin-google-oauth-client-id"
-}
-
-data "bitwarden_secret" "jellyfin_google_oauth_client_secret" {
-  key = "jellyfin-google-oauth-client-secret"
-}
-
-# Copyparty access groups
+# Copyparty access groups (used for file write permissions)
 data "bitwarden_secret" "copyparty_admins" {
   key = "copyparty-admins"
 }
@@ -86,7 +55,9 @@ data "bitwarden_secret" "copyparty_writers" {
   key = "copyparty-writers"
 }
 
-# OCI Compartment ID
-data "bitwarden_secret" "oci_compartment_id" {
-  key = "oci-compartment-id"
+# Tailscale Traefik IP (synced by Kubernetes CronJob)
+# This is optional - if the secret doesn't exist, DNS records won't include Tailscale IP
+data "bitwarden_secret" "tailscale_traefik_ip" {
+  key = "tailscale-traefik-ip"
 }
+

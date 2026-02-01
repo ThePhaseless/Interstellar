@@ -94,27 +94,6 @@ variable "cluster_network" {
   default     = "10.100.0.0/24"
 }
 
-variable "metallb_ip_range" {
-  description = "MetalLB LoadBalancer IP range"
-  type        = string
-  default     = "10.100.0.100-10.100.0.120"
-}
-
-variable "proxmox_host_ip" {
-  description = "Proxmox host IP for iSCSI"
-  type        = string
-  default     = "192.168.1.10"
-}
-
-# -----------------------------------------------------------------------------
-# Storage Configuration
-# -----------------------------------------------------------------------------
-variable "iscsi_target_iqn" {
-  description = "iSCSI target IQN on Proxmox"
-  type        = string
-  default     = "iqn.2026-01.dev.nerine:k8s"
-}
-
 variable "storage_pool" {
   description = "Proxmox storage pool for VM disks"
   type        = string
@@ -124,15 +103,9 @@ variable "storage_pool" {
 # -----------------------------------------------------------------------------
 # Oracle Cloud Configuration
 # -----------------------------------------------------------------------------
-variable "oci_compartment_id" {
-  description = "OCI Compartment OCID"
+variable "oci_tenancy_ocid" {
+  description = "OCI Tenancy OCID"
   type        = string
-}
-
-variable "oci_availability_domain" {
-  description = "OCI Availability Domain"
-  type        = string
-  default     = "AD-1"
 }
 
 # -----------------------------------------------------------------------------
@@ -169,4 +142,18 @@ variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
   default     = "1.32.0"
+}
+variable "tf_state_bucket" {
+  description = "Name of the OCI Object Storage bucket for Terraform state"
+  type        = string
+  default     = "terraform-state"
+}
+
+# -----------------------------------------------------------------------------
+# Tailscale Fallback DNS
+# -----------------------------------------------------------------------------
+variable "tailscale_traefik_ip" {
+  description = "Tailscale IP of talos-traefik service for fallback DNS. Set after initial deployment."
+  type        = string
+  default     = ""  # Set this after running: tailscale status | grep talos-traefik
 }
