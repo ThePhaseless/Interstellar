@@ -9,6 +9,7 @@ namespace: home
 resources:
   - deployment.yaml
   - service.yaml
+  - service-tailscale.yaml
   - ingress.yaml
   - pvc.yaml
 

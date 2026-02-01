@@ -1,0 +1,42 @@
+# =============================================================================
+# AdGuard Home Tailscale DNS Service (Shareable)
+# =============================================================================
+# This service exposes AdGuard DNS via Tailscale for sharing with external
+# tailnet users. Friends can use this IP as their DNS server for fallback
+# access when the public proxy is down.
+#
+# Usage:
+#   1. Share this node in Tailscale Admin Console
+#   2. Friends configure their device DNS to the shared Tailscale IP
+#   3. DNS rewrites in AdGuardHome.yaml resolve *.yourdomain.com to Traefik's Tailscale IP
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-tailscale
+  namespace: home
+  labels:
+    app: adguard
+  annotations:
+    # Expose as shareable Tailscale node
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "adguard-shared"
+    tailscale.com/tags: "tag:shared"
+spec:
+  type: LoadBalancer
+  selector:
+    app: adguard
+  ports:
+    - name: dns-udp
+      port: 53
+      targetPort: dns-udp
+      protocol: UDP
+    - name: dns-tcp
+      port: 53
+      targetPort: dns-tcp
+      protocol: TCP
+    # DoH for mobile/browser DNS
+    - name: https
+      port: 443
+      targetPort: http
+      protocol: TCP
