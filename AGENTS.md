@@ -18,21 +18,26 @@ This is a GitOps-managed Kubernetes homelab on TalosOS (Proxmox VMs) with public
 ## Kubernetes Conventions
 
 ### Kustomize Structure
+
 All manifests use Kustomize. Each app folder contains: `kustomization.yaml`, `deployment.yaml`, `service.yaml`, `ingress.yaml`, `pvc.yaml`.
 
 ### Namespaces
-- `media` - All *arr apps, Jellyfin, qBittorrent
+
+- `media` - All \*arr apps, Jellyfin, qBittorrent
 - `traefik` - Ingress controller + middlewares
 - `external-secrets` - Bitwarden integration
 - Bootstrap components get their own namespaces
 
 ### Ingress Pattern
+
 Use Traefik `IngressRoute` (not standard Ingress). Apply middleware chains:
+
 - `public-chain` - Public services (security headers + CrowdSec + rate limit)
 - `streaming-chain` - Media streaming (relaxed rate limits)
 - `private-chain` - Tailscale-only access (`tailscale-only` middleware)
 
 Example:
+
 ```yaml
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -44,7 +49,9 @@ spec:
 ```
 
 ### Secrets Management
+
 Never hardcode secrets. Use ExternalSecrets with `ClusterSecretStore: bitwarden-store`:
+
 ```yaml
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
@@ -55,11 +62,13 @@ spec:
   data:
     - secretKey: api-token
       remoteRef:
-        key: my-secret-name  # Bitwarden secret name
+        key: my-secret-name # Bitwarden secret name
 ```
 
 ### GPU Workloads
+
 GPU-bound services (Jellyfin, Immich ML, Copyparty) must use:
+
 ```yaml
 nodeSelector:
   kubernetes.io/hostname: talos-1
@@ -70,8 +79,10 @@ resources:
     gpu.intel.com/i915: "1"
 ```
 
-### *arr Apps Pattern
+### \*arr Apps Pattern
+
 Media apps use init containers + sidecars for auto-configuration:
+
 1. `api-extractor` init container extracts API key from config.xml
 2. `configurator` sidecar configures download clients via API
 3. Scripts in `Kubernetes/apps/common/scripts/`
@@ -90,11 +101,12 @@ Media apps use init containers + sidecars for auto-configuration:
 ```
 
 Disabled kube-linter checks (see `.kube-linter.yaml`):
+
 - `no-read-only-root-fs` - Third-party images
 - `run-as-non-root` - Many apps require root
 - `unset-cpu-requirements` / `unset-memory-requirements` - Init containers
 
-## Terraform Patterns
+## OpenTofu Patterns
 
 - State stored in OCI Object Storage
 - Secrets fetched from Bitwarden via `bws` CLI in CI
@@ -103,12 +115,12 @@ Disabled kube-linter checks (see `.kube-linter.yaml`):
 
 ## CI/CD Workflows
 
-| Path changes | Workflow triggered |
-|--------------|-------------------|
-| `Kubernetes/**` | `kubernetes-lint.yaml` |
-| `Terraform/**` | `opentofu.yaml` (plan on PR, apply on merge) |
-| `Ansible/**` | `ansible.yaml` |
-| `Tailscale/**` | `tailscale-acl.yaml` |
+| Path changes    | Workflow triggered                           |
+| --------------- | -------------------------------------------- |
+| `Kubernetes/**` | `kubernetes-lint.yaml`                       |
+| `Terraform/**`  | `opentofu.yaml` (plan on PR, apply on merge) |
+| `Ansible/**`    | `ansible.yaml`                               |
+| `Tailscale/**`  | `tailscale-acl.yaml`                         |
 
 ## Common Tasks
 

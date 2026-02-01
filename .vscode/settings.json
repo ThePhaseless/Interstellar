@@ -4,7 +4,6 @@
     "Ansible/**/*.yaml": "ansible"
   },
   "yaml.schemas": {
-    "https://www.authelia.com/schemas/v4.38/json-schema/configuration.json": "./Config/Auth/authelia.yaml",
     "kubernetes": "Kubernetes/**/loki.yaml"
   },
   "python.terminal.activateEnvInCurrentTerminal": true,
@@ -30,5 +29,8 @@
   "ansible.python.interpreterPath": "/workspaces/Interstellar/.venv/bin/python",
   "vs-kubernetes": {
     "disable-linters": ["resource-limits"]
+  },
+  "chat.tools.terminal.autoApprove": {
+    "./scripts/lint-kubernetes.sh": true
   }
 }

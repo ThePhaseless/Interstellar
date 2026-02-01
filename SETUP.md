@@ -31,50 +31,58 @@ All secrets should be stored in a single Bitwarden Secrets Manager project:
 
 #### OCI Secrets
 
-| Key                  | Description                         |
-| -------------------- | ----------------------------------- |
-| `oci-tenancy-ocid`   | OCI tenancy OCID                    |
-| `oci-user-ocid`      | OCI user OCID                       |
-| `oci-fingerprint`    | OCI API key fingerprint             |
-| `oci-private-key`    | OCI API private key (PEM format)    |
-| `oci-region`         | OCI region (e.g., `eu-frankfurt-1`) |
-| `oci-namespace`      | OCI Object Storage namespace        |
-| `oci-compartment-id` | OCI compartment for resources       |
-| `tf-state-bucket`    | OCI Object Storage bucket name      |
+| Key               | Description                                     |
+| ----------------- | ----------------------------------------------- |
+| `oci-config`      | Full `~/.oci/config` file content (without key) |
+| `oci-private-key` | OCI API private key (PEM format)                |
+| `oci-namespace`   | OCI Object Storage namespace                    |
+| `tf-state-bucket` | OCI Object Storage bucket name                  |
 
 #### Infrastructure Secrets
 
-| Key                                   | Description                         |
-| ------------------------------------- | ----------------------------------- |
-| `tailscale-api-key`                   | Tailscale API key                   |
-| `tailscale-tailnet`                   | Tailscale tailnet name              |
-| `tailscale-oauth-client-id`           | OAuth client for Tailscale Operator |
-| `tailscale-oauth-secret`              | OAuth secret for Tailscale Operator |
-| `proxmox-api-token-id`                | Proxmox API token ID                |
-| `proxmox-api-token-secret`            | Proxmox API token secret            |
-| `cloudflare-api-token`                | Cloudflare API token (DNS edit)     |
-| `discord-webhook-url`                 | Discord webhook for alerts          |
-| `crowdsec-api-key`                    | CrowdSec enrollment key             |
-| `google-oauth-client-id`              | Google OAuth for Copyparty          |
-| `google-oauth-client-secret`          | Google OAuth secret for Copyparty   |
-| `jellyfin-google-oauth-client-id`     | Google OAuth for Jellyfin SSO       |
-| `jellyfin-google-oauth-client-secret` | Google OAuth secret for Jellyfin    |
-| `copyparty-admins`                    | Comma-separated admin emails        |
-| `copyparty-writers`                   | Comma-separated writer emails       |
+| Key                                   | Description                                 | Required Permissions                                                          |
+| ------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- |
+| `tailscale-oauth-client-id`           | Tailscale OAuth client ID                   | Scopes: `devices:core`, `keys:auth_keys` (Write) — Tags: `tag:cluster,tag:ci` |
+| `tailscale-oauth-secret`              | Tailscale OAuth client secret               | -                                                                             |
+| `tailscale-tailnet`                   | Tailscale tailnet name (e.g. `example.org`) | -                                                                             |
+| `cloudflare-api-token`                | Cloudflare API token                        | `Zone:DNS:Edit`, `Zone:Zone:Read` for your domain                             |
+| `cloudflare-zone-id`                  | Cloudflare Zone ID                          | -                                                                             |
+| `proxmox-api-token`                   | Proxmox API token (`user@realm!token=secret`) | Full permissions on `/` or VM management                                      |
+| `discord-webhook-url`                 | Discord webhook for alerts                  | -                                                                             |
+| `crowdsec-api-key`                    | CrowdSec enrollment key                     | -                                                                             |
+| `copyparty-admins`                    | Comma-separated admin emails                | -                                                                             |
+| `copyparty-writers`                   | Comma-separated writer emails               | -                                                                             |
 
-### Secrets Created by Terraform (do not set manually)
+#### OAuth2 Proxy Secrets (Google OAuth)
 
-These are generated automatically during `terraform apply` and stored in Bitwarden:
+| Key                                   | Description                                 | Required Permissions                                                          |
+| ------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- |
+| `oauth2-proxy-google-client-id`       | Google OAuth Client ID                      | Google Cloud Console → APIs & Services → Credentials                          |
+| `oauth2-proxy-google-client-secret`   | Google OAuth Client Secret                  | Same as above                                                                 |
+| `oauth2-proxy-cookie-secret`          | Cookie encryption secret (32 bytes, base64) | Generate with `openssl rand -base64 32`                                       |
+
+**Google OAuth Setup:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project or select existing
+3. Enable "Google+ API" or "Google Identity"
+4. Go to APIs & Services → Credentials → Create OAuth Client ID
+5. Application type: Web application
+6. Authorized redirect URIs: `https://auth.nerine.dev/oauth2/callback`
+7. Copy Client ID and Client Secret to Bitwarden
+
+### Secrets Created by OpenTofu (do not set manually)
+
+These are generated automatically during `tofu apply` and stored in Bitwarden:
 
 | Secret                | Generated By                          | Stored As                    |
 | --------------------- | ------------------------------------- | ---------------------------- |
 | Tailscale auth key    | `tailscale_tailnet_key.cluster`       | `tailscale-auth-key`         |
 | OAuth2 cookie secret  | `random_password.oauth_cookie_secret` | `google-oauth-cookie-secret` |
-| Talos machine secrets | `talos_machine_secrets.cluster`       | Terraform state              |
-| Kubeconfig            | `talos_cluster_kubeconfig.cluster`    | Terraform output             |
-| Talosconfig           | `talos_machine_configuration`         | Terraform output             |
+| Talos machine secrets | `talos_machine_secrets.cluster`       | OpenTofu state               |
+| Kubeconfig            | `talos_cluster_kubeconfig.cluster`    | OpenTofu output              |
+| Talosconfig           | `talos_machine_configuration`         | OpenTofu output              |
 
-## 🚀 Deployment
+## 🚀 Bootstrap & Deployment
 
 ### Prerequisites
 
@@ -83,35 +91,78 @@ These are generated automatically during `terraform apply` and stored in Bitward
 3. Proxmox VE 8+ with IOMMU enabled
 4. Bitwarden Secrets Manager account
 5. Tailscale account with API access
+6. Tools installed: `tofu` (OpenTofu), `ansible`, `bws`, `tailscale`
 
-### Initial Setup
+### 1. Environment Setup
+
+Clone the repository and load the environment variables from Bitwarden.
 
 ```bash
-# 1. Fork and clone the repository
+# 1. Clone the repository
 git clone https://github.com/ThePhaseless/Interstellar.git
 cd Interstellar
 
-# 2. Configure GitHub secrets and variables (see above)
+# 2.a. Set Bitwarden Access Token
+export BWS_ACCESS_TOKEN="<your-token>"
 
-# 3. Create Bitwarden secrets (see above)
-
-# 4. Push to trigger deployment
-git push origin main
+# 2.b. Or create .env file in root of the repo
 ```
 
-### Deployment Order
+.env:
+BWS_ACCESS_TOKEN="<your-token>"
 
-1. **Terraform** provisions Oracle VPS and Proxmox VMs
-2. **Ansible** configures hosts (VLAN, iSCSI, HAProxy)
-3. **Terraform** bootstraps TalosOS cluster
-4. **ArgoCD** deploys all Kubernetes resources from Git
+```
+
+# 3. Fetch secrets and setup environment
+source scripts/setup-env.sh
+```
+
+### 2. Infrastructure Bootstrap
+
+We use a "local-first" approach to create the remote state bucket and provisioning infrastructure.
+
+```bash
+cd Terraform
+
+# 1. Initialize with local state (bypasses remote backend)
+tofu init -backend=false
+
+# 2. Apply infrastructure
+# This creates the OCI Compartment, State Bucket, VPS, and Proxmox VMs
+tofu apply
+
+# 3. Migrate state to OCI Object Storage
+# This initializes the remote backend and uploads your local state
+tofu init
+# Type 'yes' when asked to copy state
+```
+
+### 3. Configuration & Cluster Setup
+
+```bash
+cd ../Ansible
+
+# 1. Configure Oracle VPS (HAProxy)
+ansible-playbook setup-oracle.yaml
+
+# 2. Configure Proxmox Node (Network/Storage)
+ansible-playbook setup-proxmox.yaml
+```
+
+### 4. GitOps Activation
+
+Pushing to `main` triggers the CI/CD pipeline, which will now use the configured OCI remote backend.
+
+```bash
+git push origin main
+```
 
 ## 🔄 CI/CD Workflows
 
 | Workflow             | Trigger      | Action               |
 | -------------------- | ------------ | -------------------- |
-| `terraform.yaml`     | PR to main   | Plan and comment     |
-| `terraform.yaml`     | Push to main | Apply infrastructure |
+| `opentofu.yaml`      | PR to main   | Plan and comment     |
+| `opentofu.yaml`      | Push to main | Apply infrastructure |
 | `ansible.yaml`       | PR to main   | Lint playbooks       |
 | `ansible.yaml`       | Push to main | Run playbooks        |
 | `tailscale-acl.yaml` | PR to main   | Validate policy      |
