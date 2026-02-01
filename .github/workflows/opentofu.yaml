@@ -52,6 +52,7 @@ jobs:
             tailscale-api-key > TAILSCALE_API_KEY
             tailscale-tailnet > TF_VAR_tailscale_tailnet
             oci-compartment-id > TF_VAR_oci_compartment_id
+            tf-state-bucket > TF_STATE_BUCKET
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
@@ -68,7 +69,7 @@ jobs:
         id: init
         run: |
           tofu init \
-            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
             -backend-config="namespace=${{ env.TF_VAR_oci_namespace }}"
         working-directory: ${{ env.TOFU_WORKING_DIR }}
         env:
@@ -158,6 +159,7 @@ jobs:
             tailscale-api-key > TAILSCALE_API_KEY
             tailscale-tailnet > TF_VAR_tailscale_tailnet
             oci-compartment-id > TF_VAR_oci_compartment_id
+            tf-state-bucket > TF_STATE_BUCKET
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
@@ -173,7 +175,7 @@ jobs:
       - name: OpenTofu Init
         run: |
           tofu init \
-            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
             -backend-config="namespace=${{ env.TF_VAR_oci_namespace }}"
         working-directory: ${{ env.TOFU_WORKING_DIR }}
         env:
