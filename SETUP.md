@@ -29,7 +29,6 @@ Before deployment, configure these secrets in **Bitwarden Secrets Manager** and 
 
 | Variable          | Description                                        |
 | ----------------- | -------------------------------------------------- |
-| `TF_STATE_BUCKET` | OCI Object Storage bucket name for Terraform state |
 
 ### Bitwarden Secrets Manager
 
@@ -46,6 +45,7 @@ All secrets should be stored in a single Bitwarden Secrets Manager project:
 | `oci-region`         | OCI region (e.g., `eu-frankfurt-1`) |
 | `oci-namespace`      | OCI Object Storage namespace        |
 | `oci-compartment-id` | OCI compartment for resources       |
+| `tf-state-bucket`    | OCI Object Storage bucket name      |
 
 #### Infrastructure Secrets
 

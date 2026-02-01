@@ -143,7 +143,8 @@ fetch_secrets() {
         "oci-fingerprint" "OCI_fingerprint" \
         "oci-private-key" "OCI_private_key" \
         "oci-region" "OCI_region" \
-        "oci-namespace" "TF_VAR_oci_namespace"
+        "oci-namespace" "TF_VAR_oci_namespace" \
+        "tf-state-bucket" "TF_STATE_BUCKET"
 
     if [[ $? -eq 0 ]]; then
         log_success "OCI backend secrets loaded"
