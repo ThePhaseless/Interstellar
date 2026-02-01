@@ -1,6 +1,8 @@
 # =============================================================================
-# Copyparty Ingress (Public - with OAuth2 Proxy)
+# Copyparty Ingress (Protected by OAuth2 Proxy)
 # =============================================================================
+# Any authenticated user can view files. Upload permissions controlled by
+# Copyparty itself using email headers from OAuth2 Proxy (X-Auth-Request-Email).
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -18,21 +20,7 @@ spec:
       middlewares:
         - name: public-chain
           namespace: traefik
-        - name: oauth2-proxy-auth
-          namespace: utilities
+        - name: oauth2-proxy
+          namespace: traefik
   tls:
     certResolver: letsencrypt
----
-# OAuth2 Proxy authentication middleware
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: oauth2-proxy-auth
-  namespace: utilities
-spec:
-  forwardAuth:
-    address: http://oauth2-proxy.utilities.svc.cluster.local:4180/oauth2/auth
-    trustForwardHeader: true
-    authResponseHeaders:
-      - X-Forwarded-User
-      - X-Forwarded-Email
