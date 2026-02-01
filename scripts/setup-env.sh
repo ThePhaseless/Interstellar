@@ -31,6 +31,55 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # -----------------------------------------------------------------------------
+# Fetch a single secret and export it
+# -----------------------------------------------------------------------------
+fetch_and_export_secret() {
+    local bws_name="$1"
+    local env_name="$2"
+    local value
+
+    value=$(bws secret get "$bws_name" --output json 2>/dev/null | jq -r '.value' 2>/dev/null)
+    if [[ $? -eq 0 && "$value" != "null" && -n "$value" ]]; then
+        export "$env_name"="$value"
+        return 0
+    fi
+
+    log_warn "Failed to fetch secret: $bws_name"
+    return 1
+}
+
+# -----------------------------------------------------------------------------
+# Fetch a batch of secrets and return collective exit status
+# -----------------------------------------------------------------------------
+fetch_batch() {
+    if (( $# % 2 != 0 )); then
+        log_error "fetch_batch: Expected an even number of arguments (pairs of BWS_NAME ENV_NAME)"
+        return 1
+    fi
+
+    local status=0
+    while [[ $# -gt 0 ]]; do
+        fetch_and_export_secret "$1" "$2" || status=1
+        shift 2
+    done
+    return $status
+}
+
+# -----------------------------------------------------------------------------
+# Load .env file if it exists
+# -----------------------------------------------------------------------------
+load_env_file() {
+    if [[ -f ".env" ]]; then
+        log_info "Loading .env file..."
+        # shellcheck disable=SC1091
+        set -a
+        source .env
+        set +a
+        log_success ".env file loaded"
+    fi
+}
+
+# -----------------------------------------------------------------------------
 # Check prerequisites
 # -----------------------------------------------------------------------------
 check_prerequisites() {
@@ -53,6 +102,14 @@ check_prerequisites() {
         missing=1
     else
         log_success "Bitwarden CLI found"
+    fi
+
+    # Check jq
+    if ! command -v jq &>/dev/null; then
+        log_error "jq not found. Install with: sudo apt install jq"
+        missing=1
+    else
+        log_success "jq found"
     fi
 
     # Check BWS_ACCESS_TOKEN
@@ -80,38 +137,30 @@ fetch_secrets() {
 
     # OCI Backend secrets (for Terraform state)
     log_info "Fetching OCI backend secrets..."
-    
-    # Use subshells to avoid killing the parent shell on failure
-    local tenancy=$(bws secret get oci-tenancy-ocid --output json 2>/dev/null | jq -r '.value' || echo "")
-    local user=$(bws secret get oci-user-ocid --output json 2>/dev/null | jq -r '.value' || echo "")
-    local fingerprint=$(bws secret get oci-fingerprint --output json 2>/dev/null | jq -r '.value' || echo "")
-    local key=$(bws secret get oci-private-key --output json 2>/dev/null | jq -r '.value' || echo "")
-    local region=$(bws secret get oci-region --output json 2>/dev/null | jq -r '.value' || echo "")
-    local namespace=$(bws secret get oci-namespace --output json 2>/dev/null | jq -r '.value' || echo "")
+    fetch_batch \
+        "oci-tenancy-ocid" "OCI_tenancy_ocid" \
+        "oci-user-ocid" "OCI_user_ocid" \
+        "oci-fingerprint" "OCI_fingerprint" \
+        "oci-private-key" "OCI_private_key" \
+        "oci-region" "OCI_region" \
+        "oci-namespace" "TF_VAR_oci_namespace"
 
-    if [[ -n "$tenancy" ]]; then
-        export OCI_tenancy_ocid="$tenancy"
-        export OCI_user_ocid="$user"
-        export OCI_fingerprint="$fingerprint"
-        export OCI_private_key="$key"
-        export OCI_region="$region"
-        export TF_VAR_oci_namespace="$namespace"
+    if [[ $? -eq 0 ]]; then
         log_success "OCI backend secrets loaded"
     else
-        log_warn "Could not fetch OCI backend secrets. Terraform state operations may fail."
+        log_warn "Some OCI backend secrets are missing. Terraform state operations may fail."
     fi
 
     # Infrastructure secrets (for Terraform apply)
     log_info "Fetching infrastructure secrets..."
-    local tailnet=$(bws secret get tailscale-tailnet --output json 2>/dev/null | jq -r '.value' || echo "")
-    local compartment=$(bws secret get oci-compartment-id --output json 2>/dev/null | jq -r '.value' || echo "")
+    fetch_batch \
+        "tailscale-tailnet" "TF_VAR_tailscale_tailnet" \
+        "oci-compartment-id" "TF_VAR_oci_compartment_id"
 
-    if [[ -n "$tailnet" ]]; then
-        export TF_VAR_tailscale_tailnet="$tailnet"
-        export TF_VAR_oci_compartment_id="$compartment"
+    if [[ $? -eq 0 ]]; then
         log_success "Infrastructure secrets loaded"
     else
-        log_warn "Could not fetch some infrastructure secrets"
+        log_warn "Some infrastructure secrets are missing."
     fi
 }
 
@@ -123,11 +172,13 @@ main() {
     log_info "=== Local Environment Setup ==="
     echo ""
 
+    load_env_file
+
     if ! check_prerequisites; then
         log_error "Prerequisites check failed. Please fix the issues above."
         return 1
     fi
-    
+
     fetch_secrets
 
     echo ""
