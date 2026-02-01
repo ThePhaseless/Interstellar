@@ -43,16 +43,42 @@ jobs:
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
-            oci-tenancy-ocid > OCI_tenancy_ocid
-            oci-user-ocid > OCI_user_ocid
-            oci-fingerprint > OCI_fingerprint
-            oci-private-key > OCI_private_key
-            oci-region > OCI_region
+            oci-config > OCI_CONFIG
+            oci-private-key > OCI_PRIVATE_KEY
             oci-namespace > TF_VAR_oci_namespace
-            tailscale-api-key > TAILSCALE_API_KEY
             tailscale-tailnet > TF_VAR_tailscale_tailnet
-            oci-compartment-id > TF_VAR_oci_compartment_id
+            tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
+            tailscale-oauth-secret > TS_OAUTH_SECRET
             tf-state-bucket > TF_STATE_BUCKET
+            cloudflare-api-token > CLOUDFLARE_API_TOKEN
+            cloudflare-zone-id > TF_VAR_cloudflare_zone_id
+
+      # Connect to Tailscale for Proxmox access
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Write OCI config
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.oci"
+          printf "%s" "$OCI_CONFIG" > "$HOME/.oci/config"
+          printf "%s" "$OCI_PRIVATE_KEY" > "$HOME/.oci/oci_api_key.pem"
+          chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
+
+          if grep -q '^key_file=' "$HOME/.oci/config"; then
+            sed -i "s|^key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|" "$HOME/.oci/config"
+          else
+            echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
+          fi
+
+          tenancy=$(grep -E '^tenancy=' "$HOME/.oci/config" | head -n1 | cut -d= -f2-)
+          if [[ -n "$tenancy" ]]; then
+            echo "TF_VAR_oci_tenancy_ocid=$tenancy" >> "$GITHUB_ENV"
+          fi
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
@@ -150,16 +176,42 @@ jobs:
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
-            oci-tenancy-ocid > OCI_tenancy_ocid
-            oci-user-ocid > OCI_user_ocid
-            oci-fingerprint > OCI_fingerprint
-            oci-private-key > OCI_private_key
-            oci-region > OCI_region
+            oci-config > OCI_CONFIG
+            oci-private-key > OCI_PRIVATE_KEY
             oci-namespace > TF_VAR_oci_namespace
-            tailscale-api-key > TAILSCALE_API_KEY
             tailscale-tailnet > TF_VAR_tailscale_tailnet
-            oci-compartment-id > TF_VAR_oci_compartment_id
+            tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
+            tailscale-oauth-secret > TS_OAUTH_SECRET
             tf-state-bucket > TF_STATE_BUCKET
+            cloudflare-api-token > CLOUDFLARE_API_TOKEN
+            cloudflare-zone-id > TF_VAR_cloudflare_zone_id
+
+      # Connect to Tailscale for Proxmox access
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Write OCI config
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.oci"
+          printf "%s" "$OCI_CONFIG" > "$HOME/.oci/config"
+          printf "%s" "$OCI_PRIVATE_KEY" > "$HOME/.oci/oci_api_key.pem"
+          chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
+
+          if grep -q '^key_file=' "$HOME/.oci/config"; then
+            sed -i "s|^key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|" "$HOME/.oci/config"
+          else
+            echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
+          fi
+
+          tenancy=$(grep -E '^tenancy=' "$HOME/.oci/config" | head -n1 | cut -d= -f2-)
+          if [[ -n "$tenancy" ]]; then
+            echo "TF_VAR_oci_tenancy_ocid=$tenancy" >> "$GITHUB_ENV"
+          fi
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
