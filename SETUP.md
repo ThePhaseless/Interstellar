@@ -88,7 +88,7 @@ These are generated automatically during `terraform apply` and stored in Bitward
 
 ```bash
 # 1. Fork and clone the repository
-git clone https://github.com/YOUR_USERNAME/Interstellar.git
+git clone https://github.com/ThePhaseless/Interstellar.git
 cd Interstellar
 
 # 2. Configure GitHub secrets and variables (see above)
