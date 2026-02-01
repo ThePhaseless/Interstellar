@@ -1,0 +1,252 @@
+# =============================================================================
+# ClamAV Malware Scanning CronJob
+# =============================================================================
+# Scans quarantine directories for malware every 5 minutes
+# Clean files are moved to their destination, infected files remain quarantined
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: clamav-scanner
+  namespace: security
+  labels:
+    app: clamav-scanner
+spec:
+  schedule: "*/5 * * * *" # Every 5 minutes
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300 # 5 minute timeout
+      template:
+        metadata:
+          labels:
+            app: clamav-scanner
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: scanner
+              image: clamav/clamav:1.4
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  #!/bin/sh
+                  set -e
+
+                  echo "$(date): Starting ClamAV scan..."
+
+                  # Update virus definitions
+                  freshclam --quiet --config-file=/etc/clamav/freshclam.conf || true
+
+                  # Scan quarantine directories
+                  SCAN_DIRS="/downloads/quarantine /personal/public/.quarantine"
+
+                  for dir in $SCAN_DIRS; do
+                    if [ -d "$dir" ] && [ "$(ls -A $dir 2>/dev/null)" ]; then
+                      echo "Scanning $dir..."
+
+                      # Find files and scan them
+                      find "$dir" -type f | while read -r file; do
+                        echo "Scanning: $file"
+
+                        # Run clamscan and capture result
+                        if clamscan --no-summary --infected "$file" 2>/dev/null; then
+                          # File is clean - move to destination
+                          case "$dir" in
+                            /downloads/quarantine)
+                              dest="/downloads/completed/$(basename "$file")"
+                              ;;
+                            /personal/public/.quarantine)
+                              dest="/personal/public/$(basename "$file")"
+                              ;;
+                          esac
+
+                          if [ -n "$dest" ]; then
+                            echo "Clean: Moving $file to $dest"
+                            mv "$file" "$dest"
+                          fi
+                        else
+                          # File is infected
+                          echo "INFECTED: $file"
+
+                          # Send Discord alert if webhook is set
+                          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+                            curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+                              -H "Content-Type: application/json" \
+                              -d "{\"content\": \"🦠 **Malware Detected**\n\nFile: \`$file\`\nAction: File remains in quarantine for manual review.\"}"
+                          fi
+                        fi
+                      done
+                    fi
+                  done
+
+                  echo "$(date): Scan complete."
+              env:
+                - name: DISCORD_WEBHOOK_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: clamav-secrets
+                      key: discord-webhook-url
+                      optional: true
+              volumeMounts:
+                - name: downloads
+                  mountPath: /downloads
+                - name: personal
+                  mountPath: /personal
+                - name: clamav-db
+                  mountPath: /var/lib/clamav
+                - name: clamav-config
+                  mountPath: /etc/clamav
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 512Mi
+                limits:
+                  cpu: 1000m
+                  memory: 2Gi
+
+          volumes:
+            - name: downloads
+              persistentVolumeClaim:
+                claimName: downloads-pvc
+            - name: personal
+              persistentVolumeClaim:
+                claimName: personal-pvc
+            - name: clamav-db
+              persistentVolumeClaim:
+                claimName: clamav-db
+            - name: clamav-config
+              configMap:
+                name: clamav-config
+---
+# PVC for ClamAV virus database cache
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: clamav-db
+  namespace: security
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+---
+# ClamAV Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clamav-config
+  namespace: security
+data:
+  freshclam.conf: |
+    DatabaseDirectory /var/lib/clamav
+    UpdateLogFile /var/log/clamav/freshclam.log
+    LogTime yes
+    DatabaseOwner clamav
+    DatabaseMirror database.clamav.net
+    MaxAttempts 3
+    ScriptedUpdates yes
+    CompressLocalDatabase no
+    Bytecode yes
+---
+# Weekly deep scan CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: clamav-deep-scan
+  namespace: security
+  labels:
+    app: clamav-deep-scan
+spec:
+  schedule: "0 3 * * 0" # Sunday at 3 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 14400 # 4 hour timeout
+      template:
+        metadata:
+          labels:
+            app: clamav-deep-scan
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: scanner
+              image: clamav/clamav:1.4
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  #!/bin/sh
+                  set -e
+
+                  echo "$(date): Starting weekly deep scan..."
+
+                  # Update virus definitions first
+                  freshclam --quiet --config-file=/etc/clamav/freshclam.conf || true
+
+                  # Deep scan of media directories
+                  clamscan -r --infected --log=/tmp/scan.log \
+                    /downloads \
+                    /personal/public \
+                    || true
+
+                  # Check for infections
+                  if grep -q "FOUND" /tmp/scan.log 2>/dev/null; then
+                    echo "Infections found in deep scan!"
+                    cat /tmp/scan.log
+
+                    if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+                      INFECTIONS=$(grep "FOUND" /tmp/scan.log | head -10)
+                      curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+                        -H "Content-Type: application/json" \
+                        -d "{\"content\": \"🦠 **Weekly Deep Scan - Malware Found**\n\n\`\`\`\n$INFECTIONS\n\`\`\`\"}"
+                    fi
+                  else
+                    echo "No infections found."
+                  fi
+
+                  echo "$(date): Deep scan complete."
+              env:
+                - name: DISCORD_WEBHOOK_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: clamav-secrets
+                      key: discord-webhook-url
+                      optional: true
+              volumeMounts:
+                - name: downloads
+                  mountPath: /downloads
+                  readOnly: true
+                - name: personal
+                  mountPath: /personal
+                  readOnly: true
+                - name: clamav-db
+                  mountPath: /var/lib/clamav
+                - name: clamav-config
+                  mountPath: /etc/clamav
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  cpu: 2000m
+                  memory: 4Gi
+
+          volumes:
+            - name: downloads
+              persistentVolumeClaim:
+                claimName: downloads-pvc
+            - name: personal
+              persistentVolumeClaim:
+                claimName: personal-pvc
+            - name: clamav-db
+              persistentVolumeClaim:
+                claimName: clamav-db
+            - name: clamav-config
+              configMap:
+                name: clamav-config

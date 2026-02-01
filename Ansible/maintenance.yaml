@@ -1,22 +1,17 @@
-- name: Discover Tailscale Machines
-  hosts: localhost
-  tasks:
-    - name: Discover Tailscale Machines
-      ansible.builtin.include_tasks: tasks/discover_tailscale.yaml
+# Maintenance playbook for TalosOS infrastructure
+# TalosOS nodes are managed via talosctl, not Ansible
+# This playbook handles Proxmox host and Oracle VPS maintenance
+
 - name: Update ProxmoxVE
   hosts: proxmox
-  vars_files:
-    - ../.private/variables.yaml
+  become: true
   tasks:
-    - name: Update packages
+    - name: Update Proxmox packages
       ansible.builtin.include_tasks: tasks/update-proxmox.yaml
-- name: Setup Containers
-  hosts: localhost
+
+- name: Update Oracle VPS instances
+  hosts: oracle
+  become: true
   tasks:
-    - name: Discover Proxmox Containers
-      ansible.builtin.include_tasks: tasks/discover_tailscale.yaml
-- name: Update packages
-  hosts: provisioned
-  tasks:
-    - name: Update packages
+    - name: Update apt packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml

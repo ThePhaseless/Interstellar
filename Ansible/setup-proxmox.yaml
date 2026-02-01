@@ -1,9 +1,13 @@
-- name: Setup Containers
+- name: Setup Proxmox Host for TalosOS Cluster
   hosts: proxmox
+  become: true
   vars_files:
-    - ../.private/variables.yaml
+    - vars/proxmox.yaml
   tasks:
-    - name: Enable ip forwarding
+    # -------------------------------------------------------------------------
+    # System Configuration
+    # -------------------------------------------------------------------------
+    - name: Enable IP forwarding
       register: enable_ip_forward
       ansible.posix.sysctl:
         name: net.ipv4.ip_forward
@@ -18,24 +22,101 @@
       changed_when: false
       become: true
 
-    - name: Add nomodeset to GRUB_CMDLINE_LINUX_DEFAULT
-      ansible.builtin.lineinfile:
-        path: /etc/default/grub
-        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT="(.*)"'
-        line: 'GRUB_CMDLINE_LINUX_DEFAULT="\1 nomodeset"'
-        backrefs: true
-      when: not (lookup('file', '/etc/default/grub') | regex_search('GRUB_CMDLINE_LINUX_DEFAULT=".*nomodeset.*"'))
-
-    - name: Disable swap permanently, persist reboots
+    - name: Disable swap permanently in fstab
       ansible.builtin.lineinfile:
         path: /etc/fstab
-        line: "/dev/pve/swap none swap sw 0 0"
+        regexp: "swap"
+        state: absent
 
-    - name: Reboot ProxmoxVE
-      ansible.builtin.reboot:
-        msg: "Rebooting to apply sysctl changes"
-        connect_timeout: 5
-      tags:
-        - skip_ansible_lint
-      register: reboot_result
-      ignore_errors: true
+    # -------------------------------------------------------------------------
+    # VLAN Configuration for Cluster Isolation
+    # -------------------------------------------------------------------------
+    - name: Configure VLAN 100 interface
+      ansible.builtin.blockinfile:
+        path: /etc/network/interfaces
+        block: |
+          # VLAN 100 for Kubernetes cluster (10.100.0.0/24)
+          auto vmbr1
+          iface vmbr1 inet static
+              address 10.100.0.1/24
+              bridge_ports none
+              bridge_stp off
+              bridge_fd 0
+              post-up   iptables -t nat -A POSTROUTING -s 10.100.0.0/24 -o vmbr0 -j MASQUERADE
+              post-down iptables -t nat -D POSTROUTING -s 10.100.0.0/24 -o vmbr0 -j MASQUERADE
+        marker: "# {mark} ANSIBLE MANAGED - VLAN 100"
+      notify: Restart networking
+
+    # -------------------------------------------------------------------------
+    # Firewall Rules for Cluster Isolation
+    # -------------------------------------------------------------------------
+    - name: Create cluster firewall rules
+      ansible.builtin.copy:
+        dest: /etc/pve/firewall/cluster.fw
+        content: |
+          [OPTIONS]
+          enable: 1
+          policy_in: ACCEPT
+          policy_out: ACCEPT
+
+          [RULES]
+          # Allow cluster to internet for HTTP/HTTPS
+          IN ACCEPT -source 10.100.0.0/24 -dest 0.0.0.0/0 -p tcp -dport 80,443
+          # Allow cluster to DNS and Tailscale
+          IN ACCEPT -source 10.100.0.0/24 -dest 0.0.0.0/0 -p udp -dport 53,41641
+          # Allow cluster to Proxmox iSCSI
+          IN ACCEPT -source 10.100.0.0/24 -dest 192.168.1.10/32 -p tcp -dport 3260
+          # Block cluster to private networks
+          IN DROP -source 10.100.0.0/24 -dest 192.168.0.0/16
+          IN DROP -source 10.100.0.0/24 -dest 172.16.0.0/12
+          IN DROP -source 10.100.0.0/24 -dest 10.0.0.0/8 -log nolog
+          # Allow personal network to cluster
+          IN ACCEPT -source 192.168.1.0/24 -dest 10.100.0.0/24
+        mode: "0644"
+
+    # -------------------------------------------------------------------------
+    # iSCSI Target Configuration
+    # -------------------------------------------------------------------------
+    - name: Install targetcli
+      ansible.builtin.apt:
+        name: targetcli-fb
+        state: present
+        update_cache: true
+
+    - name: Create ZFS zvol for cluster storage
+      ansible.builtin.command:
+        cmd: zfs create -V {{ zfs_storage_size }} {{ zfs_pool_name }}/k8s/storage
+        creates: /dev/zvol/{{ zfs_pool_name }}/k8s/storage
+
+    - name: Configure iSCSI target
+      ansible.builtin.shell: |
+        # Create backstores block device
+        targetcli /backstores/block create k8s-storage /dev/zvol/{{ zfs_pool_name }}/k8s/storage || true
+
+        # Create iSCSI target
+        targetcli /iscsi create iqn.2026-01.dev.nerine:k8s || true
+
+        # Create LUN
+        targetcli /iscsi/iqn.2026-01.dev.nerine:k8s/tpg1/luns create /backstores/block/k8s-storage || true
+
+        # Create ACLs for each node
+        for node in talos-1 talos-2 talos-3; do
+          targetcli /iscsi/iqn.2026-01.dev.nerine:k8s/tpg1/acls create iqn.2026-01.dev.nerine:$node || true
+        done
+
+        # Save configuration
+        targetcli saveconfig
+      args:
+        creates: /etc/target/saveconfig.json
+
+    - name: Enable and start target service
+      ansible.builtin.systemd:
+        name: target
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Restart networking
+      ansible.builtin.systemd:
+        name: networking
+        state: restarted

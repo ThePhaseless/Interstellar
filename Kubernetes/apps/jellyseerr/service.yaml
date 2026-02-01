@@ -1,0 +1,16 @@
+# =============================================================================
+# Jellyseerr Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 5055
+      targetPort: http
+  selector:
+    app: jellyseerr

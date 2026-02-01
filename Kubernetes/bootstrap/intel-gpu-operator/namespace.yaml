@@ -1,0 +1,9 @@
+# =============================================================================
+# Intel GPU Operator Namespace
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: intel-device-plugins
+  labels:
+    name: intel-device-plugins

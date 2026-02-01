@@ -1,0 +1,28 @@
+# =============================================================================
+# ArgoCD Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+resources:
+  # Install ArgoCD from upstream Helm chart
+  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  - namespace.yaml
+  - argocd-cm.yaml
+  - app-of-apps.yaml
+
+# Patches for ArgoCD configuration
+patches:
+  # Enable insecure mode (TLS termination at Traefik)
+  - target:
+      kind: Deployment
+      name: argocd-server
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --insecure
+
+commonLabels:
+  managed-by: argocd

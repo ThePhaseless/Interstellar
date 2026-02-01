@@ -1,0 +1,21 @@
+# =============================================================================
+# Traefik Dashboard Ingress
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`traefik.nerine.dev`)
+      kind: Rule
+      services:
+        - name: api@internal
+          kind: TraefikService
+      middlewares:
+        - name: tailscale-only
+  tls:
+    certResolver: letsencrypt

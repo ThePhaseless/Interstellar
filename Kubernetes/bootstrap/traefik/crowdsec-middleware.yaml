@@ -1,0 +1,34 @@
+# =============================================================================
+# CrowdSec Bouncer Middleware (Traefik Plugin)
+# =============================================================================
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: crowdsec-bouncer
+  namespace: traefik
+spec:
+  plugin:
+    crowdsec-bouncer:
+      enabled: true
+      logLevel: INFO
+      updateIntervalSeconds: 60
+      updateMaxFailure: 0
+      defaultDecisionSeconds: 60
+      httpTimeoutSeconds: 10
+      # Stream mode - recommended for performance
+      # Decisions are updated every 60 sec, requests hit local cache
+      crowdsecMode: stream
+      crowdsecLapiScheme: http
+      crowdsecLapiHost: crowdsec-lapi.crowdsec.svc.cluster.local:8080
+      # API key loaded from external secret via environment
+      crowdsecLapiKeyFile: /secrets/crowdsec/crowdsecLapiKey
+      # Trust Tailscale IPs (don't block internal traffic)
+      clientTrustedIPs:
+        - "100.64.0.0/10" # Tailscale CGNAT
+        - "10.100.0.0/24" # Cluster VLAN
+        - "10.244.0.0/16" # Pod CIDR
+      # Forward headers from HAProxy PROXY protocol
+      forwardedHeadersCustomName: X-Forwarded-For
+      forwardedHeadersTrustedIPs:
+        - "100.64.0.0/10" # Tailscale (Oracle HAProxy)

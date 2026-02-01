@@ -1,0 +1,46 @@
+# =============================================================================
+# Tailscale Kubernetes Operator Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: tailscale
+
+resources:
+  - namespace.yaml
+  - externalsecret.yaml
+
+# Install Tailscale Operator via Helm
+helmCharts:
+  - name: tailscale-operator
+    repo: https://pkgs.tailscale.com/helmcharts
+    version: 1.82.0
+    releaseName: tailscale
+    namespace: tailscale
+    valuesInline:
+      oauth:
+        clientId: "" # Set via ExternalSecret
+        clientSecret: "" # Set via ExternalSecret
+      # Use external secret for OAuth credentials
+      operatorConfig:
+        hostname: "talos-operator"
+        # Enable API server proxy for kubectl access
+        apiServerProxyConfig:
+          enabled: true
+        # Enable subnet router
+        subnetRouter:
+          enabled: true
+          routes:
+            - "10.244.0.0/16" # Pod CIDR
+            - "10.96.0.0/12" # Service CIDR
+      # Resource limits
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+
+commonLabels:
+  managed-by: argocd

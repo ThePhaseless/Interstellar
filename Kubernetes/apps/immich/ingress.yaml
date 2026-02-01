@@ -1,0 +1,22 @@
+# =============================================================================
+# Immich Ingress (Public - public-chain middleware)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: immich
+  namespace: utilities
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`photos.nerine.dev`)
+      kind: Rule
+      services:
+        - name: immich
+          port: 3001
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt

@@ -1,0 +1,140 @@
+# =============================================================================
+# Immich Server Deployment (with PostgreSQL and Redis sidecars)
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich
+  namespace: utilities
+  labels:
+    app: immich
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich
+  template:
+    metadata:
+      labels:
+        app: immich
+    spec:
+      containers:
+        # Immich Server
+        - name: immich-server
+          image: ghcr.io/immich-app/immich-server:v1.124.2
+          env:
+            - name: TZ
+              value: "UTC"
+            - name: DB_HOSTNAME
+              value: "localhost"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_DATABASE_NAME
+              value: "immich"
+            - name: DB_USERNAME
+              value: "immich"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-secrets
+                  key: db-password
+            - name: REDIS_HOSTNAME
+              value: "localhost"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: IMMICH_MACHINE_LEARNING_URL
+              value: "http://immich-ml.utilities.svc.cluster.local:3003"
+          ports:
+            - name: http
+              containerPort: 3001
+          volumeMounts:
+            - name: upload
+              mountPath: /usr/src/app/upload
+            - name: external-library
+              mountPath: /external
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+          livenessProbe:
+            httpGet:
+              path: /api/server-info/ping
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/server-info/ping
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+        # PostgreSQL Sidecar
+        - name: postgres
+          image: tensorchord/pgvecto-rs:pg16-v0.3.0
+          env:
+            - name: POSTGRES_DB
+              value: "immich"
+            - name: POSTGRES_USER
+              value: "immich"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-secrets
+                  key: db-password
+            - name: POSTGRES_INITDB_ARGS
+              value: "--data-checksums"
+          ports:
+            - name: postgres
+              containerPort: 5432
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+
+        # Redis Sidecar
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - name: redis
+              containerPort: 6379
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+      volumes:
+        - name: upload
+          persistentVolumeClaim:
+            claimName: immich-upload
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: immich-postgres
+        - name: external-library
+          persistentVolumeClaim:
+            claimName: personal-pvc
+---
+# Secret for Immich database password
+apiVersion: v1
+kind: Secret
+metadata:
+  name: immich-secrets
+  namespace: utilities
+type: Opaque
+stringData:
+  db-password: "immich-db-password-change-me"

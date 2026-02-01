@@ -1,23 +1,48 @@
-- name: Configure
+# Setup Oracle VPS instances for TalosOS infrastructure
+# - oracle: All Oracle instances (proxy + compute)
+# - oracle_proxy: Proxy VPS only (HAProxy + Docker)
+# - oracle_compute: Compute VPS only (future workloads)
+
+- name: Configure Oracle VPS Instances
   hosts: oracle
+  become: true
   tasks:
     - name: Update packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
 
-- name: Setup Tailscale
+    - name: Configure iptables rules
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{ item }}"
+        jump: ACCEPT
+      loop:
+        - "22"
+        - "80"
+        - "443"
+
+    - name: Install iptables-persistent
+      ansible.builtin.apt:
+        name: iptables-persistent
+        state: present
+
+    - name: Save iptables rules
+      ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+      changed_when: false
+
+- name: Setup Tailscale on all Oracle instances
   hosts: oracle
+  become: true
   vars_files:
     - vars/oracle.yaml
   roles:
     - role: artis3n.tailscale.machine
 
-- name: Install Docker
-  hosts: oracle
+- name: Deploy HAProxy on Proxy VPS
+  hosts: oracle_proxy
+  become: true
   roles:
     - geerlingguy.docker
-
-- name: Deploy HAProxy Stack
-  hosts: oracle
   tasks:
     - name: Create HAProxy directory
       ansible.builtin.file:

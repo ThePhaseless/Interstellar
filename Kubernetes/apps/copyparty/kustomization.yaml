@@ -1,0 +1,22 @@
+# =============================================================================
+# Copyparty Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: utilities
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - oauth2-proxy.yaml
+  - externalsecret.yaml
+
+configMapGenerator:
+  - name: copyparty-config
+    files:
+      - copyparty.conf
+
+commonLabels:
+  app: copyparty

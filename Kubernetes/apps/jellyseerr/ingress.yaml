@@ -1,0 +1,22 @@
+# =============================================================================
+# Jellyseerr Ingress (Public - public-chain middleware)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`add.nerine.dev`)
+      kind: Rule
+      services:
+        - name: jellyseerr
+          port: 5055
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt

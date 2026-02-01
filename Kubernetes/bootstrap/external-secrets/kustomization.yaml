@@ -1,0 +1,35 @@
+# =============================================================================
+# External Secrets Operator Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: external-secrets
+
+resources:
+  - namespace.yaml
+  - sdk-server.yaml
+  - bitwarden-store.yaml
+
+# Install ESO via Helm chart
+helmCharts:
+  - name: external-secrets
+    repo: https://charts.external-secrets.io
+    version: 0.12.1
+    releaseName: external-secrets
+    namespace: external-secrets
+    valuesInline:
+      installCRDs: true
+      serviceAccount:
+        create: true
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+
+commonLabels:
+  managed-by: argocd

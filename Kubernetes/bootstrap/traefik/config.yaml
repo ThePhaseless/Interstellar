@@ -1,0 +1,116 @@
+# =============================================================================
+# Traefik Static Configuration
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-config
+  namespace: traefik
+data:
+  traefik.yaml: |
+    # API and Dashboard
+    api:
+      dashboard: true
+      insecure: false
+
+    # Experimental features for plugins
+    experimental:
+      plugins:
+        crowdsec-bouncer:
+          moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+          version: v1.5.0
+
+    # Ping for health checks
+    ping:
+      entryPoint: traefik
+
+    # Entry Points
+    entryPoints:
+      web:
+        address: ":80"
+        # PROXY Protocol from Oracle HAProxy
+        proxyProtocol:
+          trustedIPs:
+            - "100.64.0.0/10"  # Tailscale CGNAT range
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
+
+      websecure:
+        address: ":443"
+        # PROXY Protocol from Oracle HAProxy
+        proxyProtocol:
+          trustedIPs:
+            - "100.64.0.0/10"  # Tailscale CGNAT range
+        http:
+          tls:
+            certResolver: letsencrypt
+          # Global middlewares applied to all routes
+          middlewares:
+            - security-headers@file
+
+      traefik:
+        address: ":8080"
+
+    # Certificate Resolvers
+    certificatesResolvers:
+      letsencrypt:
+        acme:
+          email: admin@nerine.dev
+          storage: /data/acme.json
+          dnsChallenge:
+            provider: cloudflare
+            delayBeforeCheck: 10s
+            resolvers:
+              - "1.1.1.1:53"
+              - "8.8.8.8:53"
+
+    # Providers
+    providers:
+      # Kubernetes CRD provider
+      kubernetesCRD:
+        allowCrossNamespace: true
+        allowExternalNameServices: true
+
+      # Kubernetes Ingress provider
+      kubernetesIngress:
+        allowExternalNameServices: true
+        publishedService:
+          enabled: true
+
+      # File provider for middlewares
+      file:
+        directory: /etc/traefik/dynamic
+        watch: true
+
+    # Logging
+    log:
+      level: INFO
+      format: json
+
+    # Access Logging
+    accessLog:
+      format: json
+      filters:
+        statusCodes:
+          - "400-599"
+
+    # Metrics (for Mimir/Prometheus)
+    metrics:
+      prometheus:
+        entryPoint: traefik
+        addEntryPointsLabels: true
+        addRoutersLabels: true
+        addServicesLabels: true
+
+    # Global settings
+    global:
+      checkNewVersion: false
+      sendAnonymousUsage: false
+
+    # ServersTransport for backend connections
+    serversTransport:
+      insecureSkipVerify: false

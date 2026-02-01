@@ -1,0 +1,95 @@
+# =============================================================================
+# CrowdSec LAPI (Local API)
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crowdsec-lapi
+  namespace: crowdsec
+  labels:
+    app: crowdsec-lapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crowdsec-lapi
+  template:
+    metadata:
+      labels:
+        app: crowdsec-lapi
+    spec:
+      containers:
+        - name: crowdsec
+          image: crowdsecurity/crowdsec:v1.6
+          env:
+            - name: COLLECTIONS
+              value: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux"
+            - name: DISABLE_AGENT
+              value: "true"
+            - name: BOUNCER_KEY_traefik
+              valueFrom:
+                secretKeyRef:
+                  name: crowdsec-secrets
+                  key: bouncer-key
+          ports:
+            - name: lapi
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/crowdsec/data
+            - name: config
+              mountPath: /etc/crowdsec
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: lapi
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: lapi
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: crowdsec-data
+        - name: config
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crowdsec-lapi
+  namespace: crowdsec
+spec:
+  type: ClusterIP
+  ports:
+    - name: lapi
+      port: 8080
+      targetPort: lapi
+  selector:
+    app: crowdsec-lapi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: crowdsec-data
+  namespace: crowdsec
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi

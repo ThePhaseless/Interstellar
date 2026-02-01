@@ -1,0 +1,18 @@
+# =============================================================================
+# Common Resources Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - rbac.yaml
+  - pvc.yaml
+  - externalsecrets.yaml
+
+configMapGenerator:
+  - name: arr-configurator-scripts
+    namespace: media
+    files:
+      - scripts/extract-api-key.sh
+      - scripts/configure-download-client.sh
+      - scripts/configure-prowlarr.sh

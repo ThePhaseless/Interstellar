@@ -1,0 +1,16 @@
+# Bootstrap Infrastructure Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - metallb/
+  - longhorn/
+  - external-secrets/
+  - intel-gpu-operator/
+  - traefik/
+  - crowdsec/
+  - tailscale-operator/
+  - reloader/
+  - observability/
+  - clamav/
+  - argocd/

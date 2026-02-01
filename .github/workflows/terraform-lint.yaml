@@ -1,0 +1,36 @@
+# Terraform Linting Workflow
+name: Terraform Lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Terraform/**"
+      - ".github/workflows/terraform-lint.yaml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "Terraform/**"
+      - ".github/workflows/terraform-lint.yaml"
+
+jobs:
+  lint:
+    name: Lint Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Initialize TFLint
+        run: tflint --init
+        working-directory: Terraform
+
+      - name: Run TFLint
+        run: tflint --format=compact
+        working-directory: Terraform

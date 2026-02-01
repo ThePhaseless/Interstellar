@@ -1,0 +1,45 @@
+# =============================================================================
+# Common PVCs for Media Stack
+# =============================================================================
+---
+# Downloads PVC (includes quarantine and completed directories)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: downloads-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn-rwx
+  resources:
+    requests:
+      storage: 500Gi
+---
+# Media library PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn-rwx
+  resources:
+    requests:
+      storage: 8Ti
+---
+# Personal files PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: personal-pvc
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn-rwx
+  resources:
+    requests:
+      storage: 500Gi

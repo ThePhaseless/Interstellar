@@ -1,0 +1,40 @@
+# =============================================================================
+# Bitwarden ClusterSecretStore
+# =============================================================================
+# This ClusterSecretStore connects to Bitwarden Secrets Manager via the SDK Server
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: bitwarden-store
+spec:
+  provider:
+    bitwardensecretsmanager:
+      apiURL: https://api.bitwarden.com
+      identityURL: https://identity.bitwarden.com
+      # Reference to the Bitwarden access token secret
+      auth:
+        secretRef:
+          accessTokenSecretRef:
+            name: bitwarden-access-token
+            namespace: external-secrets
+            key: token
+      # Project ID for the 'interstellar' project
+      # This is fetched dynamically or set manually
+      projectID: "" # Set this after creating the project in Bitwarden
+---
+# Bootstrap secret for Bitwarden access token
+# This secret must be created manually before ESO can function:
+# kubectl create secret generic bitwarden-access-token \
+#   --namespace=external-secrets \
+#   --from-literal=token=<your-bws-access-token>
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bitwarden-access-token
+  namespace: external-secrets
+  annotations:
+    # This is a placeholder - actual token must be created manually
+    description: "Bootstrap secret for Bitwarden Secrets Manager access token"
+type: Opaque
+stringData:
+  token: "REPLACE_WITH_ACTUAL_TOKEN"

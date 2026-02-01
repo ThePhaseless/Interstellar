@@ -1,0 +1,22 @@
+# =============================================================================
+# qBittorrent Ingress (Tailscale-only)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`qbittorrent.nerine.dev`)
+      kind: Rule
+      services:
+        - name: qbittorrent
+          port: 8080
+      middlewares:
+        - name: tailscale-only
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt

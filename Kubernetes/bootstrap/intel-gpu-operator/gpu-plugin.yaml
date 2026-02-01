@@ -1,0 +1,59 @@
+# =============================================================================
+# Intel Device Plugins Operator and GPU Plugin
+# =============================================================================
+# Installs Intel Device Plugins Operator which manages the GPU Device Plugin
+# for exposing Intel GPUs (Arc B580) to Kubernetes workloads.
+#
+# Docs: https://intel.github.io/intel-device-plugins-for-kubernetes/
+# =============================================================================
+---
+# Node Feature Discovery (NFD) - detects Intel GPU and labels nodes
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: node-feature-discovery
+  namespace: kube-system
+spec:
+  repo: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+  chart: node-feature-discovery
+  version: "0.17.1"
+  targetNamespace: node-feature-discovery
+  createNamespace: true
+  valuesContent: |-
+    master:
+      replicaCount: 1
+    worker:
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+---
+# Intel Device Plugins Operator
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: intel-device-plugins-operator
+  namespace: kube-system
+spec:
+  repo: https://intel.github.io/helm-charts
+  chart: intel-device-plugins-operator
+  version: "0.31.1"
+  targetNamespace: intel-device-plugins
+  createNamespace: true
+---
+# Intel GPU Device Plugin Custom Resource
+# This is applied after the operator is ready
+apiVersion: deviceplugin.intel.com/v1
+kind: GpuDevicePlugin
+metadata:
+  name: intel-gpu-plugin
+  namespace: intel-device-plugins
+spec:
+  # Use xe driver for Intel Arc B580 (Battlemage architecture)
+  image: intel/intel-gpu-plugin:0.31.1
+  # Allow multiple containers to share a GPU (for transcoding + ML)
+  sharedDevNum: 2
+  # Prefer xe driver for Battlemage GPUs
+  preferredAllocationPolicy: balanced
+  nodeSelector:
+    intel.feature.node.kubernetes.io/gpu: "true"

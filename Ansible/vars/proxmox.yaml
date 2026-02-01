@@ -1,0 +1,16 @@
+# =============================================================================
+# Proxmox Host Configuration Variables
+# =============================================================================
+
+# ZFS Storage Configuration
+# Adjust these based on your available storage
+zfs_pool_name: Storage
+zfs_storage_size: 8T  # Size of the zvol for Kubernetes storage
+
+# Network Configuration
+cluster_vlan_id: 100
+cluster_network: 10.100.0.0/24
+cluster_gateway: 10.100.0.1
+
+# iSCSI Configuration
+iscsi_target_iqn: iqn.2026-01.dev.nerine:k8s

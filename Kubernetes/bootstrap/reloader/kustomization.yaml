@@ -1,0 +1,15 @@
+# =============================================================================
+# Reloader Bootstrap Kustomization
+# =============================================================================
+# Automatically restarts pods when ConfigMaps/Secrets change
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: reloader
+
+resources:
+  - namespace.yaml
+  - https://raw.githubusercontent.com/stakater/Reloader/master/deployments/kubernetes/reloader.yaml
+
+commonLabels:
+  managed-by: argocd

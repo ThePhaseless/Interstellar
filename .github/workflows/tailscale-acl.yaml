@@ -1,0 +1,83 @@
+# =============================================================================
+# Tailscale ACL Sync Workflow
+# =============================================================================
+# Validates ACL changes on PRs and applies them on main branch pushes.
+# Uses the tailscale/gitops-acl-action for policy management.
+
+name: Tailscale ACL
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - "Tailscale/**"
+            - ".github/workflows/tailscale-acl.yaml"
+    pull_request:
+        branches: [main]
+        paths:
+            - "Tailscale/**"
+            - ".github/workflows/tailscale-acl.yaml"
+
+jobs:
+    # ---------------------------------------------------------------------------
+    # Validate ACL (runs on PRs)
+    # ---------------------------------------------------------------------------
+    validate:
+        name: Validate ACL
+        runs-on: ubuntu-latest
+        if: github.event_name == 'pull_request'
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            # Fetch Tailscale credentials from Bitwarden
+            - name: Get Tailscale Secrets
+              uses: bitwarden/sm-action@v2
+              with:
+                  access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+                  secrets: |
+                      tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
+                      tailscale-oauth-secret > TS_OAUTH_SECRET
+                      tailscale-tailnet > TS_TAILNET
+
+            - name: Validate Tailscale ACL
+              uses: tailscale/gitops-acl-action@v1
+              with:
+                  oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
+                  oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+                  tailnet: ${{ env.TS_TAILNET }}
+                  policy-file: Tailscale/policy.hujson
+                  action: test
+
+    # ---------------------------------------------------------------------------
+    # Apply ACL (only on main branch)
+    # ---------------------------------------------------------------------------
+    apply:
+        name: Apply ACL
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        environment: production
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            # Fetch Tailscale credentials from Bitwarden
+            - name: Get Tailscale Secrets
+              uses: bitwarden/sm-action@v2
+              with:
+                  access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+                  secrets: |
+                      tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
+                      tailscale-oauth-secret > TS_OAUTH_SECRET
+                      tailscale-tailnet > TS_TAILNET
+
+            - name: Apply Tailscale ACL
+              uses: tailscale/gitops-acl-action@v1
+              with:
+                  oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
+                  oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+                  tailnet: ${{ env.TS_TAILNET }}
+                  policy-file: Tailscale/policy.hujson
+                  action: apply

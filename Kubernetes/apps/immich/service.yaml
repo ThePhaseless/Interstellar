@@ -1,0 +1,16 @@
+# =============================================================================
+# Immich Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich
+  namespace: utilities
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http
+  selector:
+    app: immich

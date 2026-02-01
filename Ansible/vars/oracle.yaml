@@ -1,1 +1,3 @@
-tailscale_args: --ssh --advertise-tags=tag:oracle
+# Tailscale configuration for Oracle VPS instances
+# Both proxy and compute instances use the same base config
+tailscale_args: --ssh

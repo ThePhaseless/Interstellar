@@ -1,0 +1,204 @@
+{
+  // ==========================================================================
+  // Tailscale ACL Policy for Interstellar Infrastructure
+  // ==========================================================================
+  // This policy defines access controls for the TalosOS cluster and services.
+  // Managed via GitOps - changes are applied via GitHub Actions.
+  // ==========================================================================
+
+  // -------------------------------------------------------------------------
+  // Tag Owners
+  // -------------------------------------------------------------------------
+  // Tags are used to categorize devices and enforce access policies.
+  "tagOwners": {
+    "tag:ci":           ["autogroup:admin"],
+    "tag:proxmox":      ["autogroup:admin"],
+    "tag:oracle":       ["autogroup:admin"],
+    "tag:cluster":      ["autogroup:admin"],
+    "tag:k8s-operator": ["autogroup:admin"]
+  },
+
+  // -------------------------------------------------------------------------
+  // Groups
+  // -------------------------------------------------------------------------
+  // Groups define collections of users for access control.
+  "groups": {
+    // Full admin access - infrastructure operators
+    "group:vips": [
+      // Add admin email addresses here
+    ],
+
+    // Science club members - shared access to cluster services
+    "group:silvernet": [
+      // Add member email addresses here
+    ],
+
+    // Media consumers - Jellyfin/Jellyseerr access only
+    "group:media": [
+      // Add media user email addresses here
+    ],
+
+    // DNS users - AdGuard DNS access only
+    "group:dns": [
+      // Add DNS user email addresses here
+    ]
+  },
+
+  // -------------------------------------------------------------------------
+  // Hosts
+  // -------------------------------------------------------------------------
+  // Named hosts for easier ACL rules.
+  "hosts": {
+    "proxmox":     "192.168.1.10",
+    "talos-1":     "10.100.0.11",
+    "talos-2":     "10.100.0.12",
+    "talos-3":     "10.100.0.13",
+    "cluster-vip": "10.100.0.100"
+  },
+
+  // -------------------------------------------------------------------------
+  // Access Control Lists
+  // -------------------------------------------------------------------------
+  "acls": [
+    // VIPs have full access to everything
+    {
+      "action": "accept",
+      "src":    ["group:vips"],
+      "dst":    ["*:*"]
+    },
+
+    // CI runners can access Proxmox and cluster for deployments
+    {
+      "action": "accept",
+      "src":    ["tag:ci"],
+      "dst": [
+        "tag:proxmox:22",      // SSH to Proxmox
+        "tag:oracle:22",       // SSH to Oracle VPS
+        "tag:cluster:6443",    // Kubernetes API
+        "tag:cluster:50000"    // Talos API
+      ]
+    },
+
+    // Oracle VPS can reach Traefik on cluster
+    {
+      "action": "accept",
+      "src":    ["tag:oracle"],
+      "dst": [
+        "tag:cluster:80",
+        "tag:cluster:443"
+      ]
+    },
+
+    // Cluster nodes can communicate with each other
+    {
+      "action": "accept",
+      "src":    ["tag:cluster"],
+      "dst":    ["tag:cluster:*"]
+    },
+
+    // Cluster can reach Proxmox for iSCSI storage
+    {
+      "action": "accept",
+      "src":    ["tag:cluster"],
+      "dst":    ["tag:proxmox:3260"]
+    },
+
+    // K8s Operator has full cluster access
+    {
+      "action": "accept",
+      "src":    ["tag:k8s-operator"],
+      "dst":    ["tag:cluster:*"]
+    },
+
+    // Silvernet members can access cluster services (not personal devices)
+    {
+      "action": "accept",
+      "src":    ["group:silvernet"],
+      "dst": [
+        "tag:cluster:80",
+        "tag:cluster:443",
+        "tag:cluster:445",   // SMB
+        "tag:cluster:3945"   // Copyparty SMB
+      ]
+    },
+
+    // Media group - only Jellyfin and Jellyseerr
+    {
+      "action": "accept",
+      "src":    ["group:media"],
+      "dst": [
+        "tag:cluster:80",
+        "tag:cluster:443"
+      ]
+    },
+
+    // DNS group - only AdGuard DNS
+    {
+      "action": "accept",
+      "src":    ["group:dns"],
+      "dst": [
+        "tag:cluster:53"     // DNS (TCP and UDP)
+      ]
+    }
+  ],
+
+  // -------------------------------------------------------------------------
+  // SSH Configuration
+  // -------------------------------------------------------------------------
+  "ssh": [
+    // VIPs can SSH to all tagged devices
+    {
+      "action": "accept",
+      "src":    ["group:vips"],
+      "dst":    ["tag:proxmox", "tag:oracle", "tag:cluster"],
+      "users":  ["autogroup:nonroot", "root"]
+    },
+
+    // CI can SSH for deployments
+    {
+      "action": "accept",
+      "src":    ["tag:ci"],
+      "dst":    ["tag:proxmox", "tag:oracle"],
+      "users":  ["autogroup:nonroot"]
+    }
+  ],
+
+  // -------------------------------------------------------------------------
+  // Auto Approvers
+  // -------------------------------------------------------------------------
+  // Automatically approve certain network features.
+  "autoApprovers": {
+    // Exit node approval (Oracle VPS)
+    "exitNode": ["tag:oracle"],
+
+    // Subnet routes (cluster pod/service CIDRs)
+    "routes": {
+      "10.100.0.0/24":  ["tag:cluster"],   // Cluster VLAN
+      "10.244.0.0/16":  ["tag:cluster"],   // Pod CIDR
+      "10.96.0.0/12":   ["tag:cluster"]    // Service CIDR
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Node Attributes
+  // -------------------------------------------------------------------------
+  "nodeAttrs": [
+    // Disable key expiry for infrastructure nodes
+    {
+      "target": ["tag:cluster", "tag:oracle", "tag:proxmox"],
+      "attr":   ["funnel:deny"]
+    }
+  ],
+
+  // -------------------------------------------------------------------------
+  // DNS Configuration
+  // -------------------------------------------------------------------------
+  "dns": [
+    // Override *.nerine.dev to cluster for internal resolution
+    {
+      "action": "accept",
+      "src":    ["autogroup:member"],
+      "nameservers": ["100.100.100.100"]  // MagicDNS
+    }
+  ]
+}
