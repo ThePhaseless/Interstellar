@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Terraform Linter Script
+# OpenTofu Linter Script
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-TF_DIR="${REPO_ROOT}/Terraform"
+TOFU_DIR="${REPO_ROOT}/OpenTofu"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -17,10 +17,10 @@ if ! command -v tflint &> /dev/null; then
     exit 1
 fi
 
-echo -e "${GREEN}=== Terraform Linter ===${NC}"
-echo "Terraform dir: ${TF_DIR}"
+echo -e "${GREEN}=== OpenTofu Linter ===${NC}"
+echo "OpenTofu dir: ${TOFU_DIR}"
 
-cd "${TF_DIR}"
+cd "${TOFU_DIR}"
 
 echo "Initializing plugins..."
 tflint --init
@@ -28,7 +28,7 @@ tflint --init
 echo ""
 echo "Running tflint..."
 if tflint --format=compact; then
-    echo -e "${GREEN}✓ All Terraform files passed linting!${NC}"
+    echo -e "${GREEN}✓ All OpenTofu files passed linting!${NC}"
 else
     echo -e "${RED}✗ Linting found issues${NC}"
     exit 1
