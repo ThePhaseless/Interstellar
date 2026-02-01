@@ -25,11 +25,6 @@ Before deployment, configure these secrets in **Bitwarden Secrets Manager** and 
 | ----------------- | ----------------------------------------------------------------------- |
 | `BW_ACCESS_TOKEN` | Bitwarden machine account token (single project containing all secrets) |
 
-### GitHub Repository Variables
-
-| Variable          | Description                                        |
-| ----------------- | -------------------------------------------------- |
-
 ### Bitwarden Secrets Manager
 
 All secrets should be stored in a single Bitwarden Secrets Manager project:
