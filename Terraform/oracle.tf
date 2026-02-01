@@ -31,10 +31,6 @@ resource "oci_objectstorage_bucket" "terraform_state" {
   name           = var.state_bucket_name
   namespace      = data.oci_objectstorage_namespace.namespace.namespace
   versioning     = "Enabled"
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "oci_objectstorage_bucket" "ansible_files" {
