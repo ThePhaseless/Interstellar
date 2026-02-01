@@ -1,0 +1,111 @@
+# =============================================================================
+# AdGuard Home Deployment (hostNetwork for DNS)
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adguard
+  namespace: home
+  labels:
+    app: adguard
+  annotations:
+    # kube-linter exclusions - DNS server requires special network access
+    ignore-check.kube-linter.io/host-network: "DNS server requires hostNetwork to bind port 53"
+    ignore-check.kube-linter.io/drop-net-raw-capability: "DNS server needs NET_BIND_SERVICE for privileged port binding"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: adguard
+  template:
+    metadata:
+      labels:
+        app: adguard
+    spec:
+      # Use host network for DNS on port 53
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+
+      # Schedule on specific node for stable DNS
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+
+      initContainers:
+        - name: copy-config
+          image: busybox:1.37
+          command:
+            - /bin/sh
+            - -c
+            - |
+              if [ ! -f /opt/adguardhome/conf/AdGuardHome.yaml ]; then
+                cp /config/AdGuardHome.yaml /opt/adguardhome/conf/AdGuardHome.yaml
+              fi
+          volumeMounts:
+            - name: config-template
+              mountPath: /config
+            - name: data
+              mountPath: /opt/adguardhome
+
+      containers:
+        - name: adguard
+          image: adguard/adguardhome:v0.107.57
+          env:
+            - name: TZ
+              value: "UTC"
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+            - name: dns-https
+              containerPort: 443
+              protocol: TCP
+            - name: dns-tls
+              containerPort: 853
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /opt/adguardhome
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          securityContext:
+            capabilities:
+              add:
+                - NET_BIND_SERVICE
+
+      volumes:
+        - name: config-template
+          configMap:
+            name: adguard-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: adguard-data

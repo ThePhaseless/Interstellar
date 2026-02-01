@@ -1,0 +1,46 @@
+# =============================================================================
+# Traefik Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+  namespace: traefik
+  labels:
+    app: traefik
+  annotations:
+    # Expose via Tailscale
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "talos-traefik"
+spec:
+  type: LoadBalancer
+  # Use specific LoadBalancer IP for predictable DNS
+  loadBalancerIP: 10.100.0.100
+  externalTrafficPolicy: Local
+  ports:
+    - name: web
+      port: 80
+      targetPort: web
+      protocol: TCP
+    - name: websecure
+      port: 443
+      targetPort: websecure
+      protocol: TCP
+  selector:
+    app: traefik
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-dashboard
+  namespace: traefik
+  labels:
+    app: traefik
+spec:
+  type: ClusterIP
+  ports:
+    - name: traefik
+      port: 8080
+      targetPort: traefik
+  selector:
+    app: traefik

@@ -1,0 +1,22 @@
+# =============================================================================
+# Prowlarr Ingress (Tailscale-only)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prowlarr
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`prowlarr.nerine.dev`)
+      kind: Rule
+      services:
+        - name: prowlarr
+          port: 9696
+      middlewares:
+        - name: tailscale-only
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt

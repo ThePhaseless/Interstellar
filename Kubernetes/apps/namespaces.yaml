@@ -1,0 +1,24 @@
+# =============================================================================
+# Application Namespaces
+# =============================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media
+  labels:
+    name: media
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: utilities
+  labels:
+    name: utilities
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: home
+  labels:
+    name: home

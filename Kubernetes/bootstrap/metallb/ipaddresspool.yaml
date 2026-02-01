@@ -1,0 +1,15 @@
+# =============================================================================
+# MetalLB IP Address Pool
+# =============================================================================
+# Reserved IPs for LoadBalancer services on VLAN 100
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: cluster-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    # 10.100.0.100-10.100.0.120 reserved for cluster services
+    - 10.100.0.100-10.100.0.120
+  autoAssign: true
+  avoidBuggyIPs: true

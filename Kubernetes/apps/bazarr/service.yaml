@@ -1,0 +1,16 @@
+# =============================================================================
+# Bazarr Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: bazarr
+  namespace: media
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 6767
+      targetPort: http
+  selector:
+    app: bazarr

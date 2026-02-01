@@ -1,0 +1,19 @@
+# =============================================================================
+# Decluttarr Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: media
+
+resources:
+  - deployment.yaml
+
+configMapGenerator:
+  - name: decluttarr-config
+    namespace: media
+    files:
+      - config.yaml
+
+commonLabels:
+  app: decluttarr

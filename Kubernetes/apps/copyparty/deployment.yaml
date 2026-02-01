@@ -1,0 +1,78 @@
+# =============================================================================
+# Copyparty Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copyparty
+  namespace: utilities
+  labels:
+    app: copyparty
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: copyparty
+  template:
+    metadata:
+      labels:
+        app: copyparty
+    spec:
+      containers:
+        - name: copyparty
+          image: copyparty/copyparty:1.16.12
+          args:
+            - -c
+            - /config/copyparty.conf
+          ports:
+            - name: http
+              containerPort: 3923
+            - name: smb
+              containerPort: 3945
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: secrets
+              mountPath: /cfg/secrets
+              readOnly: true
+            - name: personal
+              mountPath: /personal
+            - name: media
+              mountPath: /media
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+      volumes:
+        - name: config
+          configMap:
+            name: copyparty-config
+        - name: secrets
+          secret:
+            secretName: copyparty-secrets
+        - name: personal
+          persistentVolumeClaim:
+            claimName: personal-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc

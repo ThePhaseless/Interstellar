@@ -1,0 +1,38 @@
+# =============================================================================
+# Copyparty Ingress (Public - with OAuth2 Proxy)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: copyparty
+  namespace: utilities
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`files.nerine.dev`)
+      kind: Rule
+      services:
+        - name: copyparty
+          port: 3923
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+        - name: oauth2-proxy-auth
+          namespace: utilities
+  tls:
+    certResolver: letsencrypt
+---
+# OAuth2 Proxy authentication middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth2-proxy-auth
+  namespace: utilities
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy.utilities.svc.cluster.local:4180/oauth2/auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Forwarded-User
+      - X-Forwarded-Email

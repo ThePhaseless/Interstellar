@@ -1,8 +1,11 @@
+# TalosOS Cluster Kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - home
-  - infrastructure
-  - media
-  - utilities
+  - bootstrap/
+  - apps/
+
+commonLabels:
+  cluster: talos
+  managed-by: argocd

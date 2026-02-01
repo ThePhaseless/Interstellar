@@ -1,0 +1,118 @@
+# =============================================================================
+# Radarr Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  namespace: media
+  labels:
+    app: radarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+    spec:
+      serviceAccountName: arr-configurator
+
+      initContainers:
+        # Wait for app to start and extract API key
+        - name: api-extractor
+          image: bitnami/kubectl:1.32
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Wait for Radarr to be ready and config.xml to exist
+              sleep 30
+              /scripts/extract-api-key.sh radarr /config/config.xml
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: scripts
+              mountPath: /scripts
+
+      containers:
+        - name: radarr
+          image: linuxserver/radarr:5.16.3
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "UTC"
+          ports:
+            - name: http
+              containerPort: 7878
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+            - name: media
+              mountPath: /media
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+        # Configurator sidecar
+        - name: configurator
+          image: bitnami/kubectl:1.32
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Wait for API key to be available
+              while [ -z "$(kubectl get secret arr-api-keys -n media -o jsonpath='{.data.radarr-api-key}' 2>/dev/null | base64 -d)" ]; do
+                sleep 10
+              done
+
+              API_KEY=$(kubectl get secret arr-api-keys -n media -o jsonpath='{.data.radarr-api-key}' | base64 -d)
+
+              # Configure download client
+              /scripts/configure-download-client.sh radarr http://localhost:7878 "$API_KEY"
+
+              # Keep running to allow manual re-configuration
+              sleep infinity
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr-config
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - name: scripts
+          configMap:
+            name: arr-configurator-scripts
+            defaultMode: 0755

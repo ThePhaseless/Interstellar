@@ -1,0 +1,60 @@
+# =============================================================================
+# Kubernetes Manifest Linting Workflow
+# =============================================================================
+# Runs kube-linter on Kubernetes manifests to catch issues before deployment.
+
+name: Kubernetes Lint
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - "Kubernetes/**"
+            - ".kube-linter.yaml"
+            - ".github/workflows/kubernetes-lint.yaml"
+    pull_request:
+        branches: [main]
+        paths:
+            - "Kubernetes/**"
+            - ".kube-linter.yaml"
+            - ".github/workflows/kubernetes-lint.yaml"
+
+jobs:
+    lint:
+        name: Lint Kubernetes Manifests
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install kube-linter
+              run: |
+                  curl -sSL https://github.com/stackrox/kube-linter/releases/download/v0.7.1/kube-linter-linux.tar.gz | tar -xzf -
+                  sudo mv kube-linter /usr/local/bin/
+                  kube-linter version
+
+            - name: Run kube-linter
+              run: |
+                  # Find all YAML files excluding kustomization.yaml
+                  YAML_FILES=$(find Kubernetes -type f \( -name "*.yaml" -o -name "*.yml" \) ! -name "kustomization.yaml" | sort)
+
+                  echo "Found $(echo "${YAML_FILES}" | wc -l) YAML files to lint"
+
+                  # Run kube-linter
+                  echo "${YAML_FILES}" | xargs kube-linter lint \
+                      --config=.kube-linter.yaml \
+                      --format=sarif \
+                      --output=kube-linter-results.sarif || true
+
+                  # Also run with plain output for logs
+                  echo "${YAML_FILES}" | xargs kube-linter lint \
+                      --config=.kube-linter.yaml \
+                      --format=plain
+
+            - name: Upload SARIF results
+              uses: github/codeql-action/upload-sarif@v3
+              if: always()
+              with:
+                  sarif_file: kube-linter-results.sarif
+              continue-on-error: true

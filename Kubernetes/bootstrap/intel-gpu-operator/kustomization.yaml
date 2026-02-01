@@ -1,0 +1,9 @@
+# =============================================================================
+# Intel GPU Operator Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - gpu-plugin.yaml

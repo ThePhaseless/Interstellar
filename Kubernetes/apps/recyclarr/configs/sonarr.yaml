@@ -1,0 +1,42 @@
+# Recyclarr Sonarr configuration
+# Uses environment variable for API key
+sonarr:
+  sonarr-main:
+    base_url: http://sonarr.media.svc.cluster.local:8989
+    api_key: !env_var SONARR_API_KEY
+
+    delete_old_custom_formats: true
+    replace_existing_custom_formats: true
+
+    quality_definition:
+      type: series
+
+    quality_profiles:
+      - name: HD-1080p
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: HDTV-1080p
+
+    custom_formats:
+      - trash_ids:
+          # Unwanted
+          - 85c61753df5da1fb2aab6f2a47426b09 # BR-DISK
+          - 9c11cd3f07101cdba90a2d81cf0e56b4 # LQ
+          - e2315f990da2e2cbfc9fa5b7a6c2e2b0 # LQ (Release Title)
+          - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
+          - fbcb31d8dabd2a319072b84fc0b7249c # Extras
+        quality_profiles:
+          - name: HD-1080p
+            score: -10000

@@ -1,0 +1,15 @@
+# =============================================================================
+# ClamAV Malware Scanning Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: security
+
+resources:
+  - namespace.yaml
+  - clamav.yaml
+  - externalsecret.yaml
+
+commonLabels:
+  managed-by: argocd

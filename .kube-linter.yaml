@@ -1,0 +1,18 @@
+# KubeLinter Configuration
+# Per-resource exclusions use: ignore-check.kube-linter.io/<check-name>: "<reason>"
+
+checks:
+  exclude:
+    # Third-party images don't support read-only root filesystems
+    - "no-read-only-root-fs"
+    # Many images require root (Grafana, Loki, *arr apps, etc.)
+    - "run-as-non-root"
+    # Init containers/sidecars don't need resource limits
+    - "unset-cpu-requirements"
+    - "unset-memory-requirements"
+    # ServiceAccount in common/ kustomize base - linter can't resolve cross-references
+    - "non-existent-service-account"
+
+  include:
+    - "dangling-ingress"
+    - "dangling-horizontalpodautoscaler"

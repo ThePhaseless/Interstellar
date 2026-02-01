@@ -1,0 +1,18 @@
+# Ansible Lint Configuration
+profile: basic
+
+exclude_paths:
+  - .cache/
+  - .git/
+  - .private/
+
+skip_list:
+  - galaxy[no-changelog]
+  - role-name  # Linter incorrectly treats Ansible/ directory as a role
+
+warn_list:
+  - experimental
+  - fqcn[deep]
+
+# Run offline to skip dependency installation
+offline: true

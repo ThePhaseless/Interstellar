@@ -1,0 +1,83 @@
+# =============================================================================
+# Immich Machine Learning Deployment (GPU Node)
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-ml
+  namespace: utilities
+  labels:
+    app: immich-ml
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich-ml
+  template:
+    metadata:
+      labels:
+        app: immich-ml
+    spec:
+      # Schedule on GPU node
+      nodeSelector:
+        kubernetes.io/hostname: talos-1
+
+      containers:
+        - name: immich-ml
+          image: ghcr.io/immich-app/immich-machine-learning:v1.124.2
+          env:
+            - name: TZ
+              value: "UTC"
+            - name: MACHINE_LEARNING_CACHE_FOLDER
+              value: "/cache"
+          ports:
+            - name: http
+              containerPort: 3003
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+              gpu.intel.com/i915: "1"
+            limits:
+              cpu: 4000m
+              memory: 8Gi
+              gpu.intel.com/i915: "1"
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          # No special security context needed - Intel GPU Device Plugin
+          # handles GPU device access via gpu.intel.com/i915 resource
+
+      volumes:
+        - name: cache
+          emptyDir:
+            sizeLimit: 10Gi
+---
+# Machine Learning Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-ml
+  namespace: utilities
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3003
+      targetPort: http
+  selector:
+    app: immich-ml

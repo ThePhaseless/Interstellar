@@ -1,0 +1,78 @@
+# =============================================================================
+# Jellyfin Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  namespace: media
+  labels:
+    app: jellyfin
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # GPU can't be shared
+  selector:
+    matchLabels:
+      app: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      # Schedule on GPU node
+      nodeSelector:
+        kubernetes.io/hostname: talos-1
+
+      containers:
+        - name: jellyfin
+          image: jellyfin/jellyfin:10.10.3
+          ports:
+            - name: http
+              containerPort: 8096
+          env:
+            - name: JELLYFIN_PublishedServerUrl
+              value: "https://watch.nerine.dev"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: cache
+              mountPath: /cache
+            - name: media
+              mountPath: /media
+              readOnly: true
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+              # Intel GPU resource
+              gpu.intel.com/i915: "1"
+            limits:
+              cpu: 4000m
+              memory: 8Gi
+              gpu.intel.com/i915: "1"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          # No special security context needed - Intel GPU Device Plugin
+          # handles GPU device access via gpu.intel.com/i915 resource
+
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin-config
+        - name: cache
+          emptyDir:
+            sizeLimit: 10Gi
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc

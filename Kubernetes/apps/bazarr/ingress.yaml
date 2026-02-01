@@ -1,0 +1,22 @@
+# =============================================================================
+# Bazarr Ingress (Tailscale-only)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bazarr
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`bazarr.nerine.dev`)
+      kind: Rule
+      services:
+        - name: bazarr
+          port: 6767
+      middlewares:
+        - name: tailscale-only
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt

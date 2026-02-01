@@ -1,0 +1,22 @@
+# =============================================================================
+# AdGuard Home Ingress (Tailscale-only - Web UI)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: adguard
+  namespace: home
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`dns.nerine.dev`)
+      kind: Rule
+      services:
+        - name: adguard
+          port: 3000
+      middlewares:
+        - name: tailscale-only
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt
