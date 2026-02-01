@@ -47,18 +47,18 @@ flowchart TB
 
 ## 🛠️ Technology Stack
 
-| Layer             | Technology                                            |
-| ----------------- | ----------------------------------------------------- |
-| **OS**            | TalosOS v1.10.0 (immutable Linux)                     |
-| **Orchestration** | Kubernetes 1.32.0                                     |
-| **GitOps**        | ArgoCD (app-of-apps pattern)                          |
-| **Networking**    | Flannel CNI, MetalLB L2, Tailscale                    |
-| **Ingress**       | Traefik v3.3 with PROXY protocol + CrowdSec plugin   |
-| **Storage**       | LongHorn CSI → iSCSI → ZFS zvol                       |
-| **Secrets**       | Bitwarden Secrets Manager + External Secrets Operator |
+| Layer             | Technology                                                    |
+| ----------------- | ------------------------------------------------------------- |
+| **OS**            | TalosOS v1.10.0 (immutable Linux)                             |
+| **Orchestration** | Kubernetes 1.32.0                                             |
+| **GitOps**        | ArgoCD (app-of-apps pattern)                                  |
+| **Networking**    | Flannel CNI, MetalLB L2, Tailscale                            |
+| **Ingress**       | Traefik v3.3 with PROXY protocol + CrowdSec plugin            |
+| **Storage**       | LongHorn CSI → iSCSI → ZFS zvol                               |
+| **Secrets**       | Bitwarden Secrets Manager + External Secrets Operator         |
 | **Security**      | CrowdSec WAF (Traefik plugin v1.5.0), ClamAV malware scanning |
-| **Observability** | Grafana, Loki, Mimir, Promtail, Alloy                 |
-| **IaC**           | Terraform, Ansible, GitHub Actions                    |
+| **Observability** | Grafana, Loki, Mimir, Promtail, Alloy                         |
+| **IaC**           | Terraform, Ansible, GitHub Actions                            |
 
 ## 🖥️ Hardware
 
@@ -182,17 +182,16 @@ Before deployment, configure these secrets in **Bitwarden Secrets Manager** and 
 | **Tailscale API**        | [API Keys](https://tailscale.com/kb/1101/api#authentication)                                         |
 | **Tailscale OAuth**      | [OAuth Clients](https://tailscale.com/kb/1215/oauth-clients)                                         |
 | **OCI API Keys**         | [Required Keys and OCIDs](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm) |
-| **Cloudflare API Token** | [Create API Token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)    |
+| **Cloudflare API Token** | [Create API Token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)     |
 | **Proxmox API Token**    | [API Tokens](https://pve.proxmox.com/wiki/User_Management#_api_tokens)                               |
 | **CrowdSec Bouncer Key** | [Bouncer Registration](https://docs.crowdsec.net/docs/next/bouncers/intro)                           |
 | **Google OAuth**         | [OAuth 2.0 Setup](https://developers.google.com/identity/protocols/oauth2)                           |
 
 ### GitHub Repository Secrets
 
-| Secret                | Description                                    |
-| --------------------- | ---------------------------------------------- |
-| `BW_ACCESS_TOKEN`     | Bitwarden machine account token (main project) |
-| `BW_OCI_ACCESS_TOKEN` | Bitwarden machine account token (OCI backend)  |
+| Secret            | Description                                                             |
+| ----------------- | ----------------------------------------------------------------------- |
+| `BW_ACCESS_TOKEN` | Bitwarden machine account token (single project containing all secrets) |
 
 ### GitHub Repository Variables
 
@@ -202,24 +201,24 @@ Before deployment, configure these secrets in **Bitwarden Secrets Manager** and 
 
 ### Bitwarden Secrets Manager
 
-These secrets must exist in your Bitwarden Secrets Manager project:
+All secrets should be stored in a single Bitwarden Secrets Manager project:
 
-#### OCI Backend (separate project for bootstrap)
+#### OCI Secrets
 
-| Key                | Description                         |
-| ------------------ | ----------------------------------- |
-| `oci-tenancy-ocid` | OCI tenancy OCID                    |
-| `oci-user-ocid`    | OCI user OCID                       |
-| `oci-fingerprint`  | OCI API key fingerprint             |
-| `oci-private-key`  | OCI API private key (PEM format)    |
-| `oci-region`       | OCI region (e.g., `eu-frankfurt-1`) |
-| `oci-namespace`    | OCI Object Storage namespace        |
+| Key                  | Description                         |
+| -------------------- | ----------------------------------- |
+| `oci-tenancy-ocid`   | OCI tenancy OCID                    |
+| `oci-user-ocid`      | OCI user OCID                       |
+| `oci-fingerprint`    | OCI API key fingerprint             |
+| `oci-private-key`    | OCI API private key (PEM format)    |
+| `oci-region`         | OCI region (e.g., `eu-frankfurt-1`) |
+| `oci-namespace`      | OCI Object Storage namespace        |
+| `oci-compartment-id` | OCI compartment for resources       |
 
-#### Infrastructure Secrets (main project)
+#### Infrastructure Secrets
 
 | Key                                   | Description                         |
 | ------------------------------------- | ----------------------------------- |
-| `oci-compartment-id`                  | OCI compartment for resources       |
 | `tailscale-api-key`                   | Tailscale API key                   |
 | `tailscale-tailnet`                   | Tailscale tailnet name              |
 | `tailscale-oauth-client-id`           | OAuth client for Tailscale Operator |
