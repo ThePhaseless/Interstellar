@@ -72,22 +72,35 @@ jobs:
               working-directory: Terraform
               run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
 
-            - name: Plan Terraform Destroy (Excluding Proxmox)
+            - name: Plan Terraform Destroy (Preserving Proxmox)
               working-directory: Terraform
               id: plan
               run: |
-                  # Get list of all resources
+                  # Remove proxmox resources from state so they are not destroyed
+                  # This ensures that even if they depend on destroyed resources (like keys),
+                  # they won't be touched because Terraform no longer tracks them.
                   resources=$(terraform state list)
+                  proxmox_resources=$(echo "$resources" | grep "proxmox" || true)
 
-                  # Filter out excluded patterns: data sources and proxmox related resources
-                  targets=$(echo "$resources" | grep -vE "^data\.|^proxmox" | sed 's/^/-target=/' | tr '\n' ' ')
+                  if [ ! -z "$proxmox_resources" ]; then
+                    echo "Removing Proxmox resources from state to preserve them (they will become unmanaged):"
+                    echo "$proxmox_resources"
+                    echo "$proxmox_resources" | xargs -L1 terraform state rm
+                  else
+                    echo "No Proxmox resources found in state."
+                  fi
 
-                  if [ -z "$targets" ]; then
-                    echo "No resources to destroy found."
+                  # Plan destroy for everything remaining in state
+                  # This will include the state bucket itself if it is in the state
+                  echo "Planning destroy for remaining resources..."
+                  
+                  # Check if there's anything left to destroy
+                  remaining=$(terraform state list)
+                  if [ -z "$remaining" ]; then
+                    echo "No resources left to destroy."
                     echo "destroy_needed=false" >> $GITHUB_OUTPUT
                   else
-                    echo "Planning destroy for targets: $targets"
-                    terraform plan -destroy -out=tfdestroyplan $targets
+                    terraform plan -destroy -out=tfdestroyplan
                     echo "destroy_needed=true" >> $GITHUB_OUTPUT
                   fi
 
