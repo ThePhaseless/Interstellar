@@ -1,6 +1,7 @@
 # =============================================================================
 # Jellyseerr Deployment
 # =============================================================================
+# Uses Jellyfin as authentication provider (no external OAuth required)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -8,6 +9,8 @@ metadata:
   namespace: media
   labels:
     app: jellyseerr
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: 1
   strategy:
@@ -20,6 +23,8 @@ spec:
       labels:
         app: jellyseerr
     spec:
+      serviceAccountName: arr-configurator
+
       containers:
         - name: jellyseerr
           image: fallenbagel/jellyseerr:2.3.0
@@ -54,7 +59,42 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
 
+        # Configurator sidecar - sets up Jellyfin, Sonarr, Radarr
+        - name: configurator
+          image: bitnami/kubectl:1.32
+          command:
+            - /bin/bash
+            - /scripts/configure-jellyseerr.sh
+          env:
+            # API keys from arr-api-keys secret
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arr-api-keys
+                  key: sonarr-api-key
+                  optional: true
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arr-api-keys
+                  key: radarr-api-key
+                  optional: true
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+
       volumes:
         - name: config
           persistentVolumeClaim:
             claimName: jellyseerr-config
+        - name: scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
