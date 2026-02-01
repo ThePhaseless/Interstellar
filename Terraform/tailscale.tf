@@ -7,8 +7,10 @@
 # Provider Configuration
 # -----------------------------------------------------------------------------
 provider "tailscale" {
-  api_key = data.bitwarden_secret.tailscale_api_key.value
-  tailnet = data.bitwarden_secret.tailscale_tailnet.value
+  oauth_client_id     = data.bitwarden_secret.tailscale_oauth_client_id.value
+  oauth_client_secret = data.bitwarden_secret.tailscale_oauth_secret.value
+  tailnet             = data.bitwarden_secret.tailscale_tailnet.value
+  scopes              = ["devices:core", "keys:auth_keys"]
 }
 
 # -----------------------------------------------------------------------------
@@ -32,7 +34,7 @@ resource "bitwarden_secret" "tailscale_auth_key" {
 
 # Reference the interstellar project
 data "bitwarden_project" "interstellar" {
-  id = data.bitwarden_secret.tailscale_api_key.project_id
+  id = data.bitwarden_secret.tailscale_oauth_client_id.project_id
 }
 
 # -----------------------------------------------------------------------------
