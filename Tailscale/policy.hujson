@@ -15,7 +15,9 @@
     "tag:proxmox":      ["autogroup:admin"],
     "tag:oracle":       ["autogroup:admin"],
     "tag:cluster":      ["autogroup:admin"],
-    "tag:k8s-operator": ["autogroup:admin"]
+    "tag:k8s-operator": ["autogroup:admin"],
+    // Shared nodes - can be shared with external Tailscale users
+    "tag:shared":       ["autogroup:admin"]
   },
 
   // -------------------------------------------------------------------------
@@ -73,6 +75,7 @@
       "src":    ["tag:ci"],
       "dst": [
         "tag:proxmox:22",      // SSH to Proxmox
+        "tag:proxmox:8006",    // Proxmox API (for OpenTofu)
         "tag:oracle:22",       // SSH to Oracle VPS
         "tag:cluster:6443",    // Kubernetes API
         "tag:cluster:50000"    // Talos API
@@ -138,6 +141,33 @@
       "src":    ["group:dns"],
       "dst": [
         "tag:cluster:53"     // DNS (TCP and UDP)
+      ]
+    },
+
+    // -----------------------------------------------------------------------
+    // Shared Access - External Tailscale users (via node sharing)
+    // -----------------------------------------------------------------------
+    // When you share a node tagged with "tag:shared", external users
+    // from their own tailnet can access these services.
+    // This provides fallback access when OCI proxy is offline.
+    //
+    // To share: Tailscale Admin Console → Machines → Share → Enter their email
+    // Their devices will appear as "autogroup:shared" in ACLs
+    //
+    // Shared nodes:
+    //   - talos-traefik: HTTP/HTTPS access to all web services
+    //   - adguard-shared: DNS server for automatic domain resolution
+    // -----------------------------------------------------------------------
+    {
+      "action": "accept",
+      "src":    ["autogroup:shared"],
+      "dst": [
+        "tag:cluster:80",    // HTTP (Traefik)
+        "tag:cluster:443",   // HTTPS (Traefik)
+        "tag:cluster:53",    // DNS (AdGuard on cluster)
+        "tag:shared:53",     // DNS (AdGuard shared node)
+        "tag:shared:80",     // HTTP (Traefik shared)
+        "tag:shared:443"     // HTTPS (Traefik shared)
       ]
     }
   ],
