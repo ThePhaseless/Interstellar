@@ -117,7 +117,7 @@ spec:
             claimName: prowlarr-config
         - name: scripts
           configMap:
-            name: arr-configurator-scripts
+            name: arr-scripts
             defaultMode: 0755
         - name: arr-secrets
           emptyDir: {}
