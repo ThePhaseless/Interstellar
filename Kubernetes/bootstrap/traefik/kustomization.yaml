@@ -15,6 +15,7 @@ resources:
   - crowdsec-middleware.yaml
   - crowdsec-externalsecret.yaml
   - ingress.yaml
+  - tailscale-ip-sync.yaml
 
 commonLabels:
   managed-by: argocd

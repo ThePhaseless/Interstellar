@@ -12,6 +12,7 @@ metadata:
     # Expose via Tailscale
     tailscale.com/expose: "true"
     tailscale.com/hostname: "talos-traefik"
+    tailscale.com/tags: "tag:shared"
 spec:
   type: LoadBalancer
   # Use specific LoadBalancer IP for predictable DNS
