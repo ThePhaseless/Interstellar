@@ -49,12 +49,10 @@
   // Hosts
   // -------------------------------------------------------------------------
   // Named hosts for easier ACL rules.
+  // Keep only stable/static addresses to avoid drift with DHCP-assigned Talos node IPs.
   "hosts": {
     "proxmox":     "192.168.1.10",
-    "talos-1":     "10.100.0.11",
-    "talos-2":     "10.100.0.12",
-    "talos-3":     "10.100.0.13",
-    "cluster-vip": "10.100.0.100"
+    "cluster-vip": "192.168.1.100"
   },
 
   // -------------------------------------------------------------------------
@@ -202,7 +200,6 @@
 
     // Subnet routes (cluster pod/service CIDRs)
     "routes": {
-      "10.100.0.0/24":  ["tag:cluster"],   // Cluster VLAN
       "10.244.0.0/16":  ["tag:cluster"],   // Pod CIDR
       "10.96.0.0/12":   ["tag:cluster"]    // Service CIDR
     }
