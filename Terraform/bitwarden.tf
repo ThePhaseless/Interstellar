@@ -126,7 +126,7 @@ resource "bitwarden-secrets_secret" "talosconfig" {
 
 # OCI Object Storage namespace (used for backend migrations)
 resource "bitwarden-secrets_secret" "oci_objectstorage_namespace" {
-  key        = "oci-objectstorage-namespace"
+  key        = "oci-namespace"
   value      = data.oci_objectstorage_namespace.ns.namespace
   note       = "OCI Object Storage namespace for Terraform state bucket - managed by Terraform"
   project_id = local.bitwarden_project_id
