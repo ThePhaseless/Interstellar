@@ -28,33 +28,21 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
-            - name: Install kube-linter
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: stable
+
+            - name: Install latest kustomize
               run: |
-                  curl -sSL https://github.com/stackrox/kube-linter/releases/download/v0.7.1/kube-linter-linux.tar.gz | tar -xzf -
-                  sudo mv kube-linter /usr/local/bin/
+                  go install sigs.k8s.io/kustomize/kustomize/v5@latest
+                  kustomize version
+
+            - name: Install latest kube-linter
+              run: |
+                  go install golang.stackrox.io/kube-linter/cmd/kube-linter@latest
                   kube-linter version
 
-            - name: Run kube-linter
+            - name: Run repository lint script
               run: |
-                  # Find all YAML files excluding kustomization.yaml
-                  YAML_FILES=$(find Kubernetes -type f \( -name "*.yaml" -o -name "*.yml" \) ! -name "kustomization.yaml" | sort)
-
-                  echo "Found $(echo "${YAML_FILES}" | wc -l) YAML files to lint"
-
-                  # Run kube-linter
-                  echo "${YAML_FILES}" | xargs kube-linter lint \
-                      --config=.kube-linter.yaml \
-                      --format=sarif \
-                      --output=kube-linter-results.sarif || true
-
-                  # Also run with plain output for logs
-                  echo "${YAML_FILES}" | xargs kube-linter lint \
-                      --config=.kube-linter.yaml \
-                      --format=plain
-
-            - name: Upload SARIF results
-              uses: github/codeql-action/upload-sarif@v3
-              if: always()
-              with:
-                  sarif_file: kube-linter-results.sarif
-              continue-on-error: true
+                  ./scripts/lint-kubernetes.sh

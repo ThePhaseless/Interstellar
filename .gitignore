@@ -16,3 +16,6 @@ Logs/
 /Config/
 
 charts/
+.terraform.tfstate.lock.info
+terraform.tfstate*
+.bw-provider-state
