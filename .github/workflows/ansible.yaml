@@ -30,7 +30,6 @@ on:
         type: choice
         options:
           - setup-oracle.yaml
-          - setup-proxmox.yaml
           - maintenance.yaml
 
 env:
@@ -120,8 +119,6 @@ jobs:
             # On push, run based on changed files
             if git diff --name-only HEAD~1 | grep -q "setup-oracle\|compose.proxy\|haproxy"; then
               echo "name=setup-oracle.yaml" >> $GITHUB_OUTPUT
-            elif git diff --name-only HEAD~1 | grep -q "setup-proxmox"; then
-              echo "name=setup-proxmox.yaml" >> $GITHUB_OUTPUT
             else
               echo "name=maintenance.yaml" >> $GITHUB_OUTPUT
             fi
