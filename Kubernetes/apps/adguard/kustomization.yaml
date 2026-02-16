@@ -19,5 +19,7 @@ configMapGenerator:
     files:
       - AdGuardHome.yaml
 
-commonLabels:
-  app: adguard
+labels:
+  - pairs:
+      app: adguard
+    includeSelectors: true

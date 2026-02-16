@@ -8,9 +8,10 @@ namespace: longhorn-system
 
 resources:
   - https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/deploy/longhorn.yaml
-  - namespace.yaml
   - storageclass.yaml
   - ingress.yaml
 
-commonLabels:
-  managed-by: argocd
+labels:
+  - pairs:
+      managed-by: argocd
+    includeSelectors: true

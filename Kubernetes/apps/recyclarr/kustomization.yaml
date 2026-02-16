@@ -16,5 +16,7 @@ configMapGenerator:
       - configs/sonarr.yaml
       - configs/radarr.yaml
 
-commonLabels:
-  app: recyclarr
+labels:
+  - pairs:
+      app: recyclarr
+    includeSelectors: true

@@ -15,8 +15,8 @@ metadata:
     tailscale.com/tags: "tag:shared"
 spec:
   type: LoadBalancer
-  # Use specific LoadBalancer IP for predictable DNS
-  loadBalancerIP: 10.100.0.100
+  # Use dedicated ingress LoadBalancer IP (separate from control-plane API VIP)
+  loadBalancerIP: 192.168.1.101
   externalTrafficPolicy: Local
   ports:
     - name: web

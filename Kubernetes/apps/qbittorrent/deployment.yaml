@@ -20,6 +20,41 @@ spec:
       labels:
         app: qbittorrent
     spec:
+      initContainers:
+        - name: config-init
+          image: linuxserver/qbittorrent:5.0.4
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              CONFIG_DIR="/config/qBittorrent"
+              CONFIG_FILE="${CONFIG_DIR}/qBittorrent.conf"
+              mkdir -p "${CONFIG_DIR}"
+              if [ ! -f "${CONFIG_FILE}" ]; then
+                HASH="$(qbittorrent-nox --hash-password "${QBT_WEBUI_PASSWORD}" | tail -n 1)"
+                cat > "${CONFIG_FILE}" <<EOF
+              [Preferences]
+              WebUI\\Username=${QBT_WEBUI_USERNAME}
+              WebUI\\Password_PBKDF2=${HASH}
+              WebUI\\Port=8080
+              EOF
+                chmod 600 "${CONFIG_FILE}"
+              fi
+          env:
+            - name: QBT_WEBUI_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-webui
+                  key: username
+            - name: QBT_WEBUI_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-webui
+                  key: password
+          volumeMounts:
+            - name: config
+              mountPath: /config
       containers:
         - name: qbittorrent
           image: linuxserver/qbittorrent:5.0.4

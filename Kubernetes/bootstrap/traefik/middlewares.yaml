@@ -35,7 +35,7 @@ spec:
   ipAllowList:
     sourceRange:
       - "100.64.0.0/10" # Tailscale CGNAT range
-      - "10.100.0.0/24" # Cluster VLAN
+      - "192.168.1.0/24" # Home LAN
       - "10.244.0.0/16" # Pod CIDR
 ---
 # Standard Timeout - 60s read/write, 180s idle

@@ -12,5 +12,7 @@ resources:
   - ingress.yaml
   - pvc.yaml
 
-commonLabels:
-  app: jellyseerr
+labels:
+  - pairs:
+      app: jellyseerr
+    includeSelectors: true

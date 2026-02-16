@@ -22,23 +22,6 @@ spec:
     spec:
       serviceAccountName: arr-configurator
 
-      initContainers:
-        # Wait for app to start and extract API key
-        - name: api-extractor
-          image: bitnami/kubectl:1.32
-          command:
-            - /bin/bash
-            - -c
-            - |
-              # Wait for Sonarr to be ready and config.xml to exist
-              sleep 30
-              /scripts/extract-api-key.sh sonarr /config/config.xml
-          volumeMounts:
-            - name: config
-              mountPath: /config
-            - name: scripts
-              mountPath: /scripts
-
       containers:
         - name: sonarr
           image: linuxserver/sonarr:4.0.11
@@ -79,29 +62,6 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
 
-        # Configurator sidecar
-        - name: configurator
-          image: bitnami/kubectl:1.32
-          command:
-            - /bin/bash
-            - -c
-            - |
-              # Wait for API key to be available
-              while [ -z "$(kubectl get secret arr-api-keys -n media -o jsonpath='{.data.sonarr-api-key}' 2>/dev/null | base64 -d)" ]; do
-                sleep 10
-              done
-
-              API_KEY=$(kubectl get secret arr-api-keys -n media -o jsonpath='{.data.sonarr-api-key}' | base64 -d)
-
-              # Configure download client
-              /scripts/configure-download-client.sh sonarr http://localhost:8989 "$API_KEY"
-
-              # Keep running to allow manual re-configuration
-              sleep infinity
-          volumeMounts:
-            - name: scripts
-              mountPath: /scripts
-
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -112,10 +72,6 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: media-pvc
-        - name: scripts
-          configMap:
-            name: arr-scripts
-            defaultMode: 0755
 ---
 apiVersion: v1
 kind: Service

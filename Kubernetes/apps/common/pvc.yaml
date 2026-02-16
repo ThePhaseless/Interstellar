@@ -16,20 +16,6 @@ spec:
     requests:
       storage: 500Gi
 ---
-# Media library PVC
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: media-pvc
-  namespace: media
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: longhorn-rwx
-  resources:
-    requests:
-      storage: 8Ti
----
 # Personal files PVC
 apiVersion: v1
 kind: PersistentVolumeClaim

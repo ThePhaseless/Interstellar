@@ -30,5 +30,7 @@ resources:
   - oauth2-proxy/
   - whoami/
 
-commonLabels:
-  managed-by: argocd
+labels:
+  - pairs:
+      managed-by: argocd
+    includeSelectors: true

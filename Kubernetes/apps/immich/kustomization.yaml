@@ -13,5 +13,7 @@ resources:
   - pvc.yaml
   - ml-deployment.yaml
 
-commonLabels:
-  app.kubernetes.io/name: immich
+labels:
+  - pairs:
+      app.kubernetes.io/name: immich
+    includeSelectors: true

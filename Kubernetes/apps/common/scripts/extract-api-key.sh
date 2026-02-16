@@ -4,13 +4,21 @@
 # =============================================================================
 # Usage: extract-api-key.sh <app-name> <config-path>
 
-APP_NAME=$1
-CONFIG_PATH=$2
+set -euo pipefail
+
+APP_NAME=${1:-}
+CONFIG_PATH=${2:-}
 
 if [ -z "$APP_NAME" ] || [ -z "$CONFIG_PATH" ]; then
   echo "Usage: $0 <app-name> <config-path>"
   exit 1
 fi
+
+# Clear any previous API key so it is never stale
+kubectl patch secret arr-api-keys -n media \
+  --type='json' \
+  -p="[{\"op\": \"replace\", \"path\": \"/data/${APP_NAME}-api-key\", \"value\": \"\"}]" \
+  >/dev/null 2>&1 || true
 
 # Wait for config.xml to exist
 echo "Waiting for $CONFIG_PATH to exist..."
@@ -25,19 +33,64 @@ if [ ! -f "$CONFIG_PATH" ]; then
   exit 1
 fi
 
-# Extract API key
-API_KEY=$(grep -oP '(?<=<ApiKey>)[^<]+' "$CONFIG_PATH" || echo "")
+case "$APP_NAME" in
+sonarr)
+  APP_URL=${APP_URL:-"http://localhost:8989"}
+  PING_PATH="/ping"
+  STATUS_PATH="/api/v3/system/status"
+  ;;
+radarr)
+  APP_URL=${APP_URL:-"http://localhost:7878"}
+  PING_PATH="/ping"
+  STATUS_PATH="/api/v3/system/status"
+  ;;
+prowlarr)
+  APP_URL=${APP_URL:-"http://localhost:9696"}
+  PING_PATH="/ping"
+  STATUS_PATH="/api/v1/system/status"
+  ;;
+*)
+  APP_URL=""
+  PING_PATH=""
+  STATUS_PATH=""
+  ;;
+esac
 
-if [ -z "$API_KEY" ]; then
-  echo "Error: Could not extract API key from $CONFIG_PATH"
-  exit 1
-fi
+while true; do
+  API_KEY=$(grep -oP '(?<=<ApiKey>)[^<]+' "$CONFIG_PATH" || echo "")
 
-echo "Extracted API key for $APP_NAME"
+  if [ -z "$API_KEY" ]; then
+    echo "Waiting for API key in $CONFIG_PATH..."
+    sleep 5
+    continue
+  fi
 
-# Update the arr-api-keys secret
-kubectl patch secret arr-api-keys -n media \
-  --type='json' \
-  -p="[{\"op\": \"replace\", \"path\": \"/data/${APP_NAME}-api-key\", \"value\": \"$(echo -n $API_KEY | base64)\"}]"
+  if [ -n "$APP_URL" ]; then
+    if ! curl -fsS "${APP_URL}${PING_PATH}" >/dev/null 2>&1; then
+      echo "Waiting for $APP_NAME API to be reachable..."
+      sleep 5
+      continue
+    fi
 
-echo "Updated arr-api-keys secret with $APP_NAME API key"
+    STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+      -H "X-Api-Key: ${API_KEY}" \
+      "${APP_URL}${STATUS_PATH}" || echo "000")
+
+    if [ "$STATUS_CODE" != "200" ]; then
+      echo "Invalid API key for $APP_NAME (HTTP $STATUS_CODE), retrying..."
+      kubectl patch secret arr-api-keys -n media \
+        --type='json' \
+        -p="[{\"op\": \"replace\", \"path\": \"/data/${APP_NAME}-api-key\", \"value\": \"\"}]" \
+        >/dev/null 2>&1 || true
+      sleep 10
+      continue
+    fi
+  fi
+
+  kubectl patch secret arr-api-keys -n media \
+    --type='json' \
+    -p="[{\"op\": \"replace\", \"path\": \"/data/${APP_NAME}-api-key\", \"value\": \"$(echo -n $API_KEY | base64)\"}]"
+
+  echo "Updated arr-api-keys secret with $APP_NAME API key"
+  exit 0
+done

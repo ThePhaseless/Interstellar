@@ -1,0 +1,35 @@
+# =============================================================================
+# Media Library Static PV/PVC (External NFS)
+# =============================================================================
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-nfs-pv
+spec:
+  capacity:
+    storage: 8Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: CHANGE_ME_NFS_SERVER_IP
+    path: CHANGE_ME_NFS_EXPORT_PATH
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: media-nfs-pv
+  resources:
+    requests:
+      storage: 8Ti

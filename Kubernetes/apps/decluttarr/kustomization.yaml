@@ -15,5 +15,7 @@ configMapGenerator:
     files:
       - config.yaml
 
-commonLabels:
-  app: decluttarr
+labels:
+  - pairs:
+      app: decluttarr
+    includeSelectors: true

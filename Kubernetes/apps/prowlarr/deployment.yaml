@@ -22,23 +22,6 @@ spec:
     spec:
       serviceAccountName: arr-configurator
 
-      initContainers:
-        # Wait for app to start and extract API key
-        - name: api-extractor
-          image: bitnami/kubectl:1.32
-          command:
-            - /bin/bash
-            - -c
-            - |
-              # Wait for Prowlarr to be ready and config.xml to exist
-              sleep 30
-              /scripts/extract-api-key.sh prowlarr /config/config.xml
-          volumeMounts:
-            - name: config
-              mountPath: /config
-            - name: scripts
-              mountPath: /scripts
-
       containers:
         - name: prowlarr
           image: linuxserver/prowlarr:1.28.2
@@ -75,49 +58,7 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
 
-        # Configurator sidecar - configures Sonarr/Radarr applications
-        - name: configurator
-          image: bitnami/kubectl:1.32
-          command:
-            - /bin/bash
-            - -c
-            - |
-              # Wait for all API keys to be available
-              echo "Waiting for API keys..."
-              while [ -z "$(kubectl get secret arr-api-keys -n media -o jsonpath='{.data.prowlarr-api-key}' 2>/dev/null | base64 -d)" ]; do
-                sleep 10
-              done
-              while [ -z "$(kubectl get secret arr-api-keys -n media -o jsonpath='{.data.sonarr-api-key}' 2>/dev/null | base64 -d)" ]; do
-                sleep 10
-              done
-              while [ -z "$(kubectl get secret arr-api-keys -n media -o jsonpath='{.data.radarr-api-key}' 2>/dev/null | base64 -d)" ]; do
-                sleep 10
-              done
-
-              # Copy API keys to mounted volume for script access
-              mkdir -p /etc/arr-secrets
-              kubectl get secret arr-api-keys -n media -o jsonpath='{.data.prowlarr-api-key}' | base64 -d > /etc/arr-secrets/prowlarr-api-key
-              kubectl get secret arr-api-keys -n media -o jsonpath='{.data.sonarr-api-key}' | base64 -d > /etc/arr-secrets/sonarr-api-key
-              kubectl get secret arr-api-keys -n media -o jsonpath='{.data.radarr-api-key}' | base64 -d > /etc/arr-secrets/radarr-api-key
-
-              # Configure Prowlarr with applications
-              /scripts/configure-prowlarr.sh
-
-              # Keep running to allow manual re-configuration
-              sleep infinity
-          volumeMounts:
-            - name: scripts
-              mountPath: /scripts
-            - name: arr-secrets
-              mountPath: /etc/arr-secrets
-
       volumes:
         - name: config
           persistentVolumeClaim:
             claimName: prowlarr-config
-        - name: scripts
-          configMap:
-            name: arr-scripts
-            defaultMode: 0755
-        - name: arr-secrets
-          emptyDir: {}

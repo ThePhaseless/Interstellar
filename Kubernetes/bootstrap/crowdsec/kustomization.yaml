@@ -11,5 +11,7 @@ resources:
   - lapi.yaml
   - externalsecret.yaml
 
-commonLabels:
-  managed-by: argocd
+labels:
+  - pairs:
+      managed-by: argocd
+    includeSelectors: true

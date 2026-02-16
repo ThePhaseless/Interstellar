@@ -12,5 +12,7 @@ resources:
   - ingress.yaml
   - pvc.yaml
 
-commonLabels:
-  app: mcpjungle
+labels:
+  - pairs:
+      app: mcpjungle
+    includeSelectors: true
