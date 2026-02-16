@@ -140,7 +140,6 @@ Interstellar/
 │   └── tailscale-acl.yaml   # ACL policy sync
 ├── .kube-linter.yaml        # Kube-linter configuration
 ├── Ansible/                 # Host configuration playbooks
-│   ├── setup-proxmox.yaml   # Host routing/NAT, iSCSI, firewall
 │   └── setup-oracle.yaml    # HAProxy, Tailscale
 ├── Kubernetes/
 │   ├── bootstrap/           # Core infrastructure
@@ -172,6 +171,15 @@ Interstellar/
 ## 🚀 Getting Started
 
 All setup and bootstrap instructions live in [SETUP.md](SETUP.md). Use that file as the single source of truth.
+
+## 💾 Storage Configuration
+
+NFS endpoint values are configured once in [Kubernetes/nfs-storage-config.yaml](Kubernetes/nfs-storage-config.yaml).
+
+- `data.server`: NFS server IP/hostname
+- `data.path`: NFS export path
+
+Top-level Kustomize replacements apply these values to both the static media PV and the `nfs-csi` StorageClass.
 
 ## 🔒 Security Model
 

@@ -17,8 +17,8 @@ spec:
     - nfsvers=4.2
     - noatime
   nfs:
-    server: CHANGE_ME_NFS_SERVER_IP
-    path: CHANGE_ME_NFS_EXPORT_PATH
+    server: REPLACED_BY_KUSTOMIZE
+    path: REPLACED_BY_KUSTOMIZE
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

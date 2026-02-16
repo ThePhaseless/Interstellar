@@ -137,12 +137,6 @@ terraform init -backend=false
 terraform apply
 ```
 
-If apply/plan fails with a stale lock:
-
-```bash
-terraform force-unlock -force <LOCK_ID>
-```
-
 #### Step C: Configure Proxmox host prerequisites
 
 Talos nodes are bridged directly to the home LAN (`vmbr0`). Run this playbook to prepare Proxmox storage services required by the cluster.
