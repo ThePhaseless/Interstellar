@@ -118,41 +118,78 @@ BWS_ACCESS_TOKEN="<your-token>"
 source scripts/setup-env.sh
 ```
 
-### 2. Infrastructure Bootstrap
+This also writes `~/.talos/config` from the Bitwarden secret key `talosconfig` and attempts to configure kubectl via Tailscale using `talos-1` by default. Override with `TS_KUBECONFIG_TARGET=<hostname>` before sourcing if needed.
 
-We use a "local-first" approach to create the remote state bucket and provisioning infrastructure.
+### 2. Ordered Bootstrap Runbook
+
+Use this exact order.
+
+#### Step A: Terraform init (local backend first)
 
 ```bash
 cd Terraform
-
-# 1. Initialize with local state (bypasses remote backend)
 terraform init -backend=false
-
-# 2. Apply infrastructure
-# This creates the OCI Compartment, State Bucket, VPS, and Proxmox VMs
-terraform apply
-
-# 3. Migrate state to OCI Object Storage
-# This initializes the remote backend and uploads your local state
-terraform init
-# Type 'yes' when asked to copy state
 ```
 
-### 3. Configuration & Cluster Setup
+#### Step B: Terraform apply
+
+```bash
+terraform apply
+```
+
+If apply/plan fails with a stale lock:
+
+```bash
+terraform force-unlock -force <LOCK_ID>
+```
+
+#### Step C: Configure Proxmox host prerequisites
+
+Talos nodes are bridged directly to the home LAN (`vmbr0`). Run this playbook to prepare Proxmox storage services required by the cluster.
 
 ```bash
 cd ../Ansible
-
-# 1. Configure Oracle VPS (HAProxy)
-ansible-playbook setup-oracle.yaml
-
-# 2. Configure Proxmox Node (Network/Storage)
 ansible-playbook setup-proxmox.yaml
+```
+
+#### Step D: Configure Oracle entrypoint
+
+```bash
+cd ../Ansible
+ansible-playbook setup-oracle.yaml
+```
+
+#### Step E: Migrate Terraform state to OCI backend
+
+```bash
+cd ../Terraform
+terraform init
+```
+
+Type `yes` when Terraform asks to copy local state to the remote backend.
+
+### 3. Post-bootstrap Validation
+
+Run these checks after Step B:
+
+```bash
+# Kubernetes API and node readiness
+kubectl get nodes -o wide
+
+# Talos health from control host
+talosctl health --nodes 192.168.1.111,192.168.1.112,192.168.1.113
+```
+
+Optional: print helper output from Terraform:
+
+```bash
+cd /home/orcho/Interstellar/Terraform
+terraform output access_instructions
 ```
 
 ### 4. GitOps Activation
 
-Pushing to `main` triggers the CI/CD pipeline, which will now use the configured OCI remote backend.
+Pushing to `main` triggers CI/CD workflows for Terraform, Ansible, and Kubernetes linting/deployment:
 
 ```bash
 git push origin main

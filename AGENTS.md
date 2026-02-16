@@ -1,5 +1,14 @@
 # Copilot Instructions for Interstellar Homelab
 
+## Development
+
+Before running first script in a new shell in this repository (not before every command execution), always activate the virtual environment and source the environment setup script so all required variables are loaded.
+
+```bash
+source .venv/bin/activate
+source scripts/setup-env.sh
+```
+
 ## Architecture Overview
 
 This is a GitOps-managed Kubernetes homelab on TalosOS (Proxmox VMs) with public access via Oracle VPS → Tailscale → Traefik. ArgoCD deploys everything from Git.
@@ -12,7 +21,7 @@ This is a GitOps-managed Kubernetes homelab on TalosOS (Proxmox VMs) with public
 - `Kubernetes/apps/` - Application workloads organized by service name
 - `Kubernetes/apps/common/` - Shared resources: RBAC, PVCs, ExternalSecrets, configurator scripts
 - `Terraform/` - Infrastructure provisioning (Proxmox VMs, Oracle VPS, Talos cluster, Cloudflare DNS)
-- `Ansible/` - Host configuration (Proxmox VLAN/iSCSI, Oracle HAProxy)
+- `Ansible/` - Host configuration (Proxmox routing/NAT + iSCSI, Oracle HAProxy)
 - `Tailscale/policy.hujson` - ACL policy (HJSON format with comments)
 
 ## Kubernetes Conventions

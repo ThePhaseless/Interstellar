@@ -47,18 +47,18 @@ flowchart TB
 
 ## 🛠️ Technology Stack
 
-| Layer             | Technology                                                    |
-| ----------------- | ------------------------------------------------------------- |
-| **OS**            | TalosOS v1.10.0 (immutable Linux)                             |
-| **Orchestration** | Kubernetes 1.32.0                                             |
-| **GitOps**        | ArgoCD (app-of-apps pattern)                                  |
-| **Networking**    | Flannel CNI, MetalLB L2, Tailscale                            |
-| **Ingress**       | Traefik v3.3 with PROXY protocol + CrowdSec plugin            |
-| **Storage**       | LongHorn CSI → iSCSI → ZFS zvol                               |
-| **Secrets**       | Bitwarden Secrets Manager + External Secrets Operator         |
-| **Security**      | CrowdSec WAF (Traefik plugin v1.5.0), ClamAV malware scanning |
-| **Observability** | Grafana, Loki, Mimir, Promtail, Alloy                         |
-| **IaC**           | Terraform, Ansible, GitHub Actions                            |
+| Layer             | Technology                                             |
+| ----------------- | ------------------------------------------------------ |
+| **OS**            | TalosOS (immutable Linux)                              |
+| **Orchestration** | Kubernetes                                             |
+| **GitOps**        | ArgoCD (app-of-apps pattern)                           |
+| **Networking**    | Flannel CNI, MetalLB L2, Tailscale                     |
+| **Ingress**       | Traefik v3.3 with PROXY protocol + CrowdSec plugin     |
+| **Storage**       | LongHorn CSI → iSCSI → ZFS zvol                        |
+| **Secrets**       | Bitwarden Secrets Manager + External Secrets Operator  |
+| **Security**      | CrowdSec WAF (Traefik plugin), ClamAV malware scanning |
+| **Observability** | Grafana, Loki, Mimir, Promtail, Alloy                  |
+| **IaC**           | Terraform, Ansible, GitHub Actions                     |
 
 ## 🖥️ Hardware
 
@@ -140,21 +140,20 @@ Interstellar/
 │   └── tailscale-acl.yaml   # ACL policy sync
 ├── .kube-linter.yaml        # Kube-linter configuration
 ├── Ansible/                 # Host configuration playbooks
-│   ├── setup-proxmox.yaml   # VLAN, iSCSI, firewall
+│   ├── setup-proxmox.yaml   # Host routing/NAT, iSCSI, firewall
 │   └── setup-oracle.yaml    # HAProxy, Tailscale
 ├── Kubernetes/
-│   └── talos/
-│       ├── bootstrap/       # Core infrastructure
-│       │   ├── argocd/
-│       │   ├── metallb/
-│       │   ├── longhorn/
-│       │   ├── traefik/
-│       │   ├── crowdsec/
-│       │   ├── external-secrets/
-│       │   ├── tailscale-operator/
-│       │   ├── observability/
-│       │   └── clamav/
-│       └── apps/            # Application manifests
+│   ├── bootstrap/           # Core infrastructure
+│   │   ├── argocd/
+│   │   ├── metallb/
+│   │   ├── longhorn/
+│   │   ├── traefik/
+│   │   ├── crowdsec/
+│   │   ├── external-secrets/
+│   │   ├── tailscale-operator/
+│   │   ├── observability/
+│   │   └── clamav/
+│   └── apps/                # Application manifests
 ├── scripts/
 │   └── lint-kubernetes.sh   # Local linting script
 ├── Tailscale/
@@ -170,17 +169,13 @@ Interstellar/
 └── compose.proxy.yaml       # HAProxy Docker Compose
 ```
 
-## � Getting Started
+## 🚀 Getting Started
 
-See [SETUP.md](SETUP.md) for detailed setup instructions including:
-
-- Required secrets configuration
-- Prerequisites and deployment steps
-- CI/CD workflow documentation
+All setup and bootstrap instructions live in [SETUP.md](SETUP.md). Use that file as the single source of truth.
 
 ## 🔒 Security Model
 
-- **Network Isolation**: Cluster runs on VLAN 100, no direct LAN access
+- **Network Topology**: Talos VMs are bridged directly to the home LAN (vmbr0)
 - **Zero Trust**: All inter-service communication via Tailscale
 - **Public Access**: Only through Oracle VPS → Tailscale → Traefik
 - **Private Services**: Require Tailscale authentication
