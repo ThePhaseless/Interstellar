@@ -12,5 +12,7 @@ resources:
   - ingress.yaml
   - pvc.yaml
 
-commonLabels:
-  app: jellyfin
+labels:
+  - pairs:
+      app: jellyfin
+    includeSelectors: true

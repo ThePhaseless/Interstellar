@@ -36,5 +36,7 @@ helmCharts:
           cpu: 100m
           memory: 256Mi
 
-commonLabels:
-  managed-by: argocd
+labels:
+  - pairs:
+      managed-by: argocd
+    includeSelectors: true

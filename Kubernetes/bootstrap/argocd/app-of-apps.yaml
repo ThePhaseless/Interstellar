@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: https://github.com/ThePhaseless/Interstellar.git
     targetRevision: main
-    path: Kubernetes/talos
+    path: Kubernetes
 
   destination:
     server: https://kubernetes.default.svc

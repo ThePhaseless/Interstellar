@@ -17,5 +17,7 @@ resources:
   - ingress.yaml
   - tailscale-ip-sync.yaml
 
-commonLabels:
-  managed-by: argocd
+labels:
+  - pairs:
+      managed-by: argocd
+    includeSelectors: true

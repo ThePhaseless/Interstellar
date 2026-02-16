@@ -8,9 +8,12 @@ namespace: media
 
 resources:
   - deployment.yaml
+  - externalsecret.yaml
   - service.yaml
   - ingress.yaml
   - pvc.yaml
 
-commonLabels:
-  app: qbittorrent
+labels:
+  - pairs:
+      app: qbittorrent
+    includeSelectors: true

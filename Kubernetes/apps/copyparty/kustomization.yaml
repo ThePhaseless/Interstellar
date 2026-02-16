@@ -17,5 +17,7 @@ configMapGenerator:
     files:
       - copyparty.conf
 
-commonLabels:
-  app: copyparty
+labels:
+  - pairs:
+      app: copyparty
+    includeSelectors: true

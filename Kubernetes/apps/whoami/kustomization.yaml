@@ -11,6 +11,8 @@ resources:
   - service.yaml
   - ingress.yaml
 
-commonLabels:
-  app: whoami
-  managed-by: argocd
+labels:
+  - pairs:
+      app: whoami
+      managed-by: argocd
+    includeSelectors: true

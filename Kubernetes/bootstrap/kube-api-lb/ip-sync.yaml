@@ -1,0 +1,100 @@
+# =============================================================================
+# Kubernetes API LB IP Sync to Bitwarden (Kubernetes-native)
+# =============================================================================
+# Flow:
+# 1. CronJob reads Service status IP from kube-system/kubernetes-api-lb
+# 2. Writes value to local Secret kube-system/cluster-local-lb-ip
+# 3. External Secrets PushSecret syncs that Secret key to Bitwarden key cluster-local-lb-ip
+# =============================================================================
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-lb-ip-sync
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-lb-ip-sync
+  namespace: kube-system
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-lb-ip-sync
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: api-lb-ip-sync
+subjects:
+  - kind: ServiceAccount
+    name: api-lb-ip-sync
+    namespace: kube-system
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: api-lb-ip-sync
+  namespace: kube-system
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: api-lb-ip-sync
+          restartPolicy: OnFailure
+          containers:
+            - name: sync
+              image: bitnami/kubectl:1.32
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  IP="$(kubectl -n kube-system get svc kubernetes-api-lb -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)"
+                  if [ -z "$IP" ]; then
+                    echo "kubernetes-api-lb has no assigned IP yet"
+                    exit 0
+                  fi
+                  kubectl -n kube-system create secret generic cluster-local-lb-ip \
+                    --from-literal=ip="$IP" \
+                    --dry-run=client -o yaml | kubectl apply -f -
+                  echo "Updated kube-system/cluster-local-lb-ip with ip=$IP"
+---
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: cluster-local-lb-ip
+  namespace: kube-system
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  refreshInterval: 5m
+  updatePolicy: Replace
+  deletionPolicy: None
+  secretStoreRefs:
+    - name: bitwarden-store
+      kind: ClusterSecretStore
+  selector:
+    secret:
+      name: cluster-local-lb-ip
+  data:
+    - match:
+        secretKey: ip
+        remoteRef:
+          remoteKey: cluster-local-lb-ip
+      metadata:
+        note: "Kubernetes API LocalLB IP synced from kube-system/kubernetes-api-lb status"

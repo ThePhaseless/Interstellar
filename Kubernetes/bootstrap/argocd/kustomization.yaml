@@ -10,7 +10,6 @@ resources:
   # Install ArgoCD from upstream Helm chart
   - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
   - namespace.yaml
-  - argocd-cm.yaml
   - app-of-apps.yaml
 
 # Patches for ArgoCD configuration
@@ -23,6 +22,33 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --insecure
+  - target:
+      kind: ConfigMap
+      name: argocd-cm
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cm
+      data:
+        url: https://github.com/ThePhaseless/Interstellar.git
+        kustomize.buildOptions: --enable-helm
+        application.resourceTrackingMethod: annotation
+        resource.customizations.health.argoproj.io_Application: |
+          hs = {}
+          hs.status = "Progressing"
+          hs.message = ""
+          if obj.status ~= nil then
+            if obj.status.health ~= nil then
+              hs.status = obj.status.health.status
+              if obj.status.health.message ~= nil then
+                hs.message = obj.status.health.message
+              end
+            end
+          end
+          return hs
 
-commonLabels:
-  managed-by: argocd
+labels:
+  - pairs:
+      managed-by: argocd
+    includeSelectors: true

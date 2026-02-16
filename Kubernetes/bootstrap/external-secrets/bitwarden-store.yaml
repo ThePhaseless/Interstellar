@@ -18,9 +18,6 @@ spec:
             name: bitwarden-access-token
             namespace: external-secrets
             key: token
-      # Project ID for the 'interstellar' project
-      # This is fetched dynamically or set manually
-      projectID: "" # Set this after creating the project in Bitwarden
 ---
 # Bootstrap secret for Bitwarden access token
 # This secret must be created manually before ESO can function:

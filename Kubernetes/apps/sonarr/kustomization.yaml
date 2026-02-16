@@ -8,9 +8,8 @@ namespace: media
 
 resources:
   - deployment.yaml
-  - service.yaml
-  - ingress.yaml
-  - pvc.yaml
 
-commonLabels:
-  app: sonarr
+labels:
+  - pairs:
+      app: sonarr
+    includeSelectors: true

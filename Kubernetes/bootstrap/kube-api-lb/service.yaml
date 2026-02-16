@@ -1,0 +1,23 @@
+# =============================================================================
+# Kubernetes API LoadBalancer Service
+# =============================================================================
+# Exposes kube-apiserver on the LAN via MetalLB to support a stable LocalLB IP
+# that can be synced into Bitwarden and consumed by Terraform.
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubernetes-api-lb
+  namespace: kube-system
+  annotations:
+    ignore-check.kube-linter.io/dangling-service: "Selects kube-apiserver static pods not defined in Git manifests"
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  selector:
+    component: kube-apiserver
+    tier: control-plane
+  ports:
+    - name: https
+      port: 6443
+      protocol: TCP
+      targetPort: 6443

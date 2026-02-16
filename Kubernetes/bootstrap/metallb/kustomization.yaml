@@ -7,10 +7,20 @@ kind: Kustomization
 namespace: metallb-system
 
 resources:
-  - https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
   - namespace.yaml
   - ipaddresspool.yaml
   - l2advertisement.yaml
 
-commonLabels:
-  managed-by: argocd
+helmGlobals:
+  chartHome: charts/metallb-0.14.9
+
+helmCharts:
+  - name: metallb
+    releaseName: metallb
+    namespace: metallb-system
+    includeCRDs: true
+
+labels:
+  - pairs:
+      managed-by: argocd
+    includeSelectors: true

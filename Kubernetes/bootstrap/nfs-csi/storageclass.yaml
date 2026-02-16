@@ -1,0 +1,17 @@
+# =============================================================================
+# NFS CSI StorageClass (Dynamic RWX on Proxmox NFS export)
+# =============================================================================
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-csi
+provisioner: nfs.csi.k8s.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+  server: 192.168.1.1
+  share: /Storage/media
+mountOptions:
+  - nfsvers=4.2
+  - noatime

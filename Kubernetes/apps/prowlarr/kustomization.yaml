@@ -12,5 +12,7 @@ resources:
   - ingress.yaml
   - pvc.yaml
 
-commonLabels:
-  app: prowlarr
+labels:
+  - pairs:
+      app: prowlarr
+    includeSelectors: true

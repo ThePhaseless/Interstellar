@@ -12,5 +12,7 @@ resources:
   - ingress.yaml
   - pvc.yaml
 
-commonLabels:
-  app: radarr
+labels:
+  - pairs:
+      app: radarr
+    includeSelectors: true
