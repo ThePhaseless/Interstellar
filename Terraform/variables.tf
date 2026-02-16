@@ -131,13 +131,13 @@ variable "talos_extensions" {
 variable "talos_version" {
   description = "TalosOS version"
   type        = string
-  default     = "v1.12.2"
+  default     = "v1.12.4"
 }
 
 variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
-  default     = "1.32.0"
+  default     = "1.35.0"
 }
 
 variable "enable_talos_cluster_health_check" {
