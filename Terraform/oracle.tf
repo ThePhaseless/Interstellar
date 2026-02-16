@@ -186,8 +186,9 @@ resource "oci_core_instance" "proxy" {
   }
 
   source_details {
-    source_type = "image"
-    source_id   = data.oci_core_images.ubuntu.images[0].id
+    source_type             = "image"
+    source_id               = data.oci_core_images.ubuntu.images[0].id
+    boot_volume_size_in_gbs = 50
   }
 
   create_vnic_details {
@@ -241,8 +242,9 @@ resource "oci_core_instance" "compute" {
   }
 
   source_details {
-    source_type = "image"
-    source_id   = data.oci_core_images.ubuntu.images[0].id
+    source_type             = "image"
+    source_id               = data.oci_core_images.ubuntu.images[0].id
+    boot_volume_size_in_gbs = 150
   }
 
   create_vnic_details {

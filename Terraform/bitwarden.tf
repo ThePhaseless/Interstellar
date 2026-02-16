@@ -100,6 +100,18 @@ data "bitwarden-secrets_secret" "tailscale_traefik_ip" {
   id    = local.secret_key_to_id["tailscale-traefik-ip"]
 }
 
+# Cluster API VIP (optional read path with var fallback)
+data "bitwarden-secrets_secret" "cluster_vip" {
+  count = contains(keys(local.secret_key_to_id), "cluster-vip") ? 1 : 0
+  id    = local.secret_key_to_id["cluster-vip"]
+}
+
+# Cluster LocalLB endpoint IP (optional read path with fallback)
+data "bitwarden-secrets_secret" "cluster_local_lb_ip" {
+  count = contains(keys(local.secret_key_to_id), "cluster-local-lb-ip") ? 1 : 0
+  id    = local.secret_key_to_id["cluster-local-lb-ip"]
+}
+
 # -----------------------------------------------------------------------------
 # Managed Secrets (uploaded to Bitwarden)
 # -----------------------------------------------------------------------------
@@ -112,10 +124,32 @@ resource "bitwarden-secrets_secret" "talosconfig" {
   project_id = local.bitwarden_project_id
 }
 
+# OCI Object Storage namespace (used for backend migrations)
+resource "bitwarden-secrets_secret" "oci_objectstorage_namespace" {
+  key        = "oci-objectstorage-namespace"
+  value      = data.oci_objectstorage_namespace.ns.namespace
+  note       = "OCI Object Storage namespace for Terraform state bucket - managed by Terraform"
+  project_id = local.bitwarden_project_id
+}
+
+# Cluster control-plane VIP for consistent API endpoint management
+resource "bitwarden-secrets_secret" "cluster_vip" {
+  key        = "cluster-vip"
+  value      = var.cluster_vip
+  note       = "Talos/Kubernetes control-plane virtual IP - managed by Terraform"
+  project_id = local.bitwarden_project_id
+}
+
 # -----------------------------------------------------------------------------
 # Computed values from secrets
 # -----------------------------------------------------------------------------
 locals {
   # Extract OCI tenancy OCID from oci-config (format: tenancy=ocid1.tenancy.oc1...)
   oci_tenancy_ocid = regex("tenancy=([^\n]+)", data.bitwarden-secrets_secret.oci_config.value)[0]
+
+  # Resolve cluster VIP from Bitwarden when available, otherwise use Terraform variable.
+  cluster_vip = length(data.bitwarden-secrets_secret.cluster_vip) > 0 ? data.bitwarden-secrets_secret.cluster_vip[0].value : var.cluster_vip
+
+  # Resolve LocalLB endpoint IP from Bitwarden first, then from input variable.
+  cluster_local_lb_ip = length(data.bitwarden-secrets_secret.cluster_local_lb_ip) > 0 ? data.bitwarden-secrets_secret.cluster_local_lb_ip[0].value : (var.cluster_local_lb_ip != "" ? var.cluster_local_lb_ip : null)
 }
