@@ -21,7 +21,7 @@ This is a GitOps-managed Kubernetes homelab on TalosOS (Proxmox VMs) with public
 - `Kubernetes/apps/` - Application workloads organized by service name
 - `Kubernetes/apps/common/` - Shared resources: RBAC, PVCs, ExternalSecrets, configurator scripts
 - `Terraform/` - Infrastructure provisioning (Proxmox VMs, Oracle VPS, Talos cluster, Cloudflare DNS)
-- `Ansible/` - Host configuration (Proxmox routing/NAT + iSCSI, Oracle HAProxy)
+- `Ansible/` - Host configuration (Proxmox routing/NAT + NFS host prep, Oracle HAProxy)
 - `Tailscale/policy.hujson` - ACL policy (HJSON format with comments)
 
 ## Kubernetes Conventions

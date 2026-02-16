@@ -10,8 +10,8 @@ allowVolumeExpansion: true
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 parameters:
-  server: 192.168.1.1
-  share: /Storage/media
+  server: REPLACED_BY_KUSTOMIZE
+  share: REPLACED_BY_KUSTOMIZE
 mountOptions:
   - nfsvers=4.2
   - noatime

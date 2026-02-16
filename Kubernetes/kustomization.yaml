@@ -3,11 +3,44 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- bootstrap/
-- apps/
+  - nfs-storage-config.yaml
+  - bootstrap/
+  - apps/
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: nfs-storage-config
+      fieldPath: data.server
+    targets:
+      - select:
+          kind: PersistentVolume
+          name: media-nfs-pv
+        fieldPaths:
+          - spec.nfs.server
+      - select:
+          kind: StorageClass
+          name: nfs-csi
+        fieldPaths:
+          - parameters.server
+  - source:
+      kind: ConfigMap
+      name: nfs-storage-config
+      fieldPath: data.path
+    targets:
+      - select:
+          kind: PersistentVolume
+          name: media-nfs-pv
+        fieldPaths:
+          - spec.nfs.path
+      - select:
+          kind: StorageClass
+          name: nfs-csi
+        fieldPaths:
+          - parameters.share
 
 labels:
-- includeSelectors: true
-  pairs:
-    cluster: talos
-    managed-by: argocd
+  - includeSelectors: true
+    pairs:
+      cluster: talos
+      managed-by: argocd

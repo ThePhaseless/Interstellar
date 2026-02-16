@@ -11,7 +11,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: longhorn
+  storageClassName: nfs-csi
   resources:
     requests:
       storage: 500Gi
