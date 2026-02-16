@@ -26,7 +26,7 @@
   "yaml.customTags": ["!env_var", "!include_dir_merge_named"],
   "python.defaultInterpreterPath": "./.venv/bin/python",
   "ansible.lightspeed.enabled": false,
-  "ansible.python.interpreterPath": "/workspaces/Interstellar/.venv/bin/python",
+  "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
   "vs-kubernetes": {
     "disable-linters": ["resource-limits"]
   },
