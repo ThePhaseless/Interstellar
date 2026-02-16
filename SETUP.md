@@ -137,23 +137,14 @@ terraform init -backend=false
 terraform apply
 ```
 
-#### Step C: Configure Proxmox host prerequisites
-
-Talos nodes are bridged directly to the home LAN (`vmbr0`). Run this playbook to prepare Proxmox storage services required by the cluster.
-
-```bash
-cd ../Ansible
-ansible-playbook setup-proxmox.yaml
-```
-
-#### Step D: Configure Oracle entrypoint
+#### Step C: Configure Oracle entrypoint
 
 ```bash
 cd ../Ansible
 ansible-playbook setup-oracle.yaml
 ```
 
-#### Step E: Migrate Terraform state to OCI backend
+#### Step D: Migrate Terraform state to OCI backend
 
 ```bash
 cd ../Terraform
@@ -161,6 +152,15 @@ terraform init
 ```
 
 Type `yes` when Terraform asks to copy local state to the remote backend.
+
+#### Step E: Bootstrap Kubernetes resources (ArgoCD)
+
+Kubernetes manifests are managed via GitOps. Bootstrap ArgoCD once, then it continuously syncs `Kubernetes/` from this repo.
+
+```bash
+cd ../Kubernetes
+kubectl apply -k bootstrap/argocd
+```
 
 ### 3. Post-bootstrap Validation
 
@@ -181,21 +181,8 @@ cd /home/orcho/Interstellar/Terraform
 terraform output access_instructions
 ```
 
-### 4. GitOps Activation
-
-Pushing to `main` triggers CI/CD workflows for Terraform, Ansible, and Kubernetes linting/deployment:
+Confirm ArgoCD is managing the cluster resources:
 
 ```bash
-git push origin main
+kubectl -n argocd get applications
 ```
-
-## 🔄 CI/CD Workflows
-
-| Workflow             | Trigger      | Action               |
-| -------------------- | ------------ | -------------------- |
-| `terraform.yaml`     | PR to main   | Plan and comment     |
-| `terraform.yaml`     | Push to main | Apply infrastructure |
-| `ansible.yaml`       | PR to main   | Lint playbooks       |
-| `ansible.yaml`       | Push to main | Run playbooks        |
-| `tailscale-acl.yaml` | PR to main   | Validate policy      |
-| `tailscale-acl.yaml` | Push to main | Apply ACL policy     |
