@@ -9,6 +9,8 @@ source .venv/bin/activate
 source scripts/setup-env.sh
 ```
 
+For Kubernetes deployments, use standalone `kustomize` (not `kubectl apply -k`). This repository uses Helm-enabled Kustomize builds.
+
 ## Architecture Overview
 
 This is a GitOps-managed Kubernetes homelab on TalosOS (Proxmox VMs) with public access via Oracle VPS → Tailscale → Traefik. ArgoCD deploys everything from Git.
