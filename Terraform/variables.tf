@@ -27,9 +27,33 @@ variable "cluster_name" {
 }
 
 variable "cluster_vip" {
-  description = "Virtual IP for Kubernetes API (MetalLB)"
+  description = "Talos/Kubernetes control-plane virtual IP for the API endpoint"
   type        = string
-  default     = "10.100.0.100"
+  default     = "192.168.1.100"
+}
+
+variable "use_vip_cluster_endpoint" {
+  description = "Use cluster VIP as Talos cluster_endpoint after VIP is confirmed reachable"
+  type        = bool
+  default     = false
+}
+
+variable "traefik_lb_ip" {
+  description = "MetalLB LoadBalancer IP for Traefik ingress service"
+  type        = string
+  default     = "192.168.1.101"
+}
+
+variable "adguard_dns_lb_ip" {
+  description = "MetalLB LoadBalancer IP for AdGuard DNS service"
+  type        = string
+  default     = "192.168.1.102"
+}
+
+variable "cluster_local_lb_ip" {
+  description = "Optional override for Kubernetes API endpoint migration when Bitwarden secret cluster-local-lb-ip is not yet available."
+  type        = string
+  default     = ""
 }
 
 variable "cluster_domain" {
@@ -44,43 +68,26 @@ variable "cluster_domain" {
 variable "nodes" {
   description = "TalosOS node configuration"
   type = map(object({
-    vmid       = number
-    ip         = string
-    gateway    = string
-    vcpus      = number
-    memory     = number
-    disk_size  = number
-    gpu        = bool
-    gpu_device = optional(string)
+    vmid              = number
+    vcpus             = optional(number, 4)
+    memory            = optional(number, 8192)
+    os_disk_size      = optional(number, 64)
+    data_disk_size    = optional(number)
+    data_disk_file_id = optional(string)
+    gpu               = optional(bool, false)
+    gpu_device        = optional(string)
   }))
   default = {
     "talos-1" = {
-      vmid       = 101
-      ip         = "10.100.0.11"
-      gateway    = "10.100.0.1"
-      vcpus      = 8
-      memory     = 16384
-      disk_size  = 64
+      vmid       = 110
       gpu        = true
-      gpu_device = "0000:2f:00.0" # Intel Arc B580
+      gpu_device = "gpu" # Intel Arc B580
     }
     "talos-2" = {
-      vmid      = 102
-      ip        = "10.100.0.12"
-      gateway   = "10.100.0.1"
-      vcpus     = 8
-      memory    = 16384
-      disk_size = 64
-      gpu       = false
+      vmid = 111
     }
     "talos-3" = {
-      vmid      = 103
-      ip        = "10.100.0.13"
-      gateway   = "10.100.0.1"
-      vcpus     = 8
-      memory    = 16384
-      disk_size = 64
-      gpu       = false
+      vmid = 112
     }
   }
 }
@@ -89,15 +96,21 @@ variable "nodes" {
 # Network Configuration
 # -----------------------------------------------------------------------------
 variable "cluster_network" {
-  description = "Cluster network CIDR (VLAN 100)"
+  description = "Cluster network CIDR for Talos nodes on the home LAN"
   type        = string
-  default     = "10.100.0.0/24"
+  default     = "192.168.1.0/24"
 }
 
-variable "storage_pool" {
-  description = "Proxmox storage pool for VM disks"
+variable "vm_os_datastore_id" {
+  description = "Proxmox datastore ID for Talos VM OS disks (SSD-backed, e.g. local-lvm). Not the ZFS media pool."
   type        = string
-  default     = "local-lvm"
+  default     = "local-zfs"
+}
+
+variable "proxmox_cluster_bridge_name" {
+  description = "Name of the Proxmox bridge used for Talos VM networking"
+  type        = string
+  default     = "vmbr0"
 }
 
 # -----------------------------------------------------------------------------
@@ -108,7 +121,6 @@ variable "talos_extensions" {
   type        = list(string)
   default = [
     "siderolabs/qemu-guest-agent",
-    "siderolabs/iscsi-tools",
     "siderolabs/util-linux-tools",
     "siderolabs/tailscale",
     "siderolabs/intel-ucode",
@@ -119,7 +131,7 @@ variable "talos_extensions" {
 variable "talos_version" {
   description = "TalosOS version"
   type        = string
-  default     = "v1.10.0"
+  default     = "v1.12.2"
 }
 
 variable "kubernetes_version" {
@@ -127,6 +139,13 @@ variable "kubernetes_version" {
   type        = string
   default     = "1.32.0"
 }
+
+variable "enable_talos_cluster_health_check" {
+  description = "Whether to run talos_cluster_health during terraform apply. Disable during initial bootstrap to avoid long blocking reads."
+  type        = bool
+  default     = false
+}
+
 variable "tf_state_bucket" {
   description = "Name of the OCI Object Storage bucket for Terraform state"
   type        = string

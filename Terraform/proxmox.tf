@@ -3,6 +3,17 @@
 # =============================================================================
 # This file creates TalosOS VMs on Proxmox with GPU passthrough support
 
+locals {
+  talos_node_names = sort(keys(var.nodes))
+  talos_node_ips = {
+    for node_name in local.talos_node_names : node_name => try(
+      [for ip in flatten(proxmox_virtual_environment_vm.talos[node_name].ipv4_addresses) : ip
+      if ip != "" && !startswith(ip, "127.") && !startswith(ip, "169.254.")][0],
+      null
+    )
+  }
+}
+
 # -----------------------------------------------------------------------------
 # Provider Configuration
 # -----------------------------------------------------------------------------
@@ -20,15 +31,8 @@ resource "proxmox_virtual_environment_download_file" "talos_iso" {
   datastore_id = "local"
   node_name    = var.proxmox_node
 
-  url       = "https://factory.talos.dev/image/${local.talos_schematic_id}/${var.talos_version}/nocloud-amd64.iso"
-  file_name = "talos-${var.talos_version}-extensions.iso"
-
-  overwrite = false
-}
-
-# Generate schematic ID for extensions
-locals {
-  talos_schematic_id = sha256(join(",", var.talos_extensions))
+  url       = data.talos_image_factory_urls.image.urls.iso
+  file_name = "talos-${var.talos_version}-extensions-${data.talos_image_factory_urls.image.schematic_id}.iso"
 }
 
 # -----------------------------------------------------------------------------
@@ -45,9 +49,10 @@ resource "proxmox_virtual_environment_vm" "talos" {
   # VM settings
   machine       = "q35"
   bios          = "ovmf"
+  scsi_hardware = "virtio-scsi-pci"
+  boot_order    = ["scsi0", "ide0"]
   started       = true
-  on_boot       = true
-  tablet_device = false
+  on_boot       = false
 
   # Tags for organization
   tags = each.value.gpu ? ["talos", "kubernetes", "gpu"] : ["talos", "kubernetes"]
@@ -62,46 +67,45 @@ resource "proxmox_virtual_environment_vm" "talos" {
   # Memory configuration
   memory {
     dedicated = each.value.memory
-    floating  = each.value.memory
+    floating  = 0
   }
 
   # EFI disk for UEFI boot
   efi_disk {
-    datastore_id      = var.storage_pool
+    datastore_id      = var.vm_os_datastore_id
     file_format       = "raw"
     type              = "4m"
     pre_enrolled_keys = false
   }
 
-  # Boot disk
+  # Talos OS boot disk
   disk {
-    datastore_id = var.storage_pool
-    interface    = "virtio0"
-    size         = each.value.disk_size
+    datastore_id = var.vm_os_datastore_id
+    interface    = "scsi0"
+    size         = each.value.os_disk_size
     file_format  = "raw"
-    iothread     = true
     discard      = "on"
   }
 
   # Boot from ISO for initial install
   cdrom {
     file_id   = proxmox_virtual_environment_download_file.talos_iso.id
-    interface = "ide2"
+    interface = "ide0"
   }
 
-  # Network interface on VLAN 100
+  # Network interface bridged directly to the home LAN
   network_device {
-    bridge  = "vmbr1"
-    model   = "virtio"
-    vlan_id = 100
+    bridge = var.proxmox_cluster_bridge_name
+    model  = "virtio"
   }
 
-  # Cloud-init for initial configuration (IP, gateway)
+  # Cloud-init network via DHCP
   initialization {
+    datastore_id = var.vm_os_datastore_id
+
     ip_config {
       ipv4 {
-        address = "${each.value.ip}/24"
-        gateway = each.value.gateway
+        address = "dhcp"
       }
     }
   }
@@ -110,10 +114,10 @@ resource "proxmox_virtual_environment_vm" "talos" {
   dynamic "hostpci" {
     for_each = each.value.gpu ? [1] : []
     content {
-      device = "hostpci0"
-      id     = each.value.gpu_device
-      pcie   = true
-      rombar = true
+      device  = "hostpci0"
+      mapping = each.value.gpu_device
+      pcie    = true
+      rombar  = true
     }
   }
 
@@ -129,8 +133,13 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   lifecycle {
     ignore_changes = [
-      cdrom, # Ignore after initial boot
+      initialization,
     ]
+
+    precondition {
+      condition     = !(each.value.data_disk_file_id != null && each.value.data_disk_size != null)
+      error_message = "Set either data_disk_file_id (preserve existing data) or data_disk_size (create new data disk), not both."
+    }
   }
 }
 
@@ -138,6 +147,14 @@ resource "proxmox_virtual_environment_vm" "talos" {
 # Outputs
 # -----------------------------------------------------------------------------
 output "talos_node_ips" {
-  description = "IP addresses of TalosOS nodes"
-  value       = { for k, v in var.nodes : k => v.ip }
+  description = "Discovered IP addresses of TalosOS nodes from Proxmox guest agent"
+  value       = local.talos_node_ips
+}
+
+output "proxmox_vm_os_datastore_details" {
+  description = "Configured Proxmox datastore for Talos VM OS disks"
+  value = {
+    configured_id = var.vm_os_datastore_id
+    node_name     = var.proxmox_node
+  }
 }

@@ -8,6 +8,10 @@
 # -----------------------------------------------------------------------------
 provider "talos" {}
 
+locals {
+  talos_cluster_endpoint_host = coalesce(local.cluster_local_lb_ip, local.talos_node_ips["talos-1"])
+}
+
 # -----------------------------------------------------------------------------
 # Talos Machine Secrets
 # -----------------------------------------------------------------------------
@@ -35,6 +39,13 @@ resource "talos_image_factory_schematic" "cluster" {
   })
 }
 
+data "talos_image_factory_urls" "image" {
+  schematic_id  = talos_image_factory_schematic.cluster.id
+  talos_version = var.talos_version
+  platform      = "nocloud"
+}
+
+
 # -----------------------------------------------------------------------------
 # Client Configuration
 # -----------------------------------------------------------------------------
@@ -42,8 +53,10 @@ resource "talos_image_factory_schematic" "cluster" {
 data "talos_client_configuration" "cluster" {
   cluster_name         = var.cluster_name
   client_configuration = talos_machine_secrets.cluster.client_configuration
-  endpoints            = [for node in var.nodes : node.ip]
-  nodes                = [for node in var.nodes : node.ip]
+  endpoints            = [for node_name in local.talos_node_names : local.talos_node_ips[node_name]]
+  nodes                = [for node_name in local.talos_node_names : local.talos_node_ips[node_name]]
+
+  depends_on = [proxmox_virtual_environment_vm.talos]
 }
 
 # -----------------------------------------------------------------------------
@@ -53,129 +66,82 @@ data "talos_machine_configuration" "controlplane" {
   for_each = var.nodes
 
   cluster_name       = var.cluster_name
-  cluster_endpoint   = "https://${var.cluster_vip}:6443"
+  cluster_endpoint   = "https://${local.talos_cluster_endpoint_host}:6443"
   machine_type       = "controlplane"
   machine_secrets    = talos_machine_secrets.cluster.machine_secrets
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
 
-  config_patches = [
-    # Network configuration
+  config_patches = compact([
+    # Minimal machine configuration for Proxmox Talos nodes
     yamlencode({
       machine = {
         network = {
-          hostname = each.key
           interfaces = [
             {
               interface = "eth0"
-              addresses = ["${each.value.ip}/24"]
-              routes = [
-                {
-                  network = "0.0.0.0/0"
-                  gateway = each.value.gateway
-                }
-              ]
+              dhcp      = true
+              vip = {
+                ip = local.cluster_vip
+              }
             }
           ]
-          nameservers = ["1.1.1.1", "8.8.8.8"]
         }
 
         # Install configuration with extensions
         install = {
-          disk       = "/dev/vda"
-          image      = "factory.talos.dev/installer/${talos_image_factory_schematic.cluster.id}:${var.talos_version}"
-          bootloader = true
-          wipe       = false
+          disk  = "/dev/sda"
+          image = "factory.talos.dev/installer/${talos_image_factory_schematic.cluster.id}:${var.talos_version}"
+          wipe  = false
         }
 
-        # Tailscale extension configuration
-        pods = [
-          {
-            apiVersion = "v1"
-            kind       = "Pod"
-            metadata = {
-              name      = "tailscale"
-              namespace = "kube-system"
-            }
-          }
-        ]
-
-        # iSCSI configuration for LongHorn
+        # Prevent kubelet from selecting Tailscale 100.x as node primary IP.
         kubelet = {
-          extraMounts = [
-            {
-              destination = "/var/lib/iscsi"
-              type        = "bind"
-              source      = "/var/lib/iscsi"
-              options     = ["rbind", "rshared", "rw"]
-            }
-          ]
-        }
-
-        # Sysctls for networking
-        sysctls = {
-          "net.core.somaxconn"            = "65535"
-          "net.core.netdev_max_backlog"   = "4096"
-          "net.ipv4.tcp_max_syn_backlog"  = "4096"
-          "fs.inotify.max_user_watches"   = "1048576"
-          "fs.inotify.max_user_instances" = "8192"
-          "fs.inotify.max_queued_events"  = "16384"
-        }
-
-        # Time sync
-        time = {
-          servers = ["time.cloudflare.com"]
+          nodeIP = {
+            validSubnets = [var.cluster_network]
+          }
         }
       }
     }),
 
-    # Cluster configuration
+    # Minimal cluster-level settings
     yamlencode({
       cluster = {
         # Allow scheduling on control-plane nodes (combined nodes)
         allowSchedulingOnControlPlanes = true
 
-        # Network configuration
-        network = {
-          cni = {
-            name = "flannel"
-          }
-          podSubnets     = ["10.244.0.0/16"]
-          serviceSubnets = ["10.96.0.0/12"]
-        }
-
-        # Proxy configuration
-        proxy = {
-          disabled = false
+        # Ensure etcd advertises LAN addresses, not Tailscale addresses.
+        etcd = {
+          advertisedSubnets = [var.cluster_network]
         }
 
         # API server configuration
         apiServer = {
           certSANs = [
-            var.cluster_vip,
+            local.cluster_vip,
             "talos-operator.${local.tailscale_tailnet}.ts.net",
             "kubernetes.${var.cluster_domain}"
           ]
         }
-
-        # etcd configuration
-        etcd = {
-          advertisedSubnets = [var.cluster_network]
-        }
       }
     }),
 
-    # GPU configuration for talos-1
-    each.value.gpu ? yamlencode({
-      machine = {
-        kernel = {
-          modules = [
-            { name = "i915" }
-          ]
-        }
-      }
-    }) : null
-  ]
+    # Configure tailscale extension (installed via image factory) so nodes authenticate on boot
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "ExtensionServiceConfig"
+      name       = "tailscale"
+      environment = [
+        "TS_AUTHKEY=${tailscale_tailnet_key.cluster.key}",
+        "TS_HOSTNAME=${each.key}",
+        "TS_AUTH_ONCE=true"
+      ]
+    }),
+
+    # GPU-specific kernel module forcing removed; rely on Talos defaults/extensions
+    # to avoid apply failures when module names differ across Talos/kernel versions.
+    null
+  ])
 }
 
 # -----------------------------------------------------------------------------
@@ -186,7 +152,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
 
   client_configuration        = talos_machine_secrets.cluster.client_configuration
   machine_configuration_input = data.talos_machine_configuration.controlplane[each.key].machine_configuration
-  node                        = each.value.ip
+  node                        = local.talos_node_ips[each.key]
 
   depends_on = [proxmox_virtual_environment_vm.talos]
 }
@@ -196,20 +162,9 @@ resource "talos_machine_configuration_apply" "controlplane" {
 # -----------------------------------------------------------------------------
 resource "talos_machine_bootstrap" "cluster" {
   client_configuration = talos_machine_secrets.cluster.client_configuration
-  node                 = var.nodes["talos-1"].ip
+  node                 = local.talos_node_ips["talos-1"]
 
   depends_on = [talos_machine_configuration_apply.controlplane]
-}
-
-# -----------------------------------------------------------------------------
-# Cluster Health Check
-# -----------------------------------------------------------------------------
-data "talos_cluster_health" "cluster" {
-  client_configuration = talos_machine_secrets.cluster.client_configuration
-  control_plane_nodes  = [for node in var.nodes : node.ip]
-  endpoints            = [for node in var.nodes : node.ip]
-
-  depends_on = [talos_machine_bootstrap.cluster]
 }
 
 # -----------------------------------------------------------------------------

@@ -12,13 +12,13 @@ output "cluster_name" {
 }
 
 output "cluster_endpoint" {
-  description = "Kubernetes API endpoint"
-  value       = "https://${var.cluster_vip}:6443"
+  description = "Kubernetes API endpoint currently used by Terraform/Talos"
+  value       = "https://${local.talos_cluster_endpoint_host}:6443"
 }
 
 output "cluster_nodes" {
-  description = "Map of cluster node names to IPs"
-  value       = { for k, v in var.nodes : k => v.ip }
+  description = "Map of cluster node names to discovered IPs"
+  value       = local.talos_node_ips
 }
 
 # -----------------------------------------------------------------------------
@@ -32,17 +32,22 @@ output "access_instructions" {
     ============================================================
 
     1. Get talosconfig from Bitwarden:
-       bws secret get talosconfig --output json | jq -r '.value' > ~/.talos/config
+       mkdir -p ~/.talos && chmod 700 ~/.talos
+       bws secret list --output json --color no | jq -r '.[] | select(.key=="talosconfig") | .value' > ~/.talos/config
+       chmod 600 ~/.talos/config
 
-    2. Configure kubectl via Tailscale:
-       tailscale configure kubeconfig talos-operator
+     2. Configure kubectl directly from Talos (recommended for bootstrap):
+       talosctl -n ${local.talos_node_ips["talos-1"]} kubeconfig ~/.kube/config
 
-    3. Verify cluster health:
-       talosctl health --nodes ${join(",", [for n in var.nodes : n.ip])}
+     3. (Optional) Configure kubectl via Tailscale auth proxy:
+       tailscale configure kubeconfig talos-1
+
+     4. Verify cluster health:
+       talosctl health --nodes ${join(",", [for node_name in local.talos_node_names : local.talos_node_ips[node_name]])}
        kubectl get nodes
 
-    4. Access via Tailscale MagicDNS:
-       - API Server: talos-operator.<tailnet>.ts.net:6443
+     5. Access via Tailscale MagicDNS:
+       - API Server: talos-1.<tailnet>.ts.net:6443
        - Traefik: talos-traefik.<tailnet>.ts.net
 
     ============================================================

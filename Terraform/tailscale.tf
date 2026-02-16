@@ -10,7 +10,7 @@ provider "tailscale" {
   oauth_client_id     = data.bitwarden-secrets_secret.tailscale_oauth_client_id.value
   oauth_client_secret = data.bitwarden-secrets_secret.tailscale_oauth_secret.value
   tailnet             = data.bitwarden-secrets_secret.tailscale_tailnet.value
-  scopes              = ["devices:core", "keys:auth_keys"]
+  scopes              = ["devices:core", "auth_keys", "dns"]
 }
 
 # -----------------------------------------------------------------------------
@@ -20,7 +20,7 @@ resource "tailscale_tailnet_key" "cluster" {
   reusable      = true
   preauthorized = true
   expiry        = 7776000 # 90 days in seconds
-  tags          = ["tag:cluster", "tag:k8s-operator"]
+  tags          = ["tag:cluster"]
   description   = "TalosOS cluster nodes auth key"
 }
 
@@ -59,7 +59,7 @@ resource "bitwarden-secrets_secret" "oauth_cookie_secret" {
 #   1. Go to DNS settings in Tailscale Admin
 #   2. Add adguard-shared's IP as a nameserver
 #   3. Enable "Override local DNS"
-# 
+#
 # Fallback DNS (1.1.1.1) is configured for when AdGuard is offline.
 # -----------------------------------------------------------------------------
 resource "tailscale_dns_configuration" "cluster" {
