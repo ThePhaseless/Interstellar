@@ -9,7 +9,7 @@
 provider "talos" {}
 
 locals {
-  talos_cluster_endpoint_host = coalesce(local.cluster_local_lb_ip, local.talos_node_ips["talos-1"])
+  talos_cluster_endpoint_host = var.cluster_vip
   talos_node_is_gpu           = { for node_name, node in var.nodes : node_name => node.gpu }
 }
 
@@ -128,6 +128,9 @@ data "talos_machine_configuration" "controlplane" {
                   gateway = "192.168.1.1"
                 }
               ]
+              vip = {
+                ip = var.cluster_vip
+              }
             }
           ]
         }

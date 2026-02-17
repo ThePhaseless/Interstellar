@@ -93,23 +93,10 @@ data "bitwarden-secrets_secret" "copyparty_writers" {
   id    = local.secret_key_to_id["copyparty-writers"]
 }
 
-# Tailscale Traefik IP (synced by Kubernetes CronJob)
-# This is optional - if the secret doesn't exist, DNS records won't include Tailscale IP
-data "bitwarden-secrets_secret" "tailscale_traefik_ip" {
-  count = contains(keys(local.secret_key_to_id), "tailscale-traefik-ip") ? 1 : 0
-  id    = local.secret_key_to_id["tailscale-traefik-ip"]
-}
-
 # Cluster API VIP (optional read path with var fallback)
 data "bitwarden-secrets_secret" "cluster_vip" {
   count = contains(keys(local.secret_key_to_id), "cluster-vip") ? 1 : 0
   id    = local.secret_key_to_id["cluster-vip"]
-}
-
-# Cluster LocalLB endpoint IP (optional read path with fallback)
-data "bitwarden-secrets_secret" "cluster_local_lb_ip" {
-  count = contains(keys(local.secret_key_to_id), "cluster-local-lb-ip") ? 1 : 0
-  id    = local.secret_key_to_id["cluster-local-lb-ip"]
 }
 
 # -----------------------------------------------------------------------------
@@ -149,7 +136,4 @@ locals {
 
   # Resolve cluster VIP from Bitwarden when available, otherwise use Terraform variable.
   cluster_vip = length(data.bitwarden-secrets_secret.cluster_vip) > 0 ? data.bitwarden-secrets_secret.cluster_vip[0].value : var.cluster_vip
-
-  # Resolve LocalLB endpoint IP from Bitwarden first, then from input variable.
-  cluster_local_lb_ip = length(data.bitwarden-secrets_secret.cluster_local_lb_ip) > 0 ? data.bitwarden-secrets_secret.cluster_local_lb_ip[0].value : (var.cluster_local_lb_ip != "" ? var.cluster_local_lb_ip : null)
 }

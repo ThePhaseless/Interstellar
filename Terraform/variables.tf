@@ -32,12 +32,6 @@ variable "cluster_vip" {
   default     = "192.168.1.100"
 }
 
-variable "cluster_local_lb_ip" {
-  description = "Optional override for Kubernetes API endpoint migration when Bitwarden secret cluster-local-lb-ip is not yet available."
-  type        = string
-  default     = ""
-}
-
 variable "cluster_domain" {
   description = "Domain for cluster services"
   type        = string
