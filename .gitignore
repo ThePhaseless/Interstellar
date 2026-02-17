@@ -2,6 +2,8 @@ Servers/*
 
 Logs/
 
+.venv*/
+
 .env*
 !.env*.example
 

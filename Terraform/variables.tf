@@ -32,24 +32,6 @@ variable "cluster_vip" {
   default     = "192.168.1.100"
 }
 
-variable "use_vip_cluster_endpoint" {
-  description = "Use cluster VIP as Talos cluster_endpoint after VIP is confirmed reachable"
-  type        = bool
-  default     = false
-}
-
-variable "traefik_lb_ip" {
-  description = "MetalLB LoadBalancer IP for Traefik ingress service"
-  type        = string
-  default     = "192.168.1.101"
-}
-
-variable "adguard_dns_lb_ip" {
-  description = "MetalLB LoadBalancer IP for AdGuard DNS service"
-  type        = string
-  default     = "192.168.1.102"
-}
-
 variable "cluster_local_lb_ip" {
   description = "Optional override for Kubernetes API endpoint migration when Bitwarden secret cluster-local-lb-ip is not yet available."
   type        = string
@@ -147,12 +129,6 @@ variable "kubernetes_version" {
   default     = "1.35.0"
 }
 
-variable "enable_talos_cluster_health_check" {
-  description = "Whether to run talos_cluster_health during terraform apply. Disable during initial bootstrap to avoid long blocking reads."
-  type        = bool
-  default     = false
-}
-
 variable "tf_state_bucket" {
   description = "Name of the OCI Object Storage bucket for Terraform state"
   type        = string
@@ -166,10 +142,4 @@ variable "tailscale_magicdns_domain" {
   description = "Tailscale MagicDNS domain suffix (e.g. fold-hen.ts.net). Found via: tailscale status --json | jq -r '.MagicDNSSuffix'"
   type        = string
   default     = "fold-hen.ts.net"
-}
-
-variable "tailscale_traefik_ip" {
-  description = "Tailscale IP of talos-traefik service for fallback DNS. Set after initial deployment."
-  type        = string
-  default     = "" # Set this after running: tailscale status | grep talos-traefik
 }

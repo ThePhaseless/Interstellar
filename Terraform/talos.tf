@@ -10,7 +10,7 @@ provider "talos" {}
 
 locals {
   talos_cluster_endpoint_host = coalesce(local.cluster_local_lb_ip, local.talos_node_ips["talos-1"])
-  talos_node_is_gpu           = { for node_name, node in var.nodes : node_name => try(node.gpu, false) }
+  talos_node_is_gpu           = { for node_name, node in var.nodes : node_name => node.gpu }
 }
 
 # -----------------------------------------------------------------------------

@@ -186,7 +186,7 @@ main() {
     local repo_root="$(cd "${script_dir}/.." && pwd)"
     local env_file="${repo_root}/.env"
 
-    echo "Searching for .env file at: ${env_file}"
+    log_info "Searching for .env file at: ${env_file}"
 
     if [[ -f "$env_file" ]]; then
         set -a
