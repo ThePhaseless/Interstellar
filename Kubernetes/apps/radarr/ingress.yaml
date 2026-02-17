@@ -20,5 +20,4 @@ spec:
           namespace: traefik
         - name: oauth2-proxy
           namespace: traefik
-  tls:
-    certResolver: letsencrypt
+  tls: {}

@@ -48,6 +48,10 @@ data:
         http:
           tls:
             certResolver: letsencrypt
+            domains:
+              - main: "nerine.dev"
+                sans:
+                  - "*.nerine.dev"
           # Global middlewares applied to all routes
           middlewares:
             - security-headers@file
