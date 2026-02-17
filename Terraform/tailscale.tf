@@ -51,23 +51,47 @@ resource "bitwarden-secrets_secret" "oauth_cookie_secret" {
 }
 
 # -----------------------------------------------------------------------------
+# Tailscale Device Lookup
+# -----------------------------------------------------------------------------
+# Look up Tailscale devices created by the K8s Tailscale operator.
+# On first apply (before K8s bootstrap), no devices exist — filters return
+# empty lists, and dependent resources use count = 0. No chicken-egg errors.
+# -----------------------------------------------------------------------------
+data "tailscale_devices" "cluster" {}
+
+locals {
+  # Find Traefik device by hostname (exposed via tailscale.com/hostname annotation)
+  traefik_devices = [
+    for d in data.tailscale_devices.cluster.devices : d
+    if d.hostname == "talos-traefik"
+  ]
+  tailscale_traefik_ip = length(local.traefik_devices) > 0 ? local.traefik_devices[0].addresses[0] : ""
+
+  # Find AdGuard DNS device by hostname
+  adguard_devices = [
+    for d in data.tailscale_devices.cluster.devices : d
+    if d.hostname == "adguard-shared"
+  ]
+  tailscale_adguard_ip = length(local.adguard_devices) > 0 ? local.adguard_devices[0].addresses[0] : ""
+}
+
+# -----------------------------------------------------------------------------
 # Tailscale DNS Configuration
 # -----------------------------------------------------------------------------
-# MagicDNS is enabled for *.ts.net resolution.
-# AdGuard DNS (adguard-shared) should be added manually in Tailscale Admin Console
-# after the cluster is deployed:
-#   1. Go to DNS settings in Tailscale Admin
-#   2. Add adguard-shared's IP as a nameserver
-#   3. Enable "Override local DNS"
-#
-# Fallback DNS (1.1.1.1) is configured for when AdGuard is offline.
+# MagicDNS for *.ts.net resolution.
+# When AdGuard is deployed and reachable via Tailscale, it becomes the primary
+# DNS server for all tailnet devices. 1.1.1.1 remains as fallback.
 # -----------------------------------------------------------------------------
 resource "tailscale_dns_configuration" "cluster" {
   magic_dns          = true
   override_local_dns = true
 
-  nameservers {
-    address = "100.100.100.100" # MagicDNS
+  # AdGuard as primary DNS (only when device exists on the tailnet)
+  dynamic "nameservers" {
+    for_each = local.tailscale_adguard_ip != "" ? [local.tailscale_adguard_ip] : []
+    content {
+      address = nameservers.value
+    }
   }
 
   nameservers {

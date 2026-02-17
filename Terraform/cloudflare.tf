@@ -21,9 +21,7 @@ data "cloudflare_zone" "main" {
 
 locals {
   oracle_public_ip = oci_core_instance.proxy.public_ip
-  # Tailscale IP from Bitwarden (synced by Kubernetes CronJob)
-  # Falls back to empty string if secret doesn't exist yet
-  tailscale_traefik_ip = length(data.bitwarden-secrets_secret.tailscale_traefik_ip) > 0 ? data.bitwarden-secrets_secret.tailscale_traefik_ip[0].value : ""
+  # Tailscale Traefik IP from tailscale_devices data source (see tailscale.tf)
 }
 
 # -----------------------------------------------------------------------------
