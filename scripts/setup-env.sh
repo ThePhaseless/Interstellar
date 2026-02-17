@@ -176,9 +176,17 @@ main() {
     log_info "=== Local Environment Setup ==="
 
     local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local _src=""
+    if [ -n "${BASH_SOURCE[0]+x}" ] && [ -n "${BASH_SOURCE[0]}" ]; then
+        _src="${BASH_SOURCE[0]}"
+    elif [ -n "${funcfiletrace[1]+x}" ]; then
+        _src="${funcfiletrace[1]%:*}"
+    fi
+    script_dir="$(cd "$(dirname "$(readlink -f "$_src")")" && pwd)"
     local repo_root="$(cd "${script_dir}/.." && pwd)"
     local env_file="${repo_root}/.env"
+
+    echo "Searching for .env file at: ${env_file}"
 
     if [[ -f "$env_file" ]]; then
         set -a
