@@ -64,7 +64,7 @@ spec:
 Never hardcode secrets. Use ExternalSecrets with `ClusterSecretStore: bitwarden-store`:
 
 ```yaml
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 spec:
   secretStoreRef:

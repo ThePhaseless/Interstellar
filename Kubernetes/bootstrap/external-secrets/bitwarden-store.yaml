@@ -2,7 +2,7 @@
 # Bitwarden ClusterSecretStore
 # =============================================================================
 # This ClusterSecretStore connects to Bitwarden Secrets Manager via the SDK Server
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ClusterSecretStore
 metadata:
   name: bitwarden-store
@@ -11,10 +11,19 @@ spec:
     bitwardensecretsmanager:
       apiURL: https://api.bitwarden.com
       identityURL: https://identity.bitwarden.com
+      bitwardenServerSDKURL: https://bitwarden-sdk-server.external-secrets.svc.cluster.local:9998
+      # CA certificate for the SDK server TLS connection
+      caProvider:
+        type: Secret
+        name: bitwarden-tls-certs
+        namespace: external-secrets
+        key: ca.crt
+      organizationID: 99703038-ae55-494e-aa57-b21b01480339
+      projectID: f57582a5-679a-4deb-9e5f-b3b3017d2b13
       # Reference to the Bitwarden access token secret
       auth:
         secretRef:
-          accessTokenSecretRef:
+          credentials:
             name: bitwarden-access-token
             namespace: external-secrets
             key: token

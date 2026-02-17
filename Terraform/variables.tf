@@ -102,6 +102,7 @@ variable "talos_base_extensions" {
   description = "TalosOS extensions to install on all nodes"
   type        = list(string)
   default = [
+    "siderolabs/iscsi-tools",
     "siderolabs/qemu-guest-agent",
     "siderolabs/util-linux-tools",
     "siderolabs/tailscale"
@@ -142,4 +143,13 @@ variable "tailscale_magicdns_domain" {
   description = "Tailscale MagicDNS domain suffix (e.g. fold-hen.ts.net). Found via: tailscale status --json | jq -r '.MagicDNSSuffix'"
   type        = string
   default     = "fold-hen.ts.net"
+}
+
+# -----------------------------------------------------------------------------
+# Oracle Proxy Configuration
+# -----------------------------------------------------------------------------
+variable "proxy_public_access" {
+  description = "Enable public HTTP/HTTPS access to the Oracle proxy VPS. When false, only SSH and Tailscale ports are open."
+  type        = bool
+  default     = true
 }

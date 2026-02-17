@@ -110,29 +110,35 @@ resource "oci_core_security_list" "main" {
     }
   }
 
-  # Ingress: HTTP
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    stateless   = false
-    description = "HTTP traffic"
+  # Ingress: HTTP (conditional on proxy_public_access)
+  dynamic "ingress_security_rules" {
+    for_each = var.proxy_public_access ? [1] : []
+    content {
+      protocol    = "6"
+      source      = "0.0.0.0/0"
+      stateless   = false
+      description = "HTTP traffic"
 
-    tcp_options {
-      min = 80
-      max = 80
+      tcp_options {
+        min = 80
+        max = 80
+      }
     }
   }
 
-  # Ingress: HTTPS
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    stateless   = false
-    description = "HTTPS traffic"
+  # Ingress: HTTPS (conditional on proxy_public_access)
+  dynamic "ingress_security_rules" {
+    for_each = var.proxy_public_access ? [1] : []
+    content {
+      protocol    = "6"
+      source      = "0.0.0.0/0"
+      stateless   = false
+      description = "HTTPS traffic"
 
-    tcp_options {
-      min = 443
-      max = 443
+      tcp_options {
+        min = 443
+        max = 443
+      }
     }
   }
 

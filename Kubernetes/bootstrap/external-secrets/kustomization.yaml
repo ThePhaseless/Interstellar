@@ -8,14 +8,16 @@ namespace: external-secrets
 
 resources:
   - namespace.yaml
-  - sdk-server.yaml
   - bitwarden-store.yaml
 
-# Install ESO via Helm chart
+# Install ESO via Helm chart (v2.0.0)
+# Bitwarden SDK server is bundled as a subchart
+# TLS certs must be created before deployment:
+#   ./scripts/generate-bitwarden-tls.sh
 helmCharts:
   - name: external-secrets
     repo: https://charts.external-secrets.io
-    version: 0.12.1
+    version: 2.0.0
     releaseName: external-secrets
     namespace: external-secrets
     valuesInline:
@@ -30,6 +32,9 @@ helmCharts:
         limits:
           cpu: 100m
           memory: 256Mi
+      # Enable bundled Bitwarden SDK server
+      bitwarden-sdk-server:
+        enabled: true
 
 labels:
   - pairs:

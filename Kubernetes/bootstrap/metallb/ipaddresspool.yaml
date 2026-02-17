@@ -9,8 +9,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    # 192.168.1.101-192.168.1.120 reserved for LoadBalancer services
-    # 192.168.1.100 is reserved for Talos control-plane API virtual IP
-    - 192.168.1.101-192.168.1.120
+    # 192.168.1.11-192.168.1.20 reserved for LoadBalancer services
+    - 192.168.1.11-192.168.1.20
   autoAssign: true
   avoidBuggyIPs: true
