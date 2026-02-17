@@ -17,5 +17,4 @@ spec:
           kind: TraefikService
       middlewares:
         - name: tailscale-only
-  tls:
-    certResolver: letsencrypt
+  tls: {}

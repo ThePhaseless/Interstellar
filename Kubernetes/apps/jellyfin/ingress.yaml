@@ -18,5 +18,4 @@ spec:
       middlewares:
         - name: streaming-chain
           namespace: traefik
-  tls:
-    certResolver: letsencrypt
+  tls: {}

@@ -157,5 +157,4 @@ spec:
       middlewares:
         - name: tailscale-only
           namespace: traefik
-  tls:
-    certResolver: letsencrypt
+  tls: {}
