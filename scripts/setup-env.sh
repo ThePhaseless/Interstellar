@@ -170,79 +170,21 @@ setup_oci() {
 }
 
 # -----------------------------------------------------------------------------
-# Talos Setup
-# -----------------------------------------------------------------------------
-setup_talosconfig() {
-    log_info "Configuring Talos client..."
-
-    local talosconfig_content=""
-    local talos_dir="$HOME/.talos"
-    local talos_config_path="$talos_dir/config"
-
-    if [[ -n "${SECRETS_JSON:-}" ]]; then
-        talosconfig_content=$(echo "$SECRETS_JSON" |
-            jq -r '.[] | select(.key == "talosconfig") | .value' 2>/dev/null)
-    fi
-
-    if [[ -z "$talosconfig_content" || "$talosconfig_content" == "null" ]]; then
-        talosconfig_content=$(
-            bws secret list --output json --color no 2>/dev/null |
-                sanitize_json |
-                jq -r '.[] | select(.key == "talosconfig") | .value' 2>/dev/null
-        )
-    fi
-
-    if [[ -z "$talosconfig_content" || "$talosconfig_content" == "null" ]]; then
-        log_warn "Talosconfig secret not found. Skipping ~/.talos/config setup."
-        return 1
-    fi
-
-    mkdir -p "$talos_dir"
-    chmod 700 "$talos_dir"
-    printf "%s\n" "$talosconfig_content" >"$talos_config_path"
-    chmod 600 "$talos_config_path"
-
-    log_success "Talos client config written to ~/.talos/config"
-}
-
-# -----------------------------------------------------------------------------
-# kubectl Setup via Tailscale
-# -----------------------------------------------------------------------------
-setup_kubeconfig() {
-    log_info "Configuring kubectl context via Tailscale..."
-
-    local kubeconfig_target="${TS_KUBECONFIG_TARGET:-talos-1}"
-
-    if ! command -v tailscale &>/dev/null; then
-        log_warn "tailscale CLI not found. Skipping kubeconfig setup."
-        return 1
-    fi
-
-    if ! tailscale status &>/dev/null; then
-        log_warn "Tailscale is not connected. Skipping kubeconfig setup."
-        return 1
-    fi
-
-    if tailscale configure kubeconfig "$kubeconfig_target" >/dev/null 2>&1; then
-        log_success "kubectl context configured from Tailscale ($kubeconfig_target)"
-        return 0
-    fi
-
-    log_warn "Failed to configure kubectl context via Tailscale for '$kubeconfig_target'."
-    return 1
-}
-
-# -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 main() {
     log_info "=== Local Environment Setup ==="
 
-    if [[ -f ".env" ]]; then
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local repo_root="$(cd "${script_dir}/.." && pwd)"
+    local env_file="${repo_root}/.env"
+
+    if [[ -f "$env_file" ]]; then
         set -a
-        source .env
+        source "$env_file"
         set +a
-        log_info "Loaded .env file"
+        log_info "Loaded .env file from ${repo_root}"
     fi
 
     check_prerequisites || return 1
@@ -259,8 +201,6 @@ main() {
 
     fetch_bws_org_id || return 1
     setup_oci
-    setup_talosconfig
-    setup_kubeconfig
 
     fetch_batch \
         "oci-namespace" "TF_VAR_oci_namespace" \
