@@ -4,13 +4,10 @@
 # This file creates TalosOS VMs on Proxmox with GPU passthrough support
 
 locals {
-  talos_node_names = sort(keys(var.nodes))
+  talos_node_names    = sort(keys(var.nodes))
+  talos_has_gpu_nodes = anytrue([for node in var.nodes : node.gpu])
   talos_node_ips = {
-    for node_name in local.talos_node_names : node_name => try(
-      [for ip in flatten(proxmox_virtual_environment_vm.talos[node_name].ipv4_addresses) : ip
-      if ip != "" && !startswith(ip, "127.") && !startswith(ip, "169.254.")][0],
-      null
-    )
+    for node_name, node in var.nodes : node_name => "192.168.1.${node.vmid}"
   }
 }
 
@@ -25,14 +22,26 @@ provider "proxmox" {
 # -----------------------------------------------------------------------------
 # TalosOS ISO Image
 # -----------------------------------------------------------------------------
-# Download TalosOS ISO with extensions pre-installed
-resource "proxmox_virtual_environment_download_file" "talos_iso" {
+# Download TalosOS base ISO with extensions pre-installed
+resource "proxmox_virtual_environment_download_file" "talos_iso_base" {
   content_type = "iso"
   datastore_id = "local"
   node_name    = var.proxmox_node
 
-  url       = data.talos_image_factory_urls.image.urls.iso
-  file_name = "talos-${var.talos_version}-extensions-${data.talos_image_factory_urls.image.schematic_id}.iso"
+  url       = data.talos_image_factory_urls.base_image.urls.iso
+  file_name = "talos-${var.talos_version}-extensions-${data.talos_image_factory_urls.base_image.schematic_id}.iso"
+}
+
+# Download TalosOS GPU ISO (only when at least one GPU node exists)
+resource "proxmox_virtual_environment_download_file" "talos_iso_gpu" {
+  count = local.talos_has_gpu_nodes ? 1 : 0
+
+  content_type = "iso"
+  datastore_id = "local"
+  node_name    = var.proxmox_node
+
+  url       = data.talos_image_factory_urls.gpu_image.urls.iso
+  file_name = "talos-${var.talos_version}-gpu-extensions-${data.talos_image_factory_urls.gpu_image.schematic_id}.iso"
 }
 
 # -----------------------------------------------------------------------------
@@ -53,6 +62,10 @@ resource "proxmox_virtual_environment_vm" "talos" {
   boot_order    = ["scsi0", "ide0"]
   started       = true
   on_boot       = false
+
+  operating_system {
+    type = "l26"
+  }
 
   # Tags for organization
   tags = each.value.gpu ? ["talos", "kubernetes", "gpu"] : ["talos", "kubernetes"]
@@ -89,7 +102,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   # Boot from ISO for initial install
   cdrom {
-    file_id   = proxmox_virtual_environment_download_file.talos_iso.id
+    file_id   = each.value.gpu ? proxmox_virtual_environment_download_file.talos_iso_gpu[0].id : proxmox_virtual_environment_download_file.talos_iso_base.id
     interface = "ide0"
   }
 
@@ -99,13 +112,14 @@ resource "proxmox_virtual_environment_vm" "talos" {
     model  = "virtio"
   }
 
-  # Cloud-init network via DHCP
+  # Cloud-init network with static IP
   initialization {
     datastore_id = var.vm_os_datastore_id
 
     ip_config {
       ipv4 {
-        address = "dhcp"
+        address = "${local.talos_node_ips[each.key]}/24"
+        gateway = "192.168.1.1"
       }
     }
   }
@@ -128,12 +142,10 @@ resource "proxmox_virtual_environment_vm" "talos" {
     type    = "virtio"
   }
 
-  # Serial console for Talos
-  serial_device {}
-
   lifecycle {
     ignore_changes = [
       initialization,
+      tags,
     ]
 
     precondition {

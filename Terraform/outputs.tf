@@ -26,6 +26,7 @@ output "cluster_nodes" {
 # -----------------------------------------------------------------------------
 output "access_instructions" {
   description = "Instructions for accessing the cluster"
+  sensitive   = true
   value       = <<-EOT
     ============================================================
     TalosOS Cluster Access Instructions
@@ -36,19 +37,23 @@ output "access_instructions" {
        bws secret list --output json --color no | jq -r '.[] | select(.key=="talosconfig") | .value' > ~/.talos/config
        chmod 600 ~/.talos/config
 
-     2. Configure kubectl directly from Talos (recommended for bootstrap):
-       talosctl -n ${local.talos_node_ips["talos-1"]} kubeconfig ~/.kube/config
+     2. Configure kubectl directly from Talos (via Tailscale):
+       talosctl -n talos-1.${var.tailscale_magicdns_domain} kubeconfig ~/.kube/config
 
      3. (Optional) Configure kubectl via Tailscale auth proxy:
        tailscale configure kubeconfig talos-1
 
      4. Verify cluster health:
-       talosctl health --nodes ${join(",", [for node_name in local.talos_node_names : local.talos_node_ips[node_name]])}
+       talosctl health --nodes ${join(",", [for node_name in local.talos_node_names : "${node_name}.${var.tailscale_magicdns_domain}"])}
        kubectl get nodes
 
      5. Access via Tailscale MagicDNS:
-       - API Server: talos-1.<tailnet>.ts.net:6443
-       - Traefik: talos-traefik.<tailnet>.ts.net
+       - API Server: talos-1.${var.tailscale_magicdns_domain}:6443
+       - Traefik: talos-traefik.${var.tailscale_magicdns_domain}
+
+     6. Verify Tailscale extension on nodes:
+       talosctl -n talos-1.${var.tailscale_magicdns_domain} service ext-tailscale
+       talosctl -n talos-1.${var.tailscale_magicdns_domain} logs ext-tailscale
 
     ============================================================
   EOT
