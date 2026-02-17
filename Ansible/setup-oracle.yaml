@@ -10,26 +10,6 @@
     - name: Update packages
       ansible.builtin.import_tasks: tasks/update-apt.yaml
 
-    - name: Configure iptables rules
-      ansible.builtin.iptables:
-        chain: INPUT
-        protocol: tcp
-        destination_port: "{{ item }}"
-        jump: ACCEPT
-      loop:
-        - "22"
-        - "80"
-        - "443"
-
-    - name: Install iptables-persistent
-      ansible.builtin.apt:
-        name: iptables-persistent
-        state: present
-
-    - name: Save iptables rules
-      ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
-      changed_when: false
-
 - name: Setup Tailscale on all Oracle instances
   hosts: oracle
   become: true
