@@ -2,7 +2,7 @@
 
 ## Development
 
-Before running first script in a new shell in this repository (not before every command execution), always activate the virtual environment and source the environment setup script so all required variables are loaded.
+Before running first script in a new shell in this repository activate the virtual environment and source the environment setup script so all required variables are loaded. Run this only once per Not before every command execution!
 
 ```bash
 source .venv/bin/activate
