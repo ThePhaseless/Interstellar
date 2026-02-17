@@ -116,15 +116,22 @@ variable "proxmox_cluster_bridge_name" {
 # -----------------------------------------------------------------------------
 # TalosOS Extensions
 # -----------------------------------------------------------------------------
-variable "talos_extensions" {
-  description = "TalosOS extensions to install"
+variable "talos_base_extensions" {
+  description = "TalosOS extensions to install on all nodes"
   type        = list(string)
   default = [
     "siderolabs/qemu-guest-agent",
     "siderolabs/util-linux-tools",
-    "siderolabs/tailscale",
-    "siderolabs/intel-ucode",
-    "siderolabs/intel-driver-modules"
+    "siderolabs/tailscale"
+  ]
+}
+
+variable "talos_gpu_extensions" {
+  description = "TalosOS extensions to install only on GPU nodes"
+  type        = list(string)
+  default = [
+    "siderolabs/mei",
+    "siderolabs/xe"
   ]
 }
 
@@ -153,8 +160,14 @@ variable "tf_state_bucket" {
 }
 
 # -----------------------------------------------------------------------------
-# Tailscale Fallback DNS
+# Tailscale Configuration
 # -----------------------------------------------------------------------------
+variable "tailscale_magicdns_domain" {
+  description = "Tailscale MagicDNS domain suffix (e.g. fold-hen.ts.net). Found via: tailscale status --json | jq -r '.MagicDNSSuffix'"
+  type        = string
+  default     = "fold-hen.ts.net"
+}
+
 variable "tailscale_traefik_ip" {
   description = "Tailscale IP of talos-traefik service for fallback DNS. Set after initial deployment."
   type        = string

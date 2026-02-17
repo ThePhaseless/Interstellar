@@ -71,7 +71,7 @@ resource "tailscale_dns_configuration" "cluster" {
   }
 
   nameservers {
-    address = "1.1.1.1" # Cloudflare fallback
+    address = "1.1.1.1"
   }
 }
 
