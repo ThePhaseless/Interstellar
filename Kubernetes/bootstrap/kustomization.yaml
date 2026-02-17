@@ -15,4 +15,3 @@ resources:
   - reloader/
   - observability/
   - clamav/
-  - argocd/

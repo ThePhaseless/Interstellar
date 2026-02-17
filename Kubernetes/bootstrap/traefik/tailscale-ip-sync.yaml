@@ -6,7 +6,7 @@
 # =============================================================================
 ---
 # ExternalSecret for Bitwarden access token (used by sidecar)
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: bitwarden-access-token
