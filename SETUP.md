@@ -153,12 +153,71 @@ terraform init
 
 Type `yes` when Terraform asks to copy local state to the remote backend.
 
-#### Step E: Bootstrap Kubernetes resources (ArgoCD)
+#### Step E: Generate Bitwarden SDK TLS certificates
 
-Kubernetes manifests are managed via GitOps. Bootstrap ArgoCD once, then it continuously syncs `Kubernetes/` from this repo.
+The External Secrets Operator requires TLS certificates for the Bitwarden SDK
+server. Generate them once (valid for 10 years):
 
 ```bash
-cd ../Kubernetes
+cd ..
+./scripts/generate-bitwarden-tls.sh
+```
+
+This creates a `bitwarden-tls-certs` Secret in the `external-secrets` namespace.
+
+#### Step F: Deploy Kubernetes bootstrap (without ArgoCD)
+
+Deploy bootstrap infrastructure in order. CRDs must register between applies,
+so each component is applied separately:
+
+```bash
+cd Kubernetes
+
+# Phase 1: Foundation
+kustomize build bootstrap/metallb --enable-helm | kubectl apply --server-side --force-conflicts -f -
+# Wait for MetalLB controller to be ready
+kubectl -n metallb-system wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=120s
+# Re-apply to create IPAddressPool/L2Advertisement (requires webhook)
+kustomize build bootstrap/metallb --enable-helm | kubectl apply --server-side --force-conflicts -f -
+
+kustomize build bootstrap/nfs-csi --enable-helm | kubectl apply --server-side -f -
+kustomize build bootstrap/reloader --enable-helm | kubectl apply --server-side -f -
+
+# Phase 2: Storage & Secrets
+kustomize build bootstrap/longhorn --enable-helm | kubectl apply --server-side -f -
+kustomize build bootstrap/external-secrets --enable-helm | kubectl apply --server-side --force-conflicts -f -
+# Wait for ESO pods, then re-apply to create ClusterSecretStore
+kubectl -n external-secrets wait --for=condition=ready pod -l app.kubernetes.io/name=external-secrets --timeout=180s
+# Set actual Bitwarden access token
+kubectl -n external-secrets create secret generic bitwarden-access-token \
+  --from-literal=token="$BWS_ACCESS_TOKEN" --dry-run=client -o yaml | kubectl apply --server-side -f -
+kustomize build bootstrap/external-secrets --enable-helm | kubectl apply --server-side --force-conflicts -f -
+
+# Phase 3: Networking & Security
+kustomize build bootstrap/kube-api-lb --enable-helm | kubectl apply --server-side -f -
+kustomize build bootstrap/traefik --enable-helm | kubectl apply --server-side -f -
+kustomize build bootstrap/crowdsec --enable-helm | kubectl apply --server-side -f -
+kustomize build bootstrap/tailscale-operator --enable-helm | kubectl apply --server-side -f -
+
+# Phase 4: Workloads & Observability
+# Re-apply Longhorn to create IngressRoute (needs Traefik CRDs)
+kustomize build bootstrap/longhorn --enable-helm | kubectl apply --server-side -f -
+kustomize build bootstrap/intel-gpu-operator --enable-helm | kubectl apply --server-side -f -
+kustomize build bootstrap/observability --enable-helm | kubectl apply --server-side -f -
+kustomize build bootstrap/clamav --enable-helm | kubectl apply --server-side -f -
+```
+
+#### Step G: Deploy applications
+
+```bash
+kustomize build apps --enable-helm | kubectl apply --server-side -f -
+```
+
+#### Step H: Bootstrap ArgoCD (GitOps)
+
+Once everything is verified, enable ArgoCD for continuous GitOps sync:
+
+```bash
 kubectl apply -k bootstrap/argocd
 ```
 
@@ -174,14 +233,26 @@ kubectl get nodes -o wide
 talosctl health --nodes 192.168.1.111,192.168.1.112,192.168.1.113
 ```
 
-Optional: print helper output from Terraform:
+Run these checks after Step F:
 
 ```bash
-cd /home/orcho/Interstellar/Terraform
-terraform output access_instructions
+# Verify all bootstrap pods are running
+kubectl get pods --all-namespaces
+
+# ClusterSecretStore health
+kubectl get clustersecretstore bitwarden-store
+
+# MetalLB IP pool
+kubectl -n metallb-system get ipaddresspool
+
+# Longhorn storage
+kubectl -n longhorn-system get pods
+
+# Traefik ingress controller
+kubectl -n traefik get pods
 ```
 
-Confirm ArgoCD is managing the cluster resources:
+Confirm ArgoCD is managing the cluster resources (after Step H):
 
 ```bash
 kubectl -n argocd get applications
