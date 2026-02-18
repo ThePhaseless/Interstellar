@@ -7,3 +7,4 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - gpu-plugin.yaml
+  - gpu-test.yaml
