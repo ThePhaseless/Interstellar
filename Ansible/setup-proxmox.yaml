@@ -1,0 +1,85 @@
+# Setup Proxmox host services
+# - NFS server exporting ZFS storage pool to TalosOS cluster
+
+- name: Configure Proxmox NFS Server
+  hosts: proxmox
+  become: true
+  vars_files:
+    - vars/proxmox.yaml
+  tasks:
+    - name: Install NFS kernel server
+      ansible.builtin.apt:
+        name: nfs-kernel-server
+        state: present
+        update_cache: true
+
+    - name: Ensure export directory exists
+      ansible.builtin.file:
+        path: "{{ nfs_export_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: Configure NFS export
+      ansible.builtin.lineinfile:
+        path: /etc/exports
+        regexp: "^{{ nfs_export_path | regex_escape }}\\s"
+        line: "{{ nfs_export_path }} {{ nfs_allowed_network }}(rw,sync,no_subtree_check,no_root_squash)"
+        state: present
+      notify: Re-export NFS shares
+
+    - name: Enable and start NFS server
+      ansible.builtin.systemd:
+        name: nfs-kernel-server
+        enabled: true
+        state: started
+
+    # -- Health checks --
+    - name: Flush handlers before health checks
+      ansible.builtin.meta: flush_handlers
+
+    - name: Verify NFS server is running
+      ansible.builtin.systemd:
+        name: nfs-kernel-server
+      register: nfs_service
+      failed_when: nfs_service.status.ActiveState != "active"
+
+    - name: Verify NFS export is active
+      ansible.builtin.command:
+        cmd: exportfs -v
+      register: exportfs_output
+      changed_when: false
+      failed_when: nfs_export_path not in exportfs_output.stdout
+
+    - name: Test NFS share is mountable
+      ansible.posix.mount:
+        path: /mnt/nfs-test
+        src: "{{ ansible_facts['default_ipv4']['address'] }}:{{ nfs_export_path }}"
+        fstype: nfs
+        opts: nfsvers=4.2,noatime
+        state: mounted
+
+    - name: Verify test mount has content access
+      ansible.builtin.command:
+        cmd: ls /mnt/nfs-test
+      register: mount_ls
+      changed_when: false
+
+    - name: Unmount test share
+      ansible.posix.mount:
+        path: /mnt/nfs-test
+        state: absent
+
+    - name: Report NFS health
+      ansible.builtin.debug:
+        msg: >-
+          NFS health check passed:
+          service={{ nfs_service.status.ActiveState }},
+          export={{ nfs_export_path }},
+          mount=ok,
+          files={{ mount_ls.stdout_lines | length }} entries
+
+  handlers:
+    - name: Re-export NFS shares
+      ansible.builtin.command:
+        cmd: exportfs -ra
+      changed_when: true
