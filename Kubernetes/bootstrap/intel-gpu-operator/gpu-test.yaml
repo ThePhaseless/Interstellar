@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gpu-test
+  namespace: intel-device-plugins
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/hostname: talos-1
+      containers:
+        - name: gpu-test
+          image: intel/xpu-smi:1.2.44
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "=== Intel GPU Test ==="
+              echo "--- Device List ---"
+              xpu-smi discovery
+              echo ""
+              echo "--- GPU Health ---"
+              xpu-smi health -l
+              echo ""
+              echo "=== GPU test completed ==="
+          resources:
+            requests:
+              gpu.intel.com/i915: "1"
+            limits:
+              gpu.intel.com/i915: "1"
