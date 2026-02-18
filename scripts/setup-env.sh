@@ -198,6 +198,7 @@ main() {
     check_prerequisites || return 1
 
     export BW_ACCESS_TOKEN="$BWS_ACCESS_TOKEN"
+    export TF_VAR_bws_access_token="$BWS_ACCESS_TOKEN"
 
     log_info "Fetching Bitwarden secrets..."
     SECRETS_JSON=$(bws secret list --output json --color no 2>/dev/null | sanitize_json)

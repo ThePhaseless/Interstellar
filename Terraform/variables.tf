@@ -145,5 +145,14 @@ variable "tailscale_magicdns_domain" {
 variable "proxy_public_access" {
   description = "Enable public HTTP/HTTPS access to the Oracle proxy VPS. When false, only SSH and Tailscale ports are open."
   type        = bool
-  default     = true
+  default     = false
+}
+
+# -----------------------------------------------------------------------------
+# Secret Configuration
+# -----------------------------------------------------------------------------
+variable "bws_access_token" {
+  description = "Bitwarden Secrets Manager access token for ESO bootstrap. Sourced from BWS_ACCESS_TOKEN env var."
+  type        = string
+  sensitive   = true
 }
