@@ -23,7 +23,7 @@ spec:
       containers:
         # Immich Server
         - name: immich-server
-          image: ghcr.io/immich-app/immich-server:v1.124.2
+          image: ghcr.io/immich-app/immich-server:v2.5.6
           env:
             - name: TZ
               value: "UTC"
