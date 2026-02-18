@@ -45,7 +45,7 @@ jobs:
               run: uv sync --locked --link-mode=copy
 
             - name: Cache Terraform Providers
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                   path: Terraform/.terraform
                   key: ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl') }}
@@ -163,7 +163,7 @@ jobs:
               run: uv sync --locked --link-mode=copy
 
             - name: Cache Terraform Providers
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                   path: Terraform/.terraform
                   key: ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl') }}
