@@ -8,12 +8,12 @@ name: Terraform
 
 on:
   push:
-    branches: [main]
+    branches: [main, migration]
     paths:
       - "Terraform/**"
       - ".github/workflows/terraform.yaml"
   pull_request:
-    branches: [main]
+    branches: [main, migration]
     paths:
       - "Terraform/**"
       - ".github/workflows/terraform.yaml"
@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Fetch all secrets from Bitwarden (single project)
       - name: Get Secrets from Bitwarden
@@ -116,7 +116,7 @@ jobs:
 
       # Post plan output to PR
       - name: Update Pull Request
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         if: github.event_name == 'pull_request'
         env:
           PLAN: ${{ steps.plan.outputs.stdout }}
@@ -151,7 +151,7 @@ jobs:
 
       # Upload plan for apply job
       - name: Upload Terraform Plan
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tfplan
           path: ${{ env.TF_WORKING_DIR }}/tfplan
@@ -168,7 +168,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Fetch all secrets from Bitwarden (single project)
       - name: Get Secrets from Bitwarden
@@ -219,7 +219,7 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Download Terraform Plan
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: tfplan
           path: ${{ env.TF_WORKING_DIR }}

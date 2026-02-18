@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: copyparty
-          image: copyparty/copyparty:1.16.12
+          image: ghcr.io/9001/copyparty:1.16.12
           args:
             - -c
             - /config/copyparty.conf

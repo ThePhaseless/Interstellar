@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: grafana
-          image: grafana/grafana:11.4.0
+          image: grafana/grafana:12.3.3
           env:
             - name: GF_SERVER_ROOT_URL
               value: "https://grafana.nerine.dev"
