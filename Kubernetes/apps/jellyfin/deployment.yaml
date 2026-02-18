@@ -25,7 +25,7 @@ spec:
     spec:
       # Schedule on GPU node
       nodeSelector:
-        kubernetes.io/hostname: talos-1
+        intel.feature.node.kubernetes.io/gpu: "true"
 
       containers:
         - name: jellyfin
@@ -52,11 +52,11 @@ spec:
               cpu: 500m
               memory: 1Gi
               # Intel GPU resource
-              gpu.intel.com/i915: "1"
+              gpu.intel.com/xe: "1"
             limits:
               cpu: 4000m
               memory: 8Gi
-              gpu.intel.com/i915: "1"
+              gpu.intel.com/xe: "1"
           livenessProbe:
             httpGet:
               path: /health
@@ -70,7 +70,7 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
           # No special security context needed - Intel GPU Device Plugin
-          # handles GPU device access via gpu.intel.com/i915 resource
+          # handles GPU device access via gpu.intel.com/xe resource
 
       volumes:
         - name: config
