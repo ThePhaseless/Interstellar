@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: mimir
-          image: grafana/mimir:2.15.0
+          image: grafana/mimir:3.0.3
           args:
             - -config.file=/etc/mimir/mimir.yaml
           ports:
