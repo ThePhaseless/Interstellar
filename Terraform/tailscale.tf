@@ -41,10 +41,10 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
 locals {
   oauth_clients = {
     k8s_operator = {
-      description = "K8s Tailscale operator"
-      scopes      = ["auth_keys"]
-      tags        = ["tag:k8s-operator"]
-      bw_id_key   = "tailscale-k8s-oauth-client-id"
+      description   = "K8s Tailscale operator"
+      scopes        = ["auth_keys"]
+      tags          = ["tag:k8s-operator"]
+      bw_id_key     = "tailscale-k8s-oauth-client-id"
       bw_secret_key = "tailscale-k8s-oauth-secret"
     }
   }
