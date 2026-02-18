@@ -9,24 +9,27 @@ spec:
     spec:
       restartPolicy: Never
       nodeSelector:
-        kubernetes.io/hostname: talos-1
+        intel.feature.node.kubernetes.io/gpu: "true"
       containers:
         - name: gpu-test
-          image: intel/xpu-smi:1.2.44
+          image: busybox:1.37
           command:
             - /bin/sh
             - -c
             - |
               echo "=== Intel GPU Test ==="
-              echo "--- Device List ---"
-              xpu-smi discovery
               echo ""
-              echo "--- GPU Health ---"
-              xpu-smi health -l
+              echo "--- /dev/dri devices ---"
+              ls -la /dev/dri/
+              echo ""
+              echo "--- GPU render nodes ---"
+              for f in /dev/dri/render*; do
+                echo "Found render node: $f"
+              done
               echo ""
               echo "=== GPU test completed ==="
           resources:
             requests:
-              gpu.intel.com/i915: "1"
+              gpu.intel.com/xe: "1"
             limits:
-              gpu.intel.com/i915: "1"
+              gpu.intel.com/xe: "1"

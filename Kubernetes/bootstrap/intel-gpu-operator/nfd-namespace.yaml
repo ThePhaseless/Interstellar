@@ -1,10 +1,10 @@
 # =============================================================================
-# Intel GPU Operator Namespace
+# Node Feature Discovery Namespace
 # =============================================================================
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: intel-device-plugins
+  name: node-feature-discovery
   labels:
-    name: intel-device-plugins
+    name: node-feature-discovery
     pod-security.kubernetes.io/enforce: privileged
