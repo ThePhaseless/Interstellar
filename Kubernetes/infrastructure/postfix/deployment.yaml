@@ -34,7 +34,7 @@ spec:
                   name: postfix-credentials
             - name: TZ
               value: Europe/Warsaw
-          image: boky/postfix:4.4.0
+          image: boky/postfix:5.1.0
           name: postfix
           volumeMounts:
             - mountPath: /data
