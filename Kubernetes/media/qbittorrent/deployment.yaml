@@ -34,7 +34,7 @@ spec:
               value: Europe/Warsaw
             - name: UMASK
               value: "002"
-          image: linuxserver/qbittorrent:5.1.4
+          image: linuxserver/qbittorrent:20.04.1
           name: qbittorrent
           ports:
             - containerPort: 8080
