@@ -21,20 +21,10 @@ helmCharts:
       oauth:
         clientId: "" # Set via ExternalSecret
         clientSecret: "" # Set via ExternalSecret
-      # Use external secret for OAuth credentials
-      operatorConfig:
+      operator:
         hostname: "talos-operator"
-        # Enable API server proxy for kubectl access
-        apiServerProxyConfig:
-          enabled: true
-      # Resource limits
-      resources:
-        requests:
-          cpu: 10m
-          memory: 64Mi
-        limits:
-          cpu: 100m
-          memory: 256Mi
+      apiServerProxyConfig:
+        mode: "true"
 
 labels:
   - pairs:

@@ -10,7 +10,7 @@ provider "tailscale" {
   oauth_client_id     = data.bitwarden-secrets_secret.tailscale_oauth_client_id.value
   oauth_client_secret = data.bitwarden-secrets_secret.tailscale_oauth_secret.value
   tailnet             = data.bitwarden-secrets_secret.tailscale_tailnet.value
-  scopes              = ["devices:core", "auth_keys", "dns"]
+  scopes              = ["devices:core", "auth_keys", "dns", "oauth_keys"]
 }
 
 # -----------------------------------------------------------------------------
@@ -30,6 +30,47 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
   value      = tailscale_tailnet_key.cluster.key
   project_id = local.bitwarden_project_id
   note       = "Tailscale auth key for TalosOS cluster nodes. Managed by Terraform."
+}
+
+# -----------------------------------------------------------------------------
+# Managed OAuth Clients
+# -----------------------------------------------------------------------------
+# All OAuth clients are created by the provider (tag:ci) which owns all
+# infrastructure tags via ACL tagOwners, so any tag can be assigned here.
+
+locals {
+  oauth_clients = {
+    k8s_operator = {
+      description = "K8s Tailscale operator"
+      scopes      = ["auth_keys"]
+      tags        = ["tag:k8s-operator"]
+      bw_id_key   = "tailscale-k8s-oauth-client-id"
+      bw_secret_key = "tailscale-k8s-oauth-secret"
+    }
+  }
+}
+
+resource "tailscale_oauth_client" "managed" {
+  for_each    = local.oauth_clients
+  description = each.value.description
+  scopes      = each.value.scopes
+  tags        = each.value.tags
+}
+
+resource "bitwarden-secrets_secret" "oauth_client_id" {
+  for_each   = local.oauth_clients
+  key        = each.value.bw_id_key
+  value      = tailscale_oauth_client.managed[each.key].id
+  project_id = local.bitwarden_project_id
+  note       = "${each.value.description} OAuth client ID. Managed by Terraform."
+}
+
+resource "bitwarden-secrets_secret" "oauth_client_secret" {
+  for_each   = local.oauth_clients
+  key        = each.value.bw_secret_key
+  value      = tailscale_oauth_client.managed[each.key].key
+  project_id = local.bitwarden_project_id
+  note       = "${each.value.description} OAuth client secret. Managed by Terraform."
 }
 
 # -----------------------------------------------------------------------------
