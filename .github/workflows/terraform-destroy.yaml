@@ -116,7 +116,7 @@ jobs:
 
             - name: Upload Terraform Plan
               if: steps.plan.outputs.destroy_needed == 'true'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: tfdestroyplan
                   path: Terraform/tfdestroyplan.gpg
@@ -190,7 +190,7 @@ jobs:
               run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
 
             - name: Download Terraform Plan
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v7
               with:
                   name: tfdestroyplan
                   path: Terraform
