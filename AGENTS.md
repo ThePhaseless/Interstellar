@@ -82,12 +82,12 @@ GPU-bound services (Jellyfin, Immich ML, Copyparty) must use:
 
 ```yaml
 nodeSelector:
-  kubernetes.io/hostname: talos-1
+  intel.feature.node.kubernetes.io/gpu: "true"
 resources:
   requests:
-    gpu.intel.com/i915: "1"
+    gpu.intel.com/xe: "1"
   limits:
-    gpu.intel.com/i915: "1"
+    gpu.intel.com/xe: "1"
 ```
 
 ### \*arr Apps Pattern
