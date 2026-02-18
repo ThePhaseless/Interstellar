@@ -1,3 +1,5 @@
 # Tailscale configuration for Oracle VPS instances
 # Both proxy and compute instances use the same base config
 tailscale_args: --ssh
+# Auth key is passed via -e tailscale_authkey=... from CI
+# Uses tailscale-oracle-auth-key (tag:oracle) from Bitwarden
