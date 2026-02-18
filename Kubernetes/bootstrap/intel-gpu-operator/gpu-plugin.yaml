@@ -1,59 +1,68 @@
 # =============================================================================
-# Intel Device Plugins Operator and GPU Plugin
+# Intel GPU Device Plugin DaemonSet
 # =============================================================================
-# Installs Intel Device Plugins Operator which manages the GPU Device Plugin
-# for exposing Intel GPUs (Arc B580) to Kubernetes workloads.
+# Deploys the Intel GPU device plugin directly as a DaemonSet on GPU nodes.
+# This approach avoids the operator + cert-manager dependency.
 #
 # Docs: https://intel.github.io/intel-device-plugins-for-kubernetes/
 # =============================================================================
----
-# Node Feature Discovery (NFD) - detects Intel GPU and labels nodes
-apiVersion: helm.cattle.io/v1
-kind: HelmChart
-metadata:
-  name: node-feature-discovery
-  namespace: kube-system
-spec:
-  repo: https://kubernetes-sigs.github.io/node-feature-discovery/charts
-  chart: node-feature-discovery
-  version: "0.17.1"
-  targetNamespace: node-feature-discovery
-  createNamespace: true
-  valuesContent: |-
-    master:
-      replicaCount: 1
-    worker:
-      tolerations:
-        - effect: NoSchedule
-          key: node-role.kubernetes.io/control-plane
-          operator: Exists
----
-# Intel Device Plugins Operator
-apiVersion: helm.cattle.io/v1
-kind: HelmChart
-metadata:
-  name: intel-device-plugins-operator
-  namespace: kube-system
-spec:
-  repo: https://intel.github.io/helm-charts
-  chart: intel-device-plugins-operator
-  version: "0.31.1"
-  targetNamespace: intel-device-plugins
-  createNamespace: true
----
-# Intel GPU Device Plugin Custom Resource
-# This is applied after the operator is ready
-apiVersion: deviceplugin.intel.com/v1
-kind: GpuDevicePlugin
+apiVersion: apps/v1
+kind: DaemonSet
 metadata:
   name: intel-gpu-plugin
   namespace: intel-device-plugins
+  labels:
+    app: intel-gpu-plugin
 spec:
-  # Use xe driver for Intel Arc B580 (Battlemage architecture)
-  image: intel/intel-gpu-plugin:0.31.1
-  # Allow multiple containers to share a GPU (for transcoding + ML)
-  sharedDevNum: 2
-  # Prefer xe driver for Battlemage GPUs
-  preferredAllocationPolicy: balanced
-  nodeSelector:
-    intel.feature.node.kubernetes.io/gpu: "true"
+  selector:
+    matchLabels:
+      app: intel-gpu-plugin
+  template:
+    metadata:
+      labels:
+        app: intel-gpu-plugin
+    spec:
+      nodeSelector:
+        intel.feature.node.kubernetes.io/gpu: "true"
+      initContainers:
+        - name: init-device-check
+          image: busybox:1.37
+          command: ["sh", "-c", "ls /dev/dri/ && echo 'GPU device found'"]
+          volumeMounts:
+            - name: devfs
+              mountPath: /dev/dri
+              readOnly: true
+      containers:
+        - name: gpu-plugin
+          image: intel/intel-gpu-plugin:0.31.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          args:
+            - -shared-dev-num=2
+            - -allocation-policy=balanced
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: devfs
+              mountPath: /dev/dri
+              readOnly: true
+            - name: sysfs
+              mountPath: /sys/class/drm
+              readOnly: true
+            - name: kubeletsockets
+              mountPath: /var/lib/kubelet/device-plugins
+      volumes:
+        - name: devfs
+          hostPath:
+            path: /dev/dri
+        - name: sysfs
+          hostPath:
+            path: /sys/class/drm
+        - name: kubeletsockets
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
