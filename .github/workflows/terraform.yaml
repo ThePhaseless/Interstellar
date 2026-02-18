@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Fetch all secrets from Bitwarden (single project)
       - name: Get Secrets from Bitwarden
@@ -168,7 +168,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Fetch all secrets from Bitwarden (single project)
       - name: Get Secrets from Bitwarden
