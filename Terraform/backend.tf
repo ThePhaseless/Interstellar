@@ -27,7 +27,7 @@ terraform {
     # Oracle Cloud Infrastructure (VPS instance)
     oci = {
       source  = "oracle/oci"
-      version = ">= 7.0.0"
+      version = ">= 8.0.0"
     }
 
     # DNS management
@@ -46,6 +46,12 @@ terraform {
     bitwarden-secrets = {
       source  = "bitwarden/bitwarden-secrets"
       version = "0.5.4-pre"
+    }
+
+    # Kubernetes for bootstrap secrets (bitwarden access token)
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.36.0"
     }
 
     # Standard providers

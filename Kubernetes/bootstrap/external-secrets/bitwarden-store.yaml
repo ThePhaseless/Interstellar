@@ -28,19 +28,6 @@ spec:
             namespace: external-secrets
             key: token
 ---
-# Bootstrap secret for Bitwarden access token
-# This secret must be created manually before ESO can function:
-# kubectl create secret generic bitwarden-access-token \
-#   --namespace=external-secrets \
-#   --from-literal=token=<your-bws-access-token>
-apiVersion: v1
-kind: Secret
-metadata:
-  name: bitwarden-access-token
-  namespace: external-secrets
-  annotations:
-    # This is a placeholder - actual token must be created manually
-    description: "Bootstrap secret for Bitwarden Secrets Manager access token"
-type: Opaque
-stringData:
-  token: "REPLACE_WITH_ACTUAL_TOKEN"
+# The bitwarden-access-token secret is managed by Terraform (kubernetes.tf).
+# It is automatically created during cluster bootstrap from the BWS_ACCESS_TOKEN
+# environment variable, solving the chicken-and-egg problem.
