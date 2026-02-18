@@ -7,13 +7,13 @@ name: Kubernetes Lint
 
 on:
     push:
-        branches: [main]
+        branches: [main, migration]
         paths:
             - "Kubernetes/**"
             - ".kube-linter.yaml"
             - ".github/workflows/kubernetes-lint.yaml"
     pull_request:
-        branches: [main]
+        branches: [main, migration]
         paths:
             - "Kubernetes/**"
             - ".kube-linter.yaml"
@@ -26,10 +26,10 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Set up Go
-              uses: actions/setup-go@v5
+              uses: actions/setup-go@v6
               with:
                   go-version: stable
 

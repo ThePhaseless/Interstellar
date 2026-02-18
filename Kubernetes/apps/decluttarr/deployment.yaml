@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: decluttarr
-          image: ghcr.io/manimatter/decluttarr:v1.47.3
+          image: ghcr.io/manimatter/decluttarr:v2.0.0
           env:
             - name: TZ
               value: "UTC"

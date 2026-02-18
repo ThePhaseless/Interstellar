@@ -3,12 +3,12 @@ name: Terraform Lint
 
 on:
   push:
-    branches: [main]
+    branches: [main, migration]
     paths:
       - "Terraform/**"
       - ".github/workflows/terraform-lint.yaml"
   pull_request:
-    branches: [main]
+    branches: [main, migration]
     paths:
       - "Terraform/**"
       - ".github/workflows/terraform-lint.yaml"
@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v4
+        uses: terraform-linters/setup-tflint@v6
         with:
           tflint_version: latest
 

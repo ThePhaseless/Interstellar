@@ -8,14 +8,14 @@ name: Ansible
 
 on:
   push:
-    branches: [main]
+    branches: [main, migration]
     paths:
       - "Ansible/**"
       - "compose.proxy.yaml"
       - "haproxy.cfg"
       - ".github/workflows/ansible.yaml"
   pull_request:
-    branches: [main]
+    branches: [main, migration]
     paths:
       - "Ansible/**"
       - "compose.proxy.yaml"
@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -72,7 +72,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Fetch secrets from Bitwarden
       - name: Get Secrets from Bitwarden
