@@ -87,7 +87,7 @@ jobs:
 
       # Connect to Tailscale for SSH access
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
