@@ -9,14 +9,15 @@
   // -------------------------------------------------------------------------
   // Tag Owners
   // -------------------------------------------------------------------------
-  // Tags are used to categorize devices and enforce access policies.
+  // tag:ci is the automation/Terraform tag. It owns all infrastructure tags
+  // so Terraform can create auth keys and OAuth clients for any of them.
   "tagOwners": {
     "tag:ci":           ["autogroup:admin"],
-    "tag:proxmox":      ["autogroup:admin"],
-    "tag:oracle":       ["autogroup:admin"],
-    "tag:cluster":      ["autogroup:admin"],
-    "tag:k8s-operator": ["autogroup:admin"],
-    "tag:shared":       ["autogroup:admin"]
+    "tag:proxmox":      ["autogroup:admin", "tag:ci"],
+    "tag:oracle":       ["autogroup:admin", "tag:ci"],
+    "tag:cluster":      ["autogroup:admin", "tag:ci"],
+    "tag:k8s-operator": ["autogroup:admin", "tag:ci"],
+    "tag:shared":       ["autogroup:admin", "tag:ci"]
   },
 
   // -------------------------------------------------------------------------
@@ -59,10 +60,10 @@
   // Access Control Lists
   // -------------------------------------------------------------------------
   "acls": [
-    // VIPs have full access to everything
+    // Admins and VIPs have full access to everything
     {
       "action": "accept",
-      "src":    ["group:vips"],
+      "src":    ["autogroup:admin", "group:vips"],
       "dst":    ["*:*"]
     },
 
@@ -173,10 +174,10 @@
   // SSH Configuration
   // -------------------------------------------------------------------------
   "ssh": [
-    // VIPs can SSH to all tagged devices
+    // Admins and VIPs can SSH to all tagged devices
     {
       "action": "accept",
-      "src":    ["group:vips"],
+      "src":    ["autogroup:admin", "group:vips"],
       "dst":    ["tag:proxmox", "tag:oracle", "tag:cluster"],
       "users":  ["autogroup:nonroot", "root"]
     },
@@ -216,15 +217,4 @@
     }
   ],
 
-  // -------------------------------------------------------------------------
-  // DNS Configuration
-  // -------------------------------------------------------------------------
-  "dns": [
-    // Override *.nerine.dev to cluster for internal resolution
-    {
-      "action": "accept",
-      "src":    ["autogroup:member"],
-      "nameservers": ["100.100.100.100"]  // MagicDNS
-    }
-  ]
 }
