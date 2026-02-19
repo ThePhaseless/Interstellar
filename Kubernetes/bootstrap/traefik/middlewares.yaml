@@ -84,17 +84,6 @@ spec:
     burst: 2000
     period: 1m
 ---
-# CrowdSec Bouncer - ForwardAuth to CrowdSec
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: crowdsec
-  namespace: traefik
-spec:
-  forwardAuth:
-    address: http://crowdsec-bouncer.crowdsec.svc.cluster.local:8080/api/v1/forwardAuth
-    trustForwardHeader: true
----
 # OAuth2 Proxy ForwardAuth - Google OAuth authentication
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
@@ -147,7 +136,7 @@ metadata:
 spec:
   chain:
     middlewares:
-      - name: crowdsec
+      - name: crowdsec-bouncer
       - name: rate-limit
       - name: timeout-standard
 ---
@@ -160,6 +149,6 @@ metadata:
 spec:
   chain:
     middlewares:
-      - name: crowdsec
+      - name: crowdsec-bouncer
       - name: rate-limit-streaming
       - name: timeout-streaming
