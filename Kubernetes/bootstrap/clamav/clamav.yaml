@@ -26,7 +26,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: scanner
-              image: clamav/clamav:1.4
+              image: clamav/clamav:1.5
               command:
                 - /bin/sh
                 - -c
@@ -108,11 +108,13 @@ spec:
 
           volumes:
             - name: downloads
-              persistentVolumeClaim:
-                claimName: downloads-pvc
+              nfs:
+                server: 192.168.1.10
+                path: /Storage/media/pvc-66f7d9b1-2ebb-4f78-a49d-4d962b6eb8e2
             - name: personal
-              persistentVolumeClaim:
-                claimName: personal-pvc
+              nfs:
+                server: 192.168.1.10
+                path: /Storage/media/pvc-657c11d4-0f03-4d7b-b6b1-357d6ba94cdd
             - name: clamav-db
               persistentVolumeClaim:
                 claimName: clamav-db
@@ -176,7 +178,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: scanner
-              image: clamav/clamav:1.4
+              image: clamav/clamav:1.5
               command:
                 - /bin/sh
                 - -c
@@ -239,11 +241,15 @@ spec:
 
           volumes:
             - name: downloads
-              persistentVolumeClaim:
-                claimName: downloads-pvc
+              nfs:
+                server: 192.168.1.10
+                path: /Storage/media/pvc-66f7d9b1-2ebb-4f78-a49d-4d962b6eb8e2
+                readOnly: true
             - name: personal
-              persistentVolumeClaim:
-                claimName: personal-pvc
+              nfs:
+                server: 192.168.1.10
+                path: /Storage/media/pvc-657c11d4-0f03-4d7b-b6b1-357d6ba94cdd
+                readOnly: true
             - name: clamav-db
               persistentVolumeClaim:
                 claimName: clamav-db
