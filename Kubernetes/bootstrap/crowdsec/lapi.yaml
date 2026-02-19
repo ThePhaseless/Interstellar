@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: crowdsec
-          image: crowdsecurity/crowdsec:v1.6.11
+          image: crowdsecurity/crowdsec:v1.7.6
           env:
             - name: COLLECTIONS
               value: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux"
