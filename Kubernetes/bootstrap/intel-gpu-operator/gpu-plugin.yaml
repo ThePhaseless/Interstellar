@@ -34,7 +34,7 @@ spec:
               readOnly: true
       containers:
         - name: gpu-plugin
-          image: intel/intel-gpu-plugin:0.31.1
+          image: intel/intel-gpu-plugin:0.35.0
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_NAME

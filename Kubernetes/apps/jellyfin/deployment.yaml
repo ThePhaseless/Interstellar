@@ -29,7 +29,7 @@ spec:
 
       containers:
         - name: jellyfin
-          image: jellyfin/jellyfin:10.10.3
+          image: jellyfin/jellyfin:10.11.6
           ports:
             - name: http
               containerPort: 8096
