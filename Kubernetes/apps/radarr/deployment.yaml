@@ -19,6 +19,9 @@ spec:
     metadata:
       labels:
         app: radarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9708"
     spec:
       serviceAccountName: arr-configurator
 
@@ -61,6 +64,36 @@ spec:
               port: http
             initialDelaySeconds: 30
             periodSeconds: 10
+
+        - name: exportarr
+          image: ghcr.io/onedr0p/exportarr:v2.3.0
+          args: ["radarr"]
+          env:
+            - name: PORT
+              value: "9708"
+            - name: URL
+              value: "http://localhost:7878"
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arr-api-keys
+                  key: radarr-api-key
+          ports:
+            - name: metrics
+              containerPort: 9708
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 30
 
       volumes:
         - name: config
