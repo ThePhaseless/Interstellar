@@ -13,8 +13,14 @@ resources:
   - mimir.yaml
   - promtail.yaml
   - alloy.yaml
+  - kube-state-metrics.yaml
   - alerting.yaml
   - externalsecret.yaml
+  - dashboards/cluster-overview.yaml
+  - dashboards/traefik.yaml
+  - dashboards/media-stack.yaml
+  - dashboards/logs-explorer.yaml
+  - dashboards/geo-heatmap.yaml
 
 labels:
   - pairs:

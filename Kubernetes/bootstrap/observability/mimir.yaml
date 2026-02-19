@@ -19,9 +19,13 @@ spec:
       labels:
         app: mimir
     spec:
+      securityContext:
+        fsGroup: 10001
+        runAsUser: 10001
+        runAsGroup: 10001
       containers:
         - name: mimir
-          image: grafana/mimir:2.15.0
+          image: grafana/mimir:3.0.3
           args:
             - -config.file=/etc/mimir/mimir.yaml
           ports:
@@ -68,7 +72,7 @@ spec:
         storageClassName: longhorn
         resources:
           requests:
-            storage: 50Gi
+            storage: 10Gi
 ---
 apiVersion: v1
 kind: Service
@@ -96,6 +100,9 @@ data:
   mimir.yaml: |
     multitenancy_enabled: false
 
+    activity_tracker:
+      filepath: /data/metrics-activity.log
+
     server:
       http_listen_port: 9009
       grpc_listen_port: 9095
@@ -112,6 +119,8 @@ data:
         dir: /data/blocks
       tsdb:
         dir: /data/tsdb
+      bucket_store:
+        sync_dir: /data/tsdb-sync
 
     ruler_storage:
       backend: filesystem
@@ -123,6 +132,17 @@ data:
       max_global_series_per_metric: 100000
       ingestion_rate: 100000
       ingestion_burst_size: 200000
+
+    store_gateway:
+      sharding_ring:
+        kvstore:
+          store: inmemory
+
+    ruler:
+      rule_path: /data/data-ruler
+      ring:
+        kvstore:
+          store: inmemory
 
     compactor:
       data_dir: /data/compactor

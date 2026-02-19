@@ -1,0 +1,260 @@
+# =============================================================================
+# Traefik Ingress Dashboard
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-traefik
+  namespace: observability
+  labels:
+    grafana-dashboard: "true"
+data:
+  traefik.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "title": "Requests per Second",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps",
+              "custom": { "fillOpacity": 15, "lineWidth": 2, "spanNulls": true }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(traefik_entrypoint_requests_total{entrypoint=\"websecure\"}[5m]))",
+              "legendFormat": "Total",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(traefik_entrypoint_requests_total{entrypoint=\"websecure\", code=~\"2..\"}[5m]))",
+              "legendFormat": "2xx",
+              "refId": "B"
+            },
+            {
+              "expr": "sum(rate(traefik_entrypoint_requests_total{entrypoint=\"websecure\", code=~\"4..\"}[5m]))",
+              "legendFormat": "4xx",
+              "refId": "C"
+            },
+            {
+              "expr": "sum(rate(traefik_entrypoint_requests_total{entrypoint=\"websecure\", code=~\"5..\"}[5m]))",
+              "legendFormat": "5xx",
+              "refId": "D"
+            }
+          ],
+          "options": {
+            "tooltip": { "mode": "multi" },
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+          }
+        },
+        {
+          "title": "Response Status Distribution",
+          "type": "piechart",
+          "gridPos": { "h": 8, "w": 6, "x": 12, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": { "defaults": {}, "overrides": [] },
+          "targets": [
+            {
+              "expr": "sum by (code) (increase(traefik_entrypoint_requests_total{entrypoint=\"websecure\"}[$__range]))",
+              "legendFormat": "{{ code }}",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right" },
+            "pieType": "donut",
+            "reduceOptions": { "calcs": ["lastNotNull"] }
+          }
+        },
+        {
+          "title": "Active Connections",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 50 },
+                  { "color": "red", "value": 200 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum(traefik_entrypoint_open_connections{entrypoint=\"websecure\"})",
+              "legendFormat": "Connections",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "area", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Error Rate",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 4 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 0.05 },
+                  { "color": "red", "value": 0.1 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(traefik_entrypoint_requests_total{entrypoint=\"websecure\", code=~\"5..\"}[5m])) / sum(rate(traefik_entrypoint_requests_total{entrypoint=\"websecure\"}[5m]))",
+              "legendFormat": "5xx rate",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Requests by Service (Top 10)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps",
+              "custom": { "fillOpacity": 10, "lineWidth": 1, "spanNulls": true }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "topk(10, sum by (service) (rate(traefik_service_requests_total[5m])))",
+              "legendFormat": "{{ service }}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "tooltip": { "mode": "multi" },
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+          }
+        },
+        {
+          "title": "Request Duration P95 by Service",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "custom": { "fillOpacity": 10, "lineWidth": 1, "spanNulls": true }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.95, sum by (service, le) (rate(traefik_service_request_duration_seconds_bucket[5m])))",
+              "legendFormat": "{{ service }}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "tooltip": { "mode": "multi" },
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+          }
+        },
+        {
+          "title": "TLS Connections by Version",
+          "type": "piechart",
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": { "defaults": {}, "overrides": [] },
+          "targets": [
+            {
+              "expr": "sum by (tls_version) (increase(traefik_entrypoint_requests_tls_total{entrypoint=\"websecure\"}[$__range]))",
+              "legendFormat": "{{ tls_version }}",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right" },
+            "pieType": "donut",
+            "reduceOptions": { "calcs": ["lastNotNull"] }
+          }
+        },
+        {
+          "title": "CrowdSec Blocked Requests",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "fillOpacity": 30,
+                "lineWidth": 2,
+                "drawStyle": "bars"
+              },
+              "color": { "mode": "fixed", "fixedColor": "red" }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum(count_over_time({namespace=\"traefik\", container=\"traefik\"} | json | DownstreamStatus = 403 [$__interval]))",
+              "legendFormat": "Blocked (403)",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "tooltip": { "mode": "multi" },
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          }
+        },
+        {
+          "title": "Recent Error Logs",
+          "type": "logs",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+          "datasource": { "type": "loki", "uid": "loki" },
+          "targets": [
+            {
+              "expr": "{namespace=\"traefik\", container=\"traefik\"} | json | DownstreamStatus >= 400",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "showTime": true,
+            "showLabels": false,
+            "showCommonLabels": false,
+            "wrapLogMessage": true,
+            "sortOrder": "Descending",
+            "dedupStrategy": "none",
+            "enableLogDetails": true
+          }
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["traefik", "ingress"],
+      "templating": { "list": [] },
+      "time": { "from": "now-3h", "to": "now" },
+      "title": "Traefik Ingress",
+      "uid": "traefik-ingress"
+    }

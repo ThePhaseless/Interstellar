@@ -19,9 +19,13 @@ spec:
       labels:
         app: loki
     spec:
+      securityContext:
+        fsGroup: 10001
+        runAsUser: 10001
+        runAsGroup: 10001
       containers:
         - name: loki
-          image: grafana/loki:3.3.0
+          image: grafana/loki:3.6.6
           args:
             - -config.file=/etc/loki/loki.yaml
           ports:
@@ -68,7 +72,7 @@ spec:
         storageClassName: longhorn
         resources:
           requests:
-            storage: 50Gi
+            storage: 10Gi
 ---
 apiVersion: v1
 kind: Service
@@ -133,3 +137,4 @@ data:
       retention_enabled: true
       retention_delete_delay: 2h
       retention_delete_worker_count: 150
+      delete_request_store: filesystem

@@ -1,0 +1,426 @@
+# =============================================================================
+# Media Stack Dashboard (Sonarr, Radarr, Prowlarr, qBittorrent)
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-media
+  namespace: observability
+  labels:
+    grafana-dashboard: "true"
+data:
+  media-stack.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "title": "",
+          "type": "row",
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "collapsed": false,
+          "panels": []
+        },
+        {
+          "title": "Sonarr — Series",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sonarr_series_total",
+              "legendFormat": "Total Series",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Sonarr — Episodes Monitored",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sonarr_episode_monitored_total",
+              "legendFormat": "Monitored",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Sonarr — Missing Episodes",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 10 },
+                  { "color": "red", "value": 50 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sonarr_episode_missing_total",
+              "legendFormat": "Missing",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Sonarr — Queue",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 5 },
+                  { "color": "orange", "value": 20 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sonarr_queue_total",
+              "legendFormat": "In Queue",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "area", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Radarr — Movies",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 5 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "radarr_movie_total",
+              "legendFormat": "Total Movies",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Radarr — Monitored",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 5 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "radarr_movie_monitored_total",
+              "legendFormat": "Monitored",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Radarr — Missing Movies",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 5 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 5 },
+                  { "color": "red", "value": 20 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "radarr_movie_missing_total",
+              "legendFormat": "Missing",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Radarr — Queue",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 5 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 5 },
+                  { "color": "orange", "value": 20 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "radarr_queue_total",
+              "legendFormat": "In Queue",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "area", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Prowlarr — Indexers",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "prowlarr_indexer_total",
+              "legendFormat": "Total Indexers",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+        },
+        {
+          "title": "Sonarr — Episode Completion %",
+          "type": "gauge",
+          "gridPos": { "h": 4, "w": 4, "x": 16, "y": 5 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "min": 0,
+              "max": 1,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "yellow", "value": 0.5 },
+                  { "color": "green", "value": 0.9 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "(sonarr_episode_downloaded_total / sonarr_episode_monitored_total) > 0 or vector(0)",
+              "legendFormat": "Downloaded",
+              "refId": "A",
+              "instant": true
+            }
+          ]
+        },
+        {
+          "title": "Radarr — Movie Completion %",
+          "type": "gauge",
+          "gridPos": { "h": 4, "w": 4, "x": 20, "y": 5 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "min": 0,
+              "max": 1,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "yellow", "value": 0.5 },
+                  { "color": "green", "value": 0.9 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "(radarr_movie_downloaded_total / radarr_movie_monitored_total) > 0 or vector(0)",
+              "legendFormat": "Downloaded",
+              "refId": "A",
+              "instant": true
+            }
+          ]
+        },
+        {
+          "title": "Download Queue Over Time",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": { "fillOpacity": 20, "lineWidth": 2, "spanNulls": true, "stacking": { "mode": "normal" } }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sonarr_queue_total",
+              "legendFormat": "Sonarr Queue",
+              "refId": "A"
+            },
+            {
+              "expr": "radarr_queue_total",
+              "legendFormat": "Radarr Queue",
+              "refId": "B"
+            }
+          ],
+          "options": {
+            "tooltip": { "mode": "multi" },
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          }
+        },
+        {
+          "title": "Disk Usage by Quality (Sonarr)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "custom": { "fillOpacity": 20, "lineWidth": 2, "spanNulls": true, "stacking": { "mode": "normal" } }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sonarr_episode_quality_total_bytes",
+              "legendFormat": "{{ quality }}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "tooltip": { "mode": "multi" },
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] }
+          }
+        },
+        {
+          "title": "Media Services Health",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 24, "x": 0, "y": 17 },
+          "datasource": { "type": "prometheus", "uid": "mimir" },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                { "type": "value", "options": { "1": { "text": "UP", "color": "green" }, "0": { "text": "DOWN", "color": "red" } } }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sonarr_system_status",
+              "legendFormat": "Sonarr",
+              "refId": "A",
+              "instant": true
+            },
+            {
+              "expr": "radarr_system_status",
+              "legendFormat": "Radarr",
+              "refId": "B",
+              "instant": true
+            },
+            {
+              "expr": "prowlarr_system_status",
+              "legendFormat": "Prowlarr",
+              "refId": "C",
+              "instant": true
+            }
+          ],
+          "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name", "orientation": "horizontal" }
+        },
+        {
+          "title": "Media Service Logs (Errors)",
+          "type": "logs",
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 },
+          "datasource": { "type": "loki", "uid": "loki" },
+          "targets": [
+            {
+              "expr": "{namespace=\"media\", container=~\"sonarr|radarr|prowlarr|qbittorrent\"} |~ \"(?i)error|warn|fatal|exception\"",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "showTime": true,
+            "showLabels": true,
+            "showCommonLabels": false,
+            "wrapLogMessage": true,
+            "sortOrder": "Descending",
+            "dedupStrategy": "none",
+            "enableLogDetails": true
+          }
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["media", "sonarr", "radarr", "prowlarr"],
+      "templating": { "list": [] },
+      "time": { "from": "now-24h", "to": "now" },
+      "title": "Media Stack",
+      "uid": "media-stack"
+    }
