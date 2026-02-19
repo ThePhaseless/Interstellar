@@ -11,8 +11,7 @@ metadata:
   annotations:
     # Expose via Tailscale
     tailscale.com/expose: "true"
-    tailscale.com/hostname: "talos-traefik"
-    tailscale.com/tags: "tag:shared"
+    tailscale.com/hostname: "traefik"
 spec:
   type: LoadBalancer
   # Use dedicated ingress LoadBalancer IP (separate from control-plane API VIP)

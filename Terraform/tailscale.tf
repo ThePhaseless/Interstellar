@@ -122,14 +122,14 @@ locals {
   # Find Traefik device by hostname (exposed via tailscale.com/hostname annotation)
   traefik_devices = [
     for d in data.tailscale_devices.cluster.devices : d
-    if d.hostname == "talos-traefik"
+    if d.hostname == "traefik"
   ]
   tailscale_traefik_ip = length(local.traefik_devices) > 0 ? local.traefik_devices[0].addresses[0] : ""
 
   # Find AdGuard DNS device by hostname
   adguard_devices = [
     for d in data.tailscale_devices.cluster.devices : d
-    if d.hostname == "adguard-shared"
+    if d.hostname == "adguard"
   ]
   tailscale_adguard_ip = length(local.adguard_devices) > 0 ? local.adguard_devices[0].addresses[0] : ""
 }

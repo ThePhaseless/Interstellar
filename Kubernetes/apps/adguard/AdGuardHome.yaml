@@ -70,7 +70,7 @@ filtering:
   safebrowsing_block_host: standard-block.dns.adguard.com
   # DNS rewrites for Tailscale fallback access
   # When friends use this AdGuard via Tailscale, domains resolve to Traefik's Tailscale IP
-  # Replace 100.x.y.z with actual talos-traefik Tailscale IP after deployment
+  # Replace 100.x.y.z with actual traefik Tailscale IP after deployment
   rewrites:
     - domain: "*.nerine.dev"
       answer: "100.x.y.z"
