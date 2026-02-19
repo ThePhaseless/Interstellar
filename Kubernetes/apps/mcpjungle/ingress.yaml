@@ -18,4 +18,9 @@ spec:
       middlewares:
         - name: public-chain
           namespace: traefik
-  tls: {}
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

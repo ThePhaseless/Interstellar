@@ -20,4 +20,9 @@ spec:
           namespace: traefik
         - name: oauth2-proxy
           namespace: traefik
-  tls: {}
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"
