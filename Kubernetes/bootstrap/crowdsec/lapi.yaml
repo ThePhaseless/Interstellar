@@ -17,10 +17,13 @@ spec:
     metadata:
       labels:
         app: crowdsec-lapi
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "6060"
     spec:
       containers:
         - name: crowdsec
-          image: crowdsecurity/crowdsec:v1.6
+          image: crowdsecurity/crowdsec:v1.6.11
           env:
             - name: COLLECTIONS
               value: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux"
@@ -31,9 +34,13 @@ spec:
                 secretKeyRef:
                   name: crowdsec-secrets
                   key: bouncer-key
+                  optional: true
           ports:
             - name: lapi
               containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 6060
               protocol: TCP
           volumeMounts:
             - name: data
