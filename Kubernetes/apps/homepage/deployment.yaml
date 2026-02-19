@@ -1,0 +1,210 @@
+# =============================================================================
+# Homepage Deployment
+# =============================================================================
+# Minimal nginx serving a static landing page for nerine.dev
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-html
+  namespace: utilities
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>nerine.dev</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          background: #0f0f0f;
+          color: #e0e0e0;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+        }
+        h1 {
+          font-size: 2.5rem;
+          font-weight: 300;
+          margin-bottom: 0.5rem;
+          color: #fff;
+        }
+        p.subtitle {
+          color: #888;
+          margin-bottom: 2.5rem;
+          font-size: 1.1rem;
+        }
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 1rem;
+          max-width: 900px;
+          width: 100%;
+        }
+        a.card {
+          display: block;
+          background: #1a1a1a;
+          border: 1px solid #2a2a2a;
+          border-radius: 12px;
+          padding: 1.25rem;
+          text-decoration: none;
+          color: #e0e0e0;
+          transition: border-color 0.2s, transform 0.2s;
+        }
+        a.card:hover {
+          border-color: #555;
+          transform: translateY(-2px);
+        }
+        .card-title {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #fff;
+          margin-bottom: 0.3rem;
+        }
+        .card-desc {
+          font-size: 0.85rem;
+          color: #888;
+        }
+        footer {
+          margin-top: 3rem;
+          color: #444;
+          font-size: 0.8rem;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>nerine.dev</h1>
+      <p class="subtitle">Homelab Services</p>
+      <div class="grid">
+        <a class="card" href="https://watch.nerine.dev">
+          <div class="card-title">Jellyfin</div>
+          <div class="card-desc">Media streaming</div>
+        </a>
+        <a class="card" href="https://jellyseerr.nerine.dev">
+          <div class="card-title">Jellyseerr</div>
+          <div class="card-desc">Media requests</div>
+        </a>
+        <a class="card" href="https://photos.nerine.dev">
+          <div class="card-title">Immich</div>
+          <div class="card-desc">Photo management</div>
+        </a>
+        <a class="card" href="https://files.nerine.dev">
+          <div class="card-title">Copyparty</div>
+          <div class="card-desc">File sharing</div>
+        </a>
+        <a class="card" href="https://sonarr.nerine.dev">
+          <div class="card-title">Sonarr</div>
+          <div class="card-desc">TV series management</div>
+        </a>
+        <a class="card" href="https://radarr.nerine.dev">
+          <div class="card-title">Radarr</div>
+          <div class="card-desc">Movie management</div>
+        </a>
+        <a class="card" href="https://bazarr.nerine.dev">
+          <div class="card-title">Bazarr</div>
+          <div class="card-desc">Subtitle management</div>
+        </a>
+        <a class="card" href="https://prowlarr.nerine.dev">
+          <div class="card-title">Prowlarr</div>
+          <div class="card-desc">Indexer management</div>
+        </a>
+        <a class="card" href="https://qbittorrent.nerine.dev">
+          <div class="card-title">qBittorrent</div>
+          <div class="card-desc">Download client</div>
+        </a>
+        <a class="card" href="https://grafana.nerine.dev">
+          <div class="card-title">Grafana</div>
+          <div class="card-desc">Monitoring dashboards</div>
+        </a>
+        <a class="card" href="https://adguard.nerine.dev">
+          <div class="card-title">AdGuard</div>
+          <div class="card-desc">DNS &amp; ad blocking</div>
+        </a>
+        <a class="card" href="https://traefik.nerine.dev">
+          <div class="card-title">Traefik</div>
+          <div class="card-desc">Ingress dashboard</div>
+        </a>
+        <a class="card" href="https://longhorn.nerine.dev">
+          <div class="card-title">Longhorn</div>
+          <div class="card-desc">Storage management</div>
+        </a>
+      </div>
+      <footer>Powered by Kubernetes on TalosOS</footer>
+    </body>
+    </html>
+  nginx.conf: |
+    server {
+      listen 80;
+      server_name _;
+      root /usr/share/nginx/html;
+      index index.html;
+
+      location /health {
+        access_log off;
+        return 200 'ok';
+        add_header Content-Type text/plain;
+      }
+
+      location / {
+        try_files $uri $uri/ =404;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homepage
+  namespace: utilities
+  labels:
+    app: homepage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homepage
+  template:
+    metadata:
+      labels:
+        app: homepage
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+            - name: html
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: nginx.conf
+          resources:
+            requests:
+              cpu: 5m
+              memory: 8Mi
+            limits:
+              cpu: 25m
+              memory: 32Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+      volumes:
+        - name: html
+          configMap:
+            name: homepage-html
