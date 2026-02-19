@@ -19,12 +19,15 @@ spec:
     metadata:
       labels:
         app: prowlarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9709"
     spec:
       serviceAccountName: arr-configurator
 
       containers:
         - name: prowlarr
-          image: linuxserver/prowlarr:1.28.2
+          image: linuxserver/prowlarr:2.3.0
           env:
             - name: PUID
               value: "1000"
@@ -57,6 +60,36 @@ spec:
               port: http
             initialDelaySeconds: 30
             periodSeconds: 10
+
+        - name: exportarr
+          image: ghcr.io/onedr0p/exportarr:v2.3.0
+          args: ["prowlarr"]
+          env:
+            - name: PORT
+              value: "9709"
+            - name: URL
+              value: "http://localhost:9696"
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arr-api-keys
+                  key: prowlarr-api-key
+          ports:
+            - name: metrics
+              containerPort: 9709
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 30
 
       volumes:
         - name: config

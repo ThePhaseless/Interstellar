@@ -19,12 +19,15 @@ spec:
     metadata:
       labels:
         app: sonarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9707"
     spec:
       serviceAccountName: arr-configurator
 
       containers:
         - name: sonarr
-          image: linuxserver/sonarr:4.0.11
+          image: linuxserver/sonarr:4.0.16
           env:
             - name: PUID
               value: "1000"
@@ -61,6 +64,36 @@ spec:
               port: http
             initialDelaySeconds: 30
             periodSeconds: 10
+
+        - name: exportarr
+          image: ghcr.io/onedr0p/exportarr:v2.3.0
+          args: ["sonarr"]
+          env:
+            - name: PORT
+              value: "9707"
+            - name: URL
+              value: "http://localhost:8989"
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arr-api-keys
+                  key: sonarr-api-key
+          ports:
+            - name: metrics
+              containerPort: 9707
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 30
 
       volumes:
         - name: config
