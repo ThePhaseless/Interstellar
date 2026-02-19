@@ -75,7 +75,7 @@ spec:
 
         # Configurator sidecar - sets up Jellyfin, Sonarr, Radarr
         - name: configurator
-          image: bitnami/kubectl:1.33
+          image: bitnami/kubectl:latest
           command:
             - /bin/bash
             - /scripts/configure-jellyseerr.sh
