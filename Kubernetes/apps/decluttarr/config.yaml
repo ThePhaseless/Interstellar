@@ -1,3 +1,35 @@
-# Decluttarr configuration
-# This file is kept for reference but environment variables are preferred
-# See deployment.yaml for active configuration
+# =============================================================================
+# Decluttarr V2 Configuration
+# =============================================================================
+general:
+  log_level: INFO
+  test_run: false
+  timer: 10
+  protected_tag: "dont_delete"
+
+job_defaults:
+  max_strikes: 3
+
+jobs:
+  remove_failed_downloads:
+  remove_failed_imports:
+  remove_metadata_missing:
+  remove_missing_files:
+  remove_orphans:
+  remove_slow:
+    min_speed: 100
+  remove_stalled:
+  remove_unmonitored:
+
+instances:
+  sonarr:
+    - base_url: "http://sonarr.media.svc.cluster.local:8989"
+      api_key: !ENV SONARR_API_KEY
+
+  radarr:
+    - base_url: "http://radarr.media.svc.cluster.local:7878"
+      api_key: !ENV RADARR_API_KEY
+
+download_clients:
+  qbittorrent:
+    - base_url: "http://qbittorrent.media.svc.cluster.local:8080"
