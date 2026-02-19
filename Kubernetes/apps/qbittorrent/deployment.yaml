@@ -22,7 +22,7 @@ spec:
     spec:
       initContainers:
         - name: config-init
-          image: linuxserver/qbittorrent:5.1.4
+          image: linuxserver/qbittorrent:20.04.1
           command:
             - /bin/sh
             - -c
@@ -78,7 +78,7 @@ spec:
               mountPath: /config
       containers:
         - name: qbittorrent
-          image: linuxserver/qbittorrent:5.1.4
+          image: linuxserver/qbittorrent:20.04.1
           env:
             - name: PUID
               value: "1000"
