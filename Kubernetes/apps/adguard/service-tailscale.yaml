@@ -20,8 +20,7 @@ metadata:
   annotations:
     # Expose as shareable Tailscale node
     tailscale.com/expose: "true"
-    tailscale.com/hostname: "adguard-shared"
-    tailscale.com/tags: "tag:shared"
+    tailscale.com/hostname: "adguard"
 spec:
   type: LoadBalancer
   # Preserve client Tailscale IPs for per-device stats

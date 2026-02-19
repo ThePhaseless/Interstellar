@@ -17,7 +17,6 @@
     "tag:oracle":       ["autogroup:admin", "tag:ci"],
     "tag:cluster":      ["autogroup:admin", "tag:ci"],
     "tag:k8s-operator": ["autogroup:admin", "tag:ci"],
-    "tag:shared":       ["autogroup:admin", "tag:ci"]
   },
 
   // -------------------------------------------------------------------------
@@ -153,8 +152,8 @@
     // Their devices will appear as "autogroup:shared" in ACLs
     //
     // Shared nodes:
-    //   - talos-traefik: HTTP/HTTPS access to all web services
-    //   - adguard-shared: DNS server for automatic domain resolution
+    //   - traefik: HTTP/HTTPS access to all web services
+    //   - adguard: DNS server for automatic domain resolution
     // -----------------------------------------------------------------------
     {
       "action": "accept",
@@ -162,10 +161,7 @@
       "dst": [
         "tag:cluster:80",    // HTTP (Traefik)
         "tag:cluster:443",   // HTTPS (Traefik)
-        "tag:cluster:53",    // DNS (AdGuard on cluster)
-        "tag:shared:53",     // DNS (AdGuard shared node)
-        "tag:shared:80",     // HTTP (Traefik shared)
-        "tag:shared:443"     // HTTPS (Traefik shared)
+        "tag:cluster:53"     // DNS (AdGuard)
       ]
     }
   ],
