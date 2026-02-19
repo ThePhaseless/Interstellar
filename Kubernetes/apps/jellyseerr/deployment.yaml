@@ -1,5 +1,5 @@
 # =============================================================================
-# Jellyseerr Deployment
+# Seerr Deployment (formerly Jellyseerr)
 # =============================================================================
 # Uses Jellyfin as authentication provider (no external OAuth required)
 apiVersion: apps/v1
@@ -24,10 +24,24 @@ spec:
         app: jellyseerr
     spec:
       serviceAccountName: arr-configurator
+      securityContext:
+        fsGroup: 1000
+
+      # Seerr v3 runs as non-root (UID 1000) - fix existing config ownership
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.37
+          command: ["sh", "-c", "chown -R 1000:1000 /app/config"]
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
 
       containers:
         - name: jellyseerr
-          image: fallenbagel/jellyseerr:2.3.0
+          image: ghcr.io/seerr-team/seerr:v3.0.1
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
           env:
             - name: TZ
               value: "UTC"
@@ -61,7 +75,7 @@ spec:
 
         # Configurator sidecar - sets up Jellyfin, Sonarr, Radarr
         - name: configurator
-          image: bitnami/kubectl:1.32
+          image: bitnami/kubectl:1.33
           command:
             - /bin/bash
             - /scripts/configure-jellyseerr.sh
