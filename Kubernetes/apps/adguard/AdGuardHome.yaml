@@ -46,7 +46,10 @@ filters:
     name: AdAway Default Blocklist
     id: 2
 whitelist_filters: []
-user_rules: []
+user_rules:
+    # Split-horizon DNS: local LAN clients get local Traefik LB IP
+    # $dnsrewrite takes precedence over global DNS rewrites
+    - '||nerine.dev^$client=192.168.1.0/24,dnsrewrite=192.168.1.11'
 dhcp:
   enabled: false
 filtering:
@@ -68,14 +71,15 @@ filtering:
   blocking_mode: default
   parental_block_host: family-block.dns.adguard.com
   safebrowsing_block_host: standard-block.dns.adguard.com
-  # DNS rewrites for Tailscale fallback access
-  # When friends use this AdGuard via Tailscale, domains resolve to Traefik's Tailscale IP
-  # Replace 100.x.y.z with actual traefik Tailscale IP after deployment
+  # DNS rewrites: default for all clients (Tailscale proxy, in-cluster, etc.)
+  # Local LAN clients are overridden by $dnsrewrite user_rule below
   rewrites:
     - domain: "*.nerine.dev"
-      answer: "100.x.y.z"
+      answer: "100.72.236.33"
+      enabled: true
     - domain: "nerine.dev"
-      answer: "100.x.y.z"
+      answer: "100.72.236.33"
+      enabled: true
   safebrowsing_cache_size: 1048576
   safesearch_cache_size: 1048576
   parental_cache_size: 1048576
