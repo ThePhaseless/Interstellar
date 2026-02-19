@@ -28,6 +28,7 @@ resources:
   - mcpjungle/
   - adguard/
   - oauth2-proxy/
+  - homepage/
   - whoami/
 
 labels:
