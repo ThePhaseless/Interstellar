@@ -22,7 +22,7 @@ spec:
     spec:
       initContainers:
         - name: config-init
-          image: linuxserver/qbittorrent:5.0.4
+          image: linuxserver/qbittorrent:5.1.4
           command:
             - /bin/sh
             - -c
@@ -41,6 +41,27 @@ spec:
               EOF
                 chmod 600 "${CONFIG_FILE}"
               fi
+              # Ensure API access settings for cluster-internal services
+              if ! grep -q 'CSRFProtection' "${CONFIG_FILE}"; then
+                sed -i '/^\[Preferences\]/a WebUI\\CSRFProtection=false' "${CONFIG_FILE}"
+              fi
+              if ! grep -q 'AuthSubnetWhitelistEnabled' "${CONFIG_FILE}"; then
+                sed -i '/^\[Preferences\]/a WebUI\\AuthSubnetWhitelistEnabled=true' "${CONFIG_FILE}"
+              fi
+              if ! grep -q 'AuthSubnetWhitelist' "${CONFIG_FILE}" || ! grep -q 'AuthSubnetWhitelist=' "${CONFIG_FILE}"; then
+                sed -i '/^\[Preferences\]/a WebUI\\AuthSubnetWhitelist=10.244.0.0/16,10.96.0.0/12' "${CONFIG_FILE}"
+              fi
+              if ! grep -q 'HostHeaderValidation' "${CONFIG_FILE}"; then
+                sed -i '/^\[Preferences\]/a WebUI\\HostHeaderValidation=false' "${CONFIG_FILE}"
+              fi
+              # Set download path to shared volume
+              if ! grep -q '^\[BitTorrent\]' "${CONFIG_FILE}"; then
+                printf '\n[BitTorrent]\nSession\\DefaultSavePath=/downloads\n' >> "${CONFIG_FILE}"
+              elif ! grep -q 'DefaultSavePath' "${CONFIG_FILE}"; then
+                sed -i '/^\[BitTorrent\]/a Session\\DefaultSavePath=/downloads' "${CONFIG_FILE}"
+              else
+                sed -i 's|Session\\DefaultSavePath=.*|Session\\DefaultSavePath=/downloads|' "${CONFIG_FILE}"
+              fi
           env:
             - name: QBT_WEBUI_USERNAME
               valueFrom:
@@ -57,7 +78,7 @@ spec:
               mountPath: /config
       containers:
         - name: qbittorrent
-          image: linuxserver/qbittorrent:5.0.4
+          image: linuxserver/qbittorrent:5.1.4
           env:
             - name: PUID
               value: "1000"
