@@ -18,6 +18,10 @@ spec:
       labels:
         app: grafana
     spec:
+      securityContext:
+        fsGroup: 472
+        runAsUser: 472
+        runAsGroup: 472
       containers:
         - name: grafana
           image: grafana/grafana:12.3.3
@@ -29,6 +33,12 @@ spec:
                 secretKeyRef:
                   name: grafana-secrets
                   key: admin-password
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: discord-webhook
+                  key: webhook-url
+                  optional: true
           ports:
             - name: http
               containerPort: 3000
@@ -39,6 +49,18 @@ spec:
               mountPath: /etc/grafana/provisioning/datasources
             - name: dashboards-provisioning
               mountPath: /etc/grafana/provisioning/dashboards
+            - name: alerting
+              mountPath: /etc/grafana/provisioning/alerting
+            - name: dashboard-cluster
+              mountPath: /var/lib/grafana/dashboards/cluster
+            - name: dashboard-traefik
+              mountPath: /var/lib/grafana/dashboards/traefik
+            - name: dashboard-media
+              mountPath: /var/lib/grafana/dashboards/media
+            - name: dashboard-logs
+              mountPath: /var/lib/grafana/dashboards/logs
+            - name: dashboard-geo
+              mountPath: /var/lib/grafana/dashboards/geo
           resources:
             requests:
               cpu: 50m
@@ -69,6 +91,24 @@ spec:
         - name: dashboards-provisioning
           configMap:
             name: grafana-dashboards-provisioning
+        - name: alerting
+          configMap:
+            name: grafana-alerting
+        - name: dashboard-cluster
+          configMap:
+            name: grafana-dashboard-cluster
+        - name: dashboard-traefik
+          configMap:
+            name: grafana-dashboard-traefik
+        - name: dashboard-media
+          configMap:
+            name: grafana-dashboard-media
+        - name: dashboard-logs
+          configMap:
+            name: grafana-dashboard-logs
+        - name: dashboard-geo
+          configMap:
+            name: grafana-dashboard-geo
 ---
 apiVersion: v1
 kind: Service
@@ -131,14 +171,46 @@ data:
   dashboards.yaml: |
     apiVersion: 1
     providers:
-      - name: default
+      - name: cluster
         orgId: 1
-        folder: ''
+        folder: 'Infrastructure'
         type: file
         disableDeletion: false
         editable: true
         options:
-          path: /var/lib/grafana/dashboards
+          path: /var/lib/grafana/dashboards/cluster
+      - name: traefik
+        orgId: 1
+        folder: 'Infrastructure'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/traefik
+      - name: media
+        orgId: 1
+        folder: 'Media'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/media
+      - name: logs
+        orgId: 1
+        folder: 'Logs'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/logs
+      - name: geo
+        orgId: 1
+        folder: 'Security'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/geo
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

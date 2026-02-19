@@ -1,0 +1,165 @@
+# =============================================================================
+# Logs Explorer Dashboard
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-logs
+  namespace: observability
+  labels:
+    grafana-dashboard: "true"
+data:
+  logs-explorer.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "title": "Log Volume by Namespace",
+          "type": "timeseries",
+          "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "fillOpacity": 30,
+                "lineWidth": 1,
+                "drawStyle": "bars",
+                "stacking": { "mode": "normal" }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum by (namespace) (count_over_time({namespace=~\"$namespace\"}[$__interval]))",
+              "legendFormat": "{{ namespace }}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "tooltip": { "mode": "multi" },
+            "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] }
+          }
+        },
+        {
+          "title": "Error Logs Volume",
+          "type": "timeseries",
+          "gridPos": { "h": 6, "w": 12, "x": 0, "y": 6 },
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": { "mode": "fixed", "fixedColor": "red" },
+              "custom": {
+                "fillOpacity": 30,
+                "lineWidth": 2,
+                "drawStyle": "bars"
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum by (namespace) (count_over_time({namespace=~\"$namespace\"} |~ \"(?i)error|fatal|panic|exception\" [$__interval]))",
+              "legendFormat": "{{ namespace }}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "tooltip": { "mode": "multi" },
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          }
+        },
+        {
+          "title": "Warning Logs Volume",
+          "type": "timeseries",
+          "gridPos": { "h": 6, "w": 12, "x": 12, "y": 6 },
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": { "mode": "fixed", "fixedColor": "yellow" },
+              "custom": {
+                "fillOpacity": 30,
+                "lineWidth": 2,
+                "drawStyle": "bars"
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum by (namespace) (count_over_time({namespace=~\"$namespace\"} |~ \"(?i)warn\" [$__interval]))",
+              "legendFormat": "{{ namespace }}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "tooltip": { "mode": "multi" },
+            "legend": { "displayMode": "list", "placement": "bottom" }
+          }
+        },
+        {
+          "title": "All Logs",
+          "type": "logs",
+          "gridPos": { "h": 14, "w": 24, "x": 0, "y": 12 },
+          "datasource": { "type": "loki", "uid": "loki" },
+          "targets": [
+            {
+              "expr": "{namespace=~\"$namespace\", container=~\"$container\"} |~ \"$search\"",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "showTime": true,
+            "showLabels": true,
+            "showCommonLabels": false,
+            "wrapLogMessage": true,
+            "sortOrder": "Descending",
+            "dedupStrategy": "none",
+            "enableLogDetails": true
+          }
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["logs", "loki"],
+      "templating": {
+        "list": [
+          {
+            "name": "namespace",
+            "type": "query",
+            "datasource": { "type": "loki", "uid": "loki" },
+            "query": { "label": "namespace", "stream": "", "type": 1 },
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 2
+          },
+          {
+            "name": "container",
+            "type": "query",
+            "datasource": { "type": "loki", "uid": "loki" },
+            "query": { "label": "container", "stream": "{namespace=~\"$namespace\"}", "type": 1 },
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "includeAll": true,
+            "allValue": ".+",
+            "multi": true,
+            "refresh": 2
+          },
+          {
+            "name": "search",
+            "type": "textbox",
+            "current": { "value": "" },
+            "label": "Search"
+          }
+        ]
+      },
+      "time": { "from": "now-1h", "to": "now" },
+      "title": "Logs Explorer",
+      "uid": "logs-explorer"
+    }

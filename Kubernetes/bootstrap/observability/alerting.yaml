@@ -71,14 +71,49 @@ data:
             condition: C
             data:
               - refId: A
+                relativeTimeRange:
+                  from: 300
+                  to: 0
                 datasourceUid: mimir
                 model:
                   expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: [A]
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  type: threshold
+            dashboardUid: ""
+            panelId: 0
+            noDataState: NoData
+            execErrState: Error
             for: 5m
             annotations:
               summary: Memory usage is above 85% for 5 minutes
             labels:
               severity: warning
+            isPaused: false
 
           # Pod Crash Looping
           - uid: pod-crashloop
@@ -86,14 +121,49 @@ data:
             condition: C
             data:
               - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
                 datasourceUid: mimir
                 model:
                   expr: increase(kube_pod_container_status_restarts_total[10m]) > 5
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: [A]
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  type: threshold
+            dashboardUid: ""
+            panelId: 0
+            noDataState: NoData
+            execErrState: Error
             for: 0s
             annotations:
               summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping
             labels:
               severity: critical
+            isPaused: false
 
           # Pod Not Ready
           - uid: pod-not-ready
@@ -101,14 +171,49 @@ data:
             condition: C
             data:
               - refId: A
+                relativeTimeRange:
+                  from: 300
+                  to: 0
                 datasourceUid: mimir
                 model:
                   expr: kube_pod_status_ready{condition="true"} == 0
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: [A]
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  type: threshold
+            dashboardUid: ""
+            panelId: 0
+            noDataState: NoData
+            execErrState: Error
             for: 5m
             annotations:
               summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready
             labels:
               severity: warning
+            isPaused: false
 
           # PVC Almost Full
           - uid: pvc-almost-full
@@ -116,14 +221,49 @@ data:
             condition: C
             data:
               - refId: A
+                relativeTimeRange:
+                  from: 300
+                  to: 0
                 datasourceUid: mimir
                 model:
                   expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 85
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: [A]
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  type: threshold
+            dashboardUid: ""
+            panelId: 0
+            noDataState: NoData
+            execErrState: Error
             for: 5m
             annotations:
               summary: PVC {{ $labels.persistentvolumeclaim }} is above 85% capacity
             labels:
               severity: warning
+            isPaused: false
 
           # Node Not Ready
           - uid: node-not-ready
@@ -131,14 +271,49 @@ data:
             condition: C
             data:
               - refId: A
+                relativeTimeRange:
+                  from: 300
+                  to: 0
                 datasourceUid: mimir
                 model:
                   expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: [A]
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  type: threshold
+            dashboardUid: ""
+            panelId: 0
+            noDataState: NoData
+            execErrState: Error
             for: 5m
             annotations:
               summary: Node {{ $labels.node }} is not ready
             labels:
               severity: critical
+            isPaused: false
 
           # Certificate Expiring Soon
           - uid: cert-expiring
@@ -146,14 +321,49 @@ data:
             condition: C
             data:
               - refId: A
+                relativeTimeRange:
+                  from: 300
+                  to: 0
                 datasourceUid: mimir
                 model:
                   expr: (certmanager_certificate_expiration_timestamp_seconds - time()) < 1209600
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  conditions:
+                    - evaluator:
+                        params: [0]
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: [A]
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  type: threshold
+            dashboardUid: ""
+            panelId: 0
+            noDataState: NoData
+            execErrState: Error
             for: 1h
             annotations:
               summary: Certificate {{ $labels.name }} expires in less than 14 days
             labels:
               severity: warning
+            isPaused: false
 
     contactPoints:
       - orgId: 1

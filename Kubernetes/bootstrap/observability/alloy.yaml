@@ -20,17 +20,20 @@ spec:
       serviceAccountName: alloy
       containers:
         - name: alloy
-          image: grafana/alloy:v1.5.1
+          image: grafana/alloy:v1.13.1
           args:
             - run
             - /etc/alloy/config.alloy
             - --server.http.listen-addr=0.0.0.0:12345
+            - --storage.path=/tmp/alloy
           ports:
             - name: http
               containerPort: 12345
           volumeMounts:
             - name: config
               mountPath: /etc/alloy
+            - name: data
+              mountPath: /tmp/alloy
           resources:
             requests:
               cpu: 50m
@@ -49,6 +52,8 @@ spec:
         - name: config
           configMap:
             name: alloy-config
+        - name: data
+          emptyDir: {}
 
       tolerations:
         - effect: NoSchedule
@@ -163,6 +168,28 @@ data:
       }
 
       forward_to = [prometheus.remote_write.mimir.receiver]
+    }
+
+    // Relabel for cAdvisor metrics (container CPU/memory)
+    discovery.relabel "cadvisor" {
+      targets = discovery.kubernetes.nodes.targets
+
+      rule {
+        target_label  = "__metrics_path__"
+        replacement   = "/metrics/cadvisor"
+      }
+    }
+
+    // Scrape cAdvisor metrics
+    prometheus.scrape "cadvisor" {
+      targets    = discovery.relabel.cadvisor.output
+      scheme     = "https"
+      forward_to = [prometheus.remote_write.mimir.receiver]
+
+      bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      tls_config {
+        insecure_skip_verify = true
+      }
     }
 
     // Remote write to Mimir

@@ -18,9 +18,26 @@ spec:
         app: promtail
     spec:
       serviceAccountName: promtail
+      initContainers:
+        - name: download-geoip
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              YEAR=$(date +%Y)
+              MONTH=$(date +%m)
+              URL="https://download.db-ip.com/free/dbip-country-lite-${YEAR}-${MONTH}.mmdb.gz"
+              echo "Downloading GeoIP database from ${URL}"
+              wget -q "${URL}" -O /geoip/db.mmdb.gz && gunzip -f /geoip/db.mmdb.gz
+              echo "GeoIP database ready: $(ls -la /geoip/db.mmdb)"
+          volumeMounts:
+            - name: geoip
+              mountPath: /geoip
+
       containers:
         - name: promtail
-          image: grafana/promtail:3.3.0
+          image: grafana/promtail:3.6.6
           args:
             - -config.file=/etc/promtail/promtail.yaml
           env:
@@ -39,6 +56,9 @@ spec:
               readOnly: true
             - name: positions
               mountPath: /run/promtail
+            - name: geoip
+              mountPath: /geoip
+              readOnly: true
           resources:
             requests:
               cpu: 10m
@@ -64,6 +84,8 @@ spec:
           hostPath:
             path: /var/lib/docker/containers
         - name: positions
+          emptyDir: {}
+        - name: geoip
           emptyDir: {}
 
       tolerations:
@@ -163,3 +185,18 @@ data:
             action: replace
         pipeline_stages:
           - cri: {}
+          - match:
+              selector: '{namespace="traefik", container="traefik"}'
+              stages:
+                - json:
+                    expressions:
+                      client_addr: ClientAddr
+                - regex:
+                    expression: '^(?P<client_ip>[^:]+)'
+                    source: client_addr
+                - geoip:
+                    db: /geoip/db.mmdb
+                    source: client_ip
+                    db_type: country
+                - labels:
+                    geoip_country_code:
