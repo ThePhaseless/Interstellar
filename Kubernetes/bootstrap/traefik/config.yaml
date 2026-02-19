@@ -54,7 +54,7 @@ data:
                   - "*.nerine.dev"
           # Global middlewares applied to all routes
           middlewares:
-            - security-headers@file
+            - traefik-security-headers@kubernetescrd
 
       traefik:
         address: ":8080"
@@ -82,25 +82,15 @@ data:
       # Kubernetes Ingress provider
       kubernetesIngress:
         allowExternalNameServices: true
-        publishedService:
-          enabled: true
-
-      # File provider for middlewares
-      file:
-        directory: /etc/traefik/dynamic
-        watch: true
 
     # Logging
     log:
       level: INFO
       format: json
 
-    # Access Logging
+    # Access Logging (all requests — needed for geo heatmap analytics)
     accessLog:
       format: json
-      filters:
-        statusCodes:
-          - "400-599"
 
     # Metrics (for Mimir/Prometheus)
     metrics:

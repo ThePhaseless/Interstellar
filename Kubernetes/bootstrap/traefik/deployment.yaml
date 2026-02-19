@@ -9,26 +9,26 @@ metadata:
   labels:
     app: traefik
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: traefik
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+    type: Recreate
   template:
     metadata:
       labels:
         app: traefik
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
     spec:
       serviceAccountName: traefik
       terminationGracePeriodSeconds: 60
 
       containers:
         - name: traefik
-          image: traefik:v3.3
+          image: traefik:v3.6.8
           args:
             - --configFile=/etc/traefik/traefik.yaml
           ports:
@@ -126,6 +126,7 @@ rules:
       - services
       - endpoints
       - secrets
+      - nodes
     verbs:
       - get
       - list
@@ -136,6 +137,14 @@ rules:
     resources:
       - ingresses
       - ingressclasses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
     verbs:
       - get
       - list
