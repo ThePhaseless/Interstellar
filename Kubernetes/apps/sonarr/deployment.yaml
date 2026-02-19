@@ -150,4 +150,9 @@ spec:
       middlewares:
         - name: tailscale-only
           namespace: traefik
-  tls: {}
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

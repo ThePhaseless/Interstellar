@@ -17,4 +17,9 @@ spec:
           kind: TraefikService
       middlewares:
         - name: tailscale-only
-  tls: {}
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"
