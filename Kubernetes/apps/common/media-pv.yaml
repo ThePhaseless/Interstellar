@@ -33,3 +33,36 @@ spec:
   resources:
     requests:
       storage: 8Ti
+---
+# Second PV/PVC pair for utilities namespace (copyparty access to media)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-nfs-pv-utilities
+spec:
+  capacity:
+    storage: 8Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: REPLACED_BY_KUSTOMIZE
+    path: REPLACED_BY_KUSTOMIZE
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: media-nfs-pv-utilities
+  resources:
+    requests:
+      storage: 8Ti

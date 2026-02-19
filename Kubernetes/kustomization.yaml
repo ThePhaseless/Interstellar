@@ -19,6 +19,11 @@ replacements:
         fieldPaths:
           - spec.nfs.server
       - select:
+          kind: PersistentVolume
+          name: media-nfs-pv-utilities
+        fieldPaths:
+          - spec.nfs.server
+      - select:
           kind: StorageClass
           name: nfs-csi
         fieldPaths:
@@ -34,13 +39,18 @@ replacements:
         fieldPaths:
           - spec.nfs.path
       - select:
+          kind: PersistentVolume
+          name: media-nfs-pv-utilities
+        fieldPaths:
+          - spec.nfs.path
+      - select:
           kind: StorageClass
           name: nfs-csi
         fieldPaths:
           - parameters.share
 
 labels:
-  - includeSelectors: true
+  - includeSelectors: false
     pairs:
       cluster: talos
       managed-by: argocd

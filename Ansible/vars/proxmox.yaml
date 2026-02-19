@@ -1,5 +1,5 @@
 # NFS server configuration for Proxmox host
 # Export the ZFS storage pool to TalosOS nodes via NFS
 
-nfs_export_path: /Storage/media
+nfs_export_path: /Storage
 nfs_allowed_network: 192.168.1.0/24
