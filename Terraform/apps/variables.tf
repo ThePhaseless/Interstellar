@@ -1,24 +1,25 @@
+# --- Cluster-internal URLs (stored in app configs for inter-service communication) ---
 variable "sonarr_url" {
   type        = string
-  description = "Sonarr base URL"
+  description = "Sonarr cluster-internal URL (used in Prowlarr app config)"
   default     = "http://sonarr.media.svc.cluster.local:8989"
 }
 
 variable "radarr_url" {
   type        = string
-  description = "Radarr base URL"
+  description = "Radarr cluster-internal URL (used in Prowlarr app config)"
   default     = "http://radarr.media.svc.cluster.local:7878"
 }
 
 variable "prowlarr_url" {
   type        = string
-  description = "Prowlarr base URL"
+  description = "Prowlarr cluster-internal URL (used in Prowlarr app config)"
   default     = "http://prowlarr.media.svc.cluster.local:9696"
 }
 
 variable "qbittorrent_host" {
   type        = string
-  description = "qBittorrent host"
+  description = "qBittorrent cluster-internal host (stored in Sonarr/Radarr config)"
   default     = "qbittorrent.media.svc.cluster.local"
 }
 
@@ -42,8 +43,33 @@ variable "radarr_movie_category" {
 
 variable "grafana_url" {
   type        = string
-  description = "Grafana base URL"
+  description = "Grafana cluster-internal URL (used in Grafana data source config)"
   default     = "http://grafana.observability.svc.cluster.local:3000"
+}
+
+# --- Provider URLs (how Terraform connects to the services, e.g. via port-forward) ---
+variable "sonarr_provider_url" {
+  type        = string
+  description = "Sonarr URL reachable from Terraform (e.g. localhost via port-forward)"
+  default     = ""
+}
+
+variable "radarr_provider_url" {
+  type        = string
+  description = "Radarr URL reachable from Terraform (e.g. localhost via port-forward)"
+  default     = ""
+}
+
+variable "prowlarr_provider_url" {
+  type        = string
+  description = "Prowlarr URL reachable from Terraform (e.g. localhost via port-forward)"
+  default     = ""
+}
+
+variable "grafana_provider_url" {
+  type        = string
+  description = "Grafana URL reachable from Terraform (e.g. localhost via port-forward)"
+  default     = ""
 }
 
 variable "bitwarden_sonarr_api_key_name" {

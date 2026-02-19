@@ -70,17 +70,7 @@ data "bitwarden-secrets_secret" "oci_config" {
 # Optional secrets (may not exist yet)
 # -----------------------------------------------------------------------------
 
-# Discord webhook for alerts
-data "bitwarden-secrets_secret" "discord_webhook_url" {
-  count = contains(keys(local.secret_key_to_id), "discord-webhook-url") ? 1 : 0
-  id    = local.secret_key_to_id["discord-webhook-url"]
-}
-
-# CrowdSec API key
-data "bitwarden-secrets_secret" "crowdsec_api_key" {
-  count = contains(keys(local.secret_key_to_id), "crowdsec-api-key") ? 1 : 0
-  id    = local.secret_key_to_id["crowdsec-api-key"]
-}
+# CrowdSec and Discord secrets are managed as resources in secrets.tf
 
 # Copyparty access groups (used for file write permissions)
 data "bitwarden-secrets_secret" "copyparty_admins" {
