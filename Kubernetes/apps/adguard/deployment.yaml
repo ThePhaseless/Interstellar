@@ -47,11 +47,15 @@ spec:
             - name: config-template
               mountPath: /config
             - name: data
-              mountPath: /opt/adguardhome
+              mountPath: /opt/adguardhome/conf
+              subPath: conf
+            - name: data
+              mountPath: /opt/adguardhome/work
+              subPath: work
 
       containers:
         - name: adguard
-          image: adguard/adguardhome:v0.107.57
+          image: adguard/adguardhome:v0.107.72
           env:
             - name: TZ
               value: "UTC"
@@ -73,7 +77,11 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: data
-              mountPath: /opt/adguardhome
+              mountPath: /opt/adguardhome/conf
+              subPath: conf
+            - name: data
+              mountPath: /opt/adguardhome/work
+              subPath: work
           resources:
             requests:
               cpu: 50m
