@@ -34,7 +34,18 @@ if [ "$INITIALIZED" = "true" ]; then
 else
   echo "Jellyseerr not initialized - requires manual setup via UI first"
   echo "Please complete initial setup at https://jellyseerr.nerine.dev"
-  exit 0
+  # Wait and retry periodically instead of exiting
+  while true; do
+    sleep 300
+    echo "Rechecking Jellyseerr initialization status..."
+    STATUS=$(curl -s "${JELLYSEERR_URL}/api/v1/status" || echo "{}")
+    INITIALIZED=$(echo "$STATUS" | grep -o '"initialized":[^,}]*' | cut -d: -f2 || echo "false")
+    if [ "$INITIALIZED" = "true" ]; then
+      echo "Jellyseerr is now initialized! Proceeding with configuration..."
+      break
+    fi
+    echo "Still not initialized, will check again in 5 minutes..."
+  done
 fi
 
 # Configure Jellyfin if not already configured
