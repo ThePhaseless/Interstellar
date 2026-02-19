@@ -20,6 +20,30 @@ spec:
       labels:
         app: copyparty
     spec:
+      initContainers:
+        - name: build-config
+          image: busybox:1.37
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cp /config-template/copyparty.conf /merged-config/copyparty.conf
+              # Replace %{inc:path}% with actual file contents
+              for file in /cfg/secrets/*; do
+                key=$(basename "$file")
+                value=$(cat "$file")
+                sed -i "s|%{inc:/cfg/secrets/${key}}%|${value}|g" /merged-config/copyparty.conf
+              done
+          volumeMounts:
+            - name: config-template
+              mountPath: /config-template
+              readOnly: true
+            - name: secrets
+              mountPath: /cfg/secrets
+              readOnly: true
+            - name: merged-config
+              mountPath: /merged-config
+
       containers:
         - name: copyparty
           image: ghcr.io/9001/copyparty-ac:1.20.7
@@ -32,11 +56,8 @@ spec:
             - name: smb
               containerPort: 3945
           volumeMounts:
-            - name: config
+            - name: merged-config
               mountPath: /config
-              readOnly: true
-            - name: secrets
-              mountPath: /cfg/secrets
               readOnly: true
             - name: personal
               mountPath: /personal
@@ -64,12 +85,14 @@ spec:
             periodSeconds: 10
 
       volumes:
-        - name: config
+        - name: config-template
           configMap:
             name: copyparty-config
         - name: secrets
           secret:
             secretName: copyparty-secrets
+        - name: merged-config
+          emptyDir: {}
         - name: personal
           persistentVolumeClaim:
             claimName: personal-pvc
