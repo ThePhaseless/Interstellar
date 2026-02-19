@@ -26,50 +26,21 @@ spec:
           env:
             - name: TZ
               value: "UTC"
-            - name: LOG_LEVEL
-              value: "INFO"
-            # Sonarr configuration
-            - name: SONARR_URL
-              value: "http://sonarr.media.svc.cluster.local:8989"
             - name: SONARR_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: arr-api-keys
                   key: sonarr-api-key
-            # Radarr configuration
-            - name: RADARR_URL
-              value: "http://radarr.media.svc.cluster.local:7878"
             - name: RADARR_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: arr-api-keys
                   key: radarr-api-key
-            # qBittorrent configuration
-            - name: QBITTORRENT_URL
-              value: "http://qbittorrent.media.svc.cluster.local:8080"
-            # Behavior settings
-            - name: REMOVE_TIMER
-              value: "10"
-            - name: REMOVE_FAILED
-              value: "True"
-            - name: REMOVE_STALLED
-              value: "True"
-            - name: REMOVE_METADATA_MISSING
-              value: "True"
-            - name: REMOVE_ORPHANS
-              value: "True"
-            - name: REMOVE_UNMONITORED
-              value: "True"
-            - name: REMOVE_MISSING_FILES
-              value: "True"
-            - name: REMOVE_SLOW
-              value: "True"
-            - name: MIN_DOWNLOAD_SPEED
-              value: "100"
-            - name: PERMITTED_ATTEMPTS
-              value: "3"
-            - name: NO_STALLED_REMOVAL_QBIT_TAG
-              value: "dont_delete"
+          volumeMounts:
+            - name: config
+              mountPath: /app/config/config.yaml
+              subPath: config.yaml
+              readOnly: true
           resources:
             requests:
               cpu: 10m
@@ -77,3 +48,8 @@ spec:
             limits:
               cpu: 200m
               memory: 256Mi
+
+      volumes:
+        - name: config
+          configMap:
+            name: decluttarr-config
