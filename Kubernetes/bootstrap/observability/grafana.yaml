@@ -35,33 +35,37 @@ spec:
                 secretKeyRef:
                   name: grafana-secrets
                   key: admin-password
-            # Google OAuth
-            - name: GF_AUTH_GOOGLE_ENABLED
+            # Authentik OIDC
+            - name: GF_AUTH_GENERIC_OAUTH_ENABLED
               value: "true"
-            - name: GF_AUTH_GOOGLE_ALLOW_SIGN_UP
+            - name: GF_AUTH_GENERIC_OAUTH_NAME
+              value: "authentik"
+            - name: GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP
               value: "true"
-            - name: GF_AUTH_GOOGLE_AUTO_LOGIN
+            - name: GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN
               value: "false"
-            - name: GF_AUTH_GOOGLE_CLIENT_ID
+            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
               valueFrom:
                 secretKeyRef:
                   name: grafana-secrets
-                  key: google-client-id
-            - name: GF_AUTH_GOOGLE_CLIENT_SECRET
+                  key: oidc-client-id
+            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: grafana-secrets
-                  key: google-client-secret
-            - name: GF_AUTH_GOOGLE_SCOPES
-              value: "openid email profile"
-            - name: GF_AUTH_GOOGLE_AUTH_URL
-              value: "https://accounts.google.com/o/oauth2/v2/auth"
-            - name: GF_AUTH_GOOGLE_TOKEN_URL
-              value: "https://oauth2.googleapis.com/token"
-            - name: GF_AUTH_GOOGLE_API_URL
-              value: "https://openidconnect.googleapis.com/v1/userinfo"
-            - name: GF_AUTH_GOOGLE_ALLOWED_DOMAINS
-              value: ""
+                  key: oidc-client-secret
+            - name: GF_AUTH_GENERIC_OAUTH_SCOPES
+              value: "openid profile email"
+            - name: GF_AUTH_GENERIC_OAUTH_AUTH_URL
+              value: "https://auth.nerine.dev/application/o/authorize/"
+            - name: GF_AUTH_GENERIC_OAUTH_TOKEN_URL
+              value: "https://auth.nerine.dev/application/o/token/"
+            - name: GF_AUTH_GENERIC_OAUTH_API_URL
+              value: "https://auth.nerine.dev/application/o/userinfo/"
+            - name: GF_AUTH_SIGNOUT_REDIRECT_URL
+              value: "https://auth.nerine.dev/application/o/grafana/end-session/"
+            - name: GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
+              value: "contains(groups[*], 'Grafana Admins') && 'Admin' || contains(groups[*], 'Grafana Editors') && 'Editor' || 'Viewer'"
             - name: GF_USERS_ALLOW_SIGN_UP
               value: "true"
             - name: GF_USERS_AUTO_ASSIGN_ORG
@@ -264,7 +268,7 @@ spec:
       middlewares:
         - name: private-chain
           namespace: traefik
-        - name: oauth2-proxy
+        - name: authentik
           namespace: traefik
   tls:
     certResolver: letsencrypt
