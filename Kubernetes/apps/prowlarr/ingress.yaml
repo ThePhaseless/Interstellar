@@ -1,5 +1,5 @@
 # =============================================================================
-# Prowlarr Ingress (Protected by OAuth2 Proxy)
+# Prowlarr Ingress (Protected by Authentik)
 # =============================================================================
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -18,7 +18,7 @@ spec:
       middlewares:
         - name: public-chain
           namespace: traefik
-        - name: oauth2-proxy
+        - name: authentik
           namespace: traefik
   tls:
     certResolver: letsencrypt

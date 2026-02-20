@@ -18,7 +18,7 @@ spec:
       middlewares:
         - name: private-chain
           namespace: traefik
-        - name: oauth2-proxy
+        - name: authentik
           namespace: traefik
   tls:
     certResolver: letsencrypt
