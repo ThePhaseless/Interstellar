@@ -1,9 +1,9 @@
 # =============================================================================
 # AdGuard Home Auto-Login Middleware
 # =============================================================================
-# Injects Basic Auth header so oauth2-proxy authenticated users bypass
+# Injects Basic Auth header so Authentik-authenticated users bypass
 # AdGuard Home's internal login page. Internal auth uses static credentials
-# (admin/admin) since the real auth is handled by oauth2-proxy.
+# (admin/admin) since the real auth is handled by Authentik.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:

@@ -33,7 +33,7 @@ spec:
                 CLIENT_ID=$(cat /secrets/oauth-client-id)
                 CLIENT_SECRET=$(cat /secrets/oauth-client-secret)
                 if [ -n "$CLIENT_ID" ] && [ -n "$CLIENT_SECRET" ]; then
-                  printf '{"oauth":{"enabled":true,"issuerUrl":"https://accounts.google.com","clientId":"%s","clientSecret":"%s","scope":"openid email profile","signingAlgorithm":"RS256","profileSigningAlgorithm":"none","storageLabelClaim":"preferred_username","buttonText":"Login with Google","autoRegister":true,"autoLaunch":true,"defaultStorageQuota":0},"passwordLogin":{"enabled":false}}' "$CLIENT_ID" "$CLIENT_SECRET" > /immich-config/immich.config.json
+                  printf '{"oauth":{"enabled":true,"issuerUrl":"https://auth.nerine.dev/application/o/immich/.well-known/openid-configuration","clientId":"%s","clientSecret":"%s","scope":"openid email profile","signingAlgorithm":"RS256","profileSigningAlgorithm":"none","storageLabelClaim":"preferred_username","buttonText":"Login with Authentik","autoRegister":true,"autoLaunch":true,"defaultStorageQuota":0},"passwordLogin":{"enabled":false}}' "$CLIENT_ID" "$CLIENT_SECRET" > /immich-config/immich.config.json
                   echo "Immich OAuth config created (enabled)"
                 else
                   echo '{"oauth":{"enabled":false}}' > /immich-config/immich.config.json

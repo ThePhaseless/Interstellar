@@ -3,7 +3,7 @@
 # Automated Jellyfin Setup
 # =============================================================================
 # Completes the setup wizard, configures media libraries, and creates users
-# from the VIP email list (passwordless accounts behind oauth2-proxy).
+# from the VIP email list (passwordless accounts behind Authentik).
 #
 # Required environment variables:
 #   JELLYFIN_ADMIN_USER     - Admin username (hardcoded to "admin")
@@ -114,7 +114,7 @@ if ! echo "$LIBRARIES" | grep -q '"TV Shows"'; then
     || echo "Warning: Failed to add TV Shows library"
 fi
 
-# --- Create VIP users (passwordless, behind oauth2-proxy) ---
+# --- Create VIP users (passwordless, behind Authentik) ---
 if [ -f "$VIP_EMAILS_FILE" ]; then
   echo "Creating VIP users from email list..."
 
@@ -142,7 +142,7 @@ if [ -f "$VIP_EMAILS_FILE" ]; then
     USER_ID=$(echo "$CREATE_RESPONSE" | grep -o '"Id":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "")
 
     if [ -n "$USER_ID" ]; then
-      # Disable password (auth handled by oauth2-proxy)
+      # Disable password (auth handled by Authentik)
       curl -s -X POST "${JELLYFIN_URL}/Users/${USER_ID}/Password" \
         -H "X-Emby-Authorization: ${AUTH}" \
         -H "Content-Type: application/json" \
