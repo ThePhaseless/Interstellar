@@ -24,30 +24,20 @@ replacements:
         fieldPaths:
           - spec.nfs.server
       - select:
-          kind: StorageClass
-          name: nfs-csi
+          kind: PersistentVolume
+          name: downloads-nfs-pv
         fieldPaths:
-          - parameters.server
-  - source:
-      kind: ConfigMap
-      name: nfs-storage-config
-      fieldPath: data.path
-    targets:
+          - spec.nfs.server
       - select:
           kind: PersistentVolume
-          name: media-nfs-pv
+          name: personal-nfs-pv
         fieldPaths:
-          - spec.nfs.path
+          - spec.nfs.server
       - select:
           kind: PersistentVolume
-          name: media-nfs-pv-utilities
+          name: photos-nfs-pv
         fieldPaths:
-          - spec.nfs.path
-      - select:
-          kind: StorageClass
-          name: nfs-csi
-        fieldPaths:
-          - parameters.share
+          - spec.nfs.server
 
 labels:
   - includeSelectors: false

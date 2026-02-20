@@ -110,11 +110,11 @@ spec:
             - name: downloads
               nfs:
                 server: 192.168.1.10
-                path: /Storage/media/pvc-66f7d9b1-2ebb-4f78-a49d-4d962b6eb8e2
+                path: /Storage/media/downloads
             - name: personal
               nfs:
                 server: 192.168.1.10
-                path: /Storage/media/pvc-657c11d4-0f03-4d7b-b6b1-357d6ba94cdd
+                path: /Storage/personal
             - name: clamav-db
               persistentVolumeClaim:
                 claimName: clamav-db
@@ -243,12 +243,12 @@ spec:
             - name: downloads
               nfs:
                 server: 192.168.1.10
-                path: /Storage/media/pvc-66f7d9b1-2ebb-4f78-a49d-4d962b6eb8e2
+                path: /Storage/media/downloads
                 readOnly: true
             - name: personal
               nfs:
                 server: 192.168.1.10
-                path: /Storage/media/pvc-657c11d4-0f03-4d7b-b6b1-357d6ba94cdd
+                path: /Storage/personal
                 readOnly: true
             - name: clamav-db
               persistentVolumeClaim:

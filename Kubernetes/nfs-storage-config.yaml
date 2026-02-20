@@ -4,4 +4,3 @@ metadata:
   name: nfs-storage-config
 data:
   server: 192.168.1.10
-  path: /Storage/media
