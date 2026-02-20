@@ -174,21 +174,23 @@ resource "bitwarden-secrets_secret" "immich_db_password" {
 }
 
 # -----------------------------------------------------------------------------
-# Bitwarden Secrets — OAuth2 Proxy (placeholder until Authentik migration)
+# Bitwarden Secrets — OAuth2 Proxy (Google OAuth)
 # -----------------------------------------------------------------------------
+# OAuth client is created manually in GCP Console. These placeholders are
+# overwritten manually in Bitwarden after creating the client. See SETUP.md.
 
 resource "bitwarden-secrets_secret" "oauth2_proxy_cookie_secret" {
   key        = "oauth2-proxy-cookie-secret"
   value      = random_password.oauth2_proxy_cookie_secret.result
   project_id = local.bitwarden_project_id
-  note       = "OAuth2 Proxy cookie secret. Will be replaced by Authentik. Managed by Terraform."
+  note       = "OAuth2 Proxy cookie encryption secret. Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "oauth2_proxy_google_client_id" {
   key        = "oauth2-proxy-google-client-id"
   value      = "placeholder-set-google-client-id"
   project_id = local.bitwarden_project_id
-  note       = "Google OAuth client ID. Update manually. Will be replaced by Authentik. Managed by Terraform."
+  note       = "Google OAuth client ID. Create in GCP Console, update in Bitwarden. Managed by Terraform."
 
   lifecycle {
     ignore_changes = [value]
@@ -199,7 +201,7 @@ resource "bitwarden-secrets_secret" "oauth2_proxy_google_client_secret" {
   key        = "oauth2-proxy-google-client-secret"
   value      = "placeholder-set-google-client-secret"
   project_id = local.bitwarden_project_id
-  note       = "Google OAuth client secret. Update manually. Will be replaced by Authentik. Managed by Terraform."
+  note       = "Google OAuth client secret. Create in GCP Console, update in Bitwarden. Managed by Terraform."
 
   lifecycle {
     ignore_changes = [value]

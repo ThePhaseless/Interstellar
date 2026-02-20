@@ -10,6 +10,8 @@ metadata:
     app: crowdsec-lapi
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: crowdsec-lapi

@@ -42,6 +42,7 @@ spec:
             - |
               if [ ! -f /opt/adguardhome/conf/AdGuardHome.yaml ]; then
                 cp /config/AdGuardHome.yaml /opt/adguardhome/conf/AdGuardHome.yaml
+                echo "Initial config created"
               fi
           volumeMounts:
             - name: config-template

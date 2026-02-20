@@ -92,24 +92,6 @@ resource "bitwarden-secrets_secret" "oauth_client_secret" {
 }
 
 # -----------------------------------------------------------------------------
-# Auto-generated Secrets
-# -----------------------------------------------------------------------------
-
-# Generate random cookie secret for OAuth2 Proxy
-resource "random_password" "oauth_cookie_secret" {
-  length  = 32
-  special = false
-}
-
-# Store the cookie secret in Bitwarden
-resource "bitwarden-secrets_secret" "oauth_cookie_secret" {
-  key        = "google-oauth-cookie-secret"
-  value      = random_password.oauth_cookie_secret.result
-  project_id = local.bitwarden_project_id
-  note       = "OAuth2 Proxy cookie secret. Managed by Terraform."
-}
-
-# -----------------------------------------------------------------------------
 # Tailscale Device Lookup
 # -----------------------------------------------------------------------------
 # Look up Tailscale devices created by the K8s Tailscale operator.

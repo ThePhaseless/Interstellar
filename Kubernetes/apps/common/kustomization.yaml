@@ -18,3 +18,4 @@ configMapGenerator:
       - scripts/configure-download-client.sh
       - scripts/configure-prowlarr.sh
       - scripts/configure-jellyseerr.sh
+      - scripts/configure-jellyfin.sh

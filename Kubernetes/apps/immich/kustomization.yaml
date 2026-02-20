@@ -12,6 +12,7 @@ resources:
   - ingress.yaml
   - pvc.yaml
   - ml-deployment.yaml
+  - externalsecret-oauth.yaml
 
 labels:
   - pairs:

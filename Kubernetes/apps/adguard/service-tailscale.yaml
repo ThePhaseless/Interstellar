@@ -36,6 +36,11 @@ spec:
       port: 53
       targetPort: dns-tcp
       protocol: TCP
+    # HTTP API for Terraform management
+    - name: http-api
+      port: 3000
+      targetPort: http
+      protocol: TCP
     # DoH for mobile/browser DNS
     - name: https
       port: 443

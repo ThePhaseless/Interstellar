@@ -1,8 +1,8 @@
 locals {
-  sonarr_provider_url   = var.sonarr_provider_url != "" ? var.sonarr_provider_url : var.sonarr_url
-  radarr_provider_url   = var.radarr_provider_url != "" ? var.radarr_provider_url : var.radarr_url
-  prowlarr_provider_url = var.prowlarr_provider_url != "" ? var.prowlarr_provider_url : var.prowlarr_url
-  grafana_provider_url  = var.grafana_provider_url != "" ? var.grafana_provider_url : var.grafana_url
+  sonarr_provider_url   = var.sonarr_provider_url
+  radarr_provider_url   = var.radarr_provider_url
+  prowlarr_provider_url = var.prowlarr_provider_url
+  adguard_provider_url  = var.adguard_provider_url
 }
 
 provider "sonarr" {
@@ -20,7 +20,9 @@ provider "prowlarr" {
   api_key = data.bitwarden-secrets_secret.prowlarr_api_key.value
 }
 
-provider "grafana" {
-  url  = local.grafana_provider_url
-  auth = data.bitwarden-secrets_secret.grafana_auth.value
+provider "adguard" {
+  host     = local.adguard_provider_url
+  username = "admin"
+  password = "admin"
 }
+

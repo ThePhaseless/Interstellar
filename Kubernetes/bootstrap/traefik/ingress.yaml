@@ -16,7 +16,9 @@ spec:
         - name: api@internal
           kind: TraefikService
       middlewares:
-        - name: tailscale-only
+        - name: private-chain
+        - name: oauth2-proxy
+          namespace: traefik
   tls:
     certResolver: letsencrypt
     domains:

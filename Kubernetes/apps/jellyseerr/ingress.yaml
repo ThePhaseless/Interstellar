@@ -1,5 +1,5 @@
 # =============================================================================
-# Jellyseerr Ingress (Uses Jellyfin login - no external auth)
+# Jellyseerr Ingress (Protected by OAuth2 Proxy)
 # =============================================================================
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -17,6 +17,8 @@ spec:
           port: 5055
       middlewares:
         - name: public-chain
+          namespace: traefik
+        - name: oauth2-proxy
           namespace: traefik
   tls:
     certResolver: letsencrypt

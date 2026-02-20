@@ -1,6 +1,5 @@
 bitwarden_sonarr_api_key_name       = "sonarr-api-key"
 bitwarden_radarr_api_key_name       = "radarr-api-key"
 bitwarden_prowlarr_api_key_name     = "prowlarr-api-key"
-bitwarden_grafana_auth_name         = "grafana-auth"
 bitwarden_qbittorrent_username_name = "qbittorrent-username"
 bitwarden_qbittorrent_password_name = "qbittorrent-password"
