@@ -3,6 +3,7 @@ locals {
   radarr_provider_url   = var.radarr_provider_url
   prowlarr_provider_url = var.prowlarr_provider_url
   adguard_provider_url  = var.adguard_provider_url
+  authentik_provider_url = var.authentik_provider_url
 }
 
 provider "sonarr" {
@@ -24,5 +25,10 @@ provider "adguard" {
   host     = local.adguard_provider_url
   username = "admin"
   password = "admin"
+}
+
+provider "authentik" {
+  url   = local.authentik_provider_url
+  token = data.bitwarden-secrets_secret.authentik_bootstrap_token.value
 }
 

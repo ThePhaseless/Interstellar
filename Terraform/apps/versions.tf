@@ -18,6 +18,10 @@ terraform {
       source  = "gmichels/adguard"
       version = ">= 1.3.0"
     }
+    authentik = {
+      source  = "goauthentik/authentik"
+      version = ">= 2025.12.0"
+    }
     bitwarden-secrets = {
       source  = "bitwarden/bitwarden-secrets"
       version = "0.5.4-pre"

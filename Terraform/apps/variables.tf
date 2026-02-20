@@ -101,3 +101,22 @@ variable "bitwarden_qbittorrent_password_name" {
   description = "Bitwarden secret key name for qBittorrent password"
   default     = "qbittorrent-password"
 }
+
+# --- Authentik ---
+variable "authentik_provider_url" {
+  type        = string
+  description = "Authentik URL reachable from Terraform (via Tailscale MagicDNS or port-forward)"
+  default     = "http://localhost:9000"
+}
+
+variable "authentik_domain" {
+  type        = string
+  description = "Base domain for Authentik cookie scope and proxy providers"
+  default     = "nerine.dev"
+}
+
+variable "authentik_vip_emails" {
+  type        = list(string)
+  description = "Email addresses allowed to access VIP-restricted applications"
+  default     = []
+}
