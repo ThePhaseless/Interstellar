@@ -20,6 +20,8 @@ spec:
           namespace: traefik
         - name: oauth2-proxy
           namespace: traefik
+        - name: adguard-auto-login
+          namespace: home
   tls:
     certResolver: letsencrypt
     domains:

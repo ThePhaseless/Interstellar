@@ -27,10 +27,6 @@ data "bitwarden-secrets_secret" "prowlarr_api_key" {
   id = local.secret_key_to_id[var.bitwarden_prowlarr_api_key_name]
 }
 
-data "bitwarden-secrets_secret" "grafana_auth" {
-  id = local.secret_key_to_id[var.bitwarden_grafana_auth_name]
-}
-
 data "bitwarden-secrets_secret" "qbittorrent_username" {
   id = local.secret_key_to_id[var.bitwarden_qbittorrent_username_name]
 }

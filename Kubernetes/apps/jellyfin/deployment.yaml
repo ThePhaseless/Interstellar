@@ -72,6 +72,35 @@ spec:
           # No special security context needed - Intel GPU Device Plugin
           # handles GPU device access via gpu.intel.com/xe resource
 
+        # Setup sidecar - completes wizard, creates users from VIP list
+        - name: setup
+          image: curlimages/curl:8.12.1
+          command: ["/bin/sh"]
+          args:
+            - /scripts/configure-jellyfin.sh
+          env:
+            - name: JELLYFIN_ADMIN_USER
+              value: "admin"
+            - name: JELLYFIN_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jellyfin-secrets
+                  key: admin-password
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: jellyfin-secrets
+              mountPath: /secrets
+              readOnly: true
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -82,3 +111,10 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: media-pvc
+        - name: scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
+        - name: jellyfin-secrets
+          secret:
+            secretName: jellyfin-secrets

@@ -1,0 +1,20 @@
+# =============================================================================
+# Radarr Tailscale Service
+# =============================================================================
+# Exposes Radarr directly via Tailscale for Terraform and direct API access
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr-tailscale
+  namespace: media
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "radarr"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 7878
+      targetPort: http
+  selector:
+    app: radarr

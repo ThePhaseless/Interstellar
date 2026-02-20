@@ -1,0 +1,20 @@
+# =============================================================================
+# Sonarr Tailscale Service
+# =============================================================================
+# Exposes Sonarr directly via Tailscale for Terraform and direct API access
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr-tailscale
+  namespace: media
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "sonarr"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8989
+      targetPort: http
+  selector:
+    app: sonarr

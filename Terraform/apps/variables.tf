@@ -41,35 +41,35 @@ variable "radarr_movie_category" {
   default     = "movies"
 }
 
-variable "grafana_url" {
-  type        = string
-  description = "Grafana cluster-internal URL (used in Grafana data source config)"
-  default     = "http://grafana.observability.svc.cluster.local:3000"
-}
-
-# --- Provider URLs (how Terraform connects to the services, e.g. via port-forward) ---
+# --- Provider URLs (how Terraform connects to the services, via Tailscale MagicDNS) ---
 variable "sonarr_provider_url" {
   type        = string
-  description = "Sonarr URL reachable from Terraform (e.g. localhost via port-forward)"
-  default     = ""
+  description = "Sonarr URL reachable from Terraform (via Tailscale MagicDNS)"
+  default     = "http://sonarr:8989"
 }
 
 variable "radarr_provider_url" {
   type        = string
-  description = "Radarr URL reachable from Terraform (e.g. localhost via port-forward)"
-  default     = ""
+  description = "Radarr URL reachable from Terraform (via Tailscale MagicDNS)"
+  default     = "http://radarr:7878"
 }
 
 variable "prowlarr_provider_url" {
   type        = string
-  description = "Prowlarr URL reachable from Terraform (e.g. localhost via port-forward)"
-  default     = ""
+  description = "Prowlarr URL reachable from Terraform (via Tailscale MagicDNS)"
+  default     = "http://prowlarr:9696"
 }
 
-variable "grafana_provider_url" {
+variable "adguard_provider_url" {
   type        = string
-  description = "Grafana URL reachable from Terraform (e.g. localhost via port-forward)"
-  default     = ""
+  description = "AdGuard Home URL reachable from Terraform (via Tailscale MagicDNS)"
+  default     = "http://adguard:3000"
+}
+
+variable "adguard_traefik_tailscale_ip" {
+  type        = string
+  description = "Traefik Tailscale IP for DNS rewrites (*.nerine.dev)"
+  default     = "100.72.236.33"
 }
 
 variable "bitwarden_sonarr_api_key_name" {
@@ -90,12 +90,6 @@ variable "bitwarden_prowlarr_api_key_name" {
   default     = "prowlarr-api-key"
 }
 
-variable "bitwarden_grafana_auth_name" {
-  type        = string
-  description = "Bitwarden secret key name for Grafana auth (token or username:password)"
-  default     = "grafana-auth"
-}
-
 variable "bitwarden_qbittorrent_username_name" {
   type        = string
   description = "Bitwarden secret key name for qBittorrent username"
@@ -106,15 +100,4 @@ variable "bitwarden_qbittorrent_password_name" {
   type        = string
   description = "Bitwarden secret key name for qBittorrent password"
   default     = "qbittorrent-password"
-}
-variable "grafana_loki_url" {
-  type        = string
-  description = "Grafana Loki data source URL"
-  default     = "http://loki.observability.svc.cluster.local:3100"
-}
-
-variable "grafana_mimir_url" {
-  type        = string
-  description = "Grafana Mimir data source URL"
-  default     = "http://mimir.observability.svc.cluster.local:9009/prometheus"
 }

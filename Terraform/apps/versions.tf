@@ -14,9 +14,9 @@ terraform {
       source  = "devopsarr/prowlarr"
       version = ">= 3.2.0"
     }
-    grafana = {
-      source  = "grafana/grafana"
-      version = ">= 4.25.0"
+    adguard = {
+      source  = "gmichels/adguard"
+      version = ">= 1.3.0"
     }
     bitwarden-secrets = {
       source  = "bitwarden/bitwarden-secrets"

@@ -18,6 +18,8 @@ spec:
       middlewares:
         - name: streaming-chain
           namespace: traefik
+        - name: oauth2-proxy
+          namespace: traefik
   tls:
     certResolver: letsencrypt
     domains:

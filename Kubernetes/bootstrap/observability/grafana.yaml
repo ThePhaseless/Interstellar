@@ -10,6 +10,8 @@ metadata:
     app: grafana
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: grafana
@@ -260,7 +262,9 @@ spec:
         - name: grafana
           port: 3000
       middlewares:
-        - name: tailscale-only
+        - name: private-chain
+          namespace: traefik
+        - name: oauth2-proxy
           namespace: traefik
   tls:
     certResolver: letsencrypt

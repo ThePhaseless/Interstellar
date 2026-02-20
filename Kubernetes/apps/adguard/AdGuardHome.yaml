@@ -5,10 +5,10 @@ http:
     port: 6060
     enabled: false
   address: 0.0.0.0:3000
-  session_ttl: 720h
+  session_ttl: 8760h
 users:
   - name: admin
-    password: $2a$10$CHANGE_ME_BCRYPT_HASH
+    password: $2b$10$UO9LY2YWfzm687TQrKJHQ.p2nfO/Uy8LFZVZOKmhR3Sy2Iohvor.K
 tls:
   enabled: false
   server_name: ""

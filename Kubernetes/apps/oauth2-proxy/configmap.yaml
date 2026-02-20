@@ -36,13 +36,12 @@ data:
     # Upstream configuration (not used - we use ForwardAuth)
     upstreams = ["static://202"]
 
-    # Email domain restriction - only allow specific domain
-    # Leave empty to allow any Google account, or set your domain
-    # email_domains = ["yourdomain.com"]
-    email_domains = ["*"]  # Allow all Google accounts
+    # Email domain restriction
+    email_domains = ["*"]
 
-    # Whitelist specific emails (loaded from authenticated_emails_file)
-    # authenticated_emails_file = "/config/authenticated-emails.txt"
+    # VIP email whitelist - only these emails can access services
+    # Loaded from Bitwarden secret (one email per line)
+    authenticated_emails_file = "/secrets/authenticated-emails"
 
     # Reverse proxy / ForwardAuth settings
     reverse_proxy = true

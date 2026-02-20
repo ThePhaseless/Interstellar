@@ -12,6 +12,7 @@ resources:
   - service-tailscale.yaml
   - ingress.yaml
   - pvc.yaml
+  - middleware.yaml
 
 configMapGenerator:
   - name: adguard-config

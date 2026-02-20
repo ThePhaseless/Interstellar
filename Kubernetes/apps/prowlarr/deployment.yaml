@@ -25,6 +25,25 @@ spec:
     spec:
       serviceAccountName: arr-configurator
 
+      initContainers:
+        - name: set-external-auth
+          image: busybox:1.37
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              CONFIG="/config/config.xml"
+              if [ ! -f "$CONFIG" ]; then
+                printf '<Config>\n  <AuthenticationMethod>External</AuthenticationMethod>\n  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>\n</Config>\n' > "$CONFIG"
+                echo "Created config.xml with External auth"
+              else
+                sed -i 's|<AuthenticationMethod>[^<]*</AuthenticationMethod>|<AuthenticationMethod>External</AuthenticationMethod>|' "$CONFIG"
+                sed -i 's|<AuthenticationRequired>[^<]*</AuthenticationRequired>|<AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>|' "$CONFIG"
+                echo "Updated config.xml auth settings"
+              fi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+
       containers:
         - name: prowlarr
           image: linuxserver/prowlarr:2.3.0

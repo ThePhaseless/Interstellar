@@ -21,6 +21,35 @@ spec:
         app: immich
     spec:
       enableServiceLinks: false
+
+      initContainers:
+        # Build Immich config JSON with OAuth settings from secrets
+        - name: build-oauth-config
+          image: busybox:1.37
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              if [ -f /secrets/oauth-client-id ] && [ -f /secrets/oauth-client-secret ]; then
+                CLIENT_ID=$(cat /secrets/oauth-client-id)
+                CLIENT_SECRET=$(cat /secrets/oauth-client-secret)
+                if [ -n "$CLIENT_ID" ] && [ -n "$CLIENT_SECRET" ]; then
+                  printf '{"oauth":{"enabled":true,"issuerUrl":"https://accounts.google.com","clientId":"%s","clientSecret":"%s","scope":"openid email profile","signingAlgorithm":"RS256","profileSigningAlgorithm":"none","storageLabelClaim":"preferred_username","buttonText":"Login with Google","autoRegister":true,"autoLaunch":false,"defaultStorageQuota":0}}' "$CLIENT_ID" "$CLIENT_SECRET" > /immich-config/immich.config.json
+                  echo "Immich OAuth config created (enabled)"
+                else
+                  echo '{"oauth":{"enabled":false}}' > /immich-config/immich.config.json
+                  echo "Warning: OAuth secrets empty, OAuth disabled"
+                fi
+              else
+                echo '{"oauth":{"enabled":false}}' > /immich-config/immich.config.json
+                echo "Warning: OAuth secrets not found, OAuth disabled"
+              fi
+          volumeMounts:
+            - name: oauth-secrets
+              mountPath: /secrets
+              readOnly: true
+            - name: immich-config
+              mountPath: /immich-config
+
       containers:
         # Immich Server
         - name: immich-server
@@ -28,6 +57,8 @@ spec:
           env:
             - name: TZ
               value: "UTC"
+            - name: IMMICH_CONFIG_FILE
+              value: "/immich-config/immich.config.json"
             - name: DB_HOSTNAME
               value: "localhost"
             - name: DB_PORT
@@ -57,6 +88,9 @@ spec:
               mountPath: /usr/src/app/upload
             - name: external-library
               mountPath: /external
+              readOnly: true
+            - name: immich-config
+              mountPath: /immich-config
               readOnly: true
           resources:
             requests:
@@ -133,6 +167,11 @@ spec:
         - name: external-library
           persistentVolumeClaim:
             claimName: personal-pvc
+        - name: oauth-secrets
+          secret:
+            secretName: immich-oauth-secrets
+        - name: immich-config
+          emptyDir: {}
 ---
 # ExternalSecret for Immich database password
 apiVersion: external-secrets.io/v1

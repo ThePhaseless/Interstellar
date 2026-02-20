@@ -124,6 +124,39 @@ Disabled kube-linter checks (see `.kube-linter.yaml`):
 - Talos machine configs use `config_patches` for customization
 - See `Terraform/talos.tf` for cluster configuration pattern
 
+### Terraform App Configuration (`Terraform/apps/`)
+
+This sub-project uses **Terraform** to configure Sonarr, Radarr, Prowlarr, and AdGuard Home via their Terraform providers. State is stored in a Kubernetes secret (backend `kubernetes`, secret suffix `servarr`).
+
+**Prerequisites:**
+
+- Terraform (`terraform`) installed (>= 1.11.4)
+- `KUBE_CONFIG_PATH` set (e.g. `~/.kube/config`) — required for the kubernetes backend
+- Connected to the **Tailscale** network (services are exposed via Tailscale MagicDNS)
+- Environment sourced: `source .venv/bin/activate && source scripts/setup-env.sh`
+
+**Running locally** (services are accessed directly via Tailscale — no port-forwarding needed):
+
+```bash
+# 1. Export kubeconfig path for the kubernetes backend
+export KUBE_CONFIG_PATH=~/.kube/config
+
+# 2. Init, plan, and apply (Tailscale MagicDNS resolves service URLs automatically)
+cd Terraform/apps
+terraform init
+terraform plan
+terraform apply
+```
+
+**Importing existing resources** (to avoid duplicates on first run):
+
+```bash
+terraform import sonarr_download_client.qbittorrent 1
+terraform import radarr_download_client.qbittorrent 1
+terraform import prowlarr_application.sonarr <ID>
+terraform import prowlarr_application.radarr <ID>
+```
+
 ## CI/CD Workflows
 
 | Path changes    | Workflow triggered                            |
