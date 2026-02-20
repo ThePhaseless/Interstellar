@@ -13,3 +13,4 @@ resources:
   - reloader/
   - observability/
   - clamav/
+  - authentik/

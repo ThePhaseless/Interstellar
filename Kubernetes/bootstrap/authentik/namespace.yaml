@@ -1,0 +1,9 @@
+# =============================================================================
+# Authentik Namespace
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: authentik
+  labels:
+    name: authentik

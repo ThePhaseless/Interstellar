@@ -1,0 +1,57 @@
+# =============================================================================
+# Authentik Traefik IngressRoute
+# =============================================================================
+# Main entry point for Authentik UI and OIDC endpoints.
+# No self-auth middleware (would create a redirect loop).
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`auth.nerine.dev`)
+      kind: Rule
+      services:
+        - name: authentik-server
+          port: 80
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"
+---
+# =============================================================================
+# Authentik Outpost Callback Route
+# =============================================================================
+# Catches /outpost.goauthentik.io/ paths across ALL *.nerine.dev subdomains.
+# Priority 15 ensures this takes precedence over application routes.
+# Required for the embedded outpost's forward auth flow to work.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: authentik-outpost
+  namespace: authentik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: PathPrefix(`/outpost.goauthentik.io/`)
+      kind: Rule
+      priority: 15
+      services:
+        - name: authentik-server
+          port: 9000
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

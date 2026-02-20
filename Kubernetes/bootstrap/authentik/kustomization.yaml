@@ -1,0 +1,81 @@
+# =============================================================================
+# Authentik Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: authentik
+
+resources:
+  - namespace.yaml
+  - externalsecret.yaml
+  - ingress.yaml
+
+# Install Authentik via Helm chart
+helmCharts:
+  - name: authentik
+    repo: https://charts.goauthentik.io
+    version: 2025.12.4
+    releaseName: authentik
+    namespace: authentik
+    valuesInline:
+      # --- Authentik Core Configuration ---
+      authentik:
+        secret_key: "" # Set via AUTHENTIK_SECRET_KEY env var from secret
+        error_reporting:
+          enabled: false
+        postgresql:
+          password: "" # Set via AUTHENTIK_POSTGRESQL__PASSWORD env var from secret
+
+      # --- Global Settings ---
+      global:
+        env:
+          - name: AUTHENTIK_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: authentik-secrets
+                key: authentik-secret-key
+          - name: AUTHENTIK_POSTGRESQL__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: authentik-secrets
+                key: authentik-postgresql-password
+          - name: AUTHENTIK_BOOTSTRAP_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: authentik-secrets
+                key: authentik-bootstrap-token
+
+      # --- Server ---
+      server:
+        replicas: 1
+        ingress:
+          enabled: false # Using Traefik IngressRoute instead
+        metrics:
+          enabled: false
+
+      # --- Worker ---
+      worker:
+        replicas: 1
+
+      # --- Embedded PostgreSQL ---
+      postgresql:
+        enabled: true
+        auth:
+          existingSecret: authentik-secrets
+          secretKeys:
+            userPasswordKey: authentik-postgresql-password
+        primary:
+          persistence:
+            enabled: true
+            size: 5Gi
+            storageClass: longhorn
+
+      # --- Service Account (required for embedded outpost) ---
+      serviceAccount:
+        create: true
+
+labels:
+  - pairs:
+      managed-by: argocd
+    includeSelectors: true
