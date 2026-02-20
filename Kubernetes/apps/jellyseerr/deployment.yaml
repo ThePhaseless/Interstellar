@@ -75,7 +75,7 @@ spec:
 
         # Configurator sidecar - sets up Jellyfin, Sonarr, Radarr
         - name: configurator
-          image: curlimages/curl:8.12.1
+          image: curlimages/curl:8.18.0
           command:
             - /bin/sh
             - /scripts/configure-jellyseerr.sh
