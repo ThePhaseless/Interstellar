@@ -2,20 +2,6 @@
 # Immich PVCs
 # =============================================================================
 ---
-# Upload storage for Immich photos/videos
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: immich-upload
-  namespace: utilities
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: nfs-csi
-  resources:
-    requests:
-      storage: 500Gi
----
 # PostgreSQL data storage
 apiVersion: v1
 kind: PersistentVolumeClaim

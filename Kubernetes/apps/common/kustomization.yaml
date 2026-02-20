@@ -6,7 +6,6 @@ kind: Kustomization
 
 resources:
   - rbac.yaml
-  - pvc.yaml
   - media-pv.yaml
   - externalsecrets.yaml
 

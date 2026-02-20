@@ -165,3 +165,6 @@ else
 fi
 
 echo "Jellyfin setup and configuration complete!"
+
+# Keep sidecar alive to prevent restart loops
+exec sleep infinity

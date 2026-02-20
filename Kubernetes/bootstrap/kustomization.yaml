@@ -5,7 +5,6 @@ kind: Kustomization
 resources:
   - metallb/
   - longhorn/
-  - nfs-csi/
   - external-secrets/
   - intel-gpu-operator/
   - traefik/
