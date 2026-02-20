@@ -28,8 +28,18 @@ resource "random_password" "immich_db_password" {
   special = false
 }
 
-resource "random_password" "oauth2_proxy_cookie_secret" {
+resource "random_password" "authentik_secret_key" {
+  length  = 50
+  special = false
+}
+
+resource "random_password" "authentik_postgresql_password" {
   length  = 32
+  special = false
+}
+
+resource "random_password" "authentik_bootstrap_token" {
+  length  = 64
   special = false
 }
 
@@ -174,34 +184,52 @@ resource "bitwarden-secrets_secret" "immich_db_password" {
 }
 
 # -----------------------------------------------------------------------------
-# Bitwarden Secrets — OAuth2 Proxy (Google OAuth)
+# Bitwarden Secrets — Authentik (Identity Provider)
+# -----------------------------------------------------------------------------
+
+resource "bitwarden-secrets_secret" "authentik_secret_key" {
+  key        = "authentik-secret-key"
+  value      = random_password.authentik_secret_key.result
+  project_id = local.bitwarden_project_id
+  note       = "Authentik secret key for cookie signing and unique user IDs. Do NOT change after first install. Managed by Terraform."
+}
+
+resource "bitwarden-secrets_secret" "authentik_postgresql_password" {
+  key        = "authentik-postgresql-password"
+  value      = random_password.authentik_postgresql_password.result
+  project_id = local.bitwarden_project_id
+  note       = "Authentik PostgreSQL database password. Managed by Terraform."
+}
+
+resource "bitwarden-secrets_secret" "authentik_bootstrap_token" {
+  key        = "authentik-bootstrap-token"
+  value      = random_password.authentik_bootstrap_token.result
+  project_id = local.bitwarden_project_id
+  note       = "Authentik API bootstrap token for Terraform provider authentication. Managed by Terraform."
+}
+
+# -----------------------------------------------------------------------------
+# Bitwarden Secrets — Google OAuth (shared by Authentik, Grafana, Immich)
 # -----------------------------------------------------------------------------
 # OAuth client is created manually in GCP Console. These placeholders are
 # overwritten manually in Bitwarden after creating the client. See SETUP.md.
 
-resource "bitwarden-secrets_secret" "oauth2_proxy_cookie_secret" {
-  key        = "oauth2-proxy-cookie-secret"
-  value      = random_password.oauth2_proxy_cookie_secret.result
-  project_id = local.bitwarden_project_id
-  note       = "OAuth2 Proxy cookie encryption secret. Managed by Terraform."
-}
-
-resource "bitwarden-secrets_secret" "oauth2_proxy_google_client_id" {
-  key        = "oauth2-proxy-google-client-id"
+resource "bitwarden-secrets_secret" "google_oauth_client_id" {
+  key        = "google-oauth-client-id"
   value      = "placeholder-set-google-client-id"
   project_id = local.bitwarden_project_id
-  note       = "Google OAuth client ID. Create in GCP Console, update in Bitwarden. Managed by Terraform."
+  note       = "Google OAuth client ID. Create in GCP Console, update in Bitwarden. Used by Authentik, Grafana, Immich. Managed by Terraform."
 
   lifecycle {
     ignore_changes = [value]
   }
 }
 
-resource "bitwarden-secrets_secret" "oauth2_proxy_google_client_secret" {
-  key        = "oauth2-proxy-google-client-secret"
+resource "bitwarden-secrets_secret" "google_oauth_client_secret" {
+  key        = "google-oauth-client-secret"
   value      = "placeholder-set-google-client-secret"
   project_id = local.bitwarden_project_id
-  note       = "Google OAuth client secret. Create in GCP Console, update in Bitwarden. Managed by Terraform."
+  note       = "Google OAuth client secret. Create in GCP Console, update in Bitwarden. Used by Authentik, Grafana, Immich. Managed by Terraform."
 
   lifecycle {
     ignore_changes = [value]
