@@ -34,3 +34,15 @@ data "bitwarden-secrets_secret" "qbittorrent_username" {
 data "bitwarden-secrets_secret" "qbittorrent_password" {
   id = local.secret_key_to_id[var.bitwarden_qbittorrent_password_name]
 }
+
+data "bitwarden-secrets_secret" "authentik_bootstrap_token" {
+  id = local.secret_key_to_id["authentik-bootstrap-token"]
+}
+
+data "bitwarden-secrets_secret" "google_oauth_client_id" {
+  id = local.secret_key_to_id["google-oauth-client-id"]
+}
+
+data "bitwarden-secrets_secret" "google_oauth_client_secret" {
+  id = local.secret_key_to_id["google-oauth-client-secret"]
+}
