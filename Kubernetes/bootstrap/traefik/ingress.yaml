@@ -17,7 +17,7 @@ spec:
           kind: TraefikService
       middlewares:
         - name: private-chain
-        - name: oauth2-proxy
+        - name: authentik
           namespace: traefik
   tls:
     certResolver: letsencrypt
