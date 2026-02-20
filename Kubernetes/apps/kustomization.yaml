@@ -27,7 +27,6 @@ resources:
   - immich/
   - mcpjungle/
   - adguard/
-  - oauth2-proxy/
   - homepage/
   - whoami/
 
