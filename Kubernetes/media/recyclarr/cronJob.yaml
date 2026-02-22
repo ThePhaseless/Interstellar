@@ -10,7 +10,7 @@ spec:
       template:
         spec:
           containers:
-            - image: ghcr.io/recyclarr/recyclarr:7.5
+            - image: ghcr.io/recyclarr/recyclarr:8.2
               name: recyclarr
               args:
                 - sync
