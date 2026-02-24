@@ -10,13 +10,14 @@ resources:
   - namespace.yaml
   - deployment.yaml
   - service.yaml
-  - config.yaml
   - middlewares.yaml
   - crowdsec-middleware.yaml
   - crowdsec-externalsecret.yaml
   - ingress.yaml
 
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true
+configMapGenerator:
+  - name: traefik-config
+    files:
+      - traefik.yaml=config/traefik.yaml
+    options:
+      disableNameSuffixHash: true

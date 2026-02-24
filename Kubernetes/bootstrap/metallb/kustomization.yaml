@@ -19,8 +19,3 @@ helmCharts:
     releaseName: metallb
     namespace: metallb-system
     includeCRDs: true
-
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true

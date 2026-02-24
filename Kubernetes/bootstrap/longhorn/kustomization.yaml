@@ -7,14 +7,16 @@ kind: Kustomization
 namespace: longhorn-system
 
 resources:
-  - https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/deploy/longhorn.yaml
   - storageclass.yaml
   - ingress.yaml
 
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true
+helmCharts:
+  - name: longhorn
+    repo: https://charts.longhorn.io
+    version: 1.7.2
+    releaseName: longhorn
+    namespace: longhorn-system
+    includeCRDs: true
 
 patches:
   - target:

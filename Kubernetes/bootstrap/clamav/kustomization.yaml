@@ -11,7 +11,9 @@ resources:
   - clamav.yaml
   - externalsecret.yaml
 
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true
+configMapGenerator:
+  - name: clamav-config
+    files:
+      - freshclam.conf=config/freshclam.conf
+    options:
+      disableNameSuffixHash: true
