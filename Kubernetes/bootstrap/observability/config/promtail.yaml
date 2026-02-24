@@ -58,7 +58,7 @@ scrape_configs:
                 expressions:
                   client_addr: ClientAddr
             - regex:
-                expression: '^(?P<client_ip>[^:]+)'
+                expression: "^(?P<client_ip>[^:]+)"
                 source: client_addr
             - geoip:
                 db: /geoip/db.mmdb

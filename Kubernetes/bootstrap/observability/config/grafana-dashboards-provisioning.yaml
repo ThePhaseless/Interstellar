@@ -2,7 +2,7 @@ apiVersion: 1
 providers:
   - name: cluster
     orgId: 1
-    folder: 'Infrastructure'
+    folder: "Infrastructure"
     type: file
     disableDeletion: false
     editable: true
@@ -10,7 +10,7 @@ providers:
       path: /var/lib/grafana/dashboards/cluster
   - name: traefik
     orgId: 1
-    folder: 'Infrastructure'
+    folder: "Infrastructure"
     type: file
     disableDeletion: false
     editable: true
@@ -18,7 +18,7 @@ providers:
       path: /var/lib/grafana/dashboards/traefik
   - name: media
     orgId: 1
-    folder: 'Media'
+    folder: "Media"
     type: file
     disableDeletion: false
     editable: true
@@ -26,7 +26,7 @@ providers:
       path: /var/lib/grafana/dashboards/media
   - name: logs
     orgId: 1
-    folder: 'Logs'
+    folder: "Logs"
     type: file
     disableDeletion: false
     editable: true
@@ -34,7 +34,7 @@ providers:
       path: /var/lib/grafana/dashboards/logs
   - name: geo
     orgId: 1
-    folder: 'Security'
+    folder: "Security"
     type: file
     disableDeletion: false
     editable: true

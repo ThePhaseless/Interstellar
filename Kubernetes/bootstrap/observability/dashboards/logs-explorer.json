@@ -1,25 +1,45 @@
 {
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "editable": true,
   "graphTooltip": 1,
   "links": [],
   "panels": [
     {
-      "title": "Log Volume by Namespace",
-      "type": "timeseries",
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
           "custom": {
+            "drawStyle": "bars",
             "fillOpacity": 30,
             "lineWidth": 1,
-            "drawStyle": "bars",
-            "stacking": { "mode": "normal" }
-          }
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "unit": "short"
         },
         "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "legend": {
+          "calcs": ["sum"],
+          "displayMode": "table",
+          "placement": "right"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "targets": [
         {
@@ -28,27 +48,43 @@
           "refId": "A"
         }
       ],
-      "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] }
-      }
+      "title": "Log Volume by Namespace",
+      "type": "timeseries"
     },
     {
-      "title": "Error Logs Volume",
-      "type": "timeseries",
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 6 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "color": { "mode": "fixed", "fixedColor": "red" },
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
           "custom": {
+            "drawStyle": "bars",
             "fillOpacity": 30,
-            "lineWidth": 2,
-            "drawStyle": "bars"
-          }
+            "lineWidth": 2
+          },
+          "unit": "short"
         },
         "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "targets": [
         {
@@ -57,27 +93,43 @@
           "refId": "A"
         }
       ],
-      "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "list", "placement": "bottom" }
-      }
+      "title": "Error Logs Volume",
+      "type": "timeseries"
     },
     {
-      "title": "Warning Logs Volume",
-      "type": "timeseries",
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 6 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "color": { "mode": "fixed", "fixedColor": "yellow" },
+          "color": {
+            "fixedColor": "yellow",
+            "mode": "fixed"
+          },
           "custom": {
+            "drawStyle": "bars",
             "fillOpacity": 30,
-            "lineWidth": 2,
-            "drawStyle": "bars"
-          }
+            "lineWidth": 2
+          },
+          "unit": "short"
         },
         "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "targets": [
         {
@@ -86,31 +138,37 @@
           "refId": "A"
         }
       ],
-      "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "list", "placement": "bottom" }
-      }
+      "title": "Warning Logs Volume",
+      "type": "timeseries"
     },
     {
-      "title": "All Logs",
-      "type": "logs",
-      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 12 },
-      "datasource": { "type": "loki", "uid": "loki" },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
       "targets": [
         {
           "expr": "{namespace=~\"$namespace\", container=~\"$container\"} |~ \"$search\"",
           "refId": "A"
         }
       ],
-      "options": {
-        "showTime": true,
-        "showLabels": true,
-        "showCommonLabels": false,
-        "wrapLogMessage": true,
-        "sortOrder": "Descending",
-        "dedupStrategy": "none",
-        "enableLogDetails": true
-      }
+      "title": "All Logs",
+      "type": "logs"
     }
   ],
   "schemaVersion": 39,
@@ -118,36 +176,63 @@
   "templating": {
     "list": [
       {
+        "allValue": ".+",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "includeAll": true,
+        "multi": true,
         "name": "namespace",
-        "type": "query",
-        "datasource": { "type": "loki", "uid": "loki" },
-        "query": { "label": "namespace", "stream": "", "type": 1 },
-        "current": { "selected": true, "text": "All", "value": "$__all" },
-        "includeAll": true,
-        "allValue": ".+",
-        "multi": true,
-        "refresh": 2
+        "query": {
+          "label": "namespace",
+          "stream": "",
+          "type": 1
+        },
+        "refresh": 2,
+        "type": "query"
       },
       {
+        "allValue": ".+",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "includeAll": true,
+        "multi": true,
         "name": "container",
-        "type": "query",
-        "datasource": { "type": "loki", "uid": "loki" },
-        "query": { "label": "container", "stream": "{namespace=~\"$namespace\"}", "type": 1 },
-        "current": { "selected": true, "text": "All", "value": "$__all" },
-        "includeAll": true,
-        "allValue": ".+",
-        "multi": true,
-        "refresh": 2
+        "query": {
+          "label": "container",
+          "stream": "{namespace=~\"$namespace\"}",
+          "type": 1
+        },
+        "refresh": 2,
+        "type": "query"
       },
       {
+        "current": {
+          "value": ""
+        },
+        "label": "Search",
         "name": "search",
-        "type": "textbox",
-        "current": { "value": "" },
-        "label": "Search"
+        "type": "textbox"
       }
     ]
   },
-  "time": { "from": "now-1h", "to": "now" },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
   "title": "Logs Explorer",
   "uid": "logs-explorer"
 }

@@ -24,4 +24,3 @@ provider "authentik" {
   url   = var.authentik_provider_url
   token = data.bitwarden-secrets_secret.authentik_bootstrap_token.value
 }
-
