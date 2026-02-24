@@ -4,7 +4,9 @@
     "Ansible/**/*.yaml": "ansible"
   },
   "yaml.schemas": {
-    "kubernetes": "Kubernetes/**/loki.yaml"
+    "kubernetes": "Kubernetes/**/loki.yaml",
+    "kubernetes://schema/apps/v1@statefulset+v1@service": "file:///home/orcho/Interstellar/Kubernetes/bootstrap/observability/loki.yaml",
+    "https://www.schemastore.org/loki.json": "file:///home/orcho/Interstellar/Kubernetes/bootstrap/observability/config/loki.yaml"
   },
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.terminal.activateEnvironment": true,
