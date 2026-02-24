@@ -1,0 +1,28 @@
+# =============================================================================
+# CoreDNS Override
+# =============================================================================
+# Uses an import-based approach (like Linux *.d directories):
+#   1. coredns-configmap.yaml - Adds `import /etc/coredns/custom/*.override`
+#      to the stock TalosOS Corefile (one-time, minimal change).
+#   2. coredns-custom-configmap.yaml - Drop-in overrides (hosts, rewrites, etc.).
+#      Edit this file to add/remove DNS overrides without touching the Corefile.
+#   3. coredns-deployment-patch.yaml - Mounts the custom ConfigMap into CoreDNS.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - coredns-deployment-patch.yaml
+
+configMapGenerator:
+  - name: coredns
+    namespace: kube-system
+    files:
+      - Corefile=config/Corefile
+    options:
+      disableNameSuffixHash: true
+  - name: coredns-custom
+    namespace: kube-system
+    files:
+      - hairpin-nat.override=config/hairpin-nat.override
+    options:
+      disableNameSuffixHash: true
