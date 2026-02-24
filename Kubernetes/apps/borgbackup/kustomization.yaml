@@ -1,5 +1,5 @@
 # =============================================================================
-# Whoami Kustomization
+# BorgBackup Kustomization
 # =============================================================================
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -7,11 +7,16 @@ kind: Kustomization
 namespace: utilities
 
 resources:
-  - deployment.yaml
-  - service.yaml
-  - ingress.yaml
+  - cronjob.yaml
+  - externalsecret.yaml
+
+configMapGenerator:
+  - name: borgbackup-script
+    namespace: utilities
+    files:
+      - scripts/backup.sh
 
 labels:
   - pairs:
-      app: whoami
+      app.kubernetes.io/name: borgbackup
     includeSelectors: true

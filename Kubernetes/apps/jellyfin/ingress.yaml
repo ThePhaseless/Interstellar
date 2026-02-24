@@ -18,8 +18,6 @@ spec:
       middlewares:
         - name: streaming-chain
           namespace: traefik
-        - name: authentik
-          namespace: traefik
   tls:
     certResolver: letsencrypt
     domains:

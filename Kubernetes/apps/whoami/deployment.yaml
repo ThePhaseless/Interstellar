@@ -10,7 +10,6 @@ metadata:
   labels:
     app: whoami
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: whoami

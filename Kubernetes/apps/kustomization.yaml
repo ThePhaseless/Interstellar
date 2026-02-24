@@ -21,8 +21,10 @@ resources:
   - qbittorrent/
   - decluttarr/
   - recyclarr/
+  - byparr/
 
   # Utilities
+  - postfix/
   - copyparty/
   - immich/
   - mcpjungle/
@@ -30,7 +32,5 @@ resources:
   - homepage/
   - whoami/
 
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true
+  # Backup
+  - borgbackup/

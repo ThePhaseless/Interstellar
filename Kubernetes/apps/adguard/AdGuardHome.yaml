@@ -8,7 +8,7 @@ http:
   session_ttl: 8760h
 users:
   - name: admin
-    password: $2b$10$UO9LY2YWfzm687TQrKJHQ.p2nfO/Uy8LFZVZOKmhR3Sy2Iohvor.K
+    password: $2b$10$504ngBpVN5ztTr/QFPL5m.0qUher2FIm3uQDDxU7O7WswELm2S80G
 tls:
   enabled: false
   server_name: ""
@@ -47,9 +47,9 @@ filters:
     id: 2
 whitelist_filters: []
 user_rules:
-    # Split-horizon DNS: local LAN clients get local Traefik LB IP
-    # $dnsrewrite takes precedence over global DNS rewrites
-    - '||nerine.dev^$client=192.168.1.0/24,dnsrewrite=192.168.1.11'
+  # Split-horizon DNS: local LAN clients get local Traefik LB IP
+  # $dnsrewrite takes precedence over global DNS rewrites
+  - "||nerine.dev^$client=192.168.1.0/24,dnsrewrite=192.168.1.11"
 dhcp:
   enabled: false
 filtering:

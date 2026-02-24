@@ -9,7 +9,6 @@ metadata:
   labels:
     app: qbittorrent
 spec:
-  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -95,7 +94,6 @@ spec:
               containerPort: 8080
             - name: bittorrent-tcp
               containerPort: 6881
-              protocol: TCP
             - name: bittorrent-udp
               containerPort: 6881
               protocol: UDP

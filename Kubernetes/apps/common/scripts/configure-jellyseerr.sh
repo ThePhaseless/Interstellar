@@ -13,7 +13,7 @@ JELLYSEERR_URL="http://localhost:5055"
 # Wait for Jellyseerr to be ready
 echo "Waiting for Jellyseerr to be ready..."
 timeout=300
-while ! curl -s "${JELLYSEERR_URL}/api/v1/status" > /dev/null 2>&1 && [ $timeout -gt 0 ]; do
+while ! curl -s "${JELLYSEERR_URL}/api/v1/status" >/dev/null 2>&1 && [ $timeout -gt 0 ]; do
   sleep 5
   timeout=$((timeout - 5))
 done
@@ -168,6 +168,6 @@ echo "Jellyseerr configuration complete!"
 
 # Keep running to maintain sidecar (check periodically)
 while true; do
-  sleep 3600  # Check every hour
+  sleep 3600 # Check every hour
   echo "Configuration check completed at $(date)"
 done

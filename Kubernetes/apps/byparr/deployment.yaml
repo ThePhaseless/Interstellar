@@ -1,0 +1,36 @@
+# =============================================================================
+# Byparr Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: byparr
+  namespace: media
+  labels:
+    app: byparr
+spec:
+  selector:
+    matchLabels:
+      app: byparr
+  template:
+    metadata:
+      labels:
+        app: byparr
+    spec:
+      shareProcessNamespace: true
+      containers:
+        - name: byparr
+          image: ghcr.io/thephaseless/byparr:2.1.0
+          env:
+            - name: LOG_LEVEL
+              value: "debug"
+          ports:
+            - name: http
+              containerPort: 8191
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 1Gi
