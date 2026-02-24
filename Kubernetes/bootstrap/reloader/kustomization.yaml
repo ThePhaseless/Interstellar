@@ -9,9 +9,10 @@ namespace: reloader
 
 resources:
   - namespace.yaml
-  - https://raw.githubusercontent.com/stakater/Reloader/master/deployments/kubernetes/reloader.yaml
 
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true
+helmCharts:
+  - name: reloader
+    repo: https://stakater.github.io/stakater-charts
+    version: 2.2.8
+    releaseName: reloader
+    namespace: reloader

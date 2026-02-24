@@ -9,7 +9,6 @@ metadata:
   labels:
     app: traefik
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: traefik
@@ -57,13 +56,10 @@ spec:
           ports:
             - name: web
               containerPort: 80
-              protocol: TCP
             - name: websecure
               containerPort: 443
-              protocol: TCP
             - name: traefik
               containerPort: 8080
-              protocol: TCP
           volumeMounts:
             - name: config
               mountPath: /etc/traefik

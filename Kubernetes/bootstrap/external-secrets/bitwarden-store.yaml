@@ -20,7 +20,6 @@ spec:
         key: ca.crt
       organizationID: 99703038-ae55-494e-aa57-b21b01480339
       projectID: f57582a5-679a-4deb-9e5f-b3b3017d2b13
-      # Reference to the Bitwarden access token secret
       auth:
         secretRef:
           credentials:

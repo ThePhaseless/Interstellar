@@ -15,9 +15,7 @@ volumeBindingMode: Immediate
 parameters:
   numberOfReplicas: "3"
   staleReplicaTimeout: "2880"
-  fromBackup: ""
   fsType: "ext4"
-  dataLocality: "disabled"
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -30,7 +28,5 @@ volumeBindingMode: Immediate
 parameters:
   numberOfReplicas: "3"
   staleReplicaTimeout: "2880"
-  fromBackup: ""
   fsType: "ext4"
   nfsOptions: "vers=4.2,noresvport,softerr,timeo=600,retrans=5"
-  dataLocality: "disabled"

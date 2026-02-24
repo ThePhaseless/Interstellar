@@ -10,7 +10,6 @@ resources:
   - namespace.yaml
   - bitwarden-store.yaml
 
-# Install ESO via Helm chart (v2.0.0)
 # Bitwarden SDK server is bundled as a subchart
 # TLS certs must be created before deployment:
 #   ./scripts/generate-bitwarden-tls.sh
@@ -32,11 +31,5 @@ helmCharts:
         limits:
           cpu: 100m
           memory: 256Mi
-      # Enable bundled Bitwarden SDK server
       bitwarden-sdk-server:
         enabled: true
-
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true

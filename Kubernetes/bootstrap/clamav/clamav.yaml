@@ -136,24 +136,6 @@ spec:
     requests:
       storage: 1Gi
 ---
-# ClamAV Configuration
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: clamav-config
-  namespace: security
-data:
-  freshclam.conf: |
-    DatabaseDirectory /var/lib/clamav
-    UpdateLogFile /var/log/clamav/freshclam.log
-    LogTime yes
-    DatabaseOwner clamav
-    DatabaseMirror database.clamav.net
-    MaxAttempts 3
-    ScriptedUpdates yes
-    CompressLocalDatabase no
-    Bytecode yes
----
 # Weekly deep scan CronJob
 apiVersion: batch/v1
 kind: CronJob
