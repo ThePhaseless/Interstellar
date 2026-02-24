@@ -9,7 +9,12 @@ source .venv/bin/activate
 source scripts/setup-env.sh
 ```
 
-For Kubernetes deployments, use standalone `kustomize` (not `kubectl apply -k`). This repository uses Helm-enabled Kustomize builds.
+For Kubernetes deployments, use `./scripts/apply-kubernetes.sh <path>` which runs Helm-enabled `kustomize build` + `kubectl apply --server-side`. Never use `kubectl apply -k` (it lacks Helm support).
+
+```bash
+./scripts/apply-kubernetes.sh Kubernetes/bootstrap/metallb
+./scripts/apply-kubernetes.sh Kubernetes/apps
+```
 
 ## Architecture Overview
 
@@ -111,6 +116,16 @@ Media apps use init containers + sidecars for auto-configuration:
 ./scripts/lint-terraform.sh
 ```
 
+## Applying Kubernetes Manifests
+
+```bash
+# Apply a single component
+./scripts/apply-kubernetes.sh Kubernetes/bootstrap/metallb
+
+# Apply all apps
+./scripts/apply-kubernetes.sh Kubernetes/apps
+```
+
 Disabled kube-linter checks (see `.kube-linter.yaml`):
 
 - `no-read-only-root-fs` - Third-party images
@@ -132,21 +147,25 @@ This sub-project uses **Terraform** to configure Sonarr, Radarr, Prowlarr, and A
 
 - Terraform (`terraform`) installed (>= 1.11.4)
 - `KUBE_CONFIG_PATH` set (e.g. `~/.kube/config`) — required for the kubernetes backend
-- Connected to the **Tailscale** network (services are exposed via Tailscale MagicDNS)
 - Environment sourced: `source .venv/bin/activate && source scripts/setup-env.sh`
 
-**Running locally** (services are accessed directly via Tailscale — no port-forwarding needed):
+**Running locally** (services are accessed via `kubectl port-forward`):
 
 ```bash
 # 1. Export kubeconfig path for the kubernetes backend
 export KUBE_CONFIG_PATH=~/.kube/config
 
-# 2. Init, plan, and apply (Tailscale MagicDNS resolves service URLs automatically)
+# 2. Start port-forwards (runs in background with auto-reconnect)
+./scripts/port-forward-apps.sh &
+
+# 3. Init, plan, and apply (defaults point to localhost)
 cd Terraform/apps
 terraform init
 terraform plan
 terraform apply
 ```
+
+Provider URL defaults use `localhost` (matching the port-forward script). In CI, override with `TF_VAR_*` env vars pointing to Tailscale MagicDNS names.
 
 **Importing existing resources** (to avoid duplicates on first run):
 
