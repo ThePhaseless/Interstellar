@@ -10,8 +10,3 @@ resources:
   - namespace.yaml
   - lapi.yaml
   - externalsecret.yaml
-
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true

@@ -9,7 +9,6 @@ metadata:
   labels:
     app: crowdsec-lapi
 spec:
-  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -40,10 +39,8 @@ spec:
           ports:
             - name: lapi
               containerPort: 8080
-              protocol: TCP
             - name: metrics
               containerPort: 6060
-              protocol: TCP
           volumeMounts:
             - name: data
               mountPath: /var/lib/crowdsec/data

@@ -48,7 +48,7 @@ spec:
       priority: 15
       services:
         - name: authentik-server
-          port: 9000
+          port: 80
   tls:
     certResolver: letsencrypt
     domains:
