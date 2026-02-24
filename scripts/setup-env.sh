@@ -158,10 +158,14 @@ setup_oci() {
         echo "key_file=$key_path" >>"$config_path"
     fi
 
-    export OCI_TENANCY_OCID=$(grep '^tenancy=' "$config_path" | cut -d= -f2 | tr -d ' "' || true)
-    export OCI_USER_OCID=$(grep '^user=' "$config_path" | cut -d= -f2 | tr -d ' "' || true)
-    export OCI_FINGERPRINT=$(grep '^fingerprint=' "$config_path" | cut -d= -f2 | tr -d ' "' || true)
-    export OCI_REGION=$(grep '^region=' "$config_path" | cut -d= -f2 | tr -d ' "' || true)
+    OCI_TENANCY_OCID=$(grep '^tenancy=' "$config_path" | cut -d= -f2 | tr -d ' "' || true)
+    export OCI_TENANCY_OCID
+    OCI_USER_OCID=$(grep '^user=' "$config_path" | cut -d= -f2 | tr -d ' "' || true)
+    export OCI_USER_OCID
+    OCI_FINGERPRINT=$(grep '^fingerprint=' "$config_path" | cut -d= -f2 | tr -d ' "' || true)
+    export OCI_FINGERPRINT
+    OCI_REGION=$(grep '^region=' "$config_path" | cut -d= -f2 | tr -d ' "' || true)
+    export OCI_REGION
 
     export TF_VAR_oci_tenancy_ocid="$OCI_TENANCY_OCID"
     export OCI_PRIVATE_KEY="$oci_key_content"
@@ -183,13 +187,15 @@ main() {
         _src="${funcfiletrace[1]%:*}"
     fi
     script_dir="$(cd "$(dirname "$(readlink -f "$_src")")" && pwd)"
-    local repo_root="$(cd "${script_dir}/.." && pwd)"
+    local repo_root
+    repo_root="$(cd "${script_dir}/.." && pwd)"
     local env_file="${repo_root}/.env"
 
     log_info "Searching for .env file at: ${env_file}"
 
     if [[ -f "$env_file" ]]; then
         set -a
+        # shellcheck disable=SC1090
         source "$env_file"
         set +a
         log_info "Loaded .env file from ${repo_root}"
@@ -217,7 +223,26 @@ main() {
         "tailscale-tailnet" "TF_VAR_tailscale_tailnet" \
         "cloudflare-api-token" "CLOUDFLARE_API_TOKEN" \
         "cloudflare-zone-id" "TF_VAR_cloudflare_zone_id" \
-        "proxmox-api-token" "PROXMOX_VE_API_TOKEN"
+        "proxmox-api-token" "PROXMOX_VE_API_TOKEN" \
+        "hcloud-token" "HCLOUD_TOKEN"
+
+    # Hetzner Cloud token for Terraform
+    if [[ -n "${HCLOUD_TOKEN:-}" ]]; then
+        export TF_VAR_hcloud_token="$HCLOUD_TOKEN"
+    fi
+
+    # -------------------------------------------------------------------------
+    # Kubernetes / Terraform apps configuration
+    # -------------------------------------------------------------------------
+    export KUBE_CONFIG_PATH="${KUBE_CONFIG_PATH:-$HOME/.kube/config}"
+
+    # Authentik VIP emails (comma-separated in Bitwarden → HCL list for TF)
+    local vip_raw=""
+    vip_raw=$(echo "$SECRETS_JSON" |
+        jq -r '.[] | select(.key == "authentik-vip-emails") | .value' 2>/dev/null)
+    if [[ -n "$vip_raw" && "$vip_raw" != "null" ]]; then
+        export TF_VAR_authentik_vip_emails="$vip_raw"
+    fi
 
     echo ""
     log_success "Environment ready!"
