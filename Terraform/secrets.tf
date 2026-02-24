@@ -184,6 +184,36 @@ resource "bitwarden-secrets_secret" "immich_db_password" {
 }
 
 # -----------------------------------------------------------------------------
+# Bitwarden Secrets — Owner Email
+# -----------------------------------------------------------------------------
+
+resource "bitwarden-secrets_secret" "owner_email" {
+  key        = "owner-email"
+  value      = "placeholder@example.com"
+  project_id = local.bitwarden_project_id
+  note       = "Owner email address used across services. Update in Bitwarden. Managed by Terraform."
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+# -----------------------------------------------------------------------------
+# Bitwarden Secrets — Authentik VIP Emails
+# -----------------------------------------------------------------------------
+
+resource "bitwarden-secrets_secret" "authentik_vip_emails" {
+  key        = "authentik-vip-emails"
+  value      = "[]"
+  project_id = local.bitwarden_project_id
+  note       = "JSON list of VIP email addresses for Authentik private apps. e.g. [\"user@gmail.com\"]. Update in Bitwarden. Managed by Terraform."
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+# -----------------------------------------------------------------------------
 # Bitwarden Secrets — Authentik (Identity Provider)
 # -----------------------------------------------------------------------------
 

@@ -46,3 +46,11 @@ data "bitwarden-secrets_secret" "google_oauth_client_id" {
 data "bitwarden-secrets_secret" "google_oauth_client_secret" {
   id = local.secret_key_to_id["google-oauth-client-secret"]
 }
+
+data "bitwarden-secrets_secret" "owner_email" {
+  id = local.secret_key_to_id["owner-email"]
+}
+
+data "bitwarden-secrets_secret" "discord_webhook_url" {
+  id = local.secret_key_to_id["discord-webhook-url"]
+}

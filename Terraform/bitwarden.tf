@@ -56,7 +56,6 @@ data "bitwarden-secrets_secret" "tailscale_tailnet" {
   id = local.secret_key_to_id["tailscale-tailnet"]
 }
 
-# Cloudflare API token
 data "bitwarden-secrets_secret" "cloudflare_api_token" {
   id = local.secret_key_to_id["cloudflare-api-token"]
 }
@@ -93,7 +92,6 @@ data "bitwarden-secrets_secret" "cluster_vip" {
 # Managed Secrets (uploaded to Bitwarden)
 # -----------------------------------------------------------------------------
 
-# Talosconfig for talosctl CLI access
 resource "bitwarden-secrets_secret" "talosconfig" {
   key        = "talosconfig"
   value      = data.talos_client_configuration.cluster.talos_config
@@ -123,6 +121,12 @@ resource "bitwarden-secrets_secret" "cluster_vip" {
 locals {
   # Extract OCI tenancy OCID from oci-config (format: tenancy=ocid1.tenancy.oc1...)
   oci_tenancy_ocid = regex("tenancy=([^\n]+)", data.bitwarden-secrets_secret.oci_config.value)[0]
+
+  # Extract OCI user OCID from oci-config (format: user=ocid1.user.oc1...)
+  oci_user_ocid = regex("user=([^\n]+)", data.bitwarden-secrets_secret.oci_config.value)[0]
+
+  # Extract OCI region from oci-config (format: region=us-ashburn-1)
+  oci_region = regex("region=([^\n]+)", data.bitwarden-secrets_secret.oci_config.value)[0]
 
   # Resolve cluster VIP from Bitwarden when available, otherwise use Terraform variable.
   cluster_vip = length(data.bitwarden-secrets_secret.cluster_vip) > 0 ? data.bitwarden-secrets_secret.cluster_vip[0].value : var.cluster_vip

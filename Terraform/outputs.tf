@@ -80,3 +80,16 @@ output "ansible_inventory" {
   })
   sensitive = true
 }
+
+# -----------------------------------------------------------------------------
+# Hetzner Storage Box
+# -----------------------------------------------------------------------------
+output "storage_box_server" {
+  description = "Hetzner Storage Box FQDN"
+  value       = hcloud_storage_box.backups.server
+}
+
+output "storage_box_username" {
+  description = "Hetzner Storage Box primary username"
+  value       = hcloud_storage_box.backups.username
+}

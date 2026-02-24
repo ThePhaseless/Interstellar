@@ -55,7 +55,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
   vm_id       = each.value.vmid
   description = "TalosOS ${each.value.gpu ? "GPU " : ""}node for Kubernetes cluster"
 
-  # VM settings
   machine       = "q35"
   bios          = "ovmf"
   scsi_hardware = "virtio-scsi-pci"
@@ -67,23 +66,17 @@ resource "proxmox_virtual_environment_vm" "talos" {
     type = "l26"
   }
 
-  # Tags for organization
   tags = each.value.gpu ? ["talos", "kubernetes", "gpu"] : ["talos", "kubernetes"]
 
-  # CPU configuration
   cpu {
-    cores   = each.value.vcpus
-    type    = "host"
-    sockets = 1
+    cores = each.value.vcpus
+    type  = "host"
   }
 
-  # Memory configuration
   memory {
     dedicated = each.value.memory
-    floating  = 0
   }
 
-  # EFI disk for UEFI boot
   efi_disk {
     datastore_id      = var.vm_os_datastore_id
     file_format       = "raw"
@@ -135,7 +128,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
     }
   }
 
-  # QEMU guest agent
   agent {
     enabled = true
     timeout = "60s"

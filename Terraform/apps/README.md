@@ -21,7 +21,8 @@ Services are accessed directly via **Tailscale MagicDNS** — no port-forwarding
 Ensure you are connected to the Tailscale network where the cluster services are exposed.
 
 Required Bitwarden secrets:
-- `sonarr-api-key`, `radarr-api-key`, `prowlarr-api-key` — *arr API keys
+
+- `sonarr-api-key`, `radarr-api-key`, `prowlarr-api-key` — \*arr API keys
 - `qbittorrent-username`, `qbittorrent-password` — qBittorrent credentials
 - `adguard-admin-username`, `adguard-admin-password` — AdGuard admin credentials (plaintext)
 

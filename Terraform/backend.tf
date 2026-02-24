@@ -54,6 +54,12 @@ terraform {
       version = ">= 2.36.0"
     }
 
+    # Hetzner Cloud (Storage Box for off-site backups)
+    hcloud = {
+      source  = "hetznercloud/hcloud"
+      version = ">= 1.49.0"
+    }
+
     # Standard providers
     tls = {
       source  = "hashicorp/tls"

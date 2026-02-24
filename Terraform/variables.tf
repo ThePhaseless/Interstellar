@@ -149,6 +149,27 @@ variable "proxy_public_access" {
 }
 
 # -----------------------------------------------------------------------------
+# Hetzner Cloud Configuration
+# -----------------------------------------------------------------------------
+variable "hcloud_token" {
+  description = "Hetzner Cloud API token. Sourced from HCLOUD_TOKEN env var via setup-env.sh."
+  type        = string
+  sensitive   = true
+}
+
+variable "hetzner_storagebox_location" {
+  description = "Hetzner Storage Box datacenter location"
+  type        = string
+  default     = "fsn1"
+}
+
+variable "hetzner_storagebox_type" {
+  description = "Hetzner Storage Box product type (bx11=1TB, bx21=5TB, bx31=10TB, bx41=20TB)"
+  type        = string
+  default     = "bx11"
+}
+
+# -----------------------------------------------------------------------------
 # Secret Configuration
 # -----------------------------------------------------------------------------
 variable "bws_access_token" {
