@@ -75,6 +75,10 @@ rules:
       - networkpolicies
       - ingresses
     verbs: ["list", "watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources:
+      - endpointslices
+    verbs: ["list", "watch"]
   - apiGroups: ["coordination.k8s.io"]
     resources:
       - leases
@@ -101,7 +105,6 @@ metadata:
   labels:
     app: kube-state-metrics
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: kube-state-metrics
@@ -125,13 +128,13 @@ spec:
               containerPort: 8081
           livenessProbe:
             httpGet:
-              path: /livez
+              path: /healthz
               port: http-metrics
             initialDelaySeconds: 5
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /readyz
+              path: /healthz
               port: http-metrics
             initialDelaySeconds: 5
             timeoutSeconds: 5

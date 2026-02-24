@@ -1,0 +1,92 @@
+// Kubernetes Service Discovery
+discovery.kubernetes "pods" {
+  role = "pod"
+}
+
+discovery.kubernetes "nodes" {
+  role = "node"
+}
+
+// Relabel for pod metrics
+discovery.relabel "pods" {
+  targets = discovery.kubernetes.pods.targets
+
+  rule {
+    source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+    regex         = "true"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+    regex         = "(.+)"
+    target_label  = "__metrics_path__"
+    action        = "replace"
+  }
+
+  rule {
+    source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+    regex         = "([^:]+)(?::\\d+)?;(\\d+)"
+    target_label  = "__address__"
+    replacement   = "$1:$2"
+    action        = "replace"
+  }
+
+  rule {
+    source_labels = ["__meta_kubernetes_namespace"]
+    target_label  = "namespace"
+  }
+
+  rule {
+    source_labels = ["__meta_kubernetes_pod_name"]
+    target_label  = "pod"
+  }
+}
+
+// Scrape pod metrics
+prometheus.scrape "pods" {
+  targets    = discovery.relabel.pods.output
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+// Scrape kubelet metrics
+prometheus.scrape "kubelet" {
+  targets = discovery.kubernetes.nodes.targets
+  scheme  = "https"
+
+  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+  tls_config {
+    insecure_skip_verify = true
+  }
+
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+// Relabel for cAdvisor metrics (container CPU/memory)
+discovery.relabel "cadvisor" {
+  targets = discovery.kubernetes.nodes.targets
+
+  rule {
+    target_label  = "__metrics_path__"
+    replacement   = "/metrics/cadvisor"
+  }
+}
+
+// Scrape cAdvisor metrics
+prometheus.scrape "cadvisor" {
+  targets    = discovery.relabel.cadvisor.output
+  scheme     = "https"
+  forward_to = [prometheus.remote_write.mimir.receiver]
+
+  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+  tls_config {
+    insecure_skip_verify = true
+  }
+}
+
+// Remote write to Mimir
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://mimir.observability.svc.cluster.local:9009/api/v1/push"
+  }
+}

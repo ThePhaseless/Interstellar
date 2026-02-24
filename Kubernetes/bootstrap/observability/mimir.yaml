@@ -10,7 +10,6 @@ metadata:
     app: mimir
 spec:
   serviceName: mimir
-  replicas: 1
   selector:
     matchLabels:
       app: mimir
@@ -90,62 +89,3 @@ spec:
       targetPort: grpc
   selector:
     app: mimir
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mimir-config
-  namespace: observability
-data:
-  mimir.yaml: |
-    multitenancy_enabled: false
-
-    activity_tracker:
-      filepath: /data/metrics-activity.log
-
-    server:
-      http_listen_port: 9009
-      grpc_listen_port: 9095
-
-    common:
-      storage:
-        backend: filesystem
-        filesystem:
-          dir: /data
-
-    blocks_storage:
-      backend: filesystem
-      filesystem:
-        dir: /data/blocks
-      tsdb:
-        dir: /data/tsdb
-      bucket_store:
-        sync_dir: /data/tsdb-sync
-
-    ruler_storage:
-      backend: filesystem
-      filesystem:
-        dir: /data/rules
-
-    limits:
-      max_global_series_per_user: 1000000
-      max_global_series_per_metric: 100000
-      ingestion_rate: 100000
-      ingestion_burst_size: 200000
-
-    store_gateway:
-      sharding_ring:
-        kvstore:
-          store: inmemory
-
-    ruler:
-      rule_path: /data/data-ruler
-      ring:
-        kvstore:
-          store: inmemory
-
-    compactor:
-      data_dir: /data/compactor
-      sharding_ring:
-        kvstore:
-          store: inmemory
