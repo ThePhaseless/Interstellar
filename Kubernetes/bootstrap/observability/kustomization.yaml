@@ -14,15 +14,76 @@ resources:
   - promtail.yaml
   - alloy.yaml
   - kube-state-metrics.yaml
-  - alerting.yaml
   - externalsecret.yaml
-  - dashboards/cluster-overview.yaml
-  - dashboards/traefik.yaml
-  - dashboards/media-stack.yaml
-  - dashboards/logs-explorer.yaml
-  - dashboards/geo-heatmap.yaml
 
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true
+configMapGenerator:
+  - name: grafana-dashboard-cluster
+    files:
+      - dashboards/cluster-overview.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "true"
+  - name: grafana-dashboard-traefik
+    files:
+      - dashboards/traefik.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "true"
+  - name: grafana-dashboard-media
+    files:
+      - dashboards/media-stack.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "true"
+  - name: grafana-dashboard-logs
+    files:
+      - dashboards/logs-explorer.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "true"
+  - name: grafana-dashboard-geo
+    files:
+      - dashboards/geo-heatmap.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "true"
+  - name: loki-config
+    files:
+      - config/loki.yaml
+    options:
+      disableNameSuffixHash: true
+  - name: mimir-config
+    files:
+      - config/mimir.yaml
+    options:
+      disableNameSuffixHash: true
+  - name: alloy-config
+    files:
+      - config.alloy=config/alloy.alloy
+    options:
+      disableNameSuffixHash: true
+  - name: promtail-config
+    files:
+      - config/promtail.yaml
+    options:
+      disableNameSuffixHash: true
+  - name: grafana-datasources
+    files:
+      - datasources.yaml=config/grafana-datasources.yaml
+    options:
+      disableNameSuffixHash: true
+  - name: grafana-dashboards-provisioning
+    files:
+      - dashboards.yaml=config/grafana-dashboards-provisioning.yaml
+    options:
+      disableNameSuffixHash: true
+  - name: grafana-alerting
+    files:
+      - alerting.yaml=config/grafana-alerting.yaml
+    options:
+      disableNameSuffixHash: true

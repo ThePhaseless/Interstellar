@@ -9,7 +9,6 @@ metadata:
   labels:
     app: grafana
 spec:
-  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -43,7 +42,7 @@ spec:
             - name: GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP
               value: "true"
             - name: GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN
-              value: "false"
+              value: "true"
             - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -59,13 +58,25 @@ spec:
             - name: GF_AUTH_GENERIC_OAUTH_AUTH_URL
               value: "https://auth.nerine.dev/application/o/authorize/"
             - name: GF_AUTH_GENERIC_OAUTH_TOKEN_URL
-              value: "https://auth.nerine.dev/application/o/token/"
+              value: "http://authentik-server.authentik.svc.cluster.local/application/o/token/"
             - name: GF_AUTH_GENERIC_OAUTH_API_URL
-              value: "https://auth.nerine.dev/application/o/userinfo/"
+              value: "http://authentik-server.authentik.svc.cluster.local/application/o/userinfo/"
+            - name: GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_PATH
+              value: "email"
+            - name: GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH
+              value: "preferred_username"
+            - name: GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH
+              value: "name"
+            - name: GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH
+              value: "groups"
+            - name: GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP
+              value: "true"
+            - name: GF_AUTH_DISABLE_LOGIN_FORM
+              value: "true"
             - name: GF_AUTH_SIGNOUT_REDIRECT_URL
               value: "https://auth.nerine.dev/application/o/grafana/end-session/"
             - name: GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
-              value: "contains(groups[*], 'Grafana Admins') && 'Admin' || contains(groups[*], 'Grafana Editors') && 'Editor' || 'Viewer'"
+              value: "contains(groups[*], 'Admins') && 'Admin' || contains(groups[*], 'Grafana Editors') && 'Editor' || 'Viewer'"
             - name: GF_USERS_ALLOW_SIGN_UP
               value: "true"
             - name: GF_USERS_AUTO_ASSIGN_ORG
@@ -78,6 +89,17 @@ spec:
                   name: discord-webhook
                   key: webhook-url
                   optional: true
+            # SMTP via Postfix relay
+            - name: GF_SMTP_ENABLED
+              value: "true"
+            - name: GF_SMTP_HOST
+              value: "postfix.utilities.svc.cluster.local:587"
+            - name: GF_SMTP_FROM_ADDRESS
+              value: "grafana@nerine.dev"
+            - name: GF_SMTP_FROM_NAME
+              value: "Grafana (Interstellar)"
+            - name: GF_SMTP_SKIP_VERIFY
+              value: "true"
           ports:
             - name: http
               containerPort: 3000
@@ -175,81 +197,6 @@ spec:
   resources:
     requests:
       storage: 5Gi
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-datasources
-  namespace: observability
-data:
-  datasources.yaml: |
-    apiVersion: 1
-    datasources:
-      - name: Loki
-        type: loki
-        access: proxy
-        url: http://loki.observability.svc.cluster.local:3100
-        isDefault: false
-        jsonData:
-          maxLines: 1000
-
-      - name: Mimir
-        type: prometheus
-        access: proxy
-        url: http://mimir.observability.svc.cluster.local:9009/prometheus
-        isDefault: true
-        jsonData:
-          httpMethod: POST
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-dashboards-provisioning
-  namespace: observability
-data:
-  dashboards.yaml: |
-    apiVersion: 1
-    providers:
-      - name: cluster
-        orgId: 1
-        folder: 'Infrastructure'
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/cluster
-      - name: traefik
-        orgId: 1
-        folder: 'Infrastructure'
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/traefik
-      - name: media
-        orgId: 1
-        folder: 'Media'
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/media
-      - name: logs
-        orgId: 1
-        folder: 'Logs'
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/logs
-      - name: geo
-        orgId: 1
-        folder: 'Security'
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/geo
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
