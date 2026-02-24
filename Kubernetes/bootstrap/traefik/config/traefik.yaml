@@ -18,7 +18,7 @@ entryPoints:
     # PROXY Protocol from Oracle HAProxy
     proxyProtocol:
       trustedIPs:
-        - "100.64.0.0/10"  # Tailscale CGNAT range
+        - "100.64.0.0/10" # Tailscale CGNAT range
     http:
       redirections:
         entryPoint:
@@ -31,7 +31,7 @@ entryPoints:
     # PROXY Protocol from Oracle HAProxy
     proxyProtocol:
       trustedIPs:
-        - "100.64.0.0/10"  # Tailscale CGNAT range
+        - "100.64.0.0/10" # Tailscale CGNAT range
     http:
       tls:
         certResolver: letsencrypt

@@ -84,7 +84,9 @@ def build_inventory() -> dict:
 
         # Use the MagicDNS short name (strip trailing dot + tailnet suffix)
         dns_name: str = peer.get("DNSName", "")
-        hostname = dns_name.split(".")[0] if dns_name else peer.get("HostName", "unknown")
+        hostname = (
+            dns_name.split(".")[0] if dns_name else peer.get("HostName", "unknown")
+        )
         if not hostname:
             continue
 
@@ -143,7 +145,9 @@ def main() -> None:
         hostvars = inventory.get("_meta", {}).get("hostvars", {}).get(host, {})
         print(json.dumps(hostvars, indent=2))
     else:
-        print("Usage: inventory_tailscale.py --list | --host <hostname>", file=sys.stderr)
+        print(
+            "Usage: inventory_tailscale.py --list | --host <hostname>", file=sys.stderr
+        )
         sys.exit(1)
 
 

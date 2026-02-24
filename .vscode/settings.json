@@ -1,15 +1,7 @@
 {
-  "files.associations": {
-    "Config/Home/HomeAssistant/*.yaml": "home-assistant",
-    "Ansible/**/*.yaml": "ansible"
-  },
-  "yaml.schemas": {
-    "kubernetes": "Kubernetes/**/loki.yaml",
-    "kubernetes://schema/apps/v1@statefulset+v1@service": "file:///home/orcho/Interstellar/Kubernetes/bootstrap/observability/loki.yaml",
-    "https://www.schemastore.org/loki.json": "file:///home/orcho/Interstellar/Kubernetes/bootstrap/observability/config/loki.yaml"
-  },
-  "python.terminal.activateEnvInCurrentTerminal": true,
-  "python.terminal.activateEnvironment": true,
+  "ansible.lightspeed.enabled": false,
+  "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "cSpell.ignoreRegExpList": [".*arr"],
   "cSpell.words": [
     "crowdsec",
     "jellyfin",
@@ -24,25 +16,33 @@
     "tflint",
     "traefik"
   ],
-  "cSpell.ignoreRegExpList": [".*arr"],
-  "yaml.customTags": ["!env_var", "!include_dir_merge_named"],
-  "python.defaultInterpreterPath": "./.venv/bin/python",
-  "ansible.lightspeed.enabled": false,
-  "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
-  "vs-kubernetes": {
-    "disable-linters": ["resource-limits"]
-  },
   "chat.tools.terminal.autoApprove": {
     "./scripts/lint-kubernetes.sh": true
   },
-  "opentofu.experimentalFeatures.validateOnSave": true,
-  "opentofu.experimentalFeatures.prefillRequiredFields": true,
+  "files.associations": {
+    "Ansible/**/*.yaml": "ansible",
+    "Config/Home/HomeAssistant/*.yaml": "home-assistant"
+  },
   "json.schemaDownload.trustedDomains": {
-    "https://schemastore.azurewebsites.net/": true,
-    "https://raw.githubusercontent.com/": true,
-    "https://www.schemastore.org/": true,
-    "https://json.schemastore.org/": true,
+    "https://docs.renovatebot.com/renovate-schema.json": true,
     "https://json-schema.org/": true,
-    "https://docs.renovatebot.com/renovate-schema.json": true
+    "https://json.schemastore.org/": true,
+    "https://raw.githubusercontent.com/": true,
+    "https://schemastore.azurewebsites.net/": true,
+    "https://www.schemastore.org/": true
+  },
+  "opentofu.experimentalFeatures.prefillRequiredFields": true,
+  "opentofu.experimentalFeatures.validateOnSave": true,
+  "python.defaultInterpreterPath": "./.venv/bin/python",
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.terminal.activateEnvironment": true,
+  "vs-kubernetes": {
+    "disable-linters": ["resource-limits"]
+  },
+  "yaml.customTags": ["!env_var", "!ENV", "!include_dir_merge_named"],
+  "yaml.schemas": {
+    "https://www.schemastore.org/loki.json": "file:///home/orcho/Interstellar/Kubernetes/bootstrap/observability/config/loki.yaml",
+    "kubernetes": "Kubernetes/**/loki.yaml",
+    "kubernetes://schema/apps/v1@statefulset+v1@service": "file:///home/orcho/Interstellar/Kubernetes/bootstrap/observability/loki.yaml"
   }
 }
