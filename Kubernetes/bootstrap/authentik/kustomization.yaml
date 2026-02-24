@@ -11,7 +11,6 @@ resources:
   - externalsecret.yaml
   - ingress.yaml
 
-# Install Authentik via Helm chart
 helmCharts:
   - name: authentik
     repo: https://charts.goauthentik.io
@@ -19,15 +18,22 @@ helmCharts:
     releaseName: authentik
     namespace: authentik
     valuesInline:
-      # --- Authentik Core Configuration ---
       authentik:
         secret_key: "" # Set via AUTHENTIK_SECRET_KEY env var from secret
         error_reporting:
           enabled: false
         postgresql:
           password: "" # Set via AUTHENTIK_POSTGRESQL__PASSWORD env var from secret
+        email:
+          host: "postfix.utilities.svc.cluster.local"
+          port: 587
+          username: ""
+          password: ""
+          use_tls: false
+          use_ssl: false
+          timeout: 30
+          from: "noreply@nerine.dev"
 
-      # --- Global Settings ---
       global:
         env:
           - name: AUTHENTIK_SECRET_KEY
@@ -46,17 +52,11 @@ helmCharts:
                 name: authentik-secrets
                 key: authentik-bootstrap-token
 
-      # --- Server ---
       server:
-        replicas: 1
         ingress:
           enabled: false # Using Traefik IngressRoute instead
-        metrics:
-          enabled: false
 
-      # --- Worker ---
-      worker:
-        replicas: 1
+      worker: {}
 
       # --- Embedded PostgreSQL ---
       postgresql:
@@ -74,8 +74,3 @@ helmCharts:
       # --- Service Account (required for embedded outpost) ---
       serviceAccount:
         create: true
-
-labels:
-  - pairs:
-      managed-by: argocd
-    includeSelectors: true

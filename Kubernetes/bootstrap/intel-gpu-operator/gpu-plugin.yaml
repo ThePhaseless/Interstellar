@@ -42,7 +42,7 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
           args:
-            - -shared-dev-num=2
+            - -shared-dev-num=5
             - -allocation-policy=balanced
           securityContext:
             readOnlyRootFilesystem: true
