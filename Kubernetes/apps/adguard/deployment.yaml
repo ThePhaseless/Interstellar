@@ -13,7 +13,6 @@ metadata:
   labels:
     app: adguard
 spec:
-  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -63,19 +62,15 @@ spec:
           ports:
             - name: http
               containerPort: 3000
-              protocol: TCP
             - name: dns-tcp
               containerPort: 53
-              protocol: TCP
             - name: dns-udp
               containerPort: 53
               protocol: UDP
             - name: dns-https
               containerPort: 443
-              protocol: TCP
             - name: dns-tls
               containerPort: 853
-              protocol: TCP
           volumeMounts:
             - name: data
               mountPath: /opt/adguardhome/conf

@@ -9,7 +9,6 @@ metadata:
   labels:
     app: immich
 spec:
-  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -29,19 +28,20 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
+              SMTP='{"notifications":{"smtp":{"enabled":true,"from":{"name":"Immich","address":"noreply@nerine.dev"},"replyTo":"","transport":{"host":"postfix.utilities.svc.cluster.local","port":587,"username":"","password":"","ignoreCert":true}}}}'
               if [ -f /secrets/oauth-client-id ] && [ -f /secrets/oauth-client-secret ]; then
                 CLIENT_ID=$(cat /secrets/oauth-client-id)
                 CLIENT_SECRET=$(cat /secrets/oauth-client-secret)
                 if [ -n "$CLIENT_ID" ] && [ -n "$CLIENT_SECRET" ]; then
-                  printf '{"oauth":{"enabled":true,"issuerUrl":"https://auth.nerine.dev/application/o/immich/.well-known/openid-configuration","clientId":"%s","clientSecret":"%s","scope":"openid email profile","signingAlgorithm":"RS256","profileSigningAlgorithm":"none","storageLabelClaim":"preferred_username","buttonText":"Login with Authentik","autoRegister":true,"autoLaunch":true,"defaultStorageQuota":0},"passwordLogin":{"enabled":false}}' "$CLIENT_ID" "$CLIENT_SECRET" > /immich-config/immich.config.json
-                  echo "Immich OAuth config created (enabled)"
+                  printf '{"oauth":{"enabled":true,"issuerUrl":"https://auth.nerine.dev/application/o/immich/","clientId":"%s","clientSecret":"%s","scope":"openid email profile","signingAlgorithm":"RS256","profileSigningAlgorithm":"none","storageLabelClaim":"preferred_username","buttonText":"Login with Authentik","autoRegister":true,"autoLaunch":true,"defaultStorageQuota":0},"passwordLogin":{"enabled":false},%s}' "$CLIENT_ID" "$CLIENT_SECRET" "$(echo $SMTP | sed 's/^{//;s/}$//')" > /immich-config/immich.config.json
+                  echo "Immich OAuth config created (enabled) with SMTP"
                 else
-                  echo '{"oauth":{"enabled":false}}' > /immich-config/immich.config.json
-                  echo "Warning: OAuth secrets empty, OAuth disabled"
+                  echo "{\"oauth\":{\"enabled\":false},$(echo $SMTP | sed 's/^{//;s/}$//')}" > /immich-config/immich.config.json
+                  echo "Warning: OAuth secrets empty, OAuth disabled (SMTP enabled)"
                 fi
               else
-                echo '{"oauth":{"enabled":false}}' > /immich-config/immich.config.json
-                echo "Warning: OAuth secrets not found, OAuth disabled"
+                echo "{\"oauth\":{\"enabled\":false},$(echo $SMTP | sed 's/^{//;s/}$//')}" > /immich-config/immich.config.json
+                echo "Warning: OAuth secrets not found, OAuth disabled (SMTP enabled)"
               fi
           volumeMounts:
             - name: oauth-secrets
@@ -51,7 +51,6 @@ spec:
               mountPath: /immich-config
 
       containers:
-        # Immich Server
         - name: immich-server
           image: ghcr.io/immich-app/immich-server:v2.5.6
           env:

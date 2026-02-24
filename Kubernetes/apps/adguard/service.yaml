@@ -48,4 +48,3 @@ spec:
     - name: dns-tcp
       port: 53
       targetPort: dns-tcp
-      protocol: TCP

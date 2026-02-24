@@ -1,19 +1,16 @@
 # =============================================================================
-# Immich Service
+# Byparr Service
 # =============================================================================
 apiVersion: v1
 kind: Service
 metadata:
-  name: immich
-  namespace: utilities
+  name: byparr
+  namespace: media
 spec:
   type: ClusterIP
   ports:
     - name: http
-      port: 3001
+      port: 8191
       targetPort: http
-    - name: postgres
-      port: 5432
-      targetPort: 5432
   selector:
-    app: immich
+    app: byparr

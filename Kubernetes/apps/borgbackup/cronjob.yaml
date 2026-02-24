@@ -1,0 +1,109 @@
+# =============================================================================
+# BorgBackup — CronJob
+# =============================================================================
+# Daily backup of Immich photos (NFS) and PostgreSQL database to Hetzner
+# Storage Box via BorgBackup with repokey encryption.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: borgbackup
+  namespace: utilities
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            # Dump Immich PostgreSQL database before borg runs
+            - name: pg-dump
+              image: postgres:16-alpine
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  echo "$(date) Starting Immich PostgreSQL dump..."
+                  pg_dump \
+                    -h immich.utilities.svc.cluster.local \
+                    -p 5432 \
+                    -U immich \
+                    -d immich \
+                    -Fc \
+                    -f /db-dump/immich.dump
+                  echo "$(date) Database dump complete ($(du -h /db-dump/immich.dump | cut -f1))"
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-secrets
+                      key: db-password
+              volumeMounts:
+                - name: db-dump
+                  mountPath: /db-dump
+              resources:
+                requests: { cpu: 100m, memory: 256Mi }
+                limits: { cpu: 1000m, memory: 1Gi }
+          containers:
+            - name: borgbackup
+              image: alpine:3.21
+              command: ["/bin/sh", "/scripts/backup.sh"]
+              env:
+                - name: BORG_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: passphrase
+                - name: BORG_REPO
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: repo-url
+                - name: BORG_SERVER_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: server-host
+              volumeMounts:
+                - name: photos
+                  mountPath: /photos
+                  readOnly: true
+                - name: db-dump
+                  mountPath: /db-dump
+                  readOnly: true
+                - name: borg-ssh-key
+                  mountPath: /secrets/ssh
+                  readOnly: true
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+                - name: borg-cache
+                  mountPath: /root/.cache/borg
+              resources:
+                requests: { cpu: 200m, memory: 512Mi }
+                limits: { cpu: 2000m, memory: 2Gi }
+          volumes:
+            - name: photos
+              persistentVolumeClaim:
+                claimName: immich-upload
+            - name: db-dump
+              emptyDir:
+                sizeLimit: 5Gi
+            - name: borg-ssh-key
+              secret:
+                secretName: borg-secrets
+                items:
+                  - key: ssh-private-key
+                    path: id_ed25519
+                    mode: 0600
+                defaultMode: 0600
+            - name: backup-script
+              configMap:
+                name: borgbackup-script
+                defaultMode: 0755
+            - name: borg-cache
+              emptyDir:
+                sizeLimit: 2Gi

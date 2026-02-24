@@ -12,7 +12,6 @@ metadata:
     # Auto-restart on config/secret changes
     reloader.stakater.com/auto: "true"
 spec:
-  replicas: 1
   strategy:
     type: Recreate # GPU can't be shared
   selector:
@@ -86,6 +85,10 @@ spec:
                 secretKeyRef:
                   name: jellyfin-secrets
                   key: admin-password
+            - name: JELLYFIN_DOMAIN
+              value: "watch.nerine.dev"
+            - name: AUTHENTIK_OIDC_ENDPOINT
+              value: "https://auth.nerine.dev/application/o/jellyfin"
           volumeMounts:
             - name: scripts
               mountPath: /scripts

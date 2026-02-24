@@ -11,8 +11,16 @@ resources:
   - service.yaml
   - ingress.yaml
 
+configMapGenerator:
+  - name: homepage-html
+    options:
+      disableNameSuffixHash: true
+    files:
+      - index.html
+      - style.css
+      - nginx.conf
+
 labels:
   - pairs:
       app: homepage
-      managed-by: argocd
     includeSelectors: true

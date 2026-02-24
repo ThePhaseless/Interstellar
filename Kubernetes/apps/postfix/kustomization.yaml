@@ -1,5 +1,5 @@
 # =============================================================================
-# Whoami Kustomization
+# Postfix SMTP Relay Kustomization
 # =============================================================================
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -9,9 +9,9 @@ namespace: utilities
 resources:
   - deployment.yaml
   - service.yaml
-  - ingress.yaml
+  - externalsecret.yaml
 
 labels:
   - pairs:
-      app: whoami
+      app: postfix
     includeSelectors: true
