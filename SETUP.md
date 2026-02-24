@@ -170,49 +170,66 @@ This creates a `bitwarden-tls-certs` Secret in the `external-secrets` namespace.
 #### Step F: Deploy Kubernetes bootstrap (without ArgoCD)
 
 Deploy bootstrap infrastructure in order. CRDs must register between applies,
-so each component is applied separately:
+so each component is applied separately. Use `./scripts/apply-kubernetes.sh`
+which handles `kustomize build --enable-helm` + `kubectl apply --server-side`:
 
 ```bash
 cd Kubernetes
 
 # Phase 1: Foundation
-kustomize build bootstrap/metallb --enable-helm | kubectl apply --server-side --force-conflicts -f -
+../scripts/apply-kubernetes.sh bootstrap/metallb
 # Wait for MetalLB controller to be ready
 kubectl -n metallb-system wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=120s
 # Re-apply to create IPAddressPool/L2Advertisement (requires webhook)
-kustomize build bootstrap/metallb --enable-helm | kubectl apply --server-side --force-conflicts -f -
+../scripts/apply-kubernetes.sh bootstrap/metallb
 
-kustomize build bootstrap/nfs-csi --enable-helm | kubectl apply --server-side -f -
-kustomize build bootstrap/reloader --enable-helm | kubectl apply --server-side -f -
+../scripts/apply-kubernetes.sh bootstrap/nfs-csi
+../scripts/apply-kubernetes.sh bootstrap/reloader
 
 # Phase 2: Storage & Secrets
-kustomize build bootstrap/longhorn --enable-helm | kubectl apply --server-side -f -
-kustomize build bootstrap/external-secrets --enable-helm | kubectl apply --server-side --force-conflicts -f -
+../scripts/apply-kubernetes.sh bootstrap/longhorn
+../scripts/apply-kubernetes.sh bootstrap/external-secrets
 # Wait for ESO pods, then re-apply to create ClusterSecretStore
 kubectl -n external-secrets wait --for=condition=ready pod -l app.kubernetes.io/name=external-secrets --timeout=180s
 # Set actual Bitwarden access token
 kubectl -n external-secrets create secret generic bitwarden-access-token \
   --from-literal=token="$BWS_ACCESS_TOKEN" --dry-run=client -o yaml | kubectl apply --server-side -f -
-kustomize build bootstrap/external-secrets --enable-helm | kubectl apply --server-side --force-conflicts -f -
+../scripts/apply-kubernetes.sh bootstrap/external-secrets
 
 # Phase 3: Networking & Security
-kustomize build bootstrap/kube-api-lb --enable-helm | kubectl apply --server-side -f -
-kustomize build bootstrap/traefik --enable-helm | kubectl apply --server-side -f -
-kustomize build bootstrap/crowdsec --enable-helm | kubectl apply --server-side -f -
-kustomize build bootstrap/tailscale-operator --enable-helm | kubectl apply --server-side -f -
+../scripts/apply-kubernetes.sh bootstrap/kube-api-lb
+../scripts/apply-kubernetes.sh bootstrap/traefik
+../scripts/apply-kubernetes.sh bootstrap/crowdsec
+../scripts/apply-kubernetes.sh bootstrap/tailscale-operator
 
 # Phase 4: Workloads & Observability
 # Re-apply Longhorn to create IngressRoute (needs Traefik CRDs)
-kustomize build bootstrap/longhorn --enable-helm | kubectl apply --server-side -f -
-kustomize build bootstrap/intel-gpu-operator --enable-helm | kubectl apply --server-side -f -
-kustomize build bootstrap/observability --enable-helm | kubectl apply --server-side -f -
-kustomize build bootstrap/clamav --enable-helm | kubectl apply --server-side -f -
+../scripts/apply-kubernetes.sh bootstrap/longhorn
+../scripts/apply-kubernetes.sh bootstrap/intel-gpu-operator
+../scripts/apply-kubernetes.sh bootstrap/observability
+../scripts/apply-kubernetes.sh bootstrap/clamav
 ```
 
 #### Step G: Deploy applications
 
 ```bash
-kustomize build apps --enable-helm | kubectl apply --server-side -f -
+../scripts/apply-kubernetes.sh apps
+```
+
+#### Step G.1: Configure applications via Terraform
+
+After apps are running, configure Sonarr, Radarr, Prowlarr, and AdGuard Home
+via Terraform. Services are reached via `kubectl port-forward`:
+
+```bash
+# 1. Start port-forwards in background
+./scripts/port-forward-apps.sh &
+
+# 2. Apply Terraform app configuration
+export KUBE_CONFIG_PATH=~/.kube/config
+cd ../Terraform/apps
+terraform init
+terraform apply
 ```
 
 #### Step H: Bootstrap ArgoCD (GitOps)
