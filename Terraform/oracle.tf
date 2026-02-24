@@ -17,7 +17,6 @@ provider "oci" {
 # Data Sources
 # -----------------------------------------------------------------------------
 
-# Get availability domains
 data "oci_identity_availability_domains" "ads" {
   compartment_id = oci_identity_compartment.main.id
 }
@@ -41,7 +40,6 @@ resource "oci_objectstorage_bucket" "tf_state" {
   versioning     = "Enabled"
 }
 
-# Get Ubuntu image
 data "oci_core_images" "ubuntu" {
   compartment_id           = oci_identity_compartment.main.id
   operating_system         = "Canonical Ubuntu"
@@ -63,15 +61,12 @@ resource "oci_core_vcn" "main" {
   dns_label      = "interstellar"
 }
 
-# Internet Gateway
 resource "oci_core_internet_gateway" "main" {
   compartment_id = oci_identity_compartment.main.id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "interstellar-igw"
-  enabled        = true
 }
 
-# Route Table
 resource "oci_core_route_table" "main" {
   compartment_id = oci_identity_compartment.main.id
   vcn_id         = oci_core_vcn.main.id
@@ -84,24 +79,19 @@ resource "oci_core_route_table" "main" {
   }
 }
 
-# Security List
 resource "oci_core_security_list" "main" {
   compartment_id = oci_identity_compartment.main.id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "interstellar-sl"
 
-  # Egress: Allow all outbound
   egress_security_rules {
     destination = "0.0.0.0/0"
     protocol    = "all"
-    stateless   = false
   }
 
-  # Ingress: SSH
   ingress_security_rules {
     protocol    = "6" # TCP
     source      = "0.0.0.0/0"
-    stateless   = false
     description = "SSH access"
 
     tcp_options {
@@ -116,7 +106,6 @@ resource "oci_core_security_list" "main" {
     content {
       protocol    = "6"
       source      = "0.0.0.0/0"
-      stateless   = false
       description = "HTTP traffic"
 
       tcp_options {
@@ -132,7 +121,6 @@ resource "oci_core_security_list" "main" {
     content {
       protocol    = "6"
       source      = "0.0.0.0/0"
-      stateless   = false
       description = "HTTPS traffic"
 
       tcp_options {
@@ -142,11 +130,9 @@ resource "oci_core_security_list" "main" {
     }
   }
 
-  # Ingress: Tailscale UDP
   ingress_security_rules {
     protocol    = "17" # UDP
     source      = "0.0.0.0/0"
-    stateless   = false
     description = "Tailscale WireGuard"
 
     udp_options {
@@ -156,7 +142,6 @@ resource "oci_core_security_list" "main" {
   }
 }
 
-# Subnet
 resource "oci_core_subnet" "main" {
   compartment_id             = oci_identity_compartment.main.id
   vcn_id                     = oci_core_vcn.main.id
@@ -172,7 +157,6 @@ resource "oci_core_subnet" "main" {
 # Compute Instance
 # -----------------------------------------------------------------------------
 
-# SSH Key
 resource "tls_private_key" "oracle_ssh" {
   algorithm = "ED25519"
 }

@@ -1,34 +1,27 @@
-locals {
-  sonarr_provider_url   = var.sonarr_provider_url
-  radarr_provider_url   = var.radarr_provider_url
-  prowlarr_provider_url = var.prowlarr_provider_url
-  adguard_provider_url  = var.adguard_provider_url
-  authentik_provider_url = var.authentik_provider_url
-}
-
 provider "sonarr" {
-  url     = local.sonarr_provider_url
+  url     = var.sonarr_provider_url
   api_key = data.bitwarden-secrets_secret.sonarr_api_key.value
 }
 
 provider "radarr" {
-  url     = local.radarr_provider_url
+  url     = var.radarr_provider_url
   api_key = data.bitwarden-secrets_secret.radarr_api_key.value
 }
 
 provider "prowlarr" {
-  url     = local.prowlarr_provider_url
+  url     = var.prowlarr_provider_url
   api_key = data.bitwarden-secrets_secret.prowlarr_api_key.value
 }
 
 provider "adguard" {
-  host     = local.adguard_provider_url
+  host     = var.adguard_provider_url
+  scheme   = "http"
   username = "admin"
   password = "admin"
 }
 
 provider "authentik" {
-  url   = local.authentik_provider_url
+  url   = var.authentik_provider_url
   token = data.bitwarden-secrets_secret.authentik_bootstrap_token.value
 }
 

@@ -4,7 +4,8 @@
 # Configures Authentik as the central IdP replacing oauth2-proxy.
 # Two proxy providers (forward_domain mode):
 #   - "private": VIP email-restricted (most apps)
-#   - "public": Any Google account (jellyseerr, jellyfin)
+#   - "public": Any Google account (jellyseerr)
+# Native OIDC providers: Grafana, Immich, Jellyfin
 # Google OAuth is the only login source (no username/password).
 
 # -----------------------------------------------------------------------------
@@ -46,6 +47,11 @@ data "authentik_property_mapping_provider_scope" "oauth2" {
 # -----------------------------------------------------------------------------
 
 resource "authentik_source_oauth" "google" {
+  access_token_url  = "https://oauth2.googleapis.com/token"
+  authorization_url = "https://accounts.google.com/o/oauth2/v2/auth"
+  oidc_jwks_url     = "https://www.googleapis.com/oauth2/v3/certs"
+  profile_url       = "https://openidconnect.googleapis.com/v1/userinfo"
+
   name                = "Google"
   slug                = "google"
   authentication_flow = data.authentik_flow.default-source-authentication.id
@@ -59,6 +65,57 @@ resource "authentik_source_oauth" "google" {
   promoted            = true
   user_matching_mode  = "email_link"
   group_matching_mode = "identifier"
+}
+
+# -----------------------------------------------------------------------------
+# Owner Account — Superuser via owner-email Bitwarden secret
+# -----------------------------------------------------------------------------
+# Look up the existing user by email (must have logged in via Google at least once).
+# If the user hasn't logged in yet, the group is created empty and will be
+# populated on the next apply after the user authenticates via Google.
+data "authentik_users" "owner" {
+  email = data.bitwarden-secrets_secret.owner_email.value
+}
+
+resource "authentik_group" "admins" {
+  name         = "Admins"
+  is_superuser = true
+  users        = length(data.authentik_users.owner.users) > 0 ? [data.authentik_users.owner.users[0].pk] : []
+}
+
+# -----------------------------------------------------------------------------
+# Google-Only Authentication Flow — No username/password
+# -----------------------------------------------------------------------------
+
+resource "authentik_flow" "google_only_auth" {
+  name               = "google-only-authentication"
+  title              = "Sign in with Google"
+  slug               = "google-only-authentication"
+  designation        = "authentication"
+  policy_engine_mode = "any"
+}
+
+# Identification stage showing only the Google source button (no user_fields)
+resource "authentik_stage_identification" "google_only" {
+  name        = "google-only-identification"
+  user_fields = []
+  sources     = [authentik_source_oauth.google.uuid]
+}
+
+resource "authentik_flow_stage_binding" "google_only_id" {
+  target = authentik_flow.google_only_auth.uuid
+  stage  = authentik_stage_identification.google_only.id
+  order  = 10
+}
+
+# Set Google-only flow as the default authentication flow via brand
+resource "authentik_brand" "default" {
+  domain              = "authentik-default"
+  default             = true
+  flow_authentication = authentik_flow.google_only_auth.uuid
+  branding_title      = "Nerine"
+  branding_favicon    = "/static/dist/assets/icons/icon.png"
+  branding_logo       = "/static/dist/assets/icons/icon_left_brand.svg"
 }
 
 # -----------------------------------------------------------------------------
@@ -76,7 +133,6 @@ resource "authentik_provider_proxy" "private" {
 
   access_token_validity  = "hours=24"
   refresh_token_validity = "days=30"
-  skip_path_regex        = ""
 }
 
 # Public: Any Google account
@@ -90,7 +146,6 @@ resource "authentik_provider_proxy" "public" {
 
   access_token_validity  = "hours=24"
   refresh_token_validity = "days=30"
-  skip_path_regex        = ""
 }
 
 # -----------------------------------------------------------------------------
@@ -108,7 +163,7 @@ resource "authentik_application" "public" {
   name              = "Public Services"
   slug              = "public-services"
   protocol_provider = authentik_provider_proxy.public.id
-  meta_description  = "Services accessible to any authenticated Google user (Jellyseerr, Jellyfin)"
+  meta_description  = "Services accessible to any authenticated Google user (Jellyseerr)"
 }
 
 # -----------------------------------------------------------------------------
@@ -148,29 +203,16 @@ resource "authentik_policy_binding" "private_vip" {
 # We use the resource to assign our proxy providers to it.
 # No service_connection needed — the embedded outpost runs inside authentik-server.
 resource "authentik_outpost" "embedded" {
-  name               = "authentik Embedded Outpost"
+  name = "authentik Embedded Outpost"
   protocol_providers = [
     authentik_provider_proxy.private.id,
     authentik_provider_proxy.public.id,
   ]
   config = jsonencode({
-    authentik_host                       = "https://auth.${var.authentik_domain}/"
-    authentik_host_browser               = ""
-    authentik_host_insecure              = false
-    log_level                            = "info"
-    object_naming_template               = "ak-outpost-%(name)s"
-    docker_network                       = null
-    docker_map_ports                     = true
-    docker_labels                        = null
-    container_image                      = null
-    kubernetes_replicas                   = 1
-    kubernetes_namespace                  = "authentik"
-    kubernetes_ingress_annotations        = {}
-    kubernetes_ingress_secret_name        = ""
-    kubernetes_ingress_class_name         = null
-    kubernetes_service_type               = "ClusterIP"
-    kubernetes_disabled_components        = ["deployment", "secret", "service", "prometheus servicemonitor", "ingress", "traefik middleware"]
-    kubernetes_image_pull_secrets          = []
+    authentik_host                 = "https://auth.${var.authentik_domain}/"
+    object_naming_template         = "ak-outpost-%(name)s"
+    kubernetes_namespace           = "authentik"
+    kubernetes_disabled_components = ["deployment", "secret", "service", "prometheus servicemonitor", "ingress", "traefik middleware"]
   })
 }
 
@@ -271,4 +313,82 @@ resource "bitwarden-secrets_secret" "immich_oauth_client_secret" {
   value      = authentik_provider_oauth2.immich.client_secret
   project_id = local.bitwarden_project_id
   note       = "Immich OIDC client secret (via Authentik). Managed by Terraform."
+}
+
+# -----------------------------------------------------------------------------
+# Jellyfin OIDC Provider — SSO with automatic account creation
+# -----------------------------------------------------------------------------
+
+# Group membership scope mapping (required for RBAC support)
+resource "authentik_property_mapping_provider_scope" "jellyfin_groups" {
+  name        = "Jellyfin Group Membership"
+  scope_name  = "groups"
+  description = "Maps user group memberships for Jellyfin RBAC"
+  expression  = "return [group.name for group in user.ak_groups.all()]"
+}
+
+resource "authentik_provider_oauth2" "jellyfin" {
+  name               = "Jellyfin"
+  client_id          = "jellyfin"
+  authorization_flow = data.authentik_flow.default-authorization-flow.id
+  invalidation_flow  = data.authentik_flow.default-invalidation-flow.id
+  signing_key        = data.authentik_certificate_key_pair.default.id
+  property_mappings = concat(
+    data.authentik_property_mapping_provider_scope.oauth2.ids,
+    [authentik_property_mapping_provider_scope.jellyfin_groups.id]
+  )
+  allowed_redirect_uris = [
+    {
+      matching_mode = "strict"
+      url           = "https://watch.${var.authentik_domain}/sso/OID/redirect/authentik"
+    },
+    {
+      # Traefik terminates TLS, so the SSO plugin sees http:// and uses it as redirect_uri
+      matching_mode = "strict"
+      url           = "http://watch.${var.authentik_domain}/sso/OID/redirect/authentik"
+    }
+  ]
+}
+
+resource "authentik_application" "jellyfin" {
+  name              = "Jellyfin"
+  slug              = "jellyfin"
+  protocol_provider = authentik_provider_oauth2.jellyfin.id
+  meta_description  = "Jellyfin media server with SSO authentication"
+  meta_launch_url   = "https://watch.${var.authentik_domain}"
+}
+
+# Store Jellyfin OIDC credentials in Bitwarden for Kubernetes to consume
+resource "bitwarden-secrets_secret" "jellyfin_oauth_client_id" {
+  key        = "authentik-jellyfin-client-id"
+  value      = authentik_provider_oauth2.jellyfin.client_id
+  project_id = local.bitwarden_project_id
+  note       = "Jellyfin OIDC client ID (via Authentik). Managed by Terraform."
+}
+
+resource "bitwarden-secrets_secret" "jellyfin_oauth_client_secret" {
+  key        = "authentik-jellyfin-client-secret"
+  value      = authentik_provider_oauth2.jellyfin.client_secret
+  project_id = local.bitwarden_project_id
+  note       = "Jellyfin OIDC client secret (via Authentik). Managed by Terraform."
+}
+
+# -----------------------------------------------------------------------------
+# MCPJungle — Proxy application (VIP-restricted)
+# -----------------------------------------------------------------------------
+# Registers mcp.nerine.dev with the embedded outpost so Authentik's forward
+# auth can resolve the host correctly and apply the VIP email access policy.
+
+resource "authentik_application" "mcpjungle" {
+  name              = "MCPJungle"
+  slug              = "mcpjungle"
+  protocol_provider = authentik_provider_proxy.private.id
+  meta_description  = "Self-hosted MCP Gateway for AI agents"
+  meta_launch_url   = "https://mcp.${var.authentik_domain}/mcp"
+}
+
+resource "authentik_policy_binding" "mcpjungle_vip" {
+  target = authentik_application.mcpjungle.uuid
+  policy = authentik_policy_expression.vip_emails.id
+  order  = 0
 }

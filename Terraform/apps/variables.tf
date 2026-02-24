@@ -41,29 +41,37 @@ variable "radarr_movie_category" {
   default     = "movies"
 }
 
-# --- Provider URLs (how Terraform connects to the services, via Tailscale MagicDNS) ---
+variable "byparr_url" {
+  type        = string
+  description = "Byparr (FlareSolverr-compatible) cluster-internal URL"
+  default     = "http://byparr.media.svc.cluster.local:8191"
+}
+
+# --- Provider URLs (how Terraform connects to services via kubectl port-forward) ---
+# Locally: run ./scripts/port-forward-apps.sh to forward services to localhost.
+# In CI: override with TF_VAR_* env vars pointing to Tailscale MagicDNS names.
 variable "sonarr_provider_url" {
   type        = string
-  description = "Sonarr URL reachable from Terraform (via Tailscale MagicDNS)"
-  default     = "http://sonarr:8989"
+  description = "Sonarr URL reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  default     = "http://localhost:8989"
 }
 
 variable "radarr_provider_url" {
   type        = string
-  description = "Radarr URL reachable from Terraform (via Tailscale MagicDNS)"
-  default     = "http://radarr:7878"
+  description = "Radarr URL reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  default     = "http://localhost:7878"
 }
 
 variable "prowlarr_provider_url" {
   type        = string
-  description = "Prowlarr URL reachable from Terraform (via Tailscale MagicDNS)"
-  default     = "http://prowlarr:9696"
+  description = "Prowlarr URL reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  default     = "http://localhost:9696"
 }
 
 variable "adguard_provider_url" {
   type        = string
-  description = "AdGuard Home URL reachable from Terraform (via Tailscale MagicDNS)"
-  default     = "http://adguard:3000"
+  description = "AdGuard Home host:port reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  default     = "localhost:3000"
 }
 
 variable "adguard_traefik_tailscale_ip" {
@@ -105,8 +113,8 @@ variable "bitwarden_qbittorrent_password_name" {
 # --- Authentik ---
 variable "authentik_provider_url" {
   type        = string
-  description = "Authentik URL reachable from Terraform (via Tailscale MagicDNS or port-forward)"
-  default     = "http://localhost:9000"
+  description = "Authentik URL reachable from Terraform (via Tailscale MagicDNS)"
+  default     = "https://auth.nerine.dev"
 }
 
 variable "authentik_domain" {
