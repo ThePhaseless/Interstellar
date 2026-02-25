@@ -13,18 +13,20 @@
         state: present
         update_cache: true
 
-    - name: Ensure export directory exists
+    - name: Ensure export directories exist
       ansible.builtin.file:
-        path: "{{ nfs_export_path }}"
+        path: "{{ item.path }}"
         state: directory
         mode: "0755"
+      loop: "{{ nfs_exports }}"
 
-    - name: Configure NFS export
+    - name: Configure NFS exports
       ansible.builtin.lineinfile:
         path: /etc/exports
-        regexp: "^{{ nfs_export_path | regex_escape }}\\s"
-        line: "{{ nfs_export_path }} {{ nfs_allowed_network }}(rw,sync,no_subtree_check,no_root_squash)"
+        regexp: "^{{ item.path | regex_escape }}\\s"
+        line: "{{ item.path }} {{ nfs_allowed_hosts | map('regex_replace', '$', '(rw,sync,no_subtree_check,no_root_squash)') | join(' ') }}"
         state: present
+      loop: "{{ nfs_exports }}"
       notify: Re-export NFS shares
 
     - name: Enable and start NFS server
@@ -43,40 +45,49 @@
       register: nfs_service
       failed_when: nfs_service.status.ActiveState != "active"
 
-    - name: Verify NFS export is active
+    - name: Verify NFS exports are active
       ansible.builtin.command:
         cmd: exportfs -v
       register: exportfs_output
       changed_when: false
-      failed_when: nfs_export_path not in exportfs_output.stdout
+      failed_when: item.path not in exportfs_output.stdout
+      loop: "{{ nfs_exports }}"
 
-    - name: Test NFS share is mountable
+    - name: Test NFS shares are mountable
       ansible.posix.mount:
-        path: /mnt/nfs-test
-        src: "{{ ansible_facts['default_ipv4']['address'] }}:{{ nfs_export_path }}"
+        path: "/mnt/nfs-test-{{ idx }}"
+        src: "127.0.0.1:{{ item.path }}"
         fstype: nfs
         opts: nfsvers=4.2,noatime
         state: mounted
+      loop: "{{ nfs_exports }}"
+      loop_control:
+        index_var: idx
 
-    - name: Verify test mount has content access
+    - name: Verify test mounts have content access
       ansible.builtin.command:
-        cmd: ls /mnt/nfs-test
+        cmd: "ls /mnt/nfs-test-{{ idx }}"
       register: mount_ls
       changed_when: false
+      loop: "{{ nfs_exports }}"
+      loop_control:
+        index_var: idx
 
-    - name: Unmount test share
+    - name: Unmount test shares
       ansible.posix.mount:
-        path: /mnt/nfs-test
+        path: "/mnt/nfs-test-{{ idx }}"
         state: absent
+      loop: "{{ nfs_exports }}"
+      loop_control:
+        index_var: idx
 
     - name: Report NFS health
       ansible.builtin.debug:
         msg: >-
           NFS health check passed:
           service={{ nfs_service.status.ActiveState }},
-          export={{ nfs_export_path }},
-          mount=ok,
-          files={{ mount_ls.stdout_lines | length }} entries
+          exports={{ nfs_exports | map(attribute='path') | list | join(', ') }},
+          mounts=ok
 
   handlers:
     - name: Re-export NFS shares
