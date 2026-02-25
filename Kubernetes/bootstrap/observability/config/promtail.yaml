@@ -66,3 +66,4 @@ scrape_configs:
                 db_type: country
             - labels:
                 geoip_country_code:
+                client_ip:

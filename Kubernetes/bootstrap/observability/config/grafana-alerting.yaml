@@ -348,6 +348,153 @@ groups:
           severity: warning
         isPaused: false
 
+      - uid: longhorn-disk-pressure
+        title: Longhorn Disk Under Pressure
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: longhorn_disk_status{condition="schedulable"} == 0
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Longhorn disk {{ $labels.disk }} on {{ $labels.node }} is not schedulable
+        labels:
+          severity: critical
+        isPaused: false
+
+      - uid: longhorn-volume-degraded
+        title: Longhorn Volume Degraded
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: longhorn_volume_robustness != 1
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Longhorn volume {{ $labels.pvc }} in {{ $labels.pvc_namespace }} is degraded
+        labels:
+          severity: warning
+        isPaused: false
+
+      - uid: longhorn-node-storage-high
+        title: Longhorn Node Storage High
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: (longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes) > 0.80
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: Longhorn node {{ $labels.node }} storage usage above 80%
+        labels:
+          severity: warning
+        isPaused: false
+
 contactPoints:
   - orgId: 1
     name: Discord

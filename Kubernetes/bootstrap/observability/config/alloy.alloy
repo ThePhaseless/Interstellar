@@ -49,6 +49,41 @@ prometheus.scrape "pods" {
   forward_to = [prometheus.remote_write.mimir.receiver]
 }
 
+// Longhorn metrics discovery
+discovery.kubernetes "longhorn" {
+  role = "endpoints"
+  namespaces {
+    names = ["longhorn-system"]
+  }
+}
+
+discovery.relabel "longhorn" {
+  targets = discovery.kubernetes.longhorn.targets
+
+  rule {
+    source_labels = ["__meta_kubernetes_service_name"]
+    regex         = "longhorn-backend"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_kubernetes_endpoint_port_name"]
+    regex         = "manager"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_kubernetes_namespace"]
+    target_label  = "namespace"
+  }
+}
+
+// Scrape Longhorn metrics
+prometheus.scrape "longhorn" {
+  targets    = discovery.relabel.longhorn.output
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
 // Scrape kubelet metrics
 prometheus.scrape "kubelet" {
   targets = discovery.kubernetes.nodes.targets

@@ -249,7 +249,7 @@
       },
       "targets": [
         {
-          "expr": "count(kube_pod_status_ready{condition=\"true\"} == 0) OR vector(0)",
+          "expr": "count((kube_pod_status_ready{condition=\"true\"} == 0) unless on(namespace, pod) (kube_pod_status_phase{phase=\"Succeeded\"} == 1)) OR vector(0)",
           "instant": true,
           "legendFormat": "Not Ready",
           "refId": "A"
