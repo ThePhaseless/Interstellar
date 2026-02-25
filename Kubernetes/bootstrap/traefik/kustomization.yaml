@@ -8,16 +8,221 @@ namespace: traefik
 
 resources:
   - namespace.yaml
-  - deployment.yaml
-  - service.yaml
   - middlewares.yaml
   - crowdsec-middleware.yaml
   - crowdsec-externalsecret.yaml
   - ingress.yaml
 
-configMapGenerator:
-  - name: traefik-config
-    files:
-      - traefik.yaml=config/traefik.yaml
-    options:
-      disableNameSuffixHash: true
+helmCharts:
+  - name: traefik
+    repo: https://helm.traefik.io/traefik
+    version: 39.0.2
+    releaseName: traefik
+    namespace: traefik
+    includeCRDs: true
+    valuesInline:
+      deployment:
+        revisionHistoryLimit: 1
+        podAnnotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8080"
+        initContainers:
+          - name: fix-acme-permissions
+            image: busybox:1.37
+            command:
+              - /bin/sh
+              - -c
+              - |
+                touch /data/acme.json
+                chmod 600 /data/acme.json
+                chown 65532:65532 /data/acme.json
+            volumeMounts:
+              - name: data
+                mountPath: /data
+        additionalVolumes:
+          - name: crowdsec-secrets
+            secret:
+              secretName: crowdsec-bouncer-key
+              optional: true
+
+      updateStrategy:
+        type: Recreate
+
+      podSecurityContext:
+        fsGroup: 65532
+
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 1000m
+          memory: 512Mi
+
+      # =======================================================================
+      # Entry Points / Ports
+      # =======================================================================
+      ports:
+        web:
+          http:
+            redirections:
+              entryPoint:
+                to: websecure
+                scheme: https
+                permanent: true
+                priority: 10
+          proxyProtocol:
+            trustedIPs:
+              - "100.64.0.0/10" # Tailscale CGNAT (Oracle HAProxy)
+              - "10.244.0.0/16" # Pod CIDR (ts-traefik proxy pod, for Tailscale operator Proxy Protocol - see tailscale/tailscale#11024)
+              - "192.168.0.0/16" # LAN clients hitting MetalLB directly
+          forwardedHeaders:
+            trustedIPs:
+              - "100.64.0.0/10"
+              - "10.244.0.0/16"
+              - "192.168.0.0/16"
+        websecure:
+          proxyProtocol:
+            trustedIPs:
+              - "100.64.0.0/10"
+              - "10.244.0.0/16"
+              - "192.168.0.0/16"
+          forwardedHeaders:
+            trustedIPs:
+              - "100.64.0.0/10"
+              - "10.244.0.0/16"
+              - "192.168.0.0/16"
+          http:
+            middlewares:
+              - "traefik-security-headers@kubernetescrd"
+            tls:
+              enabled: true
+              certResolver: letsencrypt
+              domains:
+                - main: "nerine.dev"
+                  sans:
+                    - "*.nerine.dev"
+      # =======================================================================
+      # Service
+      # =======================================================================
+      service:
+        spec:
+          loadBalancerIP: 192.168.1.11
+          externalTrafficPolicy: Local
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "traefik"
+
+      # =======================================================================
+      # Providers
+      # =======================================================================
+      providers:
+        kubernetesCRD:
+          allowCrossNamespace: true
+          allowExternalNameServices: true
+        kubernetesIngress:
+          allowExternalNameServices: true
+
+      # =======================================================================
+      # Logging
+      # =======================================================================
+      logs:
+        general:
+          format: json
+        access:
+          enabled: true
+          format: json
+
+      # =======================================================================
+      # Metrics (Prometheus)
+      # =======================================================================
+      metrics:
+        prometheus:
+          entryPoint: traefik
+          addEntryPointsLabels: true
+          addRoutersLabels: true
+          addServicesLabels: true
+
+      # =======================================================================
+      # Additional CLI arguments
+      # =======================================================================
+      additionalArguments:
+        - "--global.checkNewVersion=false"
+        - "--global.sendAnonymousUsage=false"
+        - "--ping"
+        - "--ping.entrypoint=traefik"
+
+      # =======================================================================
+      # Certificate Resolvers (Let's Encrypt via Cloudflare DNS)
+      # =======================================================================
+      certificatesResolvers:
+        letsencrypt:
+          acme:
+            email: admin@nerine.dev
+            storage: /data/acme.json
+            dnsChallenge:
+              provider: cloudflare
+              delayBeforeCheck: 10
+              resolvers:
+                - "1.1.1.1:53"
+                - "8.8.8.8:53"
+
+      # =======================================================================
+      # Plugins (CrowdSec Bouncer)
+      # =======================================================================
+      experimental:
+        plugins:
+          crowdsec-bouncer:
+            moduleName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+            version: "v1.5.0"
+
+      # =======================================================================
+      # ACME Persistence
+      # =======================================================================
+      persistence:
+        enabled: true
+        storageClass: longhorn
+        size: 1Gi
+
+      # =======================================================================
+      # Environment variables and extra volume mounts
+      # =======================================================================
+      env:
+        - name: CF_DNS_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare-api-token
+              key: api-token
+
+      additionalVolumeMounts:
+        - name: crowdsec-secrets
+          mountPath: /secrets/crowdsec
+          readOnly: true
+
+      # =======================================================================
+      # Scheduling
+      # =======================================================================
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: traefik
+                    app.kubernetes.io/instance: traefik
+                topologyKey: kubernetes.io/hostname
+
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+              app.kubernetes.io/instance: traefik
