@@ -218,7 +218,7 @@ echo "Configuring SSO provider '${SSO_PROVIDER_NAME}'..."
 # schemeOverride=https: Traefik terminates TLS so the plugin sees http:// requests,
 # but the browser loads pages via https://. Without the override, the callback page
 # embeds an http:// iframe which is blocked as mixed content, causing "Logging in..." to hang.
-printf '{"oidEndpoint":"%s","oidClientId":"%s","oidSecret":"%s","enabled":true,"enableAuthorization":true,"enableAllFolders":true,"enabledFolders":[],"adminRoles":[],"roles":[],"enableFolderRoles":false,"folderRoleMapping":[],"roleClaim":"groups","oidScopes":["groups"],"defaultProvider":"SSO-Auth-OpenID","defaultUsernameClaim":"preferred_username","schemeOverride":"https"}' \
+printf '{"oidEndpoint":"%s","oidClientId":"%s","oidSecret":"%s","enabled":true,"enableAuthorization":true,"enableAllFolders":true,"enabledFolders":[],"adminRoles":["admins"],"roles":[],"enableFolderRoles":false,"folderRoleMapping":[],"roleClaim":"groups","oidScopes":["groups"],"defaultProvider":"SSO-Auth-OpenID","defaultUsernameClaim":"preferred_username","schemeOverride":"https"}' \
   "$AUTHENTIK_OIDC_ENDPOINT" "$OIDC_CLIENT_ID" "$OIDC_CLIENT_SECRET" > /tmp/sso-config.json
 
 curl -sf -X POST \

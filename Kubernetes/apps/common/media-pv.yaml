@@ -108,7 +108,7 @@ metadata:
   name: personal-nfs-pv
 spec:
   capacity:
-    storage: 500Gi
+    storage: 256Gi
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
@@ -118,7 +118,7 @@ spec:
     - noatime
   nfs:
     server: REPLACED_BY_KUSTOMIZE
-    path: /Storage/personal
+    path: /SSDStorage
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -132,7 +132,7 @@ spec:
   volumeName: personal-nfs-pv
   resources:
     requests:
-      storage: 500Gi
+      storage: 256Gi
 ---
 # Photos (Immich) - utilities namespace
 apiVersion: v1

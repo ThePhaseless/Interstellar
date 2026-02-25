@@ -166,7 +166,9 @@ spec:
         - name: sonarr
           port: 8989
       middlewares:
-        - name: tailscale-only
+        - name: public-chain
+          namespace: traefik
+        - name: authentik
           namespace: traefik
   tls:
     certResolver: letsencrypt

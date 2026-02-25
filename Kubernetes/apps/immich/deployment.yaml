@@ -28,7 +28,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              SMTP='{"notifications":{"smtp":{"enabled":true,"from":{"name":"Immich","address":"noreply@nerine.dev"},"replyTo":"","transport":{"host":"postfix.utilities.svc.cluster.local","port":587,"username":"","password":"","ignoreCert":true}}}}'
+              SMTP='{"notifications":{"smtp":{"enabled":true,"from":"Immich <noreply@nerine.dev>","replyTo":"","transport":{"host":"postfix.utilities.svc.cluster.local","port":587,"username":"","password":"","ignoreCert":true}}}}'
               if [ -f /secrets/oauth-client-id ] && [ -f /secrets/oauth-client-secret ]; then
                 CLIENT_ID=$(cat /secrets/oauth-client-id)
                 CLIENT_SECRET=$(cat /secrets/oauth-client-secret)
@@ -181,7 +181,7 @@ metadata:
 spec:
   refreshInterval: 1h
   secretStoreRef:
-    name: bitwarden-store
+    name: bitwarden-store-generated
     kind: ClusterSecretStore
   target:
     name: immich-secrets
