@@ -52,6 +52,20 @@ configMapGenerator:
       disableNameSuffixHash: true
       labels:
         grafana-dashboard: "true"
+  - name: grafana-dashboard-access
+    files:
+      - dashboards/ip-analytics.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "true"
+  - name: grafana-dashboard-longhorn
+    files:
+      - dashboards/longhorn.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "true"
   - name: loki-config
     files:
       - config/loki.yaml

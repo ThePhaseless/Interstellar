@@ -122,6 +122,8 @@ spec:
               mountPath: /var/lib/grafana/dashboards/logs
             - name: dashboard-geo
               mountPath: /var/lib/grafana/dashboards/geo
+            - name: dashboard-access
+              mountPath: /var/lib/grafana/dashboards/access
           resources:
             requests:
               cpu: 50m
@@ -170,6 +172,9 @@ spec:
         - name: dashboard-geo
           configMap:
             name: grafana-dashboard-geo
+        - name: dashboard-access
+          configMap:
+            name: grafana-dashboard-access
 ---
 apiVersion: v1
 kind: Service

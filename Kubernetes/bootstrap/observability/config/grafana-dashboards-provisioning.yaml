@@ -40,3 +40,11 @@ providers:
     editable: true
     options:
       path: /var/lib/grafana/dashboards/geo
+  - name: access
+    orgId: 1
+    folder: "Security"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards/access
