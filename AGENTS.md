@@ -66,7 +66,7 @@ spec:
 
 ### Secrets Management
 
-Never hardcode secrets. Use ExternalSecrets with `ClusterSecretStore: bitwarden-store`:
+Never hardcode secrets. Use ExternalSecrets with `ClusterSecretStore: bitwarden-store` (manually managed secrets) or `bitwarden-store-generated` (Terraform-generated secrets):
 
 ```yaml
 apiVersion: external-secrets.io/v1

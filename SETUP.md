@@ -259,7 +259,7 @@ Run these checks after Step F:
 kubectl get pods --all-namespaces
 
 # ClusterSecretStore health
-kubectl get clustersecretstore bitwarden-store
+kubectl get clustersecretstore bitwarden-store bitwarden-store-generated
 
 # MetalLB IP pool
 kubectl -n metallb-system get ipaddresspool
