@@ -23,6 +23,7 @@ metadata:
     tailscale.com/hostname: "adguard"
 spec:
   type: LoadBalancer
+  loadBalancerClass: tailscale
   # Preserve client Tailscale IPs for per-device stats
   externalTrafficPolicy: Local
   selector:

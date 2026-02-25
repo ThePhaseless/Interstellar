@@ -14,12 +14,6 @@ resources:
   - pvc.yaml
   - middleware.yaml
 
-configMapGenerator:
-  - name: adguard-config
-    namespace: home
-    files:
-      - AdGuardHome.yaml
-
 labels:
   - pairs:
       app: adguard
