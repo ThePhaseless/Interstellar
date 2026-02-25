@@ -41,8 +41,6 @@
   },
   "yaml.customTags": ["!env_var", "!ENV", "!include_dir_merge_named"],
   "yaml.schemas": {
-    "https://www.schemastore.org/loki.json": "file:///home/orcho/Interstellar/Kubernetes/bootstrap/observability/config/loki.yaml",
-    "kubernetes": "Kubernetes/**/loki.yaml",
-    "kubernetes://schema/apps/v1@statefulset+v1@service": "file:///home/orcho/Interstellar/Kubernetes/bootstrap/observability/loki.yaml"
+    "kubernetes": "Kubernetes/bootstrap/observability/loki.yaml"
   }
 }
