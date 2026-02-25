@@ -127,7 +127,7 @@ variable "kubernetes_version" {
 variable "tf_state_bucket" {
   description = "Name of the OCI Object Storage bucket for Terraform state"
   type        = string
-  default     = "terraform-state"
+  default     = "tf-state"
 }
 
 # -----------------------------------------------------------------------------
@@ -176,4 +176,12 @@ variable "bws_access_token" {
   description = "Bitwarden Secrets Manager access token for ESO bootstrap. Sourced from BWS_ACCESS_TOKEN env var."
   type        = string
   sensitive   = true
+}
+# -----------------------------------------------------------------------------
+# Authentik / Access Control
+# -----------------------------------------------------------------------------
+variable "authentik_vip_emails" {
+  description = "Email addresses that get admin access to private services (copyparty, etc.). Sourced from TF_VAR_authentik_vip_emails."
+  type        = list(string)
+  default     = []
 }

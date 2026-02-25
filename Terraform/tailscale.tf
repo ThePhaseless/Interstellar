@@ -28,7 +28,7 @@ resource "tailscale_tailnet_key" "cluster" {
 resource "bitwarden-secrets_secret" "tailscale_auth_key" {
   key        = "tailscale-auth-key"
   value      = tailscale_tailnet_key.cluster.key
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Tailscale auth key for TalosOS cluster nodes. Managed by Terraform."
 }
 
@@ -46,7 +46,7 @@ resource "tailscale_tailnet_key" "oracle" {
 resource "bitwarden-secrets_secret" "tailscale_oracle_auth_key" {
   key        = "tailscale-oracle-auth-key"
   value      = tailscale_tailnet_key.oracle.key
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Tailscale auth key for Oracle VPS instances. Managed by Terraform."
 }
 
@@ -79,7 +79,7 @@ resource "bitwarden-secrets_secret" "oauth_client_id" {
   for_each   = local.oauth_clients
   key        = each.value.bw_id_key
   value      = tailscale_oauth_client.managed[each.key].id
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "${each.value.description} OAuth client ID. Managed by Terraform."
 }
 
@@ -87,7 +87,7 @@ resource "bitwarden-secrets_secret" "oauth_client_secret" {
   for_each   = local.oauth_clients
   key        = each.value.bw_secret_key
   value      = tailscale_oauth_client.managed[each.key].key
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "${each.value.description} OAuth client secret. Managed by Terraform."
 }
 

@@ -25,10 +25,19 @@ provider "kubernetes" {
 #
 # The BWS_ACCESS_TOKEN env var is already available in the Terraform environment
 # (sourced from .env locally, or GitHub Secrets in CI).
+
+resource "kubernetes_namespace_v1" "external_secrets" {
+  metadata {
+    name = "external-secrets"
+  }
+}
+
 resource "kubernetes_secret_v1" "bitwarden_access_token" {
+  depends_on = [kubernetes_namespace_v1.external_secrets]
+
   metadata {
     name      = "bitwarden-access-token"
-    namespace = "external-secrets"
+    namespace = kubernetes_namespace_v1.external_secrets.metadata[0].name
   }
 
   data = {

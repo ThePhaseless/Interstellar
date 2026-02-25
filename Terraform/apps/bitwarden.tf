@@ -13,26 +13,46 @@ locals {
     [for p in data.bitwarden-secrets_projects.all.projects : p.id if p.name == "interstellar"][0],
     data.bitwarden-secrets_projects.all.projects[0].id
   )
+  bitwarden_generated_project_id = try(
+    [for p in data.bitwarden-secrets_projects.all.projects : p.id if p.name == "interstellar-generated"][0],
+    null
+  )
+
+  # Common placeholder values that indicate a secret has not been properly set
+  _placeholder_values = toset(["changeme", "change_me", "placeholder", "your-api-key", "default", "secret", "password", "username", "admin"])
 }
 
 data "bitwarden-secrets_secret" "sonarr_api_key" {
   id = local.secret_key_to_id[var.bitwarden_sonarr_api_key_name]
+
+  lifecycle {
+    postcondition {
+      condition     = length(self.value) > 0 && !contains(local._placeholder_values, lower(self.value)) && can(regex("^[0-9a-f]{32}$", self.value))
+      error_message = "Sonarr API key '${var.bitwarden_sonarr_api_key_name}' is empty, a placeholder, or not a valid 32-character hex API key."
+    }
+  }
 }
 
 data "bitwarden-secrets_secret" "radarr_api_key" {
   id = local.secret_key_to_id[var.bitwarden_radarr_api_key_name]
+
+  lifecycle {
+    postcondition {
+      condition     = length(self.value) > 0 && !contains(local._placeholder_values, lower(self.value)) && can(regex("^[0-9a-f]{32}$", self.value))
+      error_message = "Radarr API key '${var.bitwarden_radarr_api_key_name}' is empty, a placeholder, or not a valid 32-character hex API key."
+    }
+  }
 }
 
 data "bitwarden-secrets_secret" "prowlarr_api_key" {
   id = local.secret_key_to_id[var.bitwarden_prowlarr_api_key_name]
-}
 
-data "bitwarden-secrets_secret" "qbittorrent_username" {
-  id = local.secret_key_to_id[var.bitwarden_qbittorrent_username_name]
-}
-
-data "bitwarden-secrets_secret" "qbittorrent_password" {
-  id = local.secret_key_to_id[var.bitwarden_qbittorrent_password_name]
+  lifecycle {
+    postcondition {
+      condition     = length(self.value) > 0 && !contains(local._placeholder_values, lower(self.value)) && can(regex("^[0-9a-f]{32}$", self.value))
+      error_message = "Prowlarr API key '${var.bitwarden_prowlarr_api_key_name}' is empty, a placeholder, or not a valid 32-character hex API key."
+    }
+  }
 }
 
 data "bitwarden-secrets_secret" "authentik_bootstrap_token" {

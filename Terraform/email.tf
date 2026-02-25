@@ -60,8 +60,8 @@ resource "oci_identity_smtp_credential" "postfix" {
 # DKIM CNAME record for domain verification
 resource "cloudflare_dns_record" "dkim" {
   zone_id = data.cloudflare_zone.main.id
-  name    = oci_email_dkim.main.dns_subdomain_name
-  content = oci_email_dkim.main.cname_record_value
+  name    = trimsuffix(oci_email_dkim.main.dns_subdomain_name, ".")
+  content = trimsuffix(oci_email_dkim.main.cname_record_value, ".")
   type    = "CNAME"
   ttl     = 300
   proxied = false
@@ -85,21 +85,21 @@ resource "cloudflare_dns_record" "spf" {
 resource "bitwarden-secrets_secret" "smtp_host" {
   key        = "smtp-host"
   value      = "smtp.email.${local.oci_region}.oci.oraclecloud.com"
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "OCI Email Delivery SMTP endpoint. Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "smtp_username" {
   key        = "smtp-username"
   value      = oci_identity_smtp_credential.postfix.username
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "OCI Email Delivery SMTP username. Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "smtp_password" {
   key        = "smtp-password"
   value      = oci_identity_smtp_credential.postfix.password
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "OCI Email Delivery SMTP password. Only available at creation time. Managed by Terraform."
 }
 
