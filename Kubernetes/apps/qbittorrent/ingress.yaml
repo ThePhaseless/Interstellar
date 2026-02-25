@@ -1,5 +1,5 @@
 # =============================================================================
-# qBittorrent Ingress (Protected by Authentik)
+# qBittorrent Ingress (Protected by Authentik — VIP only)
 # =============================================================================
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -16,7 +16,7 @@ spec:
         - name: qbittorrent
           port: 8080
       middlewares:
-        - name: public-chain
+        - name: private-chain
           namespace: traefik
         - name: authentik
           namespace: traefik

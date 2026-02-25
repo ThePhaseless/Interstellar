@@ -31,28 +31,22 @@ spec:
               CONFIG_FILE="${CONFIG_DIR}/qBittorrent.conf"
               mkdir -p "${CONFIG_DIR}"
               if [ ! -f "${CONFIG_FILE}" ]; then
-                HASH="$(qbittorrent-nox --hash-password "${QBT_WEBUI_PASSWORD}" | tail -n 1)"
-                cat > "${CONFIG_FILE}" <<EOF
+                cat > "${CONFIG_FILE}" <<'EOF'
               [Preferences]
-              WebUI\\Username=${QBT_WEBUI_USERNAME}
-              WebUI\\Password_PBKDF2=${HASH}
-              WebUI\\Port=8080
+              WebUI\Port=8080
+              WebUI\AuthSubnetWhitelistEnabled=true
+              WebUI\AuthSubnetWhitelist=0.0.0.0/0
+              WebUI\CSRFProtection=false
+              WebUI\HostHeaderValidation=false
+              WebUI\LocalHostAuth=false
               EOF
                 chmod 600 "${CONFIG_FILE}"
               fi
-              # Ensure API access settings for cluster-internal services
-              if ! grep -q 'CSRFProtection' "${CONFIG_FILE}"; then
-                sed -i '/^\[Preferences\]/a WebUI\\CSRFProtection=false' "${CONFIG_FILE}"
-              fi
-              if ! grep -q 'AuthSubnetWhitelistEnabled' "${CONFIG_FILE}"; then
-                sed -i '/^\[Preferences\]/a WebUI\\AuthSubnetWhitelistEnabled=true' "${CONFIG_FILE}"
-              fi
-              if ! grep -q 'AuthSubnetWhitelist' "${CONFIG_FILE}" || ! grep -q 'AuthSubnetWhitelist=' "${CONFIG_FILE}"; then
-                sed -i '/^\[Preferences\]/a WebUI\\AuthSubnetWhitelist=10.244.0.0/16,10.96.0.0/12' "${CONFIG_FILE}"
-              fi
-              if ! grep -q 'HostHeaderValidation' "${CONFIG_FILE}"; then
-                sed -i '/^\[Preferences\]/a WebUI\\HostHeaderValidation=false' "${CONFIG_FILE}"
-              fi
+              # Idempotently ensure auth is bypassed for all IPs (auth handled by Traefik)
+              for KEY in CSRFProtection HostHeaderValidation LocalHostAuth AuthSubnetWhitelistEnabled AuthSubnetWhitelist; do
+                sed -i "/^WebUI\\\\${KEY}=/d" "${CONFIG_FILE}"
+              done
+              sed -i '/^\[Preferences\]/a WebUI\\LocalHostAuth=false\nWebUI\\HostHeaderValidation=false\nWebUI\\CSRFProtection=false\nWebUI\\AuthSubnetWhitelistEnabled=true\nWebUI\\AuthSubnetWhitelist=0.0.0.0\/0' "${CONFIG_FILE}"
               # Set download path to shared volume
               if ! grep -q '^\[BitTorrent\]' "${CONFIG_FILE}"; then
                 printf '\n[BitTorrent]\nSession\\DefaultSavePath=/downloads\n' >> "${CONFIG_FILE}"
@@ -61,17 +55,6 @@ spec:
               else
                 sed -i 's|Session\\DefaultSavePath=.*|Session\\DefaultSavePath=/downloads|' "${CONFIG_FILE}"
               fi
-          env:
-            - name: QBT_WEBUI_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: qbittorrent-webui
-                  key: username
-            - name: QBT_WEBUI_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: qbittorrent-webui
-                  key: password
           volumeMounts:
             - name: config
               mountPath: /config
