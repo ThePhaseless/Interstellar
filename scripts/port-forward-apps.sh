@@ -9,10 +9,11 @@ set -euo pipefail
 
 # Services: name namespace service_name local_port remote_port
 SERVICES=(
-    "sonarr    media  sonarr-tailscale  8989 8989"
-    "radarr    media  radarr            7878 7878"
-    "prowlarr  media  prowlarr          9696 9696"
-    "adguard   home   adguard           3000 3000"
+    "sonarr    media     sonarr           8989 8989"
+    "radarr    media     radarr           7878 7878"
+    "prowlarr  media     prowlarr         9696 9696"
+    "adguard   home      adguard          3000 3000"
+    "authentik authentik authentik-server 9000 80"
 )
 
 PIDS=()

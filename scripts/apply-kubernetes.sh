@@ -52,7 +52,7 @@ for cmd in kustomize kubectl; do
 done
 
 # ---------------------------------------------------------------------------
-# Build & Apply
+# Build & Apply (with retries for CRD ordering)
 # ---------------------------------------------------------------------------
 echo -e "${GREEN}=== Applying ${TARGET_PATH} ===${NC}"
 
@@ -62,6 +62,18 @@ MANIFESTS=$(kustomize build --enable-helm "$TARGET_PATH")
 OBJECT_COUNT=$(echo "$MANIFESTS" | grep -c '^kind:' || true)
 echo -e "${YELLOW}Applying ${OBJECT_COUNT} objects...${NC}"
 
-echo "$MANIFESTS" | kubectl apply --server-side --force-conflicts -f -
+MAX_RETRIES=3
+for attempt in $(seq 1 $MAX_RETRIES); do
+    if echo "$MANIFESTS" | kubectl apply --server-side --force-conflicts -f -; then
+        break
+    fi
+    if [[ $attempt -lt $MAX_RETRIES ]]; then
+        echo -e "${YELLOW}Apply had errors (attempt ${attempt}/${MAX_RETRIES}). Waiting 15s for CRDs to establish before retrying...${NC}"
+        sleep 15
+    else
+        echo -e "${RED}Apply failed after ${MAX_RETRIES} attempts.${NC}"
+        exit 1
+    fi
+done
 
 echo -e "${GREEN}=== Done ===${NC}"
