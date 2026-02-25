@@ -5,6 +5,11 @@ groups:
     folder: Alerts
     interval: 1m
     rules:
+      # -----------------------------------------------------------------------
+      # High CPU Usage – noDataState OK (no data = no problem)
+      # Severity critical so email is sent as well
+      # Query already filters > 80, so threshold gt:0 fires on any returned series
+      # -----------------------------------------------------------------------
       - uid: high-cpu
         title: High CPU Usage
         condition: C
@@ -45,15 +50,18 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 5m
         annotations:
-          summary: CPU usage is above 80% for 5 minutes
+          summary: CPU usage on {{ $labels.instance }} is above 80% for 5 minutes
         labels:
-          severity: warning
+          severity: critical
         isPaused: false
 
+      # -----------------------------------------------------------------------
+      # High Memory Usage – noDataState OK, severity critical for email
+      # -----------------------------------------------------------------------
       - uid: high-memory
         title: High Memory Usage
         condition: C
@@ -94,15 +102,19 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 5m
         annotations:
-          summary: Memory usage is above 85% for 5 minutes
+          summary: Memory usage on {{ $labels.instance }} is above 85% for 5 minutes
         labels:
-          severity: warning
+          severity: critical
         isPaused: false
 
+      # -----------------------------------------------------------------------
+      # Pod CrashLooping – noDataState OK
+      # Query filters > 5 restarts, threshold gt:0 fires on any returned series
+      # -----------------------------------------------------------------------
       - uid: pod-crashloop
         title: Pod CrashLooping
         condition: C
@@ -143,7 +155,7 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 0s
         annotations:
@@ -152,6 +164,11 @@ groups:
           severity: critical
         isPaused: false
 
+      # -----------------------------------------------------------------------
+      # Pod Not Ready – FIX: removed `== 0` PromQL filter (returned value 0 which
+      # never matched threshold `gt:0`). Now raw metric is queried and threshold
+      # is `lt:1` – fires when readiness value drops below 1.
+      # -----------------------------------------------------------------------
       - uid: pod-not-ready
         title: Pod Not Ready
         condition: C
@@ -162,7 +179,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: kube_pod_status_ready{condition="true"} == 0
+              expr: kube_pod_status_ready{condition="true"}
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: C
@@ -173,8 +190,8 @@ groups:
             model:
               conditions:
                 - evaluator:
-                    params: [0]
-                    type: gt
+                    params: [1]
+                    type: lt
                   operator:
                     type: and
                   query:
@@ -192,7 +209,7 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 5m
         annotations:
@@ -201,6 +218,10 @@ groups:
           severity: warning
         isPaused: false
 
+      # -----------------------------------------------------------------------
+      # PVC Almost Full – noDataState OK
+      # Query filters > 85%, threshold gt:0 fires on any returned series
+      # -----------------------------------------------------------------------
       - uid: pvc-almost-full
         title: PVC Almost Full
         condition: C
@@ -241,7 +262,7 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 5m
         annotations:
@@ -250,6 +271,10 @@ groups:
           severity: warning
         isPaused: false
 
+      # -----------------------------------------------------------------------
+      # Node Not Ready – FIX: same `== 0` / threshold bug as pod-not-ready.
+      # noDataState: Alerting because missing node metrics may mean node is down.
+      # -----------------------------------------------------------------------
       - uid: node-not-ready
         title: Node Not Ready
         condition: C
@@ -260,7 +285,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+              expr: kube_node_status_condition{condition="Ready",status="true"}
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: C
@@ -271,8 +296,8 @@ groups:
             model:
               conditions:
                 - evaluator:
-                    params: [0]
-                    type: gt
+                    params: [1]
+                    type: lt
                   operator:
                     type: and
                   query:
@@ -290,7 +315,7 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: Alerting
         execErrState: Error
         for: 5m
         annotations:
@@ -299,6 +324,10 @@ groups:
           severity: critical
         isPaused: false
 
+      # -----------------------------------------------------------------------
+      # Certificate Expiring Soon – noDataState OK (no cert-manager = no certs)
+      # Query returns seconds remaining (positive), threshold gt:0 fires correctly
+      # -----------------------------------------------------------------------
       - uid: cert-expiring
         title: Certificate Expiring Soon
         condition: C
@@ -339,7 +368,7 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 1h
         annotations:
@@ -348,6 +377,15 @@ groups:
           severity: warning
         isPaused: false
 
+      # -----------------------------------------------------------------------
+      # Longhorn Disk Under Pressure – FIX:
+      #   1. `longhorn_disk_status` metric does not exist in Longhorn; replaced
+      #      with `longhorn_node_status{condition="schedulable"}` (the correct
+      #      Longhorn metric for disk schedulability).
+      #   2. Fixed the `== 0` / `gt:0` threshold bug – raw metric queried,
+      #      threshold now `lt:1` so it fires when value is 0 (not schedulable).
+      #   3. This also resolves the duplicate-labels-{} evaluation error.
+      # -----------------------------------------------------------------------
       - uid: longhorn-disk-pressure
         title: Longhorn Disk Under Pressure
         condition: C
@@ -358,7 +396,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: longhorn_disk_status{condition="schedulable"} == 0
+              expr: longhorn_node_status{condition="schedulable"}
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: C
@@ -369,8 +407,8 @@ groups:
             model:
               conditions:
                 - evaluator:
-                    params: [0]
-                    type: gt
+                    params: [1]
+                    type: lt
                   operator:
                     type: and
                   query:
@@ -388,15 +426,20 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 5m
         annotations:
-          summary: Longhorn disk {{ $labels.disk }} on {{ $labels.node }} is not schedulable
+          summary: Longhorn node {{ $labels.node }} is not schedulable (disk pressure)
         labels:
           severity: critical
         isPaused: false
 
+      # -----------------------------------------------------------------------
+      # Longhorn Volume Degraded – FIX: `!= 1` returned value 0 for Unknown state
+      # which `gt:0` missed. Raw metric now queried; threshold `gt:1` fires only
+      # for Degraded (2) and Faulted (3), not Unknown (0) or Healthy (1).
+      # -----------------------------------------------------------------------
       - uid: longhorn-volume-degraded
         title: Longhorn Volume Degraded
         condition: C
@@ -407,7 +450,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: longhorn_volume_robustness != 1
+              expr: longhorn_volume_robustness
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: C
@@ -418,7 +461,7 @@ groups:
             model:
               conditions:
                 - evaluator:
-                    params: [0]
+                    params: [1]
                     type: gt
                   operator:
                     type: and
@@ -437,7 +480,7 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 5m
         annotations:
@@ -446,6 +489,10 @@ groups:
           severity: warning
         isPaused: false
 
+      # -----------------------------------------------------------------------
+      # Longhorn Node Storage High – noDataState OK, severity critical for email
+      # Query returns ratio > 0.80, threshold gt:0 fires correctly
+      # -----------------------------------------------------------------------
       - uid: longhorn-node-storage-high
         title: Longhorn Node Storage High
         condition: C
@@ -486,13 +533,13 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 10m
         annotations:
           summary: Longhorn node {{ $labels.node }} storage usage above 80%
         labels:
-          severity: warning
+          severity: critical
         isPaused: false
 
 contactPoints:
@@ -503,6 +550,7 @@ contactPoints:
         type: discord
         settings:
           url: ${DISCORD_WEBHOOK_URL}
+          message: '{{ template "discord_compact" . }}'
         disableResolveMessage: false
   - orgId: 1
     name: Email
@@ -514,6 +562,27 @@ contactPoints:
           singleEmail: true
         disableResolveMessage: false
 
+# Custom notification templates
+templates:
+  - orgId: 1
+    name: discord_compact
+    template: |
+      {{ define "discord_compact" -}}
+      {{- if .Alerts.Firing -}}
+      🔴 **{{ len .Alerts.Firing }} alert(s) firing**
+      {{ range .Alerts.Firing -}}
+      • **{{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}** [{{ index .Labels "severity" | title }}]
+        {{ index .Annotations "summary" }}
+      {{ end -}}
+      {{- end -}}
+      {{- if .Alerts.Resolved -}}
+      ✅ **{{ len .Alerts.Resolved }} resolved**
+      {{ range .Alerts.Resolved -}}
+      • **{{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}**
+      {{ end -}}
+      {{- end -}}
+      {{- end }}
+
 policies:
   - orgId: 1
     receiver: Discord
@@ -523,3 +592,12 @@ policies:
     group_wait: 30s
     group_interval: 5m
     repeat_interval: 4h
+    routes:
+      # Critical alerts also routed to email (continue=true so Discord fires too)
+      - receiver: Email
+        object_matchers:
+          - ["severity", "=", "critical"]
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 12h
+        continue: true

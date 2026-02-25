@@ -10,7 +10,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`adguard.nerine.dev`)
+    - match: Host(`dns.nerine.dev`)
       kind: Rule
       services:
         - name: adguard

@@ -10,7 +10,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`jellyseerr.nerine.dev`)
+    - match: Host(`add.nerine.dev`)
       kind: Rule
       services:
         - name: jellyseerr

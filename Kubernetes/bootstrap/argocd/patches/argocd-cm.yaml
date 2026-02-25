@@ -3,9 +3,18 @@ kind: ConfigMap
 metadata:
   name: argocd-cm
 data:
-  url: https://github.com/ThePhaseless/Interstellar.git
+  url: https://argocd.nerine.dev
   kustomize.buildOptions: --enable-helm
   application.resourceTrackingMethod: annotation
+  # Disable built-in admin — Authentik OIDC is the sole auth method
+  admin.enabled: "false"
+  oidc.config: |
+    name: Authentik
+    issuer: https://auth.nerine.dev/application/o/argocd/
+    clientID: argocd
+    clientSecret: $argocd-oidc-secret:oidc.authentik.clientSecret
+    requestedScopes: ["openid", "profile", "email", "groups"]
+    requestedIDTokenClaims: {"groups": {"essential": true}}
   resource.customizations.health.argoproj.io_Application: |
     hs = {}
     hs.status = "Progressing"

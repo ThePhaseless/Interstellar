@@ -39,6 +39,7 @@ spec:
               WebUI\CSRFProtection=false
               WebUI\HostHeaderValidation=false
               WebUI\LocalHostAuth=false
+              WebUI\RootFolder=/vuetorrent
               EOF
                 chmod 600 "${CONFIG_FILE}"
               fi
