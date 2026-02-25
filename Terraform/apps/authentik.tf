@@ -456,3 +456,47 @@ resource "authentik_application" "copyparty" {
 # which validates auth through authentik_application.private (private-services).
 # A separate Authentik application is not needed since qBittorrent shares the
 # private proxy provider (Authentik forbids one provider bound to multiple apps).
+
+# -----------------------------------------------------------------------------
+# ArgoCD OIDC Provider — Native ArgoCD SSO (admins only)
+# -----------------------------------------------------------------------------
+
+resource "authentik_provider_oauth2" "argocd" {
+  name               = "ArgoCD"
+  client_id          = "argocd"
+  authorization_flow = data.authentik_flow.default-authorization-flow.id
+  invalidation_flow  = data.authentik_flow.default-invalidation-flow.id
+  signing_key        = data.authentik_certificate_key_pair.default.id
+  property_mappings = concat(
+    data.authentik_property_mapping_provider_scope.oauth2.ids,
+    [authentik_property_mapping_provider_scope.jellyfin_groups.id]
+  )
+  allowed_redirect_uris = [
+    {
+      matching_mode = "strict"
+      url           = "https://argocd.${var.authentik_domain}/auth/callback"
+    }
+  ]
+}
+
+resource "authentik_application" "argocd" {
+  name              = "ArgoCD"
+  slug              = "argocd"
+  protocol_provider = authentik_provider_oauth2.argocd.id
+  meta_description  = "GitOps continuous delivery for Kubernetes"
+  meta_launch_url   = "https://argocd.${var.authentik_domain}"
+}
+
+resource "authentik_policy_binding" "argocd_admins" {
+  target = authentik_application.argocd.uuid
+  policy = authentik_policy_expression.admins_only.id
+  order  = 0
+}
+
+# Store ArgoCD OIDC client secret in Bitwarden for Kubernetes to consume
+resource "bitwarden-secrets_secret" "argocd_oidc_client_secret" {
+  key        = "authentik-argocd-client-secret"
+  value      = authentik_provider_oauth2.argocd.client_secret
+  project_id = local.bitwarden_generated_project_id
+  note       = "ArgoCD OIDC client secret (via Authentik). Managed by Terraform."
+}

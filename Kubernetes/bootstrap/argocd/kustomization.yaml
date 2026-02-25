@@ -9,6 +9,8 @@ namespace: argocd
 resources:
   - namespace.yaml
   - app-of-apps.yaml
+  - ingress.yaml
+  - externalsecret.yaml
 
 helmCharts:
   - name: argo-cd
@@ -32,3 +34,7 @@ patches:
     target:
       kind: ConfigMap
       name: argocd-cm
+  - path: patches/argocd-rbac-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-rbac-cm
