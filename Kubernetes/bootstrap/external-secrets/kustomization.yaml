@@ -9,6 +9,7 @@ namespace: external-secrets
 resources:
   - namespace.yaml
   - bitwarden-store.yaml
+  - bitwarden-store-generated.yaml
 
 # Bitwarden SDK server is bundled as a subchart
 # TLS certs must be created before deployment:

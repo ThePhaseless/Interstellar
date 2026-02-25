@@ -1,24 +1,26 @@
 # =============================================================================
-# Bitwarden ClusterSecretStore — "Interstellar" project (manually managed)
+# Bitwarden ClusterSecretStore
 # =============================================================================
+# This ClusterSecretStore connects to Bitwarden Secrets Manager via the SDK Server
 apiVersion: external-secrets.io/v1
 kind: ClusterSecretStore
 metadata:
-  name: bitwarden-store
+  name: bitwarden-store-generated
 spec:
   provider:
     bitwardensecretsmanager:
       apiURL: https://api.bitwarden.com
       identityURL: https://identity.bitwarden.com
       bitwardenServerSDKURL: https://bitwarden-sdk-server.external-secrets.svc.cluster.local:9998
+      # CA certificate for the SDK server TLS connection
       caProvider:
         type: Secret
         name: bitwarden-tls-certs
         namespace: external-secrets
         key: ca.crt
       organizationID: 99703038-ae55-494e-aa57-b21b01480339
-      # "Interstellar" project — manually managed secrets (cloudflare, google-oauth, etc.)
-      projectID: f57582a5-679a-4deb-9e5f-b3b3017d2b13
+      # "interstellar-generated" project — auto-generated secrets managed by Terraform
+      projectID: 319c67ff-a4e2-44e1-aeb2-b3fb01394e16
       auth:
         secretRef:
           credentials:
