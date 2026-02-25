@@ -19,3 +19,10 @@ helmCharts:
     releaseName: metallb
     namespace: metallb-system
     includeCRDs: true
+    valuesInline:
+      speaker:
+        # All Talos nodes are control-plane nodes and Kubernetes automatically
+        # labels them with node.kubernetes.io/exclude-from-external-load-balancers.
+        # This causes MetalLB to skip L2 announcement on all nodes. Setting
+        # ignoreExcludeLB: true allows MetalLB to announce on control-plane nodes.
+        ignoreExcludeLB: true
