@@ -1,5 +1,5 @@
 # =============================================================================
-# MCP Jungle Ingress (Protected by Authentik)
+# MCP Jungle Ingress (Tailscale / LAN only — no public internet access)
 # =============================================================================
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -16,9 +16,7 @@ spec:
         - name: mcpjungle
           port: 8080
       middlewares:
-        - name: public-chain
-          namespace: traefik
-        - name: authentik
+        - name: private-chain
           namespace: traefik
   tls:
     certResolver: letsencrypt
