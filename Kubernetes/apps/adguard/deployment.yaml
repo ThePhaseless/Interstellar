@@ -32,27 +32,6 @@ spec:
           operator: Exists
           effect: NoSchedule
 
-      initContainers:
-        - name: copy-config
-          image: busybox:1.37
-          command:
-            - /bin/sh
-            - -c
-            - |
-              if [ ! -f /opt/adguardhome/conf/AdGuardHome.yaml ]; then
-                cp /config/AdGuardHome.yaml /opt/adguardhome/conf/AdGuardHome.yaml
-                echo "Initial config created"
-              fi
-          volumeMounts:
-            - name: config-template
-              mountPath: /config
-            - name: data
-              mountPath: /opt/adguardhome/conf
-              subPath: conf
-            - name: data
-              mountPath: /opt/adguardhome/work
-              subPath: work
-
       containers:
         - name: adguard
           image: adguard/adguardhome:v0.107.72
@@ -105,9 +84,6 @@ spec:
                 - NET_RAW
 
       volumes:
-        - name: config-template
-          configMap:
-            name: adguard-config
         - name: data
           persistentVolumeClaim:
             claimName: adguard-data
