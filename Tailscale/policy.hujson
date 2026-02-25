@@ -17,6 +17,7 @@
     "tag:oracle":       ["autogroup:admin", "tag:ci"],
     "tag:cluster":      ["autogroup:admin", "tag:ci"],
     "tag:k8s-operator": ["autogroup:admin", "tag:ci"],
+    "tag:k8s":          ["autogroup:admin", "tag:k8s-operator"], // Proxy pods provisioned by the Tailscale operator
   },
 
   // -------------------------------------------------------------------------
@@ -79,13 +80,13 @@
       ]
     },
 
-    // Oracle VPS can reach Traefik on cluster
+    // Oracle VPS can reach Traefik proxy pod (tag:k8s) — MetalLB/cluster IPs are LAN-only
     {
       "action": "accept",
       "src":    ["tag:oracle"],
       "dst": [
-        "tag:cluster:80",
-        "tag:cluster:443"
+        "tag:k8s:80",   // Tailscale operator proxy pods (e.g. ts-traefik-*)
+        "tag:k8s:443"
       ]
     },
 
@@ -110,6 +111,21 @@
       "dst":    ["tag:cluster:*"]
     },
 
+    // k8s proxy pods can see each other (needed for MagicDNS resolution between pods)
+    {
+      "action": "accept",
+      "src":    ["tag:k8s"],
+      "dst":    ["tag:k8s:*"]
+    },
+
+    // Cluster nodes can resolve k8s proxy pod IPs via MagicDNS (100.100.100.100)
+    // Required for AdGuard to forward fold-hen.ts.net queries via Tailscale resolver
+    {
+      "action": "accept",
+      "src":    ["tag:cluster"],
+      "dst":    ["tag:k8s:*"]
+    },
+
     // Silvernet members can access cluster services (not personal devices)
     {
       "action": "accept",
@@ -118,7 +134,11 @@
         "tag:cluster:80",
         "tag:cluster:443",
         "tag:cluster:445",   // SMB
-        "tag:cluster:3945"   // Copyparty SMB
+        "tag:cluster:3945",  // Copyparty SMB
+        "tag:k8s:80",        // Tailscale operator proxy pods (web traffic)
+        "tag:k8s:443",
+        "tag:k8s:445",       // SMB via operator proxy
+        "tag:k8s:3945"       // Copyparty SMB via operator proxy
       ]
     },
 
@@ -128,7 +148,9 @@
       "src":    ["group:media"],
       "dst": [
         "tag:cluster:80",
-        "tag:cluster:443"
+        "tag:cluster:443",
+        "tag:k8s:80",        // Tailscale operator proxy pods (web traffic)
+        "tag:k8s:443"
       ]
     },
 
@@ -161,7 +183,10 @@
       "dst": [
         "tag:cluster:80",    // HTTP (Traefik)
         "tag:cluster:443",   // HTTPS (Traefik)
-        "tag:cluster:53"     // DNS (AdGuard)
+        "tag:cluster:53",    // DNS (AdGuard)
+        "tag:k8s:80",        // Tailscale operator proxy pods
+        "tag:k8s:443",
+        "tag:k8s:53"
       ]
     }
   ],

@@ -25,3 +25,6 @@ helmCharts:
         hostname: "talos-operator"
       apiServerProxyConfig:
         mode: "true"
+      proxies:
+        authKeyTags:
+          - "tag:k8s"
