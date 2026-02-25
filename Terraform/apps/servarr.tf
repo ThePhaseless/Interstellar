@@ -12,9 +12,8 @@ resource "sonarr_download_client" "qbittorrent" {
   config_contract = "QBittorrentSettings"
   host            = var.qbittorrent_host
   port            = var.qbittorrent_port
-  username        = data.bitwarden-secrets_secret.qbittorrent_username.value
-  password        = data.bitwarden-secrets_secret.qbittorrent_password.value
-  tv_category     = var.sonarr_tv_category
+  # No credentials — qBittorrent auth is disabled; Traefik middleware handles web UI auth
+  tv_category = var.sonarr_tv_category
 
   remove_completed_downloads = true
   remove_failed_downloads    = true
@@ -29,9 +28,8 @@ resource "radarr_download_client" "qbittorrent" {
   config_contract = "QBittorrentSettings"
   host            = var.qbittorrent_host
   port            = var.qbittorrent_port
-  username        = data.bitwarden-secrets_secret.qbittorrent_username.value
-  password        = data.bitwarden-secrets_secret.qbittorrent_password.value
-  movie_category  = var.radarr_movie_category
+  # No credentials — qBittorrent auth is disabled; Traefik middleware handles web UI auth
+  movie_category = var.radarr_movie_category
 
   remove_completed_downloads = true
   remove_failed_downloads    = true

@@ -43,6 +43,11 @@ resource "random_password" "authentik_bootstrap_token" {
   special = false
 }
 
+resource "random_password" "jellyfin_admin_password" {
+  length  = 32
+  special = false
+}
+
 # -----------------------------------------------------------------------------
 # Bitwarden Secrets — CrowdSec
 # -----------------------------------------------------------------------------
@@ -50,7 +55,7 @@ resource "random_password" "authentik_bootstrap_token" {
 resource "bitwarden-secrets_secret" "crowdsec_api_key" {
   key        = "crowdsec-api-key"
   value      = random_password.crowdsec_bouncer_key.result
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "CrowdSec bouncer API key for Traefik plugin. Managed by Terraform."
 }
 
@@ -61,15 +66,26 @@ resource "bitwarden-secrets_secret" "crowdsec_api_key" {
 resource "bitwarden-secrets_secret" "grafana_admin_password" {
   key        = "grafana-admin-password"
   value      = random_password.grafana_admin_password.result
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Grafana admin password (internal admin account, not used for login — Google SSO via Authentik). Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "grafana_auth" {
   key        = "grafana-auth"
   value      = "admin:${random_password.grafana_admin_password.result}"
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Grafana auth string (username:password) for Terraform provider. Managed by Terraform."
+}
+
+# -----------------------------------------------------------------------------
+# Bitwarden Secrets — Jellyfin
+# -----------------------------------------------------------------------------
+
+resource "bitwarden-secrets_secret" "jellyfin_admin_password" {
+  key        = "jellyfin-admin-password"
+  value      = random_password.jellyfin_admin_password.result
+  project_id = local.bitwarden_generated_project_id
+  note       = "Jellyfin admin password for automated setup wizard. Managed by Terraform."
 }
 
 # -----------------------------------------------------------------------------
@@ -94,7 +110,7 @@ resource "bitwarden-secrets_secret" "discord_webhook_url" {
 resource "bitwarden-secrets_secret" "sonarr_api_key" {
   key        = "sonarr-api-key"
   value      = "placeholder-will-be-set-by-app"
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Sonarr API key. Initially placeholder, updated by api-extractor init container. Managed by Terraform."
 
   lifecycle {
@@ -105,7 +121,7 @@ resource "bitwarden-secrets_secret" "sonarr_api_key" {
 resource "bitwarden-secrets_secret" "radarr_api_key" {
   key        = "radarr-api-key"
   value      = "placeholder-will-be-set-by-app"
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Radarr API key. Initially placeholder, updated by api-extractor init container. Managed by Terraform."
 
   lifecycle {
@@ -116,7 +132,7 @@ resource "bitwarden-secrets_secret" "radarr_api_key" {
 resource "bitwarden-secrets_secret" "prowlarr_api_key" {
   key        = "prowlarr-api-key"
   value      = "placeholder-will-be-set-by-app"
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Prowlarr API key. Initially placeholder, updated by api-extractor init container. Managed by Terraform."
 
   lifecycle {
@@ -131,45 +147,15 @@ resource "bitwarden-secrets_secret" "prowlarr_api_key" {
 resource "bitwarden-secrets_secret" "qbittorrent_username" {
   key        = "qbittorrent-username"
   value      = "admin"
-  project_id = local.bitwarden_project_id
-  note       = "qBittorrent WebUI username. Managed by Terraform."
-
-  lifecycle {
-    ignore_changes = [value]
-  }
+  project_id = local.bitwarden_generated_project_id
+  note       = "qBittorrent WebUI username (always 'admin'). Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "qbittorrent_password" {
   key        = "qbittorrent-password"
   value      = random_password.qbittorrent_password.result
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "qBittorrent WebUI password. Managed by Terraform."
-}
-
-# -----------------------------------------------------------------------------
-# Bitwarden Secrets — Copyparty
-# -----------------------------------------------------------------------------
-
-resource "bitwarden-secrets_secret" "copyparty_admins" {
-  key        = "copyparty-admins"
-  value      = "admin:admin"
-  project_id = local.bitwarden_project_id
-  note       = "Copyparty admin credentials (user:pass). Update manually. Managed by Terraform."
-
-  lifecycle {
-    ignore_changes = [value]
-  }
-}
-
-resource "bitwarden-secrets_secret" "copyparty_writers" {
-  key        = "copyparty-writers"
-  value      = "writer:writer"
-  project_id = local.bitwarden_project_id
-  note       = "Copyparty writer credentials (user:pass). Update manually. Managed by Terraform."
-
-  lifecycle {
-    ignore_changes = [value]
-  }
 }
 
 # -----------------------------------------------------------------------------
@@ -179,7 +165,7 @@ resource "bitwarden-secrets_secret" "copyparty_writers" {
 resource "bitwarden-secrets_secret" "immich_db_password" {
   key        = "immich-db-password"
   value      = random_password.immich_db_password.result
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Immich PostgreSQL database password. Managed by Terraform."
 }
 
@@ -199,42 +185,27 @@ resource "bitwarden-secrets_secret" "owner_email" {
 }
 
 # -----------------------------------------------------------------------------
-# Bitwarden Secrets — Authentik VIP Emails
-# -----------------------------------------------------------------------------
-
-resource "bitwarden-secrets_secret" "authentik_vip_emails" {
-  key        = "authentik-vip-emails"
-  value      = "[]"
-  project_id = local.bitwarden_project_id
-  note       = "JSON list of VIP email addresses for Authentik private apps. e.g. [\"user@gmail.com\"]. Update in Bitwarden. Managed by Terraform."
-
-  lifecycle {
-    ignore_changes = [value]
-  }
-}
-
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — Authentik (Identity Provider)
 # -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "authentik_secret_key" {
   key        = "authentik-secret-key"
   value      = random_password.authentik_secret_key.result
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Authentik secret key for cookie signing and unique user IDs. Do NOT change after first install. Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "authentik_postgresql_password" {
   key        = "authentik-postgresql-password"
   value      = random_password.authentik_postgresql_password.result
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Authentik PostgreSQL database password. Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "authentik_bootstrap_token" {
   key        = "authentik-bootstrap-token"
   value      = random_password.authentik_bootstrap_token.result
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Authentik API bootstrap token for Terraform provider authentication. Managed by Terraform."
 }
 

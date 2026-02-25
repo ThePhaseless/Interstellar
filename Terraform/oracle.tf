@@ -279,7 +279,7 @@ UPGRADES
 resource "bitwarden-secrets_secret" "oracle_ssh_private_key" {
   key        = "oracle-ssh-private-key"
   value      = tls_private_key.oracle_ssh.private_key_openssh
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "SSH private key for Oracle VPS instances. Managed by Terraform."
 }
 

@@ -74,10 +74,16 @@ variable "adguard_provider_url" {
   default     = "localhost:3000"
 }
 
-variable "adguard_traefik_tailscale_ip" {
+variable "traefik_tailscale_ip" {
   type        = string
-  description = "Traefik Tailscale IP for DNS rewrites (*.nerine.dev)"
-  default     = "100.72.236.33"
+  description = "Traefik Tailscale IP for AdGuard A-record rewrites (Tailscale clients). Stable while pod secret intact; update if traefik device is re-registered."
+  default     = "100.107.133.42"
+}
+
+variable "adguard_traefik_local_ip" {
+  type        = string
+  description = "Traefik MetalLB IP for DNS rewrites (*.nerine.dev) - used by local network clients"
+  default     = "192.168.1.11"
 }
 
 variable "bitwarden_sonarr_api_key_name" {
@@ -98,33 +104,15 @@ variable "bitwarden_prowlarr_api_key_name" {
   default     = "prowlarr-api-key"
 }
 
-variable "bitwarden_qbittorrent_username_name" {
-  type        = string
-  description = "Bitwarden secret key name for qBittorrent username"
-  default     = "qbittorrent-username"
-}
-
-variable "bitwarden_qbittorrent_password_name" {
-  type        = string
-  description = "Bitwarden secret key name for qBittorrent password"
-  default     = "qbittorrent-password"
-}
-
 # --- Authentik ---
 variable "authentik_provider_url" {
   type        = string
   description = "Authentik URL reachable from Terraform (via Tailscale MagicDNS)"
-  default     = "https://auth.nerine.dev"
+  default     = "http://localhost:9000"
 }
 
 variable "authentik_domain" {
   type        = string
   description = "Base domain for Authentik cookie scope and proxy providers"
   default     = "nerine.dev"
-}
-
-variable "authentik_vip_emails" {
-  type        = list(string)
-  description = "Email addresses allowed to access VIP-restricted applications"
-  default     = []
 }

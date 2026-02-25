@@ -74,27 +74,27 @@ resource "hcloud_storage_box" "backups" {
 resource "bitwarden-secrets_secret" "borg_ssh_private_key" {
   key        = "borg-ssh-private-key"
   value      = tls_private_key.borg_ssh_key.private_key_openssh
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "BorgBackup SSH private key (ED25519) for Hetzner Storage Box. Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "borg_passphrase" {
   key        = "borg-passphrase"
   value      = random_password.borg_passphrase.result
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "BorgBackup encryption passphrase (repokey mode). Store safely — required for restore. Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "borg_repo_url" {
   key        = "borg-repo-url"
   value      = "ssh://${hcloud_storage_box.backups.username}@${hcloud_storage_box.backups.server}:23/./backups/immich"
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "BorgBackup repository URL on Hetzner Storage Box. Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "borg_server_host" {
   key        = "borg-server-host"
   value      = hcloud_storage_box.backups.server
-  project_id = local.bitwarden_project_id
+  project_id = local.bitwarden_generated_project_id
   note       = "Hetzner Storage Box FQDN for SSH known_hosts. Managed by Terraform."
 }
