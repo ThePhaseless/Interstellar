@@ -7,7 +7,7 @@ kind: Kustomization
 namespace: longhorn-system
 
 resources:
-  - storageclass.yaml
+  - namespace.yaml
   - ingress.yaml
 
 helmCharts:
@@ -17,6 +17,9 @@ helmCharts:
     releaseName: longhorn
     namespace: longhorn-system
     includeCRDs: true
+    valuesInline:
+      defaultSettings:
+        storageOverProvisioningPercentage: 150
 
 patches:
   - target:
