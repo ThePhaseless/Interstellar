@@ -112,7 +112,7 @@ spec:
       - X-authentik-meta-app
       - X-authentik-meta-version
 ---
-# Private Chain - For Tailscale-only access
+# Private Chain - For Tailscale-only access (security-headers + IP restriction)
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -121,10 +121,11 @@ metadata:
 spec:
   chain:
     middlewares:
+      - name: security-headers
       - name: tailscale-only
       - name: timeout-standard
 ---
-# Public Chain - For public web services
+# Public Chain - For public web services (security-headers + CrowdSec + rate limit)
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -133,11 +134,12 @@ metadata:
 spec:
   chain:
     middlewares:
+      - name: security-headers
       - name: crowdsec-bouncer
       - name: rate-limit
       - name: timeout-standard
 ---
-# Streaming Chain - For Jellyfin and media
+# Streaming Chain - For Jellyfin and media (security-headers + relaxed rate limit)
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -146,6 +148,7 @@ metadata:
 spec:
   chain:
     middlewares:
+      - name: security-headers
       - name: crowdsec-bouncer
       - name: rate-limit-streaming
       - name: timeout-streaming
