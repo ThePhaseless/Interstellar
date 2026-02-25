@@ -8,7 +8,6 @@ namespace: media
 
 resources:
   - deployment.yaml
-  - externalsecret.yaml
   - service.yaml
   - ingress.yaml
   - pvc.yaml
