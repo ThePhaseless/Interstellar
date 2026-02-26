@@ -160,7 +160,7 @@ jobs:
         id: plan
         run: |
           # Generate plan and capture output
-          terraform plan -no-color -out=tfplan > plan_output.txt
+          terraform plan -no-color -refresh=false -out=tfplan > plan_output.txt
 
           # Extract summary
           SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1)
