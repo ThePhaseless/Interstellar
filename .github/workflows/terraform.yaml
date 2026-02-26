@@ -11,12 +11,12 @@ on:
     branches: [main, migration]
     paths:
       - "Terraform/**"
-      - ".github/workflows/**"
+      - ".github/workflows/terraform.yaml"
   pull_request:
     branches: [main, migration]
     paths:
       - "Terraform/**"
-      - ".github/workflows/**"
+      - ".github/workflows/terraform.yaml"
 
 env:
   TF_VERSION: "1.14.6"
@@ -160,7 +160,10 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
+          # Generate plan and capture output
           terraform plan -no-color -out=tfplan > plan_output.txt
+
+          # Extract summary
           SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1)
           echo "plan_summary=$SUMMARY" >> $GITHUB_OUTPUT
         working-directory: ${{ env.TF_WORKING_DIR }}
