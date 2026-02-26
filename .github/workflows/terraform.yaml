@@ -63,6 +63,8 @@ jobs:
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
+        env:
+          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
         run: |
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
 
@@ -141,7 +143,7 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
 
       - name: Terraform Validate
         id: validate
@@ -149,7 +151,7 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
 
       - name: Terraform Plan
         id: plan
@@ -169,7 +171,7 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
           TF_VAR_bws_access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           TF_VAR_hcloud_token: ${{ env.TF_VAR_hcloud_token }}
         continue-on-error: true
@@ -253,6 +255,8 @@ jobs:
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
+        env:
+          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
         run: |
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
 
@@ -335,13 +339,13 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
           TF_VAR_bws_access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           TF_VAR_hcloud_token: ${{ env.TF_VAR_hcloud_token }}
