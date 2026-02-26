@@ -63,54 +63,31 @@ resource "prowlarr_application" "radarr" {
   sync_categories = local.prowlarr_radarr_sync_categories
 }
 
-# Discord Notifications (standard events)
-# Discord webhook for routine notifications: grabs, downloads, upgrades, etc.
-
 resource "sonarr_notification_discord" "discord" {
   name         = "Discord"
   web_hook_url = data.bitwarden-secrets_secret.discord_webhook_url.value
 
-  on_grab                            = false
-  on_download                        = true
-  on_upgrade                         = true
-  on_import_complete                 = true
-  on_series_add                      = true
-  on_series_delete                   = false
-  on_episode_file_delete             = false
-  on_episode_file_delete_for_upgrade = false
-  on_rename                          = false
-  on_application_update              = true
-  on_health_issue                    = false
-  on_health_restored                 = false
-  on_manual_interaction_required     = false
-  include_health_warnings            = false
+  on_import_complete = true
+  on_series_add      = true
+  on_series_delete   = true
+  on_health_issue    = true
+  on_health_restored = true
 }
 
 resource "radarr_notification_discord" "discord" {
   name         = "Discord"
   web_hook_url = data.bitwarden-secrets_secret.discord_webhook_url.value
 
-  on_grab                          = false
-  on_download                      = true
-  on_upgrade                       = true
-  on_movie_delete                  = false
-  on_movie_file_delete             = false
-  on_movie_file_delete_for_upgrade = false
-  on_rename                        = false
-  on_application_update            = true
-  on_health_issue                  = false
-  on_health_restored               = false
-  on_manual_interaction_required   = false
-  include_health_warnings          = false
+  on_download        = true
+  on_movie_delete    = true
+  on_health_issue    = true
+  on_health_restored = true
 }
 
 resource "prowlarr_notification_discord" "discord" {
   name         = "Discord"
   web_hook_url = data.bitwarden-secrets_secret.discord_webhook_url.value
 
-  on_grab                 = true
-  on_application_update   = true
-  on_health_issue         = false
-  on_health_restored      = false
-  include_health_warnings = false
+  on_health_issue    = true
+  on_health_restored = true
 }
