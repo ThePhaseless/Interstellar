@@ -146,7 +146,7 @@ jobs:
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Validate
         id: validate
@@ -155,7 +155,7 @@ jobs:
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Plan
         id: plan
@@ -178,7 +178,7 @@ jobs:
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
           TF_VAR_bws_access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           TF_VAR_hcloud_token: ${{ env.TF_VAR_hcloud_token }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
       # Post plan output to PR (Summary only for security)
@@ -347,7 +347,7 @@ jobs:
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
@@ -357,4 +357,4 @@ jobs:
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
           TF_VAR_bws_access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           TF_VAR_hcloud_token: ${{ env.TF_VAR_hcloud_token }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
