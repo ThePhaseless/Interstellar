@@ -128,18 +128,25 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -out=tfplan
+        run: |
+          # Generate plan and capture output
+          terraform plan -no-color -out=tfplan > plan_output.txt
+
+          # Extract only the summary line for the PR comment (last line of output)
+          SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1)
+          echo "plan_summary=$SUMMARY" >> $GITHUB_OUTPUT
+
+          # Encrypt the binary plan file before upload
+          gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
         continue-on-error: true
 
-      # Post plan output to PR
+      # Post plan output to PR (Summary only for security)
       - name: Update Pull Request
         uses: actions/github-script@v8
         if: github.event_name == 'pull_request'
-        env:
-          PLAN: ${{ steps.plan.outputs.stdout }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -148,13 +155,10 @@ jobs:
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
 
-            <details><summary>Show Plan</summary>
+            **Summary:** \`${{ steps.plan.outputs.plan_summary }}\`
 
-            \`\`\`hcl
-            ${process.env.PLAN}
-            \`\`\`
-
-            </details>
+            > [!IMPORTANT]
+            > Detailed plan output is hidden and encrypted for security because this is a public repository.
 
             *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
 
@@ -169,12 +173,12 @@ jobs:
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-      # Upload plan for apply job
+      # Upload ENCRYPTED plan for apply job
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v6
         with:
           name: tfplan
-          path: ${{ env.TF_WORKING_DIR }}/tfplan
+          path: ${{ env.TF_WORKING_DIR }}/tfplan.gpg
 
   # ---------------------------------------------------------------------------
   # Terraform Apply (only on main branch)
@@ -261,10 +265,15 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Download Terraform Plan
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v6
         with:
           name: tfplan
           path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Decrypt Terraform Plan
+        run: |
+          gpg --decrypt --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan.gpg > tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}
 
       - name: Terraform Init
         run: |
