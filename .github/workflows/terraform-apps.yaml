@@ -78,6 +78,17 @@ jobs:
         with:
           authkey: ${{ env.TS_CLUSTER_AUTH_KEY }}
 
+      - name: Verify Tailscale Tags
+        run: |
+          sudo tailscale up --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)"
+          SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
+          echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
+          if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
+            echo "::error::Runner is not tagged as tag:cluster, cluster ACL access will fail"
+            tailscale status || true
+            exit 1
+          fi
+
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
 
@@ -258,6 +269,17 @@ jobs:
         uses: tailscale/github-action@v4
         with:
           authkey: ${{ env.TS_CLUSTER_AUTH_KEY }}
+
+      - name: Verify Tailscale Tags
+        run: |
+          sudo tailscale up --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)"
+          SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
+          echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
+          if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
+            echo "::error::Runner is not tagged as tag:cluster, cluster ACL access will fail"
+            tailscale status || true
+            exit 1
+          fi
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
