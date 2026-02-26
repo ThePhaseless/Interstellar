@@ -1,33 +1,20 @@
 #!/usr/bin/env bash
 
-# =============================================================================
-# Local Environment Setup Script
-# =============================================================================
-
-# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Logging
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[OK]${NC}   $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# -----------------------------------------------------------------------------
-# Sanitize JSON
-# -----------------------------------------------------------------------------
 sanitize_json() {
-    # Delete control chars, keep tabs/newlines
     tr -cd '[:print:]\t\n'
 }
 
-# -----------------------------------------------------------------------------
-# Check prerequisites
-# -----------------------------------------------------------------------------
 check_prerequisites() {
     local missing=0
 
@@ -47,9 +34,6 @@ check_prerequisites() {
     return 0
 }
 
-# -----------------------------------------------------------------------------
-# Fetch Bitwarden Secrets Manager Organization ID (CORRECT WAY)
-# -----------------------------------------------------------------------------
 fetch_bws_org_id() {
     local org_id
 
@@ -70,21 +54,16 @@ fetch_bws_org_id() {
     log_success "Bitwarden Organization ID set"
 }
 
-# -----------------------------------------------------------------------------
-# Fetch a single secret and export it
-# -----------------------------------------------------------------------------
 fetch_and_export_secret() {
     local bws_key="$1"
     local env_var_name="$2"
     local value=""
 
-    # 1. Try cache
     if [[ -n "${SECRETS_JSON:-}" ]]; then
         value=$(echo "$SECRETS_JSON" |
             jq -r --arg key "$bws_key" '.[] | select(.key == $key) | .value' 2>/dev/null)
     fi
 
-    # 2. Fallback to CLI
     if [[ -z "$value" || "$value" == "null" ]]; then
         value=$(
             bws secret list --output json --color no 2>/dev/null |
@@ -102,9 +81,6 @@ fetch_and_export_secret() {
     return 1
 }
 
-# -----------------------------------------------------------------------------
-# Fetch multiple secrets
-# -----------------------------------------------------------------------------
 fetch_batch() {
     local exit_code=0
 
@@ -116,9 +92,6 @@ fetch_batch() {
     return $exit_code
 }
 
-# -----------------------------------------------------------------------------
-# OCI Setup
-# -----------------------------------------------------------------------------
 setup_oci() {
     log_info "Configuring OCI..."
 
@@ -173,11 +146,8 @@ setup_oci() {
     log_success "OCI configuration written"
 }
 
-# -----------------------------------------------------------------------------
-# Main
-# -----------------------------------------------------------------------------
 main() {
-    log_info "=== Local Environment Setup ==="
+    log_info "Local environment setup"
 
     local script_dir
     local _src=""
@@ -225,7 +195,6 @@ main() {
         "cloudflare-zone-id" "TF_VAR_cloudflare_zone_id" \
         "hcloud-token" "HCLOUD_TOKEN"
 
-    # Assemble Proxmox API token
     local px_user
     local px_token_id
     local px_api_token
@@ -236,17 +205,12 @@ main() {
         export PROXMOX_VE_API_TOKEN="${px_user}!${px_token_id}=${px_api_token}"
     fi
 
-    # Hetzner Cloud token for Terraform
     if [[ -n "${HCLOUD_TOKEN:-}" ]]; then
         export TF_VAR_hcloud_token="$HCLOUD_TOKEN"
     fi
 
-    # -------------------------------------------------------------------------
-    # Kubernetes / Terraform apps configuration
-    # -------------------------------------------------------------------------
     export KUBE_CONFIG_PATH="${KUBE_CONFIG_PATH:-$HOME/.kube/config}"
 
-    # Authentik VIP emails (comma-separated in Bitwarden → HCL list for TF)
     local vip_raw=""
     vip_raw=$(echo "$SECRETS_JSON" |
         jq -r '.[] | select(.key == "authentik-vip-emails") | .value' 2>/dev/null)
@@ -254,7 +218,6 @@ main() {
         export TF_VAR_authentik_vip_emails="$vip_raw"
     fi
 
-    echo ""
     log_success "Environment ready!"
 }
 

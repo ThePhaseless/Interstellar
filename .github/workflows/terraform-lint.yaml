@@ -1,4 +1,3 @@
-# Terraform Linting Workflow
 name: Terraform Lint
 
 on:

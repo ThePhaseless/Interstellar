@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
-# =============================================================================
-# Port-forward Kubernetes services required by Terraform apps/
-#
 # Usage: ./scripts/port-forward-apps.sh
-# Press Ctrl+C to stop all port-forwards.
-# =============================================================================
 set -euo pipefail
 
-# Services: name namespace service_name local_port remote_port
 SERVICES=(
     "sonarr    media     sonarr           8989 8989"
     "radarr    media     radarr           7878 7878"
@@ -19,18 +13,16 @@ SERVICES=(
 PIDS=()
 
 cleanup() {
-    echo ""
-    echo "Stopping all port-forwards..."
+    echo "Stopping port-forwards..."
     for pid in "${PIDS[@]}"; do
         kill "$pid" 2>/dev/null || true
     done
     wait 2>/dev/null
-    echo "All port-forwards stopped."
+    echo "Stopped."
 }
 
 trap cleanup EXIT INT TERM
 
-# Reconnect loop: restarts port-forward if the process dies
 port_forward_loop() {
     local name="$1" namespace="$2" svc="$3" local_port="$4" remote_port="$5"
     while true; do
@@ -47,8 +39,6 @@ for entry in "${SERVICES[@]}"; do
     PIDS+=($!)
 done
 
-echo ""
-echo "All port-forwards active (auto-reconnect enabled). Press Ctrl+C to stop."
-echo ""
+echo "Port-forwards active. Ctrl+C to stop."
 
 wait
