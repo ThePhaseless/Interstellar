@@ -12,7 +12,7 @@
   // tag:ci is the automation/Terraform tag. It owns all infrastructure tags
   // so Terraform can create auth keys and OAuth clients for any of them.
   "tagOwners": {
-    "tag:ci":           ["autogroup:admin"],
+    "tag:ci":           ["autogroup:admin", "tag:ci"],
     "tag:proxmox":      ["autogroup:admin", "tag:ci"],
     "tag:oracle":       ["autogroup:admin", "tag:ci"],
     "tag:cluster":      ["autogroup:admin", "tag:ci"],
