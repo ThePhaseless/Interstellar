@@ -119,12 +119,16 @@ jobs:
             -backend-config="namespace=${{ env.OCI_NAMESPACE }}"
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
-          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+          BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
 
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
         working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
 
       - name: Terraform Plan
         id: plan
@@ -138,9 +142,13 @@ jobs:
 
           # Encrypt the binary plan file before upload
           gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
+
+          # Secure cleanup: remove plaintext plan files
+          rm -f plan_output.txt tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
-          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+          BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
         continue-on-error: true
 
       # Post plan output to PR (Summary only for security)
@@ -281,7 +289,13 @@ jobs:
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
             -backend-config="namespace=${{ env.OCI_NAMESPACE }}"
         working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ secrets.BW_ORGANIZATION_ID }}
