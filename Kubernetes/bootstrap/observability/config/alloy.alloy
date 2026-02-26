@@ -12,6 +12,12 @@ discovery.relabel "pods" {
   targets = discovery.kubernetes.pods.targets
 
   rule {
+    source_labels = ["__meta_kubernetes_pod_node_name"]
+    regex         = sys.env("NODE_NAME")
+    action        = "keep"
+  }
+
+  rule {
     source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
     regex         = "true"
     action        = "keep"
@@ -47,6 +53,7 @@ discovery.relabel "pods" {
 prometheus.scrape "pods" {
   targets    = discovery.relabel.pods.output
   forward_to = [prometheus.remote_write.mimir.receiver]
+  honor_labels = true
 }
 
 // Longhorn metrics discovery
@@ -59,6 +66,12 @@ discovery.kubernetes "longhorn" {
 
 discovery.relabel "longhorn" {
   targets = discovery.kubernetes.longhorn.targets
+
+  rule {
+    source_labels = ["__meta_kubernetes_endpoint_node_name"]
+    regex         = sys.env("NODE_NAME")
+    action        = "keep"
+  }
 
   rule {
     source_labels = ["__meta_kubernetes_service_name"]
@@ -82,11 +95,23 @@ discovery.relabel "longhorn" {
 prometheus.scrape "longhorn" {
   targets    = discovery.relabel.longhorn.output
   forward_to = [prometheus.remote_write.mimir.receiver]
+  honor_labels = true
+}
+
+// Relabel for node metrics
+discovery.relabel "nodes" {
+  targets = discovery.kubernetes.nodes.targets
+
+  rule {
+    source_labels = ["__meta_kubernetes_node_name"]
+    regex         = sys.env("NODE_NAME")
+    action        = "keep"
+  }
 }
 
 // Scrape kubelet metrics
 prometheus.scrape "kubelet" {
-  targets = discovery.kubernetes.nodes.targets
+  targets = discovery.relabel.nodes.output
   scheme  = "https"
 
   bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -95,11 +120,12 @@ prometheus.scrape "kubelet" {
   }
 
   forward_to = [prometheus.remote_write.mimir.receiver]
+  honor_labels = true
 }
 
 // Relabel for cAdvisor metrics (container CPU/memory)
 discovery.relabel "cadvisor" {
-  targets = discovery.kubernetes.nodes.targets
+  targets = discovery.relabel.nodes.output
 
   rule {
     target_label  = "__metrics_path__"
@@ -117,6 +143,7 @@ prometheus.scrape "cadvisor" {
   tls_config {
     insecure_skip_verify = true
   }
+  honor_labels = true
 }
 
 // Remote write to Mimir
