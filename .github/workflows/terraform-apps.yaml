@@ -71,14 +71,14 @@ jobs:
         with:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
-          tags: tag:cluster
+          tags: tag:ci
 
       - name: Verify Tailscale Tags
         run: |
           SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
           echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
-          if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
-            echo "::error::Runner is not tagged as tag:cluster, cluster ACL access will fail"
+          if ! echo "$SELF_TAGS" | grep -q "tag:ci"; then
+            echo "::error::Runner is not tagged as tag:ci, CI ACL access will fail"
             tailscale status || true
             exit 1
           fi
@@ -106,9 +106,15 @@ jobs:
           printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
           chmod 600 "$HOME/.talos/config"
 
-          TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
+          TS_TALOS_IP=$(tailscale status --json | jq -r '
+            def v4_ips: (.TailscaleIPs // .Addresses // [] | map(select(test("^[0-9]+\\."))));
+            (
+              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | v4_ips[]] +
+              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | v4_ips[]]
+            ) | .[0] // empty
+          ')
           if [ -z "$TS_TALOS_IP" ]; then
-            echo "::error::Could not resolve Tailscale IP for talos-1"
+            echo "::error::Could not resolve Tailscale IP for any online tag:node device (or legacy tag:cluster fallback)"
             tailscale status || true
             exit 1
           fi
@@ -267,14 +273,14 @@ jobs:
         with:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
-          tags: tag:cluster
+          tags: tag:ci
 
       - name: Verify Tailscale Tags
         run: |
           SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
           echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
-          if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
-            echo "::error::Runner is not tagged as tag:cluster, cluster ACL access will fail"
+          if ! echo "$SELF_TAGS" | grep -q "tag:ci"; then
+            echo "::error::Runner is not tagged as tag:ci, CI ACL access will fail"
             tailscale status || true
             exit 1
           fi
@@ -302,9 +308,15 @@ jobs:
           printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
           chmod 600 "$HOME/.talos/config"
 
-          TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
+          TS_TALOS_IP=$(tailscale status --json | jq -r '
+            def v4_ips: (.TailscaleIPs // .Addresses // [] | map(select(test("^[0-9]+\\."))));
+            (
+              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | v4_ips[]] +
+              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | v4_ips[]]
+            ) | .[0] // empty
+          ')
           if [ -z "$TS_TALOS_IP" ]; then
-            echo "::error::Could not resolve Tailscale IP for talos-1"
+            echo "::error::Could not resolve Tailscale IP for any online tag:node device (or legacy tag:cluster fallback)"
             tailscale status || true
             exit 1
           fi

@@ -9,7 +9,8 @@ used as ansible_host so connections work from anywhere on the tailnet
 Tag → Group mapping (configure TAG_GROUP_MAP below):
     tag:proxmox  → proxmox
     tag:oracle   → oracle, oracle_proxy   (first oracle host is proxy)
-    tag:cluster  → cluster
+    tag:node     → cluster
+    tag:cluster  → cluster   (legacy fallback during migration)
 
 Usage:
     ansible-inventory -i inventory_tailscale.py --list
@@ -28,6 +29,7 @@ import sys
 TAG_GROUP_MAP: dict[str, list[str]] = {
     "tag:proxmox": ["proxmox"],
     "tag:oracle": ["oracle"],
+    "tag:node": ["cluster"],
     "tag:cluster": ["cluster"],
 }
 

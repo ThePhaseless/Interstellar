@@ -19,8 +19,9 @@ resource "tailscale_tailnet_key" "cluster" {
   reusable      = true
   preauthorized = true
   expiry        = 7776000 # 90 days in seconds
-  tags          = ["tag:cluster"]
-  description   = "TalosOS cluster nodes auth key"
+  # During migration, include both legacy tag:cluster and new tag:node.
+  tags        = ["tag:cluster", "tag:node"]
+  description = "TalosOS node auth key"
 }
 
 # Store the auth key in Bitwarden for External Secrets Operator
@@ -28,7 +29,7 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
   key        = "tailscale-auth-key"
   value      = tailscale_tailnet_key.cluster.key
   project_id = local.bitwarden_generated_project_id
-  note       = "Tailscale auth key for TalosOS cluster nodes. Managed by Terraform."
+  note       = "Tailscale auth key for TalosOS nodes. Managed by Terraform."
 }
 
 # Tailscale Auth Key for Oracle VPS Instances
