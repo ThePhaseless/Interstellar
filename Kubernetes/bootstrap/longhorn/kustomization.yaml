@@ -13,7 +13,7 @@ resources:
 helmCharts:
   - name: longhorn
     repo: https://charts.longhorn.io
-    version: 1.8.2
+    version: 1.11.0
     releaseName: longhorn
     namespace: longhorn-system
     includeCRDs: true
@@ -41,16 +41,20 @@ patches:
       kind: Job
       name: longhorn-post-upgrade
     patch: |
-      - op: add
-        path: /spec/ttlSecondsAfterFinished
-        value: 300
+      $patch: delete
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: longhorn-post-upgrade
   - target:
       kind: Job
       name: longhorn-pre-upgrade
     patch: |
-      - op: add
-        path: /spec/ttlSecondsAfterFinished
-        value: 300
+      $patch: delete
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: longhorn-pre-upgrade
   - target:
       kind: Job
       name: longhorn-uninstall
