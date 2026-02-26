@@ -41,8 +41,8 @@ jobs:
         id: generate-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ vars.GH_APP_ID }}
-          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          app-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
 
       - name: Install BWS CLI
         run: |
@@ -67,6 +67,8 @@ jobs:
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
             ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
             ${{ vars.BWS_ID_HCLOUD_TOKEN }} > HCLOUD_TOKEN
+            ${{ vars.BWS_ID_GH_APP_ID }} > GH_APP_ID
+            ${{ vars.BWS_ID_GH_APP_PRIVATE_KEY }} > GH_APP_PRIVATE_KEY
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
@@ -244,8 +246,8 @@ jobs:
         id: generate-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ vars.GH_APP_ID }}
-          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          app-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
 
       - name: Install BWS CLI
         run: |
@@ -270,6 +272,8 @@ jobs:
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
             ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
             ${{ vars.BWS_ID_HCLOUD_TOKEN }} > HCLOUD_TOKEN
+            ${{ vars.BWS_ID_GH_APP_ID }} > GH_APP_ID
+            ${{ vars.BWS_ID_GH_APP_PRIVATE_KEY }} > GH_APP_PRIVATE_KEY
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
