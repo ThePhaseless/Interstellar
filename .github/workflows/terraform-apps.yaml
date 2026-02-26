@@ -98,32 +98,24 @@ jobs:
         run: |
           mkdir -p "$HOME/.kube" "$HOME/.talos"
 
-          KUBECONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="kubeconfig") | .value // empty')
-
-          if [ -n "$KUBECONFIG_VALUE" ]; then
-            printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
-            echo "Using Kubernetes config from Bitwarden key 'kubeconfig'."
-          else
-            echo "Bitwarden key 'kubeconfig' not found. Generating kubeconfig from 'talosconfig'..."
-            TALOSCONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="talosconfig") | .value // empty')
-            if [ -z "$TALOSCONFIG_VALUE" ]; then
-              echo "::error::Neither Bitwarden key 'kubeconfig' nor 'talosconfig' was found"
-              exit 1
-            fi
-            printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
-            chmod 600 "$HOME/.talos/config"
-
-            TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
-            if [ -z "$TS_TALOS_IP" ]; then
-              echo "::error::Could not resolve Tailscale IP for talos-1"
-              tailscale status || true
-              exit 1
-            fi
-
-            talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
-            sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
-            echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
+          TALOSCONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="talosconfig") | .value // empty')
+          if [ -z "$TALOSCONFIG_VALUE" ]; then
+            echo "::error::Bitwarden key 'talosconfig' was not found"
+            exit 1
           fi
+          printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
+          chmod 600 "$HOME/.talos/config"
+
+          TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
+          if [ -z "$TS_TALOS_IP" ]; then
+            echo "::error::Could not resolve Tailscale IP for talos-1"
+            tailscale status || true
+            exit 1
+          fi
+
+          talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
+          sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
+          echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
 
           chmod 600 "$HOME/.kube/config"
           echo "KUBE_CONFIG_PATH=$HOME/.kube/config" >> $GITHUB_ENV
@@ -302,32 +294,24 @@ jobs:
         run: |
           mkdir -p "$HOME/.kube" "$HOME/.talos"
 
-          KUBECONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="kubeconfig") | .value // empty')
-
-          if [ -n "$KUBECONFIG_VALUE" ]; then
-            printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
-            echo "Using Kubernetes config from Bitwarden key 'kubeconfig'."
-          else
-            echo "Bitwarden key 'kubeconfig' not found. Generating kubeconfig from 'talosconfig'..."
-            TALOSCONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="talosconfig") | .value // empty')
-            if [ -z "$TALOSCONFIG_VALUE" ]; then
-              echo "::error::Neither Bitwarden key 'kubeconfig' nor 'talosconfig' was found"
-              exit 1
-            fi
-            printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
-            chmod 600 "$HOME/.talos/config"
-
-            TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
-            if [ -z "$TS_TALOS_IP" ]; then
-              echo "::error::Could not resolve Tailscale IP for talos-1"
-              tailscale status || true
-              exit 1
-            fi
-
-            talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
-            sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
-            echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
+          TALOSCONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="talosconfig") | .value // empty')
+          if [ -z "$TALOSCONFIG_VALUE" ]; then
+            echo "::error::Bitwarden key 'talosconfig' was not found"
+            exit 1
           fi
+          printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
+          chmod 600 "$HOME/.talos/config"
+
+          TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
+          if [ -z "$TS_TALOS_IP" ]; then
+            echo "::error::Could not resolve Tailscale IP for talos-1"
+            tailscale status || true
+            exit 1
+          fi
+
+          talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
+          sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
+          echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
 
           chmod 600 "$HOME/.kube/config"
           echo "KUBE_CONFIG_PATH=$HOME/.kube/config" >> $GITHUB_ENV
