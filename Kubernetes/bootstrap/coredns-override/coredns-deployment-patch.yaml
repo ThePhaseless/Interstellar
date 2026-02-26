@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: coredns
   namespace: kube-system
+  annotations:
+    ignore-check.kube-linter.io/latest-tag: "Kustomize strategic merge patch; image is defined in the base CoreDNS Deployment."
+    ignore-check.kube-linter.io/mismatching-selector: "Kustomize strategic merge patch; selector is inherited from the base CoreDNS Deployment."
 spec:
   template:
     spec:
