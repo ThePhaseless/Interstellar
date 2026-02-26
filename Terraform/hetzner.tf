@@ -1,34 +1,19 @@
-# =============================================================================
-# Hetzner Cloud — Storage Box for Off-Site Backups
-# =============================================================================
-# Provisions a Hetzner Storage Box with SSH access for BorgBackup.
-# The Kubernetes borgbackup CronJob connects via SSH to push encrypted archives.
-
-# -----------------------------------------------------------------------------
-# Provider
-# -----------------------------------------------------------------------------
 provider "hcloud" {
   token = var.hcloud_token
 }
 
-# -----------------------------------------------------------------------------
 # SSH Key for BorgBackup
-# -----------------------------------------------------------------------------
 resource "tls_private_key" "borg_ssh_key" {
   algorithm = "ED25519"
 }
 
-# -----------------------------------------------------------------------------
 # Borg Encryption Passphrase
-# -----------------------------------------------------------------------------
 resource "random_password" "borg_passphrase" {
   length  = 64
   special = false
 }
 
-# -----------------------------------------------------------------------------
 # Hetzner Storage Box Password (must meet Hetzner policy: upper+lower+digit+special)
-# -----------------------------------------------------------------------------
 resource "random_password" "storagebox_password" {
   length           = 32
   special          = true
@@ -39,9 +24,7 @@ resource "random_password" "storagebox_password" {
   min_special      = 2
 }
 
-# -----------------------------------------------------------------------------
 # Storage Box
-# -----------------------------------------------------------------------------
 resource "hcloud_storage_box" "backups" {
   name             = "interstellar-backups"
   storage_box_type = var.hetzner_storagebox_type
@@ -68,9 +51,7 @@ resource "hcloud_storage_box" "backups" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — BorgBackup
-# -----------------------------------------------------------------------------
 resource "bitwarden-secrets_secret" "borg_ssh_private_key" {
   key        = "borg-ssh-private-key"
   value      = tls_private_key.borg_ssh_key.private_key_openssh

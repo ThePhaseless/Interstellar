@@ -1,18 +1,3 @@
-# =============================================================================
-# Authentik Configuration — Identity Provider
-# =============================================================================
-# Configures Authentik as the central IdP with group-based RBAC.
-# Two proxy providers (forward_domain mode):
-#   - "private": Admins group only (homepage, *arr stack, qBittorrent, dashboards)
-#   - "public": Any Google account (Seerr, Copyparty)
-# Native OIDC providers: Grafana, Immich, Jellyfin
-# Google OAuth is the only login source (no username/password).
-# Groups managed manually in Authentik UI — no Terraform changes needed to add users.
-
-# -----------------------------------------------------------------------------
-# Data Sources — Built-in Flows
-# -----------------------------------------------------------------------------
-
 data "authentik_flow" "default-authorization-flow" {
   slug = "default-provider-authorization-implicit-consent"
 }
@@ -39,9 +24,7 @@ data "authentik_property_mapping_provider_scope" "oauth2" {
   ]
 }
 
-# -----------------------------------------------------------------------------
 # Custom Enrollment Flow — Creates users as "internal" type
-# -----------------------------------------------------------------------------
 # Google OAuth enrollment creates users as "external" by default, which blocks
 # access to the Authentik admin interface. This custom flow overrides the
 # user_write stage to set user_type=internal for all Google-enrolled users.
@@ -65,9 +48,7 @@ resource "authentik_flow_stage_binding" "google_enrollment_write" {
   order  = 10
 }
 
-# -----------------------------------------------------------------------------
 # Google OAuth Source — The only login method
-# -----------------------------------------------------------------------------
 
 resource "authentik_source_oauth" "google" {
   access_token_url  = "https://oauth2.googleapis.com/token"
@@ -90,9 +71,7 @@ resource "authentik_source_oauth" "google" {
   group_matching_mode = "identifier"
 }
 
-# -----------------------------------------------------------------------------
 # Owner Account — Superuser via owner-email Bitwarden secret
-# -----------------------------------------------------------------------------
 # Look up the existing user by email (must have logged in via Google at least once).
 # If the user hasn't logged in yet, the group is created empty and will be
 # populated on the next apply after the user authenticates via Google.
@@ -106,9 +85,7 @@ resource "authentik_group" "admins" {
   users        = length(data.authentik_users.owner.users) > 0 ? [data.authentik_users.owner.users[0].pk] : []
 }
 
-# -----------------------------------------------------------------------------
 # Google-Only Authentication Flow — No username/password
-# -----------------------------------------------------------------------------
 
 resource "authentik_flow" "google_only_auth" {
   name               = "google-only-authentication"
@@ -141,9 +118,7 @@ resource "authentik_brand" "default" {
   branding_logo       = "/static/dist/assets/icons/icon_left_brand.svg"
 }
 
-# -----------------------------------------------------------------------------
 # Proxy Providers — Forward Auth (Domain Level)
-# -----------------------------------------------------------------------------
 
 # Private: VIP email-restricted access
 resource "authentik_provider_proxy" "private" {
@@ -171,9 +146,7 @@ resource "authentik_provider_proxy" "public" {
   refresh_token_validity = "days=30"
 }
 
-# -----------------------------------------------------------------------------
 # Applications — Linked to providers
-# -----------------------------------------------------------------------------
 
 resource "authentik_application" "private" {
   name              = "Private Services"
@@ -186,9 +159,7 @@ resource "authentik_application" "private" {
 # (both would bind to the same public proxy provider, which Authentik forbids).
 # Copyparty serves as the canonical public-proxy application in the app portal.
 
-# -----------------------------------------------------------------------------
 # Access Policies — Group-based RBAC
-# -----------------------------------------------------------------------------
 # admins_only:         requires membership in the "Admins" group
 # watchers_or_admins:  requires "watchers" OR "Admins" group (Jellyfin)
 # Add users to groups in the Authentik web UI — no Terraform changes needed.
@@ -217,9 +188,7 @@ resource "authentik_policy_binding" "private_admins" {
   order  = 0
 }
 
-# -----------------------------------------------------------------------------
 # Embedded Outpost — Uses the proxy providers
-# -----------------------------------------------------------------------------
 # The embedded outpost is automatically available in Authentik.
 # We just need to assign our providers to it.
 
@@ -240,9 +209,7 @@ resource "authentik_outpost" "embedded" {
   })
 }
 
-# -----------------------------------------------------------------------------
 # Grafana OIDC Provider
-# -----------------------------------------------------------------------------
 
 resource "authentik_provider_oauth2" "grafana" {
   name               = "Grafana"
@@ -289,9 +256,7 @@ resource "bitwarden-secrets_secret" "grafana_oauth_client_secret" {
   note       = "Grafana OIDC client secret (via Authentik). Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Immich OIDC Provider
-# -----------------------------------------------------------------------------
 
 resource "authentik_provider_oauth2" "immich" {
   name               = "Immich"
@@ -346,9 +311,7 @@ resource "authentik_policy_binding" "immich_admins" {
   order  = 0
 }
 
-# -----------------------------------------------------------------------------
 # Jellyfin Groups — RBAC via Authentik group membership
-# -----------------------------------------------------------------------------
 # "watchers" → allowed to log into Jellyfin (9p4 plugin roleClaim: roles=["watchers"])
 # "writers"  → Copyparty upload access (read is open to any Google-authenticated user)
 #
@@ -365,9 +328,7 @@ resource "authentik_group" "writers" {
   users = []
 }
 
-# -----------------------------------------------------------------------------
 # Jellyfin OIDC Provider — SSO with automatic account creation
-# -----------------------------------------------------------------------------
 
 # Group membership scope mapping (required for RBAC support)
 resource "authentik_property_mapping_provider_scope" "jellyfin_groups" {
@@ -430,15 +391,11 @@ resource "authentik_policy_binding" "jellyfin_watchers" {
   order  = 0
 }
 
-# -----------------------------------------------------------------------------
 # MCPJungle — Tailscale-only, no Authentik application needed
-# -----------------------------------------------------------------------------
 # mcp.nerine.dev is gated entirely by Traefik's tailscale-only IP middleware.
 # No Authentik application is registered for it.
 
-# -----------------------------------------------------------------------------
 # Copyparty — Proxy application (any Google account)
-# -----------------------------------------------------------------------------
 # Copyparty manages fine-grained permissions internally via IdP group headers
 # (X-authentik-groups): @acct=read, @writers=read+write, @Admins=full admin.
 # No Authentik-level access policy needed here.
@@ -451,15 +408,12 @@ resource "authentik_application" "copyparty" {
   meta_launch_url   = "https://files.${var.authentik_domain}"
 }
 
-# -----------------------------------------------------------------------------
 # qBittorrent — access is controlled via the private-chain Traefik middleware,
 # which validates auth through authentik_application.private (private-services).
 # A separate Authentik application is not needed since qBittorrent shares the
 # private proxy provider (Authentik forbids one provider bound to multiple apps).
 
-# -----------------------------------------------------------------------------
 # ArgoCD OIDC Provider — Native ArgoCD SSO (admins only)
-# -----------------------------------------------------------------------------
 
 resource "authentik_provider_oauth2" "argocd" {
   name               = "ArgoCD"

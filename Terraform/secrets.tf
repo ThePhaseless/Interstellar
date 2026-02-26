@@ -1,13 +1,3 @@
-# =============================================================================
-# Service Secrets — generated and stored in Bitwarden
-# =============================================================================
-# These secrets are created by Terraform with random values and synced to
-# Kubernetes via ExternalSecrets operator. No manual secret creation needed.
-
-# -----------------------------------------------------------------------------
-# Random Password Generation
-# -----------------------------------------------------------------------------
-
 resource "random_password" "crowdsec_bouncer_key" {
   length  = 64
   special = false
@@ -48,9 +38,7 @@ resource "random_password" "jellyfin_admin_password" {
   special = false
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — CrowdSec
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "crowdsec_api_key" {
   key        = "crowdsec-api-key"
@@ -59,9 +47,7 @@ resource "bitwarden-secrets_secret" "crowdsec_api_key" {
   note       = "CrowdSec bouncer API key for Traefik plugin. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — Grafana
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "grafana_admin_password" {
   key        = "grafana-admin-password"
@@ -77,9 +63,7 @@ resource "bitwarden-secrets_secret" "grafana_auth" {
   note       = "Grafana auth string (username:password) for Terraform provider. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — Jellyfin
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "jellyfin_admin_password" {
   key        = "jellyfin-admin-password"
@@ -88,9 +72,7 @@ resource "bitwarden-secrets_secret" "jellyfin_admin_password" {
   note       = "Jellyfin admin password for automated setup wizard. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — Discord (placeholder, user fills in later)
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "discord_webhook_url" {
   key        = "discord-webhook-url"
@@ -103,9 +85,7 @@ resource "bitwarden-secrets_secret" "discord_webhook_url" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — *arr API Keys (populated at runtime by init containers)
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "sonarr_api_key" {
   key        = "sonarr-api-key"
@@ -140,9 +120,7 @@ resource "bitwarden-secrets_secret" "prowlarr_api_key" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — qBittorrent
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "qbittorrent_username" {
   key        = "qbittorrent-username"
@@ -158,9 +136,7 @@ resource "bitwarden-secrets_secret" "qbittorrent_password" {
   note       = "qBittorrent WebUI password. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — Immich
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "immich_db_password" {
   key        = "immich-db-password"
@@ -169,9 +145,7 @@ resource "bitwarden-secrets_secret" "immich_db_password" {
   note       = "Immich PostgreSQL database password. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — Owner Email
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "owner_email" {
   key        = "owner-email"
@@ -184,9 +158,7 @@ resource "bitwarden-secrets_secret" "owner_email" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — Authentik (Identity Provider)
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "authentik_secret_key" {
   key        = "authentik-secret-key"
@@ -209,9 +181,7 @@ resource "bitwarden-secrets_secret" "authentik_bootstrap_token" {
   note       = "Authentik API bootstrap token for Terraform provider authentication. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Bitwarden Secrets — Google OAuth (shared by Authentik, Grafana, Immich)
-# -----------------------------------------------------------------------------
 # OAuth client is created manually in GCP Console. These placeholders are
 # overwritten manually in Bitwarden after creating the client. See SETUP.md.
 

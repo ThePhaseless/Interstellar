@@ -1,7 +1,3 @@
-# Maintenance playbook for TalosOS infrastructure
-# TalosOS nodes are managed via talosctl, not Ansible
-# This playbook handles Proxmox host and Oracle VPS maintenance
-
 - name: Update ProxmoxVE
   hosts: proxmox
   become: true

@@ -1,18 +1,8 @@
-# =============================================================================
-# Cloudflare DNS Configuration
-# =============================================================================
-# This file configures DNS records for the cluster services
-
-# -----------------------------------------------------------------------------
-# Provider Configuration
-# -----------------------------------------------------------------------------
 provider "cloudflare" {
   api_token = bitwarden-secrets_secret.cloudflare_api_token.value != "" ? bitwarden-secrets_secret.cloudflare_api_token.value : "0000000000000000000000000000000000000000"
 }
 
-# -----------------------------------------------------------------------------
 # Data Sources
-# -----------------------------------------------------------------------------
 data "cloudflare_zone" "main" {
   filter = {
     name = var.cluster_domain
@@ -24,9 +14,7 @@ locals {
   # Tailscale Traefik IP from tailscale_devices data source (see tailscale.tf)
 }
 
-# -----------------------------------------------------------------------------
 # Public DNS Records (pointing to Oracle VPS)
-# -----------------------------------------------------------------------------
 
 # Wildcard record for all services (Oracle VPS - public fallback)
 resource "cloudflare_dns_record" "wildcard" {
@@ -75,9 +63,7 @@ resource "cloudflare_dns_record" "root_tailscale" {
   comment = "Root domain via Tailscale direct (preferred)"
 }
 
-# -----------------------------------------------------------------------------
 # CAA Record for Let's Encrypt
-# -----------------------------------------------------------------------------
 resource "cloudflare_dns_record" "caa" {
   zone_id = data.cloudflare_zone.main.id
   name    = "@"
@@ -93,9 +79,7 @@ resource "cloudflare_dns_record" "caa" {
   comment = "Allow Let's Encrypt to issue certificates"
 }
 
-# -----------------------------------------------------------------------------
 # Outputs
-# -----------------------------------------------------------------------------
 output "cloudflare_zone_id" {
   description = "Cloudflare zone ID"
   value       = data.cloudflare_zone.main.id

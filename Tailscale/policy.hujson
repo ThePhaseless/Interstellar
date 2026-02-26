@@ -1,14 +1,9 @@
 {
-  // ==========================================================================
   // Tailscale ACL Policy for Interstellar Infrastructure
-  // ==========================================================================
   // This policy defines access controls for the TalosOS cluster and services.
   // Managed via GitOps - changes are applied via GitHub Actions.
-  // ==========================================================================
 
-  // -------------------------------------------------------------------------
   // Tag Owners
-  // -------------------------------------------------------------------------
   // tag:ci is the automation/Terraform tag. It owns all infrastructure tags
   // so Terraform can create auth keys and OAuth clients for any of them.
   "tagOwners": {
@@ -20,9 +15,7 @@
     "tag:k8s":          ["autogroup:admin", "tag:k8s-operator"], // Proxy pods provisioned by the Tailscale operator
   },
 
-  // -------------------------------------------------------------------------
   // Groups
-  // -------------------------------------------------------------------------
   // Groups define collections of users for access control.
   "groups": {
     // Full admin access - infrastructure operators
@@ -46,9 +39,7 @@
     ]
   },
 
-  // -------------------------------------------------------------------------
   // Hosts
-  // -------------------------------------------------------------------------
   // Named hosts for easier ACL rules.
   // Keep only stable/static addresses to avoid drift with DHCP-assigned Talos node IPs.
   "hosts": {
@@ -56,9 +47,7 @@
     "cluster-vip": "100.67.213.79"
   },
 
-  // -------------------------------------------------------------------------
   // Access Control Lists
-  // -------------------------------------------------------------------------
   "acls": [
     // Admins and VIPs have full access to everything
     {
@@ -163,9 +152,7 @@
       ]
     },
 
-    // -----------------------------------------------------------------------
     // Shared Access - External Tailscale users (via node sharing)
-    // -----------------------------------------------------------------------
     // When you share a node tagged with "tag:shared", external users
     // from their own tailnet can access these services.
     // This provides fallback access when OCI proxy is offline.
@@ -176,7 +163,6 @@
     // Shared nodes:
     //   - traefik: HTTP/HTTPS access to all web services
     //   - adguard: DNS server for automatic domain resolution
-    // -----------------------------------------------------------------------
     {
       "action": "accept",
       "src":    ["autogroup:shared"],
@@ -191,9 +177,7 @@
     }
   ],
 
-  // -------------------------------------------------------------------------
   // SSH Configuration
-  // -------------------------------------------------------------------------
   "ssh": [
     // Admins and VIPs can SSH to all tagged devices
     {
@@ -212,9 +196,7 @@
     }
   ],
 
-  // -------------------------------------------------------------------------
   // Auto Approvers
-  // -------------------------------------------------------------------------
   // Automatically approve certain network features.
   "autoApprovers": {
     // Exit node approval (Oracle VPS)
@@ -227,9 +209,7 @@
     }
   },
 
-  // -------------------------------------------------------------------------
   // Node Attributes
-  // -------------------------------------------------------------------------
   "nodeAttrs": [
     // Disable key expiry for infrastructure nodes
     {

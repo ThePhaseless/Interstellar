@@ -1,11 +1,3 @@
-# =============================================================================
-# TalosOS Cluster Configuration
-# =============================================================================
-# This file configures the TalosOS cluster using the Siderolabs Talos provider
-
-# -----------------------------------------------------------------------------
-# Provider Configuration
-# -----------------------------------------------------------------------------
 provider "talos" {}
 
 locals {
@@ -13,15 +5,11 @@ locals {
   talos_node_is_gpu           = { for node_name, node in var.nodes : node_name => node.gpu }
 }
 
-# -----------------------------------------------------------------------------
 # Talos Machine Secrets
-# -----------------------------------------------------------------------------
 # Generate secrets for the cluster (PKI, tokens, etc.)
 resource "talos_machine_secrets" "cluster" {}
 
-# -----------------------------------------------------------------------------
 # Talos Image Factory
-# -----------------------------------------------------------------------------
 # Get the schematic IDs for custom images with node-specific extensions
 data "talos_image_factory_extensions_versions" "base_extensions" {
   talos_version = var.talos_version
@@ -71,9 +59,7 @@ data "talos_image_factory_urls" "gpu_image" {
 }
 
 
-# -----------------------------------------------------------------------------
 # Client Configuration
-# -----------------------------------------------------------------------------
 # Generate talosconfig for talosctl CLI access
 data "talos_client_configuration" "cluster" {
   cluster_name         = var.cluster_name
@@ -92,9 +78,7 @@ resource "talos_cluster_kubeconfig" "cluster" {
   depends_on = [talos_machine_bootstrap.cluster]
 }
 
-# -----------------------------------------------------------------------------
 # Machine Configuration - Control Plane
-# -----------------------------------------------------------------------------
 data "talos_machine_configuration" "controlplane" {
   for_each = var.nodes
 
@@ -190,9 +174,7 @@ data "talos_machine_configuration" "controlplane" {
   ])
 }
 
-# -----------------------------------------------------------------------------
 # Apply Configuration to Nodes
-# -----------------------------------------------------------------------------
 resource "talos_machine_configuration_apply" "controlplane" {
   for_each = var.nodes
 
@@ -203,9 +185,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
   depends_on = [proxmox_virtual_environment_vm.talos]
 }
 
-# -----------------------------------------------------------------------------
 # Bootstrap the Cluster
-# -----------------------------------------------------------------------------
 resource "talos_machine_bootstrap" "cluster" {
   client_configuration = talos_machine_secrets.cluster.client_configuration
   node                 = local.talos_node_ips["talos-1"]
@@ -213,9 +193,7 @@ resource "talos_machine_bootstrap" "cluster" {
   depends_on = [talos_machine_configuration_apply.controlplane]
 }
 
-# -----------------------------------------------------------------------------
 # Outputs
-# -----------------------------------------------------------------------------
 output "talos_schematic_id" {
   description = "Talos Factory schematic IDs for base and GPU images"
   value = {

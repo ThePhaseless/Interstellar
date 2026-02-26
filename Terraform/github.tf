@@ -1,9 +1,3 @@
-# =============================================================================
-# GitHub Repository Variables for Bitwarden Secret IDs
-# =============================================================================
-# This file manages GitHub repository variables that store Bitwarden Secret IDs.
-# Direct resource references ensure IDs are always current after Terraform runs.
-
 provider "github" {
   owner = split("/", var.github_repository)[0]
 }

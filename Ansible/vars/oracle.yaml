@@ -1,12 +1,4 @@
-# Tailscale configuration for Oracle VPS instances
-# Both proxy and compute instances use the same base config
 tailscale_args: --ssh
 
-# HAProxy backend - Traefik's Tailscale MagicDNS FQDN
-# Resolves automatically via Tailscale DNS on Oracle; no IP hardcoding needed.
-# The Tailscale operator sets tailscale.com/hostname: "traefik" on the service,
-# so this FQDN is stable across cluster re-provisions.
 traefik_backend_host: traefik.fold-hen.ts.net
-# Auth key read from TAILSCALE_ORACLE_AUTH_KEY env var (set by setup-env.sh from
-# Bitwarden secret tailscale-oracle-auth-key, managed by Terraform tag:oracle)
 tailscale_authkey: "{{ lookup('env', 'TAILSCALE_ORACLE_AUTH_KEY') }}"
