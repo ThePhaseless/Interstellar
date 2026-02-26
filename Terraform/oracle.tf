@@ -1,172 +1,303 @@
+# =============================================================================
+# Oracle Cloud Infrastructure (OCI) Configuration
+# =============================================================================
+# This file provisions the Oracle VPS for HAProxy entry point
+
+# -----------------------------------------------------------------------------
+# Provider Configuration
+# -----------------------------------------------------------------------------
+# OCI provider authentication via environment variables:
+# OCI_tenancy_ocid, OCI_user_ocid, OCI_fingerprint, OCI_private_key, OCI_region
+
 provider "oci" {
+  # Authentication handled by environment variables
 }
 
-provider "cloudflare" {
+# -----------------------------------------------------------------------------
+# Data Sources
+# -----------------------------------------------------------------------------
+
+data "oci_identity_availability_domains" "ads" {
+  compartment_id = oci_identity_compartment.main.id
 }
 
-locals {
-  ubuntu_version = "24.04"
-  machine = {
-    name  = "argon"
-    shape = "VM.Standard.A1.Flex"
-
-    # Free limits are 200 GB / 24 GB / 4 cores
-    disk_size_GB = 200
-    memory_GB    = 24
-    cpu_count    = 4
-  }
+resource "oci_identity_compartment" "main" {
+  compartment_id = local.oci_tenancy_ocid
+  description    = "Compartment for Terraform resources."
+  name           = "TerraformCompartment"
+  enable_delete  = true
 }
 
-resource "oci_identity_compartment" "compartment" {
-  description = "Compartment for Terraform resources."
-  name        = "TerraformCompartment"
+data "oci_objectstorage_namespace" "ns" {
+  compartment_id = oci_identity_compartment.main.id
 }
 
-data "oci_objectstorage_namespace" "namespace" {
-  compartment_id = oci_identity_compartment.compartment.id
-}
-
-resource "oci_objectstorage_bucket" "terraform_state" {
-  compartment_id = oci_identity_compartment.compartment.id
-  name           = var.state_bucket_name
-  namespace      = data.oci_objectstorage_namespace.namespace.namespace
+resource "oci_objectstorage_bucket" "tf_state" {
+  compartment_id = oci_identity_compartment.main.id
+  name           = var.tf_state_bucket
+  namespace      = data.oci_objectstorage_namespace.ns.namespace
+  access_type    = "NoPublicAccess"
   versioning     = "Enabled"
 }
 
-resource "oci_objectstorage_bucket" "ansible_files" {
-  compartment_id = oci_identity_compartment.compartment.id
-  name           = var.ansible_bucket_name
-  namespace      = data.oci_objectstorage_namespace.namespace.namespace
-}
-
-data "oci_core_images" "images" {
-  compartment_id = oci_identity_compartment.compartment.id
-
+data "oci_core_images" "ubuntu" {
+  compartment_id           = oci_identity_compartment.main.id
   operating_system         = "Canonical Ubuntu"
-  operating_system_version = local.ubuntu_version
-  shape                    = local.machine.shape
+  operating_system_version = "24.04"
+  shape                    = "VM.Standard.A1.Flex"
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
 }
 
-resource "oci_core_vcn" "vcn" {
-  compartment_id = oci_identity_compartment.compartment.id
-  display_name   = "TerraformVCN"
+# -----------------------------------------------------------------------------
+# Networking
+# -----------------------------------------------------------------------------
 
-  cidr_blocks = ["10.0.0.0/16"]
+# VCN (Virtual Cloud Network)
+resource "oci_core_vcn" "main" {
+  compartment_id = oci_identity_compartment.main.id
+  display_name   = "interstellar-vcn"
+  cidr_blocks    = ["10.0.0.0/16"]
+  dns_label      = "interstellar"
 }
 
-resource "oci_core_internet_gateway" "internet_gateway" {
-  compartment_id = oci_identity_compartment.compartment.id
-  vcn_id         = oci_core_vcn.vcn.id
-  display_name   = "TerraformInternetGateway"
+resource "oci_core_internet_gateway" "main" {
+  compartment_id = oci_identity_compartment.main.id
+  vcn_id         = oci_core_vcn.main.id
+  display_name   = "interstellar-igw"
 }
 
-resource "oci_core_security_list" "security_list" {
-  compartment_id = oci_identity_compartment.compartment.id
-  vcn_id         = oci_core_vcn.vcn.id
-  display_name   = "TerraformSecurityList"
+resource "oci_core_route_table" "main" {
+  compartment_id = oci_identity_compartment.main.id
+  vcn_id         = oci_core_vcn.main.id
+  display_name   = "interstellar-rt"
+
+  route_rules {
+    network_entity_id = oci_core_internet_gateway.main.id
+    destination       = "0.0.0.0/0"
+    destination_type  = "CIDR_BLOCK"
+  }
+}
+
+resource "oci_core_security_list" "main" {
+  compartment_id = oci_identity_compartment.main.id
+  vcn_id         = oci_core_vcn.main.id
+  display_name   = "interstellar-sl"
 
   egress_security_rules {
-    stateless   = false
-    description = "Allow all outbound traffic"
     destination = "0.0.0.0/0"
     protocol    = "all"
   }
 
+  ingress_security_rules {
+    protocol    = "6" # TCP
+    source      = "0.0.0.0/0"
+    description = "SSH access"
+
+    tcp_options {
+      min = 22
+      max = 22
+    }
+  }
+
+  # Ingress: HTTP (conditional on proxy_public_access)
   dynamic "ingress_security_rules" {
-
-    for_each = var.ports
+    for_each = var.proxy_public_access ? [1] : []
     content {
-      stateless   = ingress_security_rules.value.stateless
+      protocol    = "6"
       source      = "0.0.0.0/0"
-      source_type = "CIDR_BLOCK"
-      description = "Allow ${ingress_security_rules.key} ingress traffic"
-      # Get protocol numbers from https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
-      protocol = ingress_security_rules.value.protocol == "TCP" ? "6" : "17"
+      description = "HTTP traffic"
 
-
-      dynamic "tcp_options" {
-        for_each = ingress_security_rules.value.protocol == "TCP" ? [ingress_security_rules.value] : []
-        content {
-          min = tcp_options.value.port
-          max = tcp_options.value.port
-        }
+      tcp_options {
+        min = 80
+        max = 80
       }
+    }
+  }
 
+  # Ingress: HTTPS (conditional on proxy_public_access)
+  dynamic "ingress_security_rules" {
+    for_each = var.proxy_public_access ? [1] : []
+    content {
+      protocol    = "6"
+      source      = "0.0.0.0/0"
+      description = "HTTPS traffic"
 
-      dynamic "udp_options" {
-        for_each = ingress_security_rules.value.protocol == "UDP" ? [ingress_security_rules.value] : []
-        content {
-          min = udp_options.value.port
-          max = udp_options.value.port
-        }
+      tcp_options {
+        min = 443
+        max = 443
       }
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "17" # UDP
+    source      = "0.0.0.0/0"
+    description = "Tailscale WireGuard"
+
+    udp_options {
+      min = 41641
+      max = 41641
     }
   }
 }
 
-resource "oci_core_route_table" "route_table" {
-  compartment_id = oci_identity_compartment.compartment.id
-  vcn_id         = oci_core_vcn.vcn.id
-  display_name   = "TerraformRouteTable"
-
-  route_rules {
-    network_entity_id = oci_core_internet_gateway.internet_gateway.id
-    destination       = "0.0.0.0/0"
-  }
+resource "oci_core_subnet" "main" {
+  compartment_id             = oci_identity_compartment.main.id
+  vcn_id                     = oci_core_vcn.main.id
+  display_name               = "interstellar-subnet"
+  cidr_block                 = "10.0.1.0/24"
+  route_table_id             = oci_core_route_table.main.id
+  security_list_ids          = [oci_core_security_list.main.id]
+  prohibit_public_ip_on_vnic = false
+  dns_label                  = "main"
 }
 
-resource "oci_core_subnet" "subnet" {
-  compartment_id = oci_identity_compartment.compartment.id
-  vcn_id         = oci_core_vcn.vcn.id
-  display_name   = "TerraformSubnet"
-  cidr_block     = oci_core_vcn.vcn.cidr_blocks[0]
-  route_table_id = oci_core_route_table.route_table.id
+# -----------------------------------------------------------------------------
+# Compute Instance
+# -----------------------------------------------------------------------------
 
-  security_list_ids = [
-    oci_core_security_list.security_list.id
-  ]
+resource "tls_private_key" "oracle_ssh" {
+  algorithm = "ED25519"
 }
 
-data "oci_identity_availability_domains" "availability_domains" {
-  compartment_id = oci_identity_compartment.compartment.id
-}
-
-resource "oci_core_instance" "instance" {
-  compartment_id      = oci_identity_compartment.compartment.id
-  availability_domain = data.oci_identity_availability_domains.availability_domains.availability_domains[0].name
-  shape               = local.machine.shape
+# -----------------------------------------------------------------------------
+# Proxy VPS (Minimal - just HAProxy)
+# -----------------------------------------------------------------------------
+resource "oci_core_instance" "proxy" {
+  compartment_id      = oci_identity_compartment.main.id
+  availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
+  display_name        = "oracle-proxy"
+  shape               = "VM.Standard.A1.Flex"
 
   shape_config {
-    ocpus         = local.machine.cpu_count
-    memory_in_gbs = local.machine.memory_GB
+    ocpus         = 1
+    memory_in_gbs = 6
   }
+
   source_details {
     source_type             = "image"
-    boot_volume_size_in_gbs = local.machine.disk_size_GB
-    source_id               = data.oci_core_images.images.images[0].id
+    source_id               = data.oci_core_images.ubuntu.images[0].id
+    boot_volume_size_in_gbs = 50
   }
 
-  display_name = local.machine.name
-
   create_vnic_details {
+    subnet_id        = oci_core_subnet.main.id
     assign_public_ip = true
-    subnet_id        = oci_core_subnet.subnet.id
+    display_name     = "oracle-proxy-vnic"
+    hostname_label   = "proxy"
   }
 
   metadata = {
-    ssh_authorized_keys = data.tls_public_key.deployment_key.public_key_openssh
+    ssh_authorized_keys = tls_private_key.oracle_ssh.public_key_openssh
+    user_data = base64encode(<<-EOF
+      #!/bin/bash
+      apt-get update
+      apt-get install -y curl apt-transport-https ca-certificates gnupg
+
+      # Unattended upgrades with auto-reboot
+      apt-get install -y unattended-upgrades
+      cat > /etc/apt/apt.conf.d/50unattended-upgrades <<'UPGRADES'
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "03:00";
+UPGRADES
+      systemctl enable unattended-upgrades
+    EOF
+    )
   }
 
-  preserve_boot_volume = false
+  freeform_tags = {
+    "project"    = "interstellar"
+    "managed_by" = "terraform"
+    "purpose"    = "haproxy-entry-point"
+  }
+
+  lifecycle {
+    ignore_changes = [metadata["user_data"]]
+  }
 }
 
-resource "cloudflare_dns_record" "dns_record" {
-  zone_id = var.cloudflare_zone_id
-  name    = "@"
-  content = oci_core_instance.instance.public_ip
-  type    = "A"
-  ttl     = 1
-  proxied = false
+# -----------------------------------------------------------------------------
+# Compute VPS (Remaining resources for general workloads)
+# -----------------------------------------------------------------------------
+resource "oci_core_instance" "compute" {
+  compartment_id      = oci_identity_compartment.main.id
+  availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
+  display_name        = "oracle-compute"
+  shape               = "VM.Standard.A1.Flex"
+
+  shape_config {
+    ocpus         = 3
+    memory_in_gbs = 18
+  }
+
+  source_details {
+    source_type             = "image"
+    source_id               = data.oci_core_images.ubuntu.images[0].id
+    boot_volume_size_in_gbs = 150
+  }
+
+  create_vnic_details {
+    subnet_id        = oci_core_subnet.main.id
+    assign_public_ip = true
+    display_name     = "oracle-compute-vnic"
+    hostname_label   = "compute"
+  }
+
+  metadata = {
+    ssh_authorized_keys = tls_private_key.oracle_ssh.public_key_openssh
+    user_data = base64encode(<<-EOF
+      #!/bin/bash
+      apt-get update
+      apt-get install -y curl apt-transport-https ca-certificates gnupg
+
+      # Unattended upgrades with auto-reboot
+      apt-get install -y unattended-upgrades
+      cat > /etc/apt/apt.conf.d/50unattended-upgrades <<'UPGRADES'
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "04:00";
+UPGRADES
+      systemctl enable unattended-upgrades
+    EOF
+    )
+  }
+
+  freeform_tags = {
+    "project"    = "interstellar"
+    "managed_by" = "terraform"
+    "purpose"    = "general-compute"
+  }
+
+  lifecycle {
+    ignore_changes = [metadata["user_data"]]
+  }
+}
+
+# -----------------------------------------------------------------------------
+# Store SSH Key in Bitwarden
+# -----------------------------------------------------------------------------
+resource "bitwarden-secrets_secret" "oracle_ssh_private_key" {
+  key        = "oracle-ssh-private-key"
+  value      = tls_private_key.oracle_ssh.private_key_openssh
+  project_id = local.bitwarden_generated_project_id
+  note       = "SSH private key for Oracle VPS instances. Managed by Terraform."
+}
+
+# -----------------------------------------------------------------------------
+# Outputs
+# -----------------------------------------------------------------------------
+output "oracle_proxy_public_ip" {
+  description = "Public IP of proxy VPS"
+  value       = oci_core_instance.proxy.public_ip
+}
+
+output "oracle_compute_public_ip" {
+  description = "Public IP of compute VPS"
+  value       = oci_core_instance.compute.public_ip
+}
+
+output "oracle_ssh_private_key" {
+  description = "SSH private key for Oracle VPS (sensitive)"
+  value       = tls_private_key.oracle_ssh.private_key_openssh
+  sensitive   = true
 }

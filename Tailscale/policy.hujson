@@ -1,0 +1,241 @@
+{
+  // ==========================================================================
+  // Tailscale ACL Policy for Interstellar Infrastructure
+  // ==========================================================================
+  // This policy defines access controls for the TalosOS cluster and services.
+  // Managed via GitOps - changes are applied via GitHub Actions.
+  // ==========================================================================
+
+  // -------------------------------------------------------------------------
+  // Tag Owners
+  // -------------------------------------------------------------------------
+  // tag:ci is the automation/Terraform tag. It owns all infrastructure tags
+  // so Terraform can create auth keys and OAuth clients for any of them.
+  "tagOwners": {
+    "tag:ci":           ["autogroup:admin"],
+    "tag:proxmox":      ["autogroup:admin", "tag:ci"],
+    "tag:oracle":       ["autogroup:admin", "tag:ci"],
+    "tag:cluster":      ["autogroup:admin", "tag:ci"],
+    "tag:k8s-operator": ["autogroup:admin", "tag:ci"],
+    "tag:k8s":          ["autogroup:admin", "tag:k8s-operator"], // Proxy pods provisioned by the Tailscale operator
+  },
+
+  // -------------------------------------------------------------------------
+  // Groups
+  // -------------------------------------------------------------------------
+  // Groups define collections of users for access control.
+  "groups": {
+    // Full admin access - infrastructure operators
+    "group:vips": [
+      // Add admin email addresses here
+    ],
+
+    // Science club members - shared access to cluster services
+    "group:silvernet": [
+      // Add member email addresses here
+    ],
+
+    // Media consumers - Jellyfin/Seerr access only
+    "group:media": [
+      // Add media user email addresses here
+    ],
+
+    // DNS users - AdGuard DNS access only
+    "group:dns": [
+      // Add DNS user email addresses here
+    ]
+  },
+
+  // -------------------------------------------------------------------------
+  // Hosts
+  // -------------------------------------------------------------------------
+  // Named hosts for easier ACL rules.
+  // Keep only stable/static addresses to avoid drift with DHCP-assigned Talos node IPs.
+  "hosts": {
+    "proxmox":     "192.168.1.10",
+    "cluster-vip": "192.168.1.100"
+  },
+
+  // -------------------------------------------------------------------------
+  // Access Control Lists
+  // -------------------------------------------------------------------------
+  "acls": [
+    // Admins and VIPs have full access to everything
+    {
+      "action": "accept",
+      "src":    ["autogroup:admin", "group:vips"],
+      "dst":    ["*:*"]
+    },
+
+    // CI runners can access Proxmox and cluster for deployments
+    {
+      "action": "accept",
+      "src":    ["tag:ci"],
+      "dst": [
+        "tag:proxmox:22",      // SSH to Proxmox
+        "tag:proxmox:8006",    // Proxmox API (for Terraform)
+        "tag:oracle:22",       // SSH to Oracle VPS
+        "tag:cluster:6443",    // Kubernetes API
+        "tag:cluster:50000"    // Talos API
+      ]
+    },
+
+    // Oracle VPS can reach Traefik proxy pod (tag:k8s) — MetalLB/cluster IPs are LAN-only
+    {
+      "action": "accept",
+      "src":    ["tag:oracle"],
+      "dst": [
+        "tag:k8s:80",   // Tailscale operator proxy pods (e.g. ts-traefik-*)
+        "tag:k8s:443"
+      ]
+    },
+
+    // Cluster nodes can communicate with each other
+    {
+      "action": "accept",
+      "src":    ["tag:cluster"],
+      "dst":    ["tag:cluster:*"]
+    },
+
+    // Cluster can reach Proxmox for iSCSI storage
+    {
+      "action": "accept",
+      "src":    ["tag:cluster"],
+      "dst":    ["tag:proxmox:3260"]
+    },
+
+    // K8s Operator has full cluster access
+    {
+      "action": "accept",
+      "src":    ["tag:k8s-operator"],
+      "dst":    ["tag:cluster:*"]
+    },
+
+    // k8s proxy pods can see each other (needed for MagicDNS resolution between pods)
+    {
+      "action": "accept",
+      "src":    ["tag:k8s"],
+      "dst":    ["tag:k8s:*"]
+    },
+
+    // Cluster nodes can resolve k8s proxy pod IPs via MagicDNS (100.100.100.100)
+    // Required for AdGuard to forward fold-hen.ts.net queries via Tailscale resolver
+    {
+      "action": "accept",
+      "src":    ["tag:cluster"],
+      "dst":    ["tag:k8s:*"]
+    },
+
+    // Silvernet members can access cluster services (not personal devices)
+    {
+      "action": "accept",
+      "src":    ["group:silvernet"],
+      "dst": [
+        "tag:cluster:80",
+        "tag:cluster:443",
+        "tag:cluster:445",   // SMB
+        "tag:cluster:3945",  // Copyparty SMB
+        "tag:k8s:80",        // Tailscale operator proxy pods (web traffic)
+        "tag:k8s:443",
+        "tag:k8s:445",       // SMB via operator proxy
+        "tag:k8s:3945"       // Copyparty SMB via operator proxy
+      ]
+    },
+
+    // Media group - only Jellyfin and Seerr
+    {
+      "action": "accept",
+      "src":    ["group:media"],
+      "dst": [
+        "tag:cluster:80",
+        "tag:cluster:443",
+        "tag:k8s:80",        // Tailscale operator proxy pods (web traffic)
+        "tag:k8s:443"
+      ]
+    },
+
+    // DNS group - only AdGuard DNS
+    {
+      "action": "accept",
+      "src":    ["group:dns"],
+      "dst": [
+        "tag:cluster:53"     // DNS (TCP and UDP)
+      ]
+    },
+
+    // -----------------------------------------------------------------------
+    // Shared Access - External Tailscale users (via node sharing)
+    // -----------------------------------------------------------------------
+    // When you share a node tagged with "tag:shared", external users
+    // from their own tailnet can access these services.
+    // This provides fallback access when OCI proxy is offline.
+    //
+    // To share: Tailscale Admin Console → Machines → Share → Enter their email
+    // Their devices will appear as "autogroup:shared" in ACLs
+    //
+    // Shared nodes:
+    //   - traefik: HTTP/HTTPS access to all web services
+    //   - adguard: DNS server for automatic domain resolution
+    // -----------------------------------------------------------------------
+    {
+      "action": "accept",
+      "src":    ["autogroup:shared"],
+      "dst": [
+        "tag:cluster:80",    // HTTP (Traefik)
+        "tag:cluster:443",   // HTTPS (Traefik)
+        "tag:cluster:53",    // DNS (AdGuard)
+        "tag:k8s:80",        // Tailscale operator proxy pods
+        "tag:k8s:443",
+        "tag:k8s:53"
+      ]
+    }
+  ],
+
+  // -------------------------------------------------------------------------
+  // SSH Configuration
+  // -------------------------------------------------------------------------
+  "ssh": [
+    // Admins and VIPs can SSH to all tagged devices
+    {
+      "action": "accept",
+      "src":    ["autogroup:admin", "group:vips"],
+      "dst":    ["tag:proxmox", "tag:oracle", "tag:cluster"],
+      "users":  ["autogroup:nonroot", "root"]
+    },
+
+    // CI can SSH for deployments
+    {
+      "action": "accept",
+      "src":    ["tag:ci"],
+      "dst":    ["tag:proxmox", "tag:oracle"],
+      "users":  ["autogroup:nonroot"]
+    }
+  ],
+
+  // -------------------------------------------------------------------------
+  // Auto Approvers
+  // -------------------------------------------------------------------------
+  // Automatically approve certain network features.
+  "autoApprovers": {
+    // Exit node approval (Oracle VPS)
+    "exitNode": ["tag:oracle"],
+
+    // Subnet routes (cluster pod/service CIDRs)
+    "routes": {
+      "10.244.0.0/16":  ["tag:cluster"],   // Pod CIDR
+      "10.96.0.0/12":   ["tag:cluster"]    // Service CIDR
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Node Attributes
+  // -------------------------------------------------------------------------
+  "nodeAttrs": [
+    // Disable key expiry for infrastructure nodes
+    {
+      "target": ["tag:cluster", "tag:oracle", "tag:proxmox"],
+      "attr":   ["funnel:deny"]
+    }
+  ],
+
+}

@@ -1,0 +1,48 @@
+# =============================================================================
+# Kubernetes Manifest Linting Workflow
+# =============================================================================
+# Runs kube-linter on Kubernetes manifests to catch issues before deployment.
+
+name: Kubernetes Lint
+
+on:
+  push:
+    branches: [main, migration]
+    paths:
+      - "Kubernetes/**"
+      - ".kube-linter.yaml"
+      - ".github/workflows/kubernetes-lint.yaml"
+  pull_request:
+    branches: [main, migration]
+    paths:
+      - "Kubernetes/**"
+      - ".kube-linter.yaml"
+      - ".github/workflows/kubernetes-lint.yaml"
+
+jobs:
+  lint:
+    name: Lint Kubernetes Manifests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: Install latest kustomize
+        run: |
+          go install sigs.k8s.io/kustomize/kustomize/v5@latest
+          kustomize version
+
+      - name: Install latest kube-linter
+        run: |
+          go install golang.stackrox.io/kube-linter/cmd/kube-linter@latest
+          kube-linter version
+
+      - name: Run repository lint script
+        run: |
+          ./scripts/lint-kubernetes.sh

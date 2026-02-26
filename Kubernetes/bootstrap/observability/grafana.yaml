@@ -1,0 +1,230 @@
+# =============================================================================
+# Grafana Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: observability
+  labels:
+    app: grafana
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        runAsUser: 472
+        runAsGroup: 472
+      containers:
+        - name: grafana
+          image: grafana/grafana:12.3.3
+          env:
+            - name: GF_SERVER_ROOT_URL
+              value: "https://grafana.nerine.dev"
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secrets
+                  key: admin-password
+            # Authentik OIDC
+            - name: GF_AUTH_GENERIC_OAUTH_ENABLED
+              value: "true"
+            - name: GF_AUTH_GENERIC_OAUTH_NAME
+              value: "authentik"
+            - name: GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP
+              value: "true"
+            - name: GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN
+              value: "true"
+            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secrets
+                  key: oidc-client-id
+            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secrets
+                  key: oidc-client-secret
+            - name: GF_AUTH_GENERIC_OAUTH_SCOPES
+              value: "openid profile email"
+            - name: GF_AUTH_GENERIC_OAUTH_AUTH_URL
+              value: "https://auth.nerine.dev/application/o/authorize/"
+            - name: GF_AUTH_GENERIC_OAUTH_TOKEN_URL
+              value: "http://authentik-server.authentik.svc.cluster.local/application/o/token/"
+            - name: GF_AUTH_GENERIC_OAUTH_API_URL
+              value: "http://authentik-server.authentik.svc.cluster.local/application/o/userinfo/"
+            - name: GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_PATH
+              value: "email"
+            - name: GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH
+              value: "preferred_username"
+            - name: GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH
+              value: "name"
+            - name: GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH
+              value: "groups"
+            - name: GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP
+              value: "true"
+            - name: GF_AUTH_DISABLE_LOGIN_FORM
+              value: "true"
+            - name: GF_AUTH_SIGNOUT_REDIRECT_URL
+              value: "https://auth.nerine.dev/application/o/grafana/end-session/"
+            - name: GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
+              value: "contains(groups[*], 'Admins') && 'Admin' || contains(groups[*], 'Grafana Editors') && 'Editor' || 'Viewer'"
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "true"
+            - name: GF_USERS_AUTO_ASSIGN_ORG
+              value: "true"
+            - name: GF_USERS_AUTO_ASSIGN_ORG_ROLE
+              value: "Viewer"
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: discord-webhook
+                  key: webhook-url
+                  optional: true
+            # SMTP via Postfix relay
+            - name: GF_SMTP_ENABLED
+              value: "true"
+            - name: GF_SMTP_HOST
+              value: "postfix.utilities.svc.cluster.local:587"
+            - name: GF_SMTP_FROM_ADDRESS
+              value: "grafana@nerine.dev"
+            - name: GF_SMTP_FROM_NAME
+              value: "Grafana (Interstellar)"
+            - name: GF_SMTP_SKIP_VERIFY
+              value: "true"
+          ports:
+            - name: http
+              containerPort: 3000
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/grafana
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboards-provisioning
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: alerting
+              mountPath: /etc/grafana/provisioning/alerting
+            - name: dashboard-cluster
+              mountPath: /var/lib/grafana/dashboards/cluster
+            - name: dashboard-traefik
+              mountPath: /var/lib/grafana/dashboards/traefik
+            - name: dashboard-media
+              mountPath: /var/lib/grafana/dashboards/media
+            - name: dashboard-logs
+              mountPath: /var/lib/grafana/dashboards/logs
+            - name: dashboard-geo
+              mountPath: /var/lib/grafana/dashboards/geo
+            - name: dashboard-access
+              mountPath: /var/lib/grafana/dashboards/access
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: grafana-data
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: dashboards-provisioning
+          configMap:
+            name: grafana-dashboards-provisioning
+        - name: alerting
+          configMap:
+            name: grafana-alerting
+        - name: dashboard-cluster
+          configMap:
+            name: grafana-dashboard-cluster
+        - name: dashboard-traefik
+          configMap:
+            name: grafana-dashboard-traefik
+        - name: dashboard-media
+          configMap:
+            name: grafana-dashboard-media
+        - name: dashboard-logs
+          configMap:
+            name: grafana-dashboard-logs
+        - name: dashboard-geo
+          configMap:
+            name: grafana-dashboard-geo
+        - name: dashboard-access
+          configMap:
+            name: grafana-dashboard-access
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: observability
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+  selector:
+    app: grafana
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+  namespace: observability
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana
+  namespace: observability
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`grafana.nerine.dev`)
+      kind: Rule
+      services:
+        - name: grafana
+          port: 3000
+      middlewares:
+        - name: private-chain
+          namespace: traefik
+        - name: authentik
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

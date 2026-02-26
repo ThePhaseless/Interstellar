@@ -1,0 +1,17 @@
+# =============================================================================
+# Postfix SMTP Relay Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: utilities
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - externalsecret.yaml
+
+labels:
+  - pairs:
+      app: postfix
+    includeSelectors: true

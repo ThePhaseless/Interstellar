@@ -1,0 +1,36 @@
+# =============================================================================
+# External Secrets Operator Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: external-secrets
+
+resources:
+  - namespace.yaml
+  - bitwarden-store.yaml
+  - bitwarden-store-generated.yaml
+
+# Bitwarden SDK server is bundled as a subchart
+# TLS certs must be created before deployment:
+#   ./scripts/generate-bitwarden-tls.sh
+helmCharts:
+  - name: external-secrets
+    repo: https://charts.external-secrets.io
+    version: 2.0.0
+    releaseName: external-secrets
+    namespace: external-secrets
+    valuesInline:
+      installCRDs: true
+      serviceAccount:
+        create: true
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+      bitwarden-sdk-server:
+        enabled: true

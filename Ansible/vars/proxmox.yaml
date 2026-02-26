@@ -1,0 +1,13 @@
+# NFS server configuration for Proxmox host
+# Export ZFS storage pools to TalosOS nodes via NFS
+
+nfs_exports:
+  - path: /Storage # HDD — large media library
+  - path: /SSDStorage # SSD — active/personal files
+
+# Restrict NFS access to specific TalosOS node IPs (vmid-based: 192.168.1.<vmid>)
+nfs_allowed_hosts:
+  - 127.0.0.1 # proxmox host itself (for health-check mounts)
+  - 192.168.1.110 # talos-1
+  - 192.168.1.111 # talos-2
+  - 192.168.1.112 # talos-3

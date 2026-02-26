@@ -1,56 +1,187 @@
-variable "ports" {
-  description = "List of ports to be opened in the security group"
+# =============================================================================
+# Terraform Variables for TalosOS Migration
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Proxmox Configuration
+# -----------------------------------------------------------------------------
+variable "proxmox_endpoint" {
+  description = "Proxmox API endpoint URL"
+  type        = string
+  default     = "https://carbon:8006"
+}
+
+variable "proxmox_node" {
+  description = "Proxmox node name"
+  type        = string
+  default     = "carbon"
+}
+
+# -----------------------------------------------------------------------------
+# Cluster Configuration
+# -----------------------------------------------------------------------------
+variable "cluster_name" {
+  description = "Name of the Kubernetes cluster"
+  type        = string
+  default     = "interstellar"
+}
+
+variable "cluster_vip" {
+  description = "Talos/Kubernetes control-plane virtual IP for the API endpoint"
+  type        = string
+  default     = "192.168.1.100"
+}
+
+variable "cluster_domain" {
+  description = "Domain for cluster services"
+  type        = string
+  default     = "nerine.dev"
+}
+
+# -----------------------------------------------------------------------------
+# Node Configuration
+# -----------------------------------------------------------------------------
+variable "nodes" {
+  description = "TalosOS node configuration"
   type = map(object({
-    port      = number
-    protocol  = optional(string, "TCP")
-    stateless = optional(bool, false)
+    vmid              = number
+    vcpus             = optional(number, 4)
+    memory            = optional(number, 8192)
+    os_disk_size      = optional(number, 64)
+    data_disk_size    = optional(number)
+    data_disk_file_id = optional(string)
+    gpu               = optional(bool, false)
+    gpu_device        = optional(string)
   }))
   default = {
-    SSH = { port : 22 },
-    # HTTPS = { port : 443 },
-    # Minecraft = { port : 25565 },
-    Tailscale = { port : 41641, protocol : "UDP" },
-    WireGuard = { port : 51820, protocol : "UDP" },
+    "talos-1" = {
+      vmid       = 110
+      gpu        = true
+      gpu_device = "gpu" # Intel Arc B580
+    }
+    "talos-2" = {
+      vmid = 111
+    }
+    "talos-3" = {
+      vmid = 112
+    }
   }
 }
 
-variable "state_bucket_name" {
-  description = "Name of the Object Storage bucket for Terraform state"
+# -----------------------------------------------------------------------------
+# Network Configuration
+# -----------------------------------------------------------------------------
+variable "cluster_network" {
+  description = "Cluster network CIDR for Talos nodes on the home LAN"
   type        = string
-  default     = "terraform-state"
+  default     = "192.168.1.0/24"
 }
 
-variable "ansible_bucket_name" {
-  description = "Name of the Object Storage bucket for Ansible files"
+variable "vm_os_datastore_id" {
+  description = "Proxmox datastore ID for Talos VM OS disks (SSD-backed, e.g. local-lvm). Not the ZFS media pool."
   type        = string
-  default     = "ansible"
+  default     = "local-zfs"
 }
 
-variable "proxmox_host" {
-  description = "Proxmox host address"
+variable "proxmox_cluster_bridge_name" {
+  description = "Name of the Proxmox bridge used for Talos VM networking"
   type        = string
+  default     = "vmbr0"
 }
 
-variable "proxmox_user" {
-  description = "Proxmox user for API access"
-  type        = string
-  default     = "root"
+# -----------------------------------------------------------------------------
+# TalosOS Extensions
+# -----------------------------------------------------------------------------
+variable "talos_base_extensions" {
+  description = "TalosOS extensions to install on all nodes"
+  type        = list(string)
+  default = [
+    "siderolabs/iscsi-tools",
+    "siderolabs/qemu-guest-agent",
+    "siderolabs/util-linux-tools",
+    "siderolabs/tailscale"
+  ]
 }
 
-# Unset after devices are fixed
-# variable "passthrough_devices" {
-#   description = "List of devices to pass through to the Proxmox container"
-#   type        = list(string)
-#   default = [
-#     "/dev/nvidia0",
-#     "/dev/nvidiactl",
-#     "/dev/net/tun",
-#   ]
-# }
-
-variable "cloudflare_zone_id" {
-  description = "Cloudflare zone ID for the domain"
-  type        = string
+variable "talos_gpu_extensions" {
+  description = "TalosOS extensions to install only on GPU nodes"
+  type        = list(string)
+  default = [
+    "siderolabs/mei",
+    "siderolabs/xe"
+  ]
 }
 
+variable "talos_version" {
+  description = "TalosOS version"
+  type        = string
+  default     = "v1.12.4"
+}
 
+variable "kubernetes_version" {
+  description = "Kubernetes version"
+  type        = string
+  default     = "1.35.0"
+}
+
+variable "tf_state_bucket" {
+  description = "Name of the OCI Object Storage bucket for Terraform state"
+  type        = string
+  default     = "tf-state"
+}
+
+# -----------------------------------------------------------------------------
+# Tailscale Configuration
+# -----------------------------------------------------------------------------
+variable "tailscale_magicdns_domain" {
+  description = "Tailscale MagicDNS domain suffix (e.g. fold-hen.ts.net). Found via: tailscale status --json | jq -r '.MagicDNSSuffix'"
+  type        = string
+  default     = "fold-hen.ts.net"
+}
+
+# -----------------------------------------------------------------------------
+# Oracle Proxy Configuration
+# -----------------------------------------------------------------------------
+variable "proxy_public_access" {
+  description = "Enable public HTTP/HTTPS access to the Oracle proxy VPS. When false, only SSH and Tailscale ports are open."
+  type        = bool
+  default     = false
+}
+
+# -----------------------------------------------------------------------------
+# Hetzner Cloud Configuration
+# -----------------------------------------------------------------------------
+variable "hcloud_token" {
+  description = "Hetzner Cloud API token. Sourced from HCLOUD_TOKEN env var via setup-env.sh."
+  type        = string
+  sensitive   = true
+}
+
+variable "hetzner_storagebox_location" {
+  description = "Hetzner Storage Box datacenter location"
+  type        = string
+  default     = "fsn1"
+}
+
+variable "hetzner_storagebox_type" {
+  description = "Hetzner Storage Box product type (bx11=1TB, bx21=5TB, bx31=10TB, bx41=20TB)"
+  type        = string
+  default     = "bx11"
+}
+
+# -----------------------------------------------------------------------------
+# Secret Configuration
+# -----------------------------------------------------------------------------
+variable "bws_access_token" {
+  description = "Bitwarden Secrets Manager access token for ESO bootstrap. Sourced from BWS_ACCESS_TOKEN env var."
+  type        = string
+  sensitive   = true
+}
+# -----------------------------------------------------------------------------
+# Authentik / Access Control
+# -----------------------------------------------------------------------------
+variable "authentik_vip_emails" {
+  description = "Email addresses that get admin access to private services (copyparty, etc.). Sourced from TF_VAR_authentik_vip_emails."
+  type        = list(string)
+  default     = []
+}

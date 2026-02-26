@@ -1,0 +1,22 @@
+# =============================================================================
+# Recyclarr Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: media
+
+resources:
+  - cronjob.yaml
+
+configMapGenerator:
+  - name: recyclarr-config
+    namespace: media
+    files:
+      - configs/sonarr.yaml
+      - configs/radarr.yaml
+
+labels:
+  - pairs:
+      app: recyclarr
+    includeSelectors: true

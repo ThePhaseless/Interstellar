@@ -1,0 +1,279 @@
+{
+  "uid": "ip-analytics",
+  "title": "IP Access Analytics",
+  "description": "Top IPs accessing the cluster via Traefik — last 50 unique visitors and request distribution",
+  "schemaVersion": 39,
+  "version": 2,
+  "time": { "from": "now-24h", "to": "now" },
+  "refresh": "5m",
+  "timepicker": {},
+  "tags": ["security", "traefik", "access"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Unique IPs (Time Range)",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 200 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "count(sum by (ClientHost) (count_over_time({namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" [$__range])))",
+          "instant": true,
+          "legendFormat": "Unique IPs",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Total Requests (Time Range)",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum(count_over_time({namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" [$__range]))",
+          "instant": true,
+          "legendFormat": "Total Requests",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Top 50 IPs — Request Count",
+      "type": "table",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 16, "w": 12, "x": 0, "y": 4 },
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Requests" }]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 100 },
+              { "color": "red", "value": 1000 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "ClientHost" },
+            "properties": [
+              { "id": "displayName", "value": "IP Address" },
+              { "id": "custom.width", "value": 200 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #A" },
+            "properties": [
+              { "id": "displayName", "value": "Requests" },
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "custom.width", "value": 150 }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "topk(50, sum by (ClientHost) (count_over_time({namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" [$__range])))",
+          "instant": true,
+          "legendFormat": "{{ClientHost}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": { "mode": "rows", "valueLabel": "ClientHost" }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "renameByName": {
+              "ClientHost": "IP Address",
+              "Value #A": "Requests"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": { "fields": [{ "desc": true, "displayName": "Requests" }] }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Top 20 IPs — Share of Requests",
+      "type": "piechart",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 16, "w": 12, "x": 12, "y": 4 },
+      "options": {
+        "displayLabels": ["percent"],
+        "legend": {
+          "calcs": ["sum"],
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["percent", "value"]
+        },
+        "pieType": "pie",
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {},
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "topk(20, sum by (ClientHost) (count_over_time({namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" [$__range])))",
+          "instant": true,
+          "legendFormat": "{{ClientHost}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Request Rate — Top 10 IPs Over Time",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 20 },
+      "options": {
+        "legend": {
+          "calcs": ["sum", "max"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "topk(10, sum by (ClientHost) (rate({namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" [$__interval])))",
+          "legendFormat": "{{ClientHost}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Last 50 Unique IPs (Recent Log Entries)",
+      "type": "logs",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 32 },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "{namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" | line_format \"ip={{.ClientHost}} status={{.DownstreamStatus}} {{.RequestMethod}} {{.RequestPath}}\"",
+          "legendFormat": "",
+          "refId": "A",
+          "maxLines": 200
+        }
+      ]
+    }
+  ]
+}

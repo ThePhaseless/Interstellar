@@ -1,0 +1,30 @@
+# =============================================================================
+# Copyparty Ingress (Protected by Authentik)
+# =============================================================================
+# Any authenticated user can view files. Upload permissions controlled by
+# Copyparty itself uses email headers from Authentik (X-authentik-email) to determine write permissions.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: copyparty
+  namespace: utilities
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`files.nerine.dev`)
+      kind: Rule
+      services:
+        - name: copyparty
+          port: 3923
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+        - name: authentik
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

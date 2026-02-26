@@ -1,0 +1,19 @@
+# =============================================================================
+# Postfix SMTP Relay Service
+# =============================================================================
+# Cluster-internal service for other workloads to send email.
+# Connect as: postfix.utilities.svc.cluster.local:587
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: postfix
+  namespace: utilities
+spec:
+  type: ClusterIP
+  ports:
+    - name: smtp
+      port: 587
+      targetPort: smtp
+  selector:
+    app: postfix

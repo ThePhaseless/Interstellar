@@ -1,0 +1,15 @@
+# =============================================================================
+# MCP Jungle PVC
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mcpjungle-config
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi

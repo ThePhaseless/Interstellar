@@ -1,0 +1,28 @@
+# =============================================================================
+# Prowlarr Ingress (Protected by Authentik)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prowlarr
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`prowlarr.nerine.dev`)
+      kind: Rule
+      services:
+        - name: prowlarr
+          port: 9696
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+        - name: authentik
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

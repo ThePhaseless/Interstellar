@@ -1,0 +1,26 @@
+# =============================================================================
+# Homepage Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: utilities
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+
+configMapGenerator:
+  - name: homepage-html
+    options:
+      disableNameSuffixHash: true
+    files:
+      - index.html
+      - style.css
+      - nginx.conf
+
+labels:
+  - pairs:
+      app: homepage
+    includeSelectors: true

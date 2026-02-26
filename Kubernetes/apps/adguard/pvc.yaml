@@ -1,0 +1,15 @@
+# =============================================================================
+# AdGuard Home PVC
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: adguard-data
+  namespace: home
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi

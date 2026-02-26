@@ -1,12 +1,13 @@
 [project]
 name = "interstellar"
 version = "0.1.0"
-description = "Add your description here"
+description = "GitOps-managed Kubernetes homelab on TalosOS"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "==3.14.*"
 dependencies = [
- "ansible-dev-tools>=25.5.2",
- "oci-cli>=3.63.0",
- "pyyaml>=6.0.2",
- "requests>=2.32.5",
+    "ansible-dev-tools>=25.5.2",
+    "oci-cli>=3.63.0",
+    "pre-commit>=4.5.1",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.5",
 ]

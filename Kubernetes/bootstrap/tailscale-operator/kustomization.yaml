@@ -1,0 +1,30 @@
+# =============================================================================
+# Tailscale Kubernetes Operator Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: tailscale
+
+resources:
+  - namespace.yaml
+  - externalsecret.yaml
+
+# Install Tailscale Operator via Helm
+helmCharts:
+  - name: tailscale-operator
+    repo: https://pkgs.tailscale.com/helmcharts
+    version: 1.94.2
+    releaseName: tailscale
+    namespace: tailscale
+    valuesInline:
+      oauth:
+        clientId: "" # Set via ExternalSecret
+        clientSecret: "" # Set via ExternalSecret
+      operator:
+        hostname: "talos-operator"
+      apiServerProxyConfig:
+        mode: "true"
+      proxies:
+        authKeyTags:
+          - "tag:k8s"

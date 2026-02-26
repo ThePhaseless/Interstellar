@@ -1,0 +1,10 @@
+# =============================================================================
+# Node Feature Discovery Namespace
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: node-feature-discovery
+  labels:
+    name: node-feature-discovery
+    pod-security.kubernetes.io/enforce: privileged

@@ -1,0 +1,30 @@
+# =============================================================================
+# AdGuard Home Ingress (Protected by Authentik - Web UI)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: adguard
+  namespace: home
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`dns.nerine.dev`)
+      kind: Rule
+      services:
+        - name: adguard
+          port: 3000
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+        - name: authentik
+          namespace: traefik
+        - name: adguard-auto-login
+          namespace: home
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

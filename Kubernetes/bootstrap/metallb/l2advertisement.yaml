@@ -1,0 +1,14 @@
+# =============================================================================
+# MetalLB L2 Advertisement
+# =============================================================================
+# Announce LoadBalancer IPs on the local network via ARP
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: cluster-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - cluster-pool
+  # Advertise on all interfaces
+  interfaces: []

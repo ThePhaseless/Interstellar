@@ -1,0 +1,77 @@
+# =============================================================================
+# Seerr Deployment (successor to Jellyseerr)
+# =============================================================================
+# Uses Jellyfin as authentication provider (no external OAuth required)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seerr
+  namespace: media
+  labels:
+    app: seerr
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: seerr
+  template:
+    metadata:
+      labels:
+        app: seerr
+    spec:
+      securityContext:
+        fsGroup: 1000
+
+      # Seerr v3 runs as non-root (UID 1000) - fix existing config ownership
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.37
+          command: ["sh", "-c", "chown -R 1000:1000 /app/config"]
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+
+      containers:
+        - name: seerr
+          image: ghcr.io/seerr-team/seerr:v3.0.1
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          env:
+            - name: TZ
+              value: "UTC"
+            - name: LOG_LEVEL
+              value: "info"
+          ports:
+            - name: http
+              containerPort: 5055
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: seerr-config

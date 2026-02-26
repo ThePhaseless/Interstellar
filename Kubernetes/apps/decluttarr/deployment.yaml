@@ -1,0 +1,54 @@
+# =============================================================================
+# Decluttarr Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decluttarr
+  namespace: media
+  labels:
+    app: decluttarr
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: decluttarr
+  template:
+    metadata:
+      labels:
+        app: decluttarr
+    spec:
+      containers:
+        - name: decluttarr
+          image: ghcr.io/manimatter/decluttarr:v2.0.0
+          env:
+            - name: TZ
+              value: "UTC"
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arr-api-keys
+                  key: sonarr-api-key
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arr-api-keys
+                  key: radarr-api-key
+          volumeMounts:
+            - name: config
+              mountPath: /app/config/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+      volumes:
+        - name: config
+          configMap:
+            name: decluttarr-config

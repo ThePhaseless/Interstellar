@@ -1,0 +1,126 @@
+# =============================================================================
+# Promtail Log Collector (DaemonSet)
+# =============================================================================
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+  namespace: observability
+  labels:
+    app: promtail
+spec:
+  selector:
+    matchLabels:
+      app: promtail
+  template:
+    metadata:
+      labels:
+        app: promtail
+    spec:
+      serviceAccountName: promtail
+      initContainers:
+        - name: download-geoip
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              YEAR=$(date +%Y)
+              MONTH=$(date +%m)
+              URL="https://download.db-ip.com/free/dbip-country-lite-${YEAR}-${MONTH}.mmdb.gz"
+              echo "Downloading GeoIP database from ${URL}"
+              wget -q "${URL}" -O /geoip/db.mmdb.gz && gunzip -f /geoip/db.mmdb.gz
+              echo "GeoIP database ready: $(ls -la /geoip/db.mmdb)"
+          volumeMounts:
+            - name: geoip
+              mountPath: /geoip
+
+      containers:
+        - name: promtail
+          image: grafana/promtail:3.6.6
+          args:
+            - -config.file=/etc/promtail/promtail.yaml
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+            - name: positions
+              mountPath: /run/promtail
+            - name: geoip
+              mountPath: /geoip
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
+
+      volumes:
+        - name: config
+          configMap:
+            name: promtail-config
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+        - name: positions
+          emptyDir: {}
+        - name: geoip
+          emptyDir: {}
+
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promtail
+  namespace: observability
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: promtail
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/proxy
+      - services
+      - endpoints
+      - pods
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: promtail
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: promtail
+subjects:
+  - kind: ServiceAccount
+    name: promtail
+    namespace: observability

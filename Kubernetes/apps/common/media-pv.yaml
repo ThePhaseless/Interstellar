@@ -1,0 +1,168 @@
+# =============================================================================
+# Static NFS PV/PVC Pairs
+# =============================================================================
+# Media Library - media namespace
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-nfs-pv
+spec:
+  capacity:
+    storage: 8Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: REPLACED_BY_KUSTOMIZE
+    path: /Storage/Media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: media-nfs-pv
+  resources:
+    requests:
+      storage: 8Ti
+---
+# Media Library - utilities namespace (copyparty)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-nfs-pv-utilities
+spec:
+  capacity:
+    storage: 8Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: REPLACED_BY_KUSTOMIZE
+    path: /Storage/Media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: media-nfs-pv-utilities
+  resources:
+    requests:
+      storage: 8Ti
+---
+# Downloads - media namespace
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: downloads-nfs-pv
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: REPLACED_BY_KUSTOMIZE
+    path: /Storage/Media/Downloads
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: downloads-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: downloads-nfs-pv
+  resources:
+    requests:
+      storage: 500Gi
+---
+# Personal files - utilities namespace
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: personal-nfs-pv
+spec:
+  capacity:
+    storage: 256Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: REPLACED_BY_KUSTOMIZE
+    path: /SSDStorage
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: personal-pvc
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: personal-nfs-pv
+  resources:
+    requests:
+      storage: 256Gi
+---
+# Photos (Immich) - utilities namespace
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: photos-nfs-pv
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: REPLACED_BY_KUSTOMIZE
+    path: /Storage/Photos
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-upload
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: photos-nfs-pv
+  resources:
+    requests:
+      storage: 500Gi

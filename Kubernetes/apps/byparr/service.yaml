@@ -1,0 +1,16 @@
+# =============================================================================
+# Byparr Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: byparr
+  namespace: media
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8191
+      targetPort: http
+  selector:
+    app: byparr
