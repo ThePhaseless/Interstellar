@@ -5,11 +5,13 @@ on:
     branches: [main, migration]
     paths:
       - "Terraform/**"
+      - "!Terraform/apps/**"
       - ".github/workflows/terraform.yaml"
   pull_request:
     branches: [main, migration]
     paths:
       - "Terraform/**"
+      - "!Terraform/apps/**"
       - ".github/workflows/terraform.yaml"
 
 env:
@@ -23,7 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -159,12 +160,8 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          # Generate plan and capture output
-          terraform plan -no-color -out=tfplan > plan_output.txt
-
-          # Extract summary
-          SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1)
-          echo "plan_summary=$SUMMARY" >> $GITHUB_OUTPUT
+          terraform plan -no-color -out=tfplan
+          terraform show -no-color tfplan > plan_full.txt
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
@@ -178,34 +175,9 @@ jobs:
         if: steps.plan.outcome == 'success'
         run: |
           gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
-          rm -f plan_output.txt tfplan
+          gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" plan_full.txt
+          rm -f tfplan plan_full.txt
         working-directory: ${{ env.TF_WORKING_DIR }}
-
-      # Post plan output to PR (Summary only for security)
-      - name: Update Pull Request
-        uses: actions/github-script@v8
-        if: github.event_name == 'pull_request'
-        with:
-          github-token: ${{ steps.generate-token.outputs.token }}
-          script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-
-            **Summary:** \`${{ steps.plan.outputs.plan_summary }}\`
-
-            > [!IMPORTANT]
-            > Detailed plan output is hidden and encrypted for security because this is a public repository.
-
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
 
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
@@ -216,7 +188,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: tfplan
-          path: ${{ env.TF_WORKING_DIR }}/tfplan.gpg
+          path: |
+            ${{ env.TF_WORKING_DIR }}/tfplan.gpg
+            ${{ env.TF_WORKING_DIR }}/plan_full.txt.gpg
 
   # Terraform Apply (only on main branch)
   apply:

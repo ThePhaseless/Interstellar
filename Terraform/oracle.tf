@@ -264,11 +264,13 @@ resource "bitwarden-secrets_secret" "oracle_ssh_private_key" {
 output "oracle_proxy_public_ip" {
   description = "Public IP of proxy VPS"
   value       = oci_core_instance.proxy.public_ip
+  sensitive   = true
 }
 
 output "oracle_compute_public_ip" {
   description = "Public IP of compute VPS"
   value       = oci_core_instance.compute.public_ip
+  sensitive   = true
 }
 
 output "oracle_ssh_private_key" {

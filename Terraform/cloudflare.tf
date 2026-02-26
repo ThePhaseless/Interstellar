@@ -83,9 +83,11 @@ resource "cloudflare_dns_record" "caa" {
 output "cloudflare_zone_id" {
   description = "Cloudflare zone ID"
   value       = data.cloudflare_zone.main.id
+  sensitive   = true
 }
 
 output "oracle_public_ip" {
   description = "Oracle VPS public IP for DNS records"
   value       = local.oracle_public_ip
+  sensitive   = true
 }

@@ -1,0 +1,297 @@
+name: Terraform Apps CI
+
+on:
+  push:
+    branches: [main, migration]
+    paths:
+      - "Terraform/apps/**"
+      - ".github/workflows/terraform-apps.yaml"
+  pull_request:
+    branches: [main, migration]
+    paths:
+      - "Terraform/apps/**"
+      - ".github/workflows/terraform-apps.yaml"
+  workflow_dispatch:
+
+env:
+  TF_VERSION: "1.14.6"
+  TF_WORKING_DIR: "./Terraform/apps"
+
+concurrency:
+  group: terraform-apps
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Get Secrets from Bitwarden
+        uses: bitwarden/sm-action@v2
+        with:
+          access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+          secrets: |
+            ${{ vars.BWS_ID_TS_CI_OAUTH_CLIENT_ID }} > TS_CI_OAUTH_CLIENT_ID
+            ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
+
+      - name: Install BWS CLI
+        run: |
+          curl -sSL https://github.com/bitwarden/sdk/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip -o bws.zip
+          unzip -o bws.zip
+          chmod +x bws
+          sudo mv bws /usr/local/bin/
+
+      - name: Set Bitwarden Environment Variables
+        run: |
+          echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+
+          ORG_ID="${{ vars.BW_ORGANIZATION_ID }}"
+          if [ -z "$ORG_ID" ]; then
+            echo "BW_ORGANIZATION_ID not set, fetching from BWS..."
+            ORG_ID=$(bws project list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[0].organizationId // empty')
+          fi
+
+          if [ -z "$ORG_ID" ]; then
+            echo "::error::Could not determine Bitwarden Organization ID"
+            exit 1
+          fi
+
+          echo "BW_ORGANIZATION_ID=$ORG_ID" >> $GITHUB_ENV
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$HOME/.kube"
+
+          KUBECONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="kubeconfig") | .value // empty')
+
+          if [ -n "$KUBECONFIG_VALUE" ]; then
+            printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
+          else
+            echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
+            tailscale configure kubeconfig talos-1
+          fi
+
+          chmod 600 "$HOME/.kube/config"
+          echo "KUBE_CONFIG_PATH=$HOME/.kube/config" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -input=false
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
+
+      - name: Start App Port-Forwards
+        run: |
+          ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
+          echo $! > /tmp/port-forward-apps.pid
+
+          for port in 8989 7878 9696 3000 9000; do
+            for i in {1..45}; do
+              if (echo > "/dev/tcp/127.0.0.1/$port") >/dev/null 2>&1; then
+                break
+              fi
+              if [ "$i" -eq 45 ]; then
+                echo "::error::Timed out waiting for localhost:$port"
+                tail -n 200 /tmp/port-forward-apps.log || true
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -no-color -out=tfplan
+          terraform show -no-color tfplan > plan_full.txt
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
+
+      - name: Encrypt Plan
+        run: |
+          gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
+          gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" plan_full.txt
+          rm -f tfplan plan_full.txt
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v6
+        with:
+          name: tfplan-apps
+          path: |
+            ${{ env.TF_WORKING_DIR }}/tfplan.gpg
+            ${{ env.TF_WORKING_DIR }}/plan_full.txt.gpg
+
+      - name: Stop App Port-Forwards
+        if: always()
+        run: |
+          if [ -f /tmp/port-forward-apps.pid ]; then
+            kill "$(cat /tmp/port-forward-apps.pid)" 2>/dev/null || true
+          fi
+          pkill -f "kubectl port-forward" 2>/dev/null || true
+
+  apply:
+    name: Apply
+    runs-on: ubuntu-latest
+    needs: plan
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: server
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Get Secrets from Bitwarden
+        uses: bitwarden/sm-action@v2
+        with:
+          access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+          secrets: |
+            ${{ vars.BWS_ID_TS_CI_OAUTH_CLIENT_ID }} > TS_CI_OAUTH_CLIENT_ID
+            ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
+
+      - name: Install BWS CLI
+        run: |
+          curl -sSL https://github.com/bitwarden/sdk/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip -o bws.zip
+          unzip -o bws.zip
+          chmod +x bws
+          sudo mv bws /usr/local/bin/
+
+      - name: Set Bitwarden Environment Variables
+        run: |
+          echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+
+          ORG_ID="${{ vars.BW_ORGANIZATION_ID }}"
+          if [ -z "$ORG_ID" ]; then
+            echo "BW_ORGANIZATION_ID not set, fetching from BWS..."
+            ORG_ID=$(bws project list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[0].organizationId // empty')
+          fi
+
+          if [ -z "$ORG_ID" ]; then
+            echo "::error::Could not determine Bitwarden Organization ID"
+            exit 1
+          fi
+
+          echo "BW_ORGANIZATION_ID=$ORG_ID" >> $GITHUB_ENV
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$HOME/.kube"
+
+          KUBECONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="kubeconfig") | .value // empty')
+
+          if [ -n "$KUBECONFIG_VALUE" ]; then
+            printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
+          else
+            echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
+            tailscale configure kubeconfig talos-1
+          fi
+
+          chmod 600 "$HOME/.kube/config"
+          echo "KUBE_CONFIG_PATH=$HOME/.kube/config" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
+
+      - name: Start App Port-Forwards
+        run: |
+          ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
+          echo $! > /tmp/port-forward-apps.pid
+
+          for port in 8989 7878 9696 3000 9000; do
+            for i in {1..45}; do
+              if (echo > "/dev/tcp/127.0.0.1/$port") >/dev/null 2>&1; then
+                break
+              fi
+              if [ "$i" -eq 45 ]; then
+                echo "::error::Timed out waiting for localhost:$port"
+                tail -n 200 /tmp/port-forward-apps.log || true
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v7
+        with:
+          name: tfplan-apps
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Decrypt Terraform Plan
+        run: |
+          gpg --decrypt --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan.gpg > tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
+          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
+
+      - name: Stop App Port-Forwards
+        if: always()
+        run: |
+          if [ -f /tmp/port-forward-apps.pid ]; then
+            kill "$(cat /tmp/port-forward-apps.pid)" 2>/dev/null || true
+          fi
+          pkill -f "kubectl port-forward" 2>/dev/null || true

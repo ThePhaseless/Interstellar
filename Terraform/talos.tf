@@ -200,4 +200,5 @@ output "talos_schematic_id" {
     base = talos_image_factory_schematic.base.id
     gpu  = talos_image_factory_schematic.gpu.id
   }
+  sensitive = true
 }

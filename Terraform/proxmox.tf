@@ -140,6 +140,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
 output "talos_node_ips" {
   description = "Discovered IP addresses of TalosOS nodes from Proxmox guest agent"
   value       = local.talos_node_ips
+  sensitive   = true
 }
 
 output "proxmox_vm_os_datastore_details" {
@@ -148,4 +149,5 @@ output "proxmox_vm_os_datastore_details" {
     configured_id = var.vm_os_datastore_id
     node_name     = var.proxmox_node
   }
+  sensitive = true
 }
