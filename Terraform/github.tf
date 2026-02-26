@@ -15,11 +15,12 @@ resource "github_actions_variable" "bws_id" {
     "OCI_NAMESPACE"      = "oci-namespace"
     "TS_OAUTH_CLIENT_ID" = "tailscale-oauth-client-id"
     "TS_OAUTH_SECRET"    = "tailscale-oauth-secret"
+    "TS_CI_AUTH_KEY"     = "tailscale-ci-auth-key"
     "TF_STATE_BUCKET"    = "tf-state-bucket"
     "PROXMOX_API_TOKEN"  = "proxmox-api-token"
   }
 
   repository    = split("/", var.github_repository)[1]
   variable_name = "BWS_ID_${each.key}"
-  value         = local.secret_key_to_id[each.value]
+  value         = try(local.secret_key_to_id[each.value], "placeholder")
 }
