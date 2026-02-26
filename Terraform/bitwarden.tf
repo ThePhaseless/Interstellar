@@ -178,14 +178,14 @@ resource "bitwarden-secrets_secret" "cluster_vip" {
 }
 
 # -----------------------------------------------------------------------------
-# Computed values from secrets (safe defaults for plan)
+# Computed values from secrets
 # -----------------------------------------------------------------------------
 locals {
-  tailscale_tailnet = bitwarden-secrets_secret.tailscale_tailnet.value != "" ? bitwarden-secrets_secret.tailscale_tailnet.value : "unset.ts.net"
+  tailscale_tailnet = bitwarden-secrets_secret.tailscale_tailnet.value
 
-  oci_tenancy_ocid = try(regex("tenancy=([^\n]+)", bitwarden-secrets_secret.oci_config.value)[0], "unset")
-  oci_user_ocid    = try(regex("user=([^\n]+)", bitwarden-secrets_secret.oci_config.value)[0], "unset")
-  oci_region       = try(regex("region=([^\n]+)", bitwarden-secrets_secret.oci_config.value)[0], "eu-frankfurt-1")
+  oci_tenancy_ocid = regex("tenancy=([^\n]+)", bitwarden-secrets_secret.oci_config.value)[0]
+  oci_user_ocid    = regex("user=([^\n]+)", bitwarden-secrets_secret.oci_config.value)[0]
+  oci_region       = regex("region=([^\n]+)", bitwarden-secrets_secret.oci_config.value)[0]
 
   # Resolve cluster VIP from Bitwarden when available, otherwise use Terraform variable.
   cluster_vip = length(data.bitwarden-secrets_secret.cluster_vip) > 0 ? data.bitwarden-secrets_secret.cluster_vip[0].value : var.cluster_vip
