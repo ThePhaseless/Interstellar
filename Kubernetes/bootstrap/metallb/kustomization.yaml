@@ -11,11 +11,10 @@ resources:
   - ipaddresspool.yaml
   - l2advertisement.yaml
 
-helmGlobals:
-  chartHome: charts/metallb-0.14.9
-
 helmCharts:
   - name: metallb
+    repo: https://metallb.github.io/metallb
+    version: 0.14.9
     releaseName: metallb
     namespace: metallb-system
     includeCRDs: true
