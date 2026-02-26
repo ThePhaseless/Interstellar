@@ -126,7 +126,7 @@ jobs:
               exit 1
             fi
 
-            talosctl --talosconfig "$HOME/.talos/config" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
+            talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
             sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
             echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
           fi
@@ -336,7 +336,7 @@ jobs:
               exit 1
             fi
 
-            talosctl --talosconfig "$HOME/.talos/config" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
+            talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
             sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
             echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
           fi
