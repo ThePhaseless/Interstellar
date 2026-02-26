@@ -86,7 +86,7 @@ jobs:
             printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
           else
             echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
-            tailscale configure kubeconfig talos-1
+            sudo tailscale configure kubeconfig talos-1
           fi
 
           chmod 600 "$HOME/.kube/config"
@@ -239,7 +239,7 @@ jobs:
             printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
           else
             echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
-            tailscale configure kubeconfig talos-1
+            sudo tailscale configure kubeconfig talos-1
           fi
 
           chmod 600 "$HOME/.kube/config"
