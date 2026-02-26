@@ -47,8 +47,11 @@ jobs:
           sudo mv bws /usr/local/bin/
 
       - name: Set Bitwarden Environment Variables
+        env:
+          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
         run: |
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          echo "BWS_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
 
           ORG_ID="${{ vars.BW_ORGANIZATION_ID }}"
           if [ -z "$ORG_ID" ]; then
@@ -197,8 +200,11 @@ jobs:
           sudo mv bws /usr/local/bin/
 
       - name: Set Bitwarden Environment Variables
+        env:
+          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
         run: |
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          echo "BWS_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
 
           ORG_ID="${{ vars.BW_ORGANIZATION_ID }}"
           if [ -z "$ORG_ID" ]; then
