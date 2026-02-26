@@ -3,9 +3,11 @@
   "addLabels": ["branch:{{baseBranch}}"],
   "baseBranches": ["main", "migration"],
   "extends": ["config:recommended"],
+
   "kubernetes": {
-    "managerFilePatterns": ["Kubernetes/**/*.yaml"]
+    "fileMatch": ["^Kubernetes/.*\\.yaml$"]
   },
+
   "packageRules": [
     {
       "description": "Ignore legacy LinuxServer qBittorrent tags",
