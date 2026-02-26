@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.11.4"
+  required_version = ">= 1.14.4"
 
   # OCI Object Storage backend for state storage
   # Authentication via ~/.oci/config file (SDK/CLI standard config)
