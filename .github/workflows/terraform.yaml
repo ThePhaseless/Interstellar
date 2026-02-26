@@ -59,13 +59,6 @@ jobs:
           echo "BW_ORGANIZATION_ID=${{ secrets.BW_ORGANIZATION_ID }}" >> $GITHUB_ENV
           echo "PROXMOX_VE_API_TOKEN=root@pam!terraform=$PROXMOX_API_TOKEN_VALUE" >> $GITHUB_ENV
 
-      # Connect to Tailscale for Proxmox access
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v3
-        with:
-          auth-key: ${{ env.TS_CI_AUTH_KEY }}
-          tags: tag:ci
-
       - name: Write OCI config
         shell: bash
         run: |
@@ -193,13 +186,6 @@ jobs:
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
           echo "BW_ORGANIZATION_ID=${{ secrets.BW_ORGANIZATION_ID }}" >> $GITHUB_ENV
           echo "PROXMOX_VE_API_TOKEN=root@pam!terraform=$PROXMOX_API_TOKEN_VALUE" >> $GITHUB_ENV
-
-      # Connect to Tailscale for Proxmox access
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v3
-        with:
-          auth-key: ${{ env.TS_CI_AUTH_KEY }}
-          tags: tag:ci
 
       - name: Write OCI config
         shell: bash
