@@ -7,7 +7,7 @@
 # Provider Configuration
 # -----------------------------------------------------------------------------
 provider "tailscale" {
-  oauth_client_id     = data.bitwarden-secrets_secret.tailscale_oauth_client_id.value
+  oauth_client_id     = data.bitwarden-secrets_secret.tailscale_oauth_client_id.id
   oauth_client_secret = data.bitwarden-secrets_secret.tailscale_oauth_secret.value
   tailnet             = data.bitwarden-secrets_secret.tailscale_tailnet.value
   scopes              = ["devices:core", "auth_keys", "dns", "oauth_keys", "policy_file"]
@@ -91,6 +91,13 @@ resource "bitwarden-secrets_secret" "tailscale_ci_auth_key" {
 
 locals {
   oauth_clients = {
+    ci = {
+      description   = "GitHub Actions CI runner"
+      scopes        = ["auth_keys"]
+      tags          = ["tag:ci"]
+      bw_id_key     = "tailscale-ci-oauth-client-id"
+      bw_secret_key = "tailscale-ci-oauth-secret"
+    }
     k8s_operator = {
       description   = "K8s Tailscale operator"
       scopes        = ["auth_keys"]

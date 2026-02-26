@@ -42,10 +42,29 @@ locals {
 }
 
 # -----------------------------------------------------------------------------
-# Individual Secret Data Sources (fetched by ID using the lookup)
+# User-Managed Secrets (Terraform creates placeholders, user fills manually)
 # -----------------------------------------------------------------------------
 
-# Tailscale OAuth credentials
+resource "bitwarden-secrets_secret" "proxmox_user" {
+  key        = "proxmox-user"
+  value      = "root@pam"
+  project_id = local.bitwarden_project_id
+  note       = "Proxmox user for API authentication. Manually managed."
+  lifecycle { ignore_changes = [value] }
+}
+
+resource "bitwarden-secrets_secret" "proxmox_token_id" {
+  key        = "proxmox-token-id"
+  value      = "terraform"
+  project_id = local.bitwarden_project_id
+  note       = "Proxmox API token ID. Manually managed."
+  lifecycle { ignore_changes = [value] }
+}
+
+# -----------------------------------------------------------------------------
+# Individual Secret Data Sources (Critical provider credentials)
+# -----------------------------------------------------------------------------
+
 data "bitwarden-secrets_secret" "tailscale_oauth_client_id" {
   id = local.secret_key_to_id["tailscale-oauth-client-id"]
 }
@@ -62,7 +81,6 @@ data "bitwarden-secrets_secret" "cloudflare_api_token" {
   id = local.secret_key_to_id["cloudflare-api-token"]
 }
 
-# OCI Config (contains tenancy OCID)
 data "bitwarden-secrets_secret" "oci_config" {
   id = local.secret_key_to_id["oci-config"]
 }
@@ -72,10 +90,8 @@ data "bitwarden-secrets_secret" "proxmox_api_token" {
 }
 
 # -----------------------------------------------------------------------------
-# Optional secrets (may not exist yet)
+# Optional secrets (read-only lookup)
 # -----------------------------------------------------------------------------
-
-# CrowdSec and Discord secrets are managed as resources in secrets.tf
 
 # Cluster API VIP (optional read path with var fallback)
 data "bitwarden-secrets_secret" "cluster_vip" {
