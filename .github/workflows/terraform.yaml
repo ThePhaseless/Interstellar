@@ -160,18 +160,9 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          # Generate plan and capture output
           terraform plan -no-color -out=tfplan > plan_output.txt
-
-          # Extract only the summary line for the PR comment (last line of output)
           SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1)
           echo "plan_summary=$SUMMARY" >> $GITHUB_OUTPUT
-
-          # Encrypt the binary plan file before upload
-          gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
-
-          # Secure cleanup: remove plaintext plan files
-          rm -f plan_output.txt tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
@@ -180,6 +171,13 @@ jobs:
           TF_VAR_hcloud_token: ${{ env.TF_VAR_hcloud_token }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
+
+      - name: Encrypt Plan
+        if: steps.plan.outcome == 'success'
+        run: |
+          gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
+          rm -f plan_output.txt tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}
 
       # Post plan output to PR (Summary only for security)
       - name: Update Pull Request
