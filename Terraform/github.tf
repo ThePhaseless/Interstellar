@@ -14,16 +14,18 @@ locals {
   # Map of GitHub variable names to Bitwarden Secret IDs
   # Using direct resource references for all managed secrets
   bws_id_map = {
-    "OCI_CONFIG"            = bitwarden-secrets_secret.oci_config.id
-    "OCI_PRIVATE_KEY"       = bitwarden-secrets_secret.oci_private_key.id
-    "OCI_NAMESPACE"         = bitwarden-secrets_secret.oci_objectstorage_namespace.id
-    "TF_STATE_BUCKET"       = bitwarden-secrets_secret.tf_state_bucket.id
-    "TS_OAUTH_CLIENT_ID"    = bitwarden-secrets_secret.tailscale_oauth_client_id.id
-    "TS_OAUTH_SECRET"       = bitwarden-secrets_secret.tailscale_oauth_secret.id
-    "TS_CI_OAUTH_CLIENT_ID" = bitwarden-secrets_secret.oauth_client_id["ci"].id
-    "TS_CI_OAUTH_SECRET"    = bitwarden-secrets_secret.oauth_client_secret["ci"].id
-    "PROXMOX_API_TOKEN"     = bitwarden-secrets_secret.proxmox_api_token.id
-    "HCLOUD_TOKEN"          = bitwarden-secrets_secret.hcloud_token.id
+    "OCI_CONFIG"                = bitwarden-secrets_secret.oci_config.id
+    "OCI_PRIVATE_KEY"           = bitwarden-secrets_secret.oci_private_key.id
+    "OCI_NAMESPACE"             = bitwarden-secrets_secret.oci_objectstorage_namespace.id
+    "TF_STATE_BUCKET"           = bitwarden-secrets_secret.tf_state_bucket.id
+    "TS_OAUTH_CLIENT_ID"        = bitwarden-secrets_secret.tailscale_oauth_client_id.id
+    "TS_OAUTH_SECRET"           = bitwarden-secrets_secret.tailscale_oauth_secret.id
+    "TS_CI_OAUTH_CLIENT_ID"     = bitwarden-secrets_secret.oauth_client_id["ci"].id
+    "TS_CI_OAUTH_SECRET"        = bitwarden-secrets_secret.oauth_client_secret["ci"].id
+    "PROXMOX_API_TOKEN"         = bitwarden-secrets_secret.proxmox_api_token.id
+    "HCLOUD_TOKEN"              = bitwarden-secrets_secret.hcloud_token.id
+    "ORACLE_SSH_PRIVATE_KEY"    = bitwarden-secrets_secret.oracle_ssh_private_key.id
+    "TAILSCALE_ORACLE_AUTH_KEY" = bitwarden-secrets_secret.tailscale_oracle_auth_key.id
   }
 }
 

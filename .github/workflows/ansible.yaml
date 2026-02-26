@@ -75,16 +75,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # Fetch secrets from Bitwarden
+      # Fetch secrets from Bitwarden (using IDs from GitHub variables)
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v2
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
-            tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
-            tailscale-oauth-secret > TS_OAUTH_SECRET
-            oracle-ssh-private-key > ORACLE_SSH_KEY
-            tailscale-oracle-auth-key > TS_ORACLE_AUTHKEY
+            ${{ vars.BWS_ID_TS_CI_OAUTH_CLIENT_ID }} > TS_OAUTH_CLIENT_ID
+            ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_OAUTH_SECRET
+            ${{ vars.BWS_ID_ORACLE_SSH_PRIVATE_KEY }} > ORACLE_SSH_KEY
+            ${{ vars.BWS_ID_TAILSCALE_ORACLE_AUTH_KEY }} > TS_ORACLE_AUTHKEY
 
       # Connect to Tailscale for SSH access
       - name: Connect to Tailscale
@@ -94,11 +94,10 @@ jobs:
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ env.ORACLE_SSH_KEY }}" > ~/.ssh/oracle_ed25519
-          chmod 600 ~/.ssh/oracle_ed25519
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ env.ORACLE_SSH_KEY }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
