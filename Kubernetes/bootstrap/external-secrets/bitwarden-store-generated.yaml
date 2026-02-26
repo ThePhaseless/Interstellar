@@ -1,7 +1,3 @@
-# =============================================================================
-# Bitwarden ClusterSecretStore
-# =============================================================================
-# This ClusterSecretStore connects to Bitwarden Secrets Manager via the SDK Server
 apiVersion: external-secrets.io/v1
 kind: ClusterSecretStore
 metadata:
@@ -19,7 +15,6 @@ spec:
         namespace: external-secrets
         key: ca.crt
       organizationID: 99703038-ae55-494e-aa57-b21b01480339
-      # "interstellar-generated" project — auto-generated secrets managed by Terraform
       projectID: 319c67ff-a4e2-44e1-aeb2-b3fb01394e16
       auth:
         secretRef:

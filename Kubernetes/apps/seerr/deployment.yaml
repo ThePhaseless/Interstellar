@@ -1,7 +1,3 @@
-# =============================================================================
-# Seerr Deployment (successor to Jellyseerr)
-# =============================================================================
-# Uses Jellyfin as authentication provider (no external OAuth required)
 apiVersion: apps/v1
 kind: Deployment
 metadata:

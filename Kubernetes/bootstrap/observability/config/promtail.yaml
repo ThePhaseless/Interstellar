@@ -52,9 +52,7 @@ scrape_configs:
     pipeline_stages:
       - cri: {}
 
-      # -----------------------------------------------------------------------
       # Traefik access log enrichment (GeoIP + client IP label)
-      # -----------------------------------------------------------------------
       - match:
           selector: '{namespace="traefik", container="traefik"}'
           stages:
@@ -72,13 +70,11 @@ scrape_configs:
                 geoip_country_code:
                 client_ip:
 
-      # -----------------------------------------------------------------------
       # Generic JSON log level extraction for all pods.
       # Promotes the log level (from `level`, `lvl`, or `severity` fields) as
       # a Loki label so logs can be filtered with {log_level="error"} etc.
       # The raw log line is NOT replaced – structured JSON can be parsed at
       # query time in Loki with `| json | line_format "{{.msg}}"`.
-      # -----------------------------------------------------------------------
       - match:
           selector: '{namespace=~".+"}'
           stages:

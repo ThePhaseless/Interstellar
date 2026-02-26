@@ -1,6 +1,3 @@
-# =============================================================================
-# Traefik Ingress Controller Bootstrap Kustomization
-# =============================================================================
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -64,9 +61,7 @@ helmCharts:
           cpu: 1000m
           memory: 512Mi
 
-      # =======================================================================
       # Entry Points / Ports
-      # =======================================================================
       ports:
         web:
           http:
@@ -107,9 +102,7 @@ helmCharts:
                 - main: "nerine.dev"
                   sans:
                     - "*.nerine.dev"
-      # =======================================================================
       # Service
-      # =======================================================================
       service:
         spec:
           loadBalancerIP: 192.168.1.11
@@ -118,9 +111,7 @@ helmCharts:
           tailscale.com/expose: "true"
           tailscale.com/hostname: "traefik"
 
-      # =======================================================================
       # Providers
-      # =======================================================================
       providers:
         kubernetesCRD:
           allowCrossNamespace: true
@@ -128,9 +119,7 @@ helmCharts:
         kubernetesIngress:
           allowExternalNameServices: true
 
-      # =======================================================================
       # Logging
-      # =======================================================================
       logs:
         general:
           format: json
@@ -138,9 +127,7 @@ helmCharts:
           enabled: true
           format: json
 
-      # =======================================================================
       # Metrics (Prometheus)
-      # =======================================================================
       metrics:
         prometheus:
           entryPoint: traefik
@@ -148,18 +135,14 @@ helmCharts:
           addRoutersLabels: true
           addServicesLabels: true
 
-      # =======================================================================
       # Additional CLI arguments
-      # =======================================================================
       additionalArguments:
         - "--global.checkNewVersion=false"
         - "--global.sendAnonymousUsage=false"
         - "--ping"
         - "--ping.entrypoint=traefik"
 
-      # =======================================================================
       # Certificate Resolvers (Let's Encrypt via Cloudflare DNS)
-      # =======================================================================
       certificatesResolvers:
         letsencrypt:
           acme:
@@ -172,26 +155,20 @@ helmCharts:
                 - "1.1.1.1:53"
                 - "8.8.8.8:53"
 
-      # =======================================================================
       # Plugins (CrowdSec Bouncer)
-      # =======================================================================
       experimental:
         plugins:
           crowdsec-bouncer:
             moduleName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
             version: "v1.5.0"
 
-      # =======================================================================
       # ACME Persistence
-      # =======================================================================
       persistence:
         enabled: true
         storageClass: longhorn
         size: 1Gi
 
-      # =======================================================================
       # Environment variables and extra volume mounts
-      # =======================================================================
       env:
         - name: CF_DNS_API_TOKEN
           valueFrom:
@@ -204,9 +181,7 @@ helmCharts:
           mountPath: /secrets/crowdsec
           readOnly: true
 
-      # =======================================================================
       # Scheduling
-      # =======================================================================
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

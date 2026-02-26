@@ -1,11 +1,3 @@
-# =============================================================================
-# Intel GPU Device Plugin DaemonSet
-# =============================================================================
-# Deploys the Intel GPU device plugin directly as a DaemonSet on GPU nodes.
-# This approach avoids the operator + cert-manager dependency.
-#
-# Docs: https://intel.github.io/intel-device-plugins-for-kubernetes/
-# =============================================================================
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:

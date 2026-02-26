@@ -1,7 +1,5 @@
 #!/bin/bash
-# =============================================================================
 # Extract API Key from *arr config.xml
-# =============================================================================
 # Usage: extract-api-key.sh <app-name> <config-path>
 
 set -euo pipefail
@@ -14,13 +12,11 @@ if [ -z "$APP_NAME" ] || [ -z "$CONFIG_PATH" ]; then
   exit 1
 fi
 
-# Clear any previous API key so it is never stale
 kubectl patch secret arr-api-keys -n media \
   --type='json' \
   -p="[{\"op\": \"replace\", \"path\": \"/data/${APP_NAME}-api-key\", \"value\": \"\"}]" \
   >/dev/null 2>&1 || true
 
-# Wait for config.xml to exist
 echo "Waiting for $CONFIG_PATH to exist..."
 timeout=300
 while [ ! -f "$CONFIG_PATH" ] && [ $timeout -gt 0 ]; do
@@ -95,6 +91,5 @@ while true; do
     LAST_API_KEY="$API_KEY"
   fi
 
-  # Sleep and re-check so the container stays alive (sidecar must not exit)
   sleep 60
 done

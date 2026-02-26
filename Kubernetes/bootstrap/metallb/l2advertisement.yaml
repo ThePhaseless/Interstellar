@@ -1,7 +1,3 @@
-# =============================================================================
-# MetalLB L2 Advertisement
-# =============================================================================
-# Announce LoadBalancer IPs on the local network via ARP
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:

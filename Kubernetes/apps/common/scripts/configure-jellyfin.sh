@@ -1,25 +1,5 @@
 #!/bin/sh
-# =============================================================================
-# Automated Jellyfin Setup with Authentik SSO
-# =============================================================================
-# Completes the setup wizard, configures media libraries, installs and
-# configures the 9p4 SSO plugin for Authentik OIDC authentication.
-#
-# Features:
-#   - Automatic account creation on first SSO login
-#   - Authentik as the ONLY login method (native login hidden)
-#   - Group-based RBAC support via Authentik groups
-#
-# Required environment variables:
-#   JELLYFIN_ADMIN_USER       - Admin username
-#   JELLYFIN_ADMIN_PASSWORD   - Admin password (from secret)
-#   JELLYFIN_DOMAIN           - Public domain (e.g., watch.nerine.dev)
-#   AUTHENTIK_OIDC_ENDPOINT   - Authentik OIDC endpoint URL
-#
-# Required files:
-#   /secrets/oidc-client-id     - OIDC client ID (from Bitwarden)
-#   /secrets/oidc-client-secret - OIDC client secret (from Bitwarden)
-# =============================================================================
+# Configure Jellyfin and Authentik SSO.
 
 JELLYFIN_URL="${JELLYFIN_URL:-http://localhost:8096}"
 ADMIN_USER="${JELLYFIN_ADMIN_USER:-admin}"
@@ -36,15 +16,12 @@ if [ -z "$ADMIN_PASSWORD" ]; then
   exit 1
 fi
 
-# Read OIDC credentials from secret files
 OIDC_CLIENT_ID=""
 OIDC_CLIENT_SECRET=""
 if [ -f "$OIDC_CLIENT_ID_FILE" ] && [ -f "$OIDC_CLIENT_SECRET_FILE" ]; then
   OIDC_CLIENT_ID=$(cat "$OIDC_CLIENT_ID_FILE")
   OIDC_CLIENT_SECRET=$(cat "$OIDC_CLIENT_SECRET_FILE")
 fi
-
-# --- Helper Functions ---
 
 wait_for_jellyfin() {
   echo "Waiting for Jellyfin to be ready..."
@@ -76,10 +53,6 @@ authenticate() {
   return 0
 }
 
-# =============================================================================
-# Phase 1: Setup Wizard
-# =============================================================================
-
 wait_for_jellyfin || exit 1
 
 PUBLIC_INFO=$(curl -s "${JELLYFIN_URL}/System/Info/Public" || echo "{}")
@@ -104,10 +77,6 @@ else
   echo "Setup wizard completed"
 fi
 
-# =============================================================================
-# Phase 2: Authenticate & Configure Libraries
-# =============================================================================
-
 authenticate || { echo "Cannot authenticate, exiting"; exec sleep infinity; }
 
 LIBRARIES=$(curl -s "${JELLYFIN_URL}/Library/VirtualFolders" \
@@ -129,20 +98,11 @@ if ! echo "$LIBRARIES" | grep -q '"TV Shows"'; then
     -d '{"LibraryOptions":{"EnableRealtimeMonitor":true,"EnablePhotos":false,"PathInfos":[{"Path":"/media/tv"}]}}' || true
 fi
 
-# =============================================================================
-# Phase 3: Install SSO Plugin
-# =============================================================================
-
 if [ -z "$OIDC_CLIENT_ID" ] || [ -z "$OIDC_CLIENT_SECRET" ] || [ -z "$AUTHENTIK_OIDC_ENDPOINT" ]; then
-  echo "Warning: OIDC credentials or endpoint not configured, skipping SSO setup"
-  echo "  OIDC_CLIENT_ID set: $([ -n "$OIDC_CLIENT_ID" ] && echo yes || echo no)"
-  echo "  OIDC_CLIENT_SECRET set: $([ -n "$OIDC_CLIENT_SECRET" ] && echo yes || echo no)"
-  echo "  AUTHENTIK_OIDC_ENDPOINT: ${AUTHENTIK_OIDC_ENDPOINT:-not set}"
-  echo "Jellyfin setup complete (without SSO)"
+  echo "Skipping SSO setup: missing OIDC configuration"
   exec sleep infinity
 fi
 
-# Check if SSO plugin is already active
 SSO_CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
   "${JELLYFIN_URL}/sso/OID/Get?api_key=${TOKEN}" 2>/dev/null || echo "000")
 
@@ -151,7 +111,6 @@ if [ "$SSO_CHECK" = "200" ]; then
 else
   echo "SSO plugin not active (HTTP ${SSO_CHECK}), installing..."
 
-  # Add SSO plugin repository
   REPOS=$(curl -s "${JELLYFIN_URL}/Repositories" \
     -H "X-Emby-Authorization: ${AUTH}" || echo "[]")
 
@@ -168,27 +127,22 @@ else
       -d "$NEW_REPOS" || echo "Warning: Failed to add SSO plugin repository"
   fi
 
-  # Install the SSO-Auth plugin (package name is "SSO Authentication" in the manifest)
   echo "Installing SSO Authentication plugin package..."
   ENCODED_REPO=$(printf '%s' "$SSO_PLUGIN_REPO" | sed 's/:/%3A/g; s|/|%2F|g')
   curl -sf -X POST \
     "${JELLYFIN_URL}/Packages/Installed/SSO%20Authentication?repositoryUrl=${ENCODED_REPO}" \
     -H "X-Emby-Authorization: ${AUTH}" || echo "Warning: Failed to install SSO-Auth plugin"
 
-  # Restart Jellyfin to activate the plugin
   echo "Restarting Jellyfin to activate SSO plugin..."
   curl -sf -X POST "${JELLYFIN_URL}/System/Restart" \
     -H "X-Emby-Authorization: ${AUTH}" || true
 
-  # Wait for Jellyfin to go down and come back
   sleep 15
   wait_for_jellyfin || { echo "Error: Jellyfin failed to restart"; exec sleep infinity; }
 
-  # Re-authenticate (old token invalidated by restart)
   sleep 5
   authenticate || { echo "Cannot re-authenticate after restart"; exec sleep infinity; }
 
-  # Verify SSO plugin is now active
   retries=6
   while [ $retries -gt 0 ]; do
     SSO_VERIFY=$(curl -s -o /dev/null -w "%{http_code}" \
@@ -208,13 +162,8 @@ else
   fi
 fi
 
-# =============================================================================
-# Phase 4: Configure SSO Provider (Authentik OIDC)
-# =============================================================================
-
 echo "Configuring SSO provider '${SSO_PROVIDER_NAME}'..."
 
-# Build SSO config JSON — use printf to safely handle special characters
 # schemeOverride=https: Traefik terminates TLS so the plugin sees http:// requests,
 # but the browser loads pages via https://. Without the override, the callback page
 # embeds an http:// iframe which is blocked as mixed content, causing "Logging in..." to hang.
@@ -229,14 +178,8 @@ rm -f /tmp/sso-config.json
 
 echo "SSO provider '${SSO_PROVIDER_NAME}' configured"
 
-# =============================================================================
-# Phase 5: Configure Branding (SSO Login Button)
-# =============================================================================
-
 echo "Configuring login branding (SSO-only login)..."
 
-# Login disclaimer: SSO button replaces the native login form
-# Custom CSS: hides native username/password fields, shows only SSO button
 curl -sf -X POST "${JELLYFIN_URL}/System/Configuration/branding" \
   -H "X-Emby-Authorization: ${AUTH}" \
   -H "Content-Type: application/json" \
@@ -245,16 +188,6 @@ curl -sf -X POST "${JELLYFIN_URL}/System/Configuration/branding" \
 
 echo "Login branding configured — SSO is now the only visible login method"
 
-# =============================================================================
-# Done
-# =============================================================================
+echo "Jellyfin SSO setup complete"
 
-echo "Jellyfin setup with Authentik SSO complete!"
-echo "  Domain: https://${JELLYFIN_DOMAIN}"
-echo "  OIDC Endpoint: ${AUTHENTIK_OIDC_ENDPOINT}"
-echo "  Provider: ${SSO_PROVIDER_NAME}"
-echo "  Auto-create accounts: enabled"
-echo "  Default auth provider: SSO-Auth-OpenID"
-
-# Keep sidecar alive to prevent restart loops
 exec sleep infinity

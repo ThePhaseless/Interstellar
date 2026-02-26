@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
-# See: http://recyclarr.dev/wiki/yaml/config-reference/basic/
 sonarr:
   series:
     # Set the URL/API Key to your actual instance

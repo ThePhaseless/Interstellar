@@ -1,7 +1,3 @@
-# =============================================================================
-# Whoami Deployment
-# =============================================================================
-# Simple debug service showing request headers - no authentication required
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -17,17 +17,14 @@ spec:
             - /bin/sh
             - -c
             - |
-              echo "=== Intel GPU Test ==="
-              echo ""
-              echo "--- /dev/dri devices ---"
+              echo "Intel GPU test"
+              echo "/dev/dri devices"
               ls -la /dev/dri/
-              echo ""
-              echo "--- GPU render nodes ---"
+              echo "GPU render nodes"
               for f in /dev/dri/render*; do
                 echo "Found render node: $f"
               done
-              echo ""
-              echo "=== GPU test completed ==="
+              echo "GPU test complete"
           resources:
             requests:
               gpu.intel.com/xe: "1"
