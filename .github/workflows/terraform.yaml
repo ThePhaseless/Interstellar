@@ -29,8 +29,6 @@ jobs:
   plan:
     name: Plan
     runs-on: ubuntu-latest
-    env:
-      TF_VAR_enable_github_mgmt: "false"
     permissions:
       contents: read
       pull-requests: write
@@ -161,7 +159,7 @@ jobs:
         id: plan
         run: |
           # Generate plan and capture output
-          terraform plan -no-color -refresh=false -out=tfplan > plan_output.txt
+          terraform plan -no-color -out=tfplan > plan_output.txt
 
           # Extract summary
           SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1)
@@ -349,7 +347,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -refresh=false tfplan
+        run: terraform apply -auto-approve tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
