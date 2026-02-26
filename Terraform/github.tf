@@ -23,6 +23,7 @@ locals {
     "TS_CI_OAUTH_CLIENT_ID" = bitwarden-secrets_secret.oauth_client_id["ci"].id
     "TS_CI_OAUTH_SECRET"    = bitwarden-secrets_secret.oauth_client_secret["ci"].id
     "PROXMOX_API_TOKEN"     = bitwarden-secrets_secret.proxmox_api_token.id
+    "HCLOUD_TOKEN"          = bitwarden-secrets_secret.hcloud_token.id
   }
 }
 
