@@ -34,3 +34,17 @@ patches:
           pod-security.kubernetes.io/enforce: privileged
           pod-security.kubernetes.io/audit: privileged
           pod-security.kubernetes.io/warn: privileged
+  - target:
+      kind: Job
+      name: longhorn-post-upgrade
+    patch: |
+      - op: add
+        path: /spec/ttlSecondsAfterFinished
+        value: 300
+  - target:
+      kind: Job
+      name: longhorn-pre-upgrade
+    patch: |
+      - op: add
+        path: /spec/ttlSecondsAfterFinished
+        value: 300

@@ -13,10 +13,11 @@ metadata:
 spec:
   schedule: "*/5 * * * *" # Every 5 minutes
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      ttlSecondsAfterFinished: 120
       activeDeadlineSeconds: 300 # 5 minute timeout
       template:
         metadata:
@@ -151,6 +152,7 @@ spec:
   failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      ttlSecondsAfterFinished: 120
       activeDeadlineSeconds: 14400 # 4 hour timeout
       template:
         metadata:

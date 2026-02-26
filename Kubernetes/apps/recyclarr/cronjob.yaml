@@ -11,10 +11,11 @@ metadata:
 spec:
   schedule: "0 4 * * *" # Run daily at 4 AM
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      ttlSecondsAfterFinished: 120
       template:
         metadata:
           labels:
