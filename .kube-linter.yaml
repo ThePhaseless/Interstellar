@@ -10,6 +10,8 @@ checks:
     # Init containers/sidecars don't need resource limits
     - "unset-cpu-requirements"
     - "unset-memory-requirements"
+    # We intentionally use both ttlSecondsAfterFinished and history limits for defense-in-depth
+    - "job-ttl-seconds-after-finished"
     # ServiceAccount in common/ kustomize base - linter can't resolve cross-references
     - "non-existent-service-account"
 
