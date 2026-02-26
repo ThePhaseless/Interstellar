@@ -1,16 +1,19 @@
 output "cluster_name" {
   description = "Name of the Kubernetes cluster"
   value       = var.cluster_name
+  sensitive   = true
 }
 
 output "cluster_endpoint" {
   description = "Kubernetes API endpoint currently used by Terraform/Talos"
   value       = "https://${local.talos_cluster_endpoint_host}:6443"
+  sensitive   = true
 }
 
 output "cluster_nodes" {
   description = "Map of cluster node names to discovered IPs"
   value       = local.talos_node_ips
+  sensitive   = true
 }
 
 output "access_instructions" {
@@ -65,9 +68,11 @@ output "ansible_inventory" {
 output "storage_box_server" {
   description = "Hetzner Storage Box FQDN"
   value       = hcloud_storage_box.backups.server
+  sensitive   = true
 }
 
 output "storage_box_username" {
   description = "Hetzner Storage Box primary username"
   value       = hcloud_storage_box.backups.username
+  sensitive   = true
 }

@@ -93,9 +93,11 @@ output "smtp_endpoint" {
 output "smtp_sender" {
   description = "Approved sender email address"
   value       = oci_email_sender.noreply.email_address
+  sensitive   = true
 }
 
 output "email_domain_state" {
   description = "Email domain verification state"
   value       = oci_email_email_domain.main.state
+  sensitive   = true
 }
