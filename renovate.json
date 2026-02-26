@@ -1,14 +1,24 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "addLabels": ["branch:{{baseBranch}}"],
-  "baseBranches": ["main", "migration"],
-  "extends": ["config:recommended"],
-
+  "addLabels": [
+    "branch:{{baseBranch}}"
+  ],
+  "baseBranchPatterns": [
+    "main",
+    "migration"
+  ],
+  "extends": [
+    "config:recommended"
+  ],
   "packageRules": [
     {
       "description": "Ignore legacy LinuxServer qBittorrent tags",
-      "matchManagers": ["kubernetes"],
-      "matchPackageNames": ["linuxserver/qbittorrent"],
+      "matchManagers": [
+        "kubernetes"
+      ],
+      "matchPackageNames": [
+        "linuxserver/qbittorrent"
+      ],
       "allowedVersions": "^(?!20\\.).*"
     },
     {
@@ -16,8 +26,13 @@
       "groupName": "All non-major dependencies",
       "groupSlug": "all-minor-patch",
       "ignoreTests": true,
-      "matchPackageNames": ["*"],
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchPackageNames": [
+        "*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ]
     }
   ]
 }
