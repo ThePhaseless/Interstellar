@@ -9,7 +9,7 @@
 provider "tailscale" {
   oauth_client_id     = data.bitwarden-secrets_secret.tailscale_oauth_client_id.id
   oauth_client_secret = data.bitwarden-secrets_secret.tailscale_oauth_secret.value
-  tailnet             = data.bitwarden-secrets_secret.tailscale_tailnet.value
+  tailnet             = local.tailscale_tailnet
   scopes              = ["devices:core", "auth_keys", "dns", "oauth_keys", "policy_file"]
 }
 
