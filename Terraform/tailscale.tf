@@ -63,10 +63,6 @@ resource "bitwarden-secrets_secret" "tailscale_ci_auth_key" {
   note       = "Tailscale auth key for GitHub Actions CI runners. Created manually in Tailscale and updated here."
 }
 
-data "bitwarden-secrets_secret" "tailscale_ci_auth_key" {
-  id = bitwarden-secrets_secret.tailscale_ci_auth_key.id
-}
-
 # -----------------------------------------------------------------------------
 # Managed OAuth Clients
 # -----------------------------------------------------------------------------
