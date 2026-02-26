@@ -30,25 +30,28 @@ locals {
 }
 
 resource "github_actions_variable" "bws_id" {
-  for_each      = local.bws_id_map
+  for_each      = var.enable_github_mgmt ? local.bws_id_map : {}
   repository    = local.github_repo_name
   variable_name = "BWS_ID_${each.key}"
   value         = each.value
 }
 
 resource "github_actions_variable" "proxmox_user" {
+  count         = var.enable_github_mgmt ? 1 : 0
   repository    = local.github_repo_name
   variable_name = "PROXMOX_USER"
   value         = bitwarden-secrets_secret.proxmox_user.value
 }
 
 resource "github_actions_variable" "proxmox_token_id" {
+  count         = var.enable_github_mgmt ? 1 : 0
   repository    = local.github_repo_name
   variable_name = "PROXMOX_TOKEN_ID"
   value         = bitwarden-secrets_secret.proxmox_token_id.value
 }
 
 resource "github_actions_secret" "proxmox_token" {
+  count           = var.enable_github_mgmt ? 1 : 0
   repository      = local.github_repo_name
   secret_name     = "PROXMOX_VE_API_TOKEN"
   plaintext_value = "${bitwarden-secrets_secret.proxmox_user.value}!${bitwarden-secrets_secret.proxmox_token_id.value}=${bitwarden-secrets_secret.proxmox_api_token.value}"

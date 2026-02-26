@@ -29,10 +29,11 @@ jobs:
   plan:
     name: Plan
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_enable_github_mgmt: "false"
     permissions:
       contents: read
       pull-requests: write
-      actions: write
 
     steps:
       - name: Checkout repository
@@ -69,8 +70,8 @@ jobs:
         run: |
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
 
-          # Use secret if provided, otherwise fetch dynamically from BWS
-          ORG_ID="${{ secrets.BW_ORGANIZATION_ID }}"
+          # Use variable if provided, otherwise fetch dynamically from BWS
+          ORG_ID="${{ vars.BW_ORGANIZATION_ID }}"
           if [ -z "$ORG_ID" ]; then
             echo "BW_ORGANIZATION_ID not set, fetching from BWS..."
             ORG_ID=$(bws project list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[0].organizationId // empty')
@@ -229,7 +230,6 @@ jobs:
     environment: server
     permissions:
       contents: read
-      actions: write
 
     steps:
       - name: Checkout repository
@@ -266,8 +266,8 @@ jobs:
         run: |
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
 
-          # Use secret if provided, otherwise fetch dynamically from BWS
-          ORG_ID="${{ secrets.BW_ORGANIZATION_ID }}"
+          # Use variable if provided, otherwise fetch dynamically from BWS
+          ORG_ID="${{ vars.BW_ORGANIZATION_ID }}"
           if [ -z "$ORG_ID" ]; then
             echo "BW_ORGANIZATION_ID not set, fetching from BWS..."
             ORG_ID=$(bws project list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[0].organizationId // empty')
@@ -349,7 +349,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve -refresh=false tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
