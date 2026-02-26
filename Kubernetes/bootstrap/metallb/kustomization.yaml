@@ -25,11 +25,3 @@ helmCharts:
         # This causes MetalLB to skip L2 announcement on all nodes. Setting
         # ignoreExcludeLB: true allows MetalLB to announce on control-plane nodes.
         ignoreExcludeLB: true
-
-patches:
-  - target:
-      kind: CustomResourceDefinition
-      name: bgppeers.metallb.io
-    patch: |-
-      - op: remove
-        path: /spec/conversion/webhook/clientConfig/caBundle
