@@ -12,30 +12,16 @@ resource "adguard_config" "main" {
     upstream_dns = [
       "https://1.1.1.1/dns-query",
       "https://1.0.0.1/dns-query",
-    ]
+    ],
   }
 }
 
-# Direct Tailscale IP rewrite for non-LAN clients (Tailscale clients get the proxy pod IP).
-# CNAME approach abandoned: AdGuard pod cannot resolve tag:k8s MagicDNS hostnames
-# via 100.100.100.100 (cluster pods are not Tailscale devices → SERVFAIL).
-# IP is stable as long as the traefik proxy pod secret is not deleted.
-# Update var.traefik_tailscale_ip if the traefik device is ever re-registered.
-resource "adguard_rewrite" "nerine_dev_wildcard" {
-  domain = "*.nerine.dev"
-  answer = var.traefik_tailscale_ip
-}
-
-resource "adguard_rewrite" "nerine_dev" {
-  domain = "nerine.dev"
-  answer = var.traefik_tailscale_ip
-}
-
-# Client-specific override → MetalLB IP for local LAN clients (user rules take priority over rewrites)
-resource "adguard_user_rules" "nerine_dev_local" {
+resource "adguard_user_rules" "nerine_dev_user_rules" {
   rules = [
     "||nerine.dev^$dnsrewrite=NOERROR;A;${var.adguard_traefik_local_ip},client=192.168.0.0/16",
     "||*.nerine.dev^$dnsrewrite=NOERROR;A;${var.adguard_traefik_local_ip},client=192.168.0.0/16",
+    "||nerine.dev^$dnsrewrite=NOERROR;A;${var.traefik_tailscale_ip},client=100.64.0.0/10",
+    "||*.nerine.dev^$dnsrewrite=NOERROR;A;${var.traefik_tailscale_ip},client=100.64.0.0/10",
   ]
 }
 

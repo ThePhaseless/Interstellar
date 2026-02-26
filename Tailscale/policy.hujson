@@ -35,7 +35,7 @@
       // Add member email addresses here
     ],
 
-    // Media consumers - Jellyfin/Jellyseerr access only
+    // Media consumers - Jellyfin/Seerr access only
     "group:media": [
       // Add media user email addresses here
     ],
@@ -142,7 +142,7 @@
       ]
     },
 
-    // Media group - only Jellyfin and Jellyseerr
+    // Media group - only Jellyfin and Seerr
     {
       "action": "accept",
       "src":    ["group:media"],
