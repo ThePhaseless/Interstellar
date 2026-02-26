@@ -1,7 +1,3 @@
-# =============================================================================
-# Whoami Ingress (Public - no auth, just security headers)
-# =============================================================================
-# Debug endpoint to see request headers from Traefik
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:

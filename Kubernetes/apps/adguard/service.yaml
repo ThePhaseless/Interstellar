@@ -1,11 +1,3 @@
-# =============================================================================
-# AdGuard Home Services
-# =============================================================================
-# ClusterIP for internal access (ingress, other pods)
-# LoadBalancer for LAN DNS access with real client IPs
-# =============================================================================
-
-# Internal ClusterIP for web UI (used by Ingress)
 ---
 apiVersion: v1
 kind: Service

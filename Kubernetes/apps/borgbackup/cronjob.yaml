@@ -1,8 +1,3 @@
-# =============================================================================
-# BorgBackup — CronJob
-# =============================================================================
-# Daily backup of Immich photos (NFS) and PostgreSQL database to Hetzner
-# Storage Box via BorgBackup with repokey encryption.
 apiVersion: batch/v1
 kind: CronJob
 metadata:

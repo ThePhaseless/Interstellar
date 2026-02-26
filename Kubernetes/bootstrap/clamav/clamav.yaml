@@ -1,8 +1,3 @@
-# =============================================================================
-# ClamAV Malware Scanning CronJob
-# =============================================================================
-# Scans quarantine directories for malware every 5 minutes
-# Clean files are moved to their destination, infected files remain quarantined
 apiVersion: batch/v1
 kind: CronJob
 metadata:

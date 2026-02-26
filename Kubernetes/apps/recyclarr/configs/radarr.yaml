@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
-# See: http://recyclarr.dev/wiki/yaml/config-reference/basic/
 radarr:
   movies:
     base_url: http://radarr:7878

@@ -5,11 +5,9 @@ groups:
     folder: Alerts
     interval: 1m
     rules:
-      # -----------------------------------------------------------------------
       # High CPU Usage – noDataState OK (no data = no problem)
       # Severity critical so email is sent as well
       # Query already filters > 80, so threshold gt:0 fires on any returned series
-      # -----------------------------------------------------------------------
       - uid: high-cpu
         title: High CPU Usage
         condition: C
@@ -71,9 +69,7 @@ groups:
           severity: critical
         isPaused: false
 
-      # -----------------------------------------------------------------------
       # High Memory Usage – noDataState OK, severity critical for email
-      # -----------------------------------------------------------------------
       - uid: high-memory
         title: High Memory Usage
         condition: C
@@ -135,10 +131,8 @@ groups:
           severity: critical
         isPaused: false
 
-      # -----------------------------------------------------------------------
       # Pod CrashLooping – noDataState OK
       # Query filters > 5 restarts, threshold gt:0 fires on any returned series
-      # -----------------------------------------------------------------------
       - uid: pod-crashloop
         title: Pod CrashLooping
         condition: C
@@ -200,10 +194,8 @@ groups:
           severity: critical
         isPaused: false
 
-      # -----------------------------------------------------------------------
       # Pod Not Ready – JOIN with kube_pod_owner to exclude Job-owned pods.
       # Fires when readiness is 0 for 5m, but only for ReplicaSet/StatefulSet/DaemonSet.
-      # -----------------------------------------------------------------------
       - uid: pod-not-ready
         title: Pod Not Ready
         condition: C
@@ -270,10 +262,8 @@ groups:
           severity: warning
         isPaused: false
 
-      # -----------------------------------------------------------------------
       # PVC Almost Full – noDataState OK
       # Query filters > 85%, threshold gt:0 fires on any returned series
-      # -----------------------------------------------------------------------
       - uid: pvc-almost-full
         title: PVC Almost Full
         condition: C
@@ -335,10 +325,8 @@ groups:
           severity: warning
         isPaused: false
 
-      # -----------------------------------------------------------------------
       # Node Not Ready – FIX: same `== 0` / threshold bug as pod-not-ready.
       # noDataState: Alerting because missing node metrics may mean node is down.
-      # -----------------------------------------------------------------------
       - uid: node-not-ready
         title: Node Not Ready
         condition: C
@@ -400,10 +388,8 @@ groups:
           severity: critical
         isPaused: false
 
-      # -----------------------------------------------------------------------
       # Certificate Expiring Soon – noDataState OK (no cert-manager = no certs)
       # Query returns seconds remaining (positive), threshold gt:0 fires correctly
-      # -----------------------------------------------------------------------
       - uid: cert-expiring
         title: Certificate Expiring Soon
         condition: C
@@ -465,7 +451,6 @@ groups:
           severity: warning
         isPaused: false
 
-      # -----------------------------------------------------------------------
       # Longhorn Disk Under Pressure – FIX:
       #   1. `longhorn_disk_status` metric does not exist in Longhorn; replaced
       #      with `longhorn_node_status{condition="schedulable"}` (the correct
@@ -473,7 +458,6 @@ groups:
       #   2. Fixed the `== 0` / `gt:0` threshold bug – raw metric queried,
       #      threshold now `lt:1` so it fires when value is 0 (not schedulable).
       #   3. This also resolves the duplicate-labels-{} evaluation error.
-      # -----------------------------------------------------------------------
       - uid: longhorn-disk-pressure
         title: Longhorn Disk Under Pressure
         condition: C
@@ -535,11 +519,9 @@ groups:
           severity: critical
         isPaused: false
 
-      # -----------------------------------------------------------------------
       # Longhorn Volume Degraded – FIX: `!= 1` returned value 0 for Unknown state
       # which `gt:0` missed. Raw metric now queried; threshold `gt:1` fires only
       # for Degraded (2) and Faulted (3), not Unknown (0) or Healthy (1).
-      # -----------------------------------------------------------------------
       - uid: longhorn-volume-degraded
         title: Longhorn Volume Degraded
         condition: C
@@ -601,10 +583,8 @@ groups:
           severity: warning
         isPaused: false
 
-      # -----------------------------------------------------------------------
       # Longhorn Node Storage High – noDataState OK, severity critical for email
       # Query returns ratio > 0.80, threshold gt:0 fires correctly
-      # -----------------------------------------------------------------------
       - uid: longhorn-node-storage-high
         title: Longhorn Node Storage High
         condition: C

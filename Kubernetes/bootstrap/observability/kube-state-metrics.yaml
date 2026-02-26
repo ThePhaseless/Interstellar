@@ -1,6 +1,3 @@
-# =============================================================================
-# kube-state-metrics — Kubernetes object metrics exporter
-# =============================================================================
 apiVersion: v1
 kind: ServiceAccount
 metadata:

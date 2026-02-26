@@ -1,9 +1,3 @@
-# =============================================================================
-# CoreDNS Deployment Patch
-# =============================================================================
-# Mounts the coredns-custom ConfigMap at /etc/coredns/custom/ so the
-# `import /etc/coredns/custom/*.override` directive in the Corefile picks
-# up drop-in override files.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

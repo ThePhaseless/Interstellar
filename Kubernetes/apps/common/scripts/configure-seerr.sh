@@ -1,16 +1,11 @@
 #!/bin/sh
-# =============================================================================
 # Configure Seerr with Jellyfin, Sonarr, and Radarr
-# =============================================================================
-# This script runs as a sidecar and waits for Seerr to be ready,
-# then configures the media servers via API.
 # Usage: configure-seerr.sh
 
 set -e
 
 SEERR_URL="http://localhost:5055"
 
-# Wait for Seerr to be ready
 echo "Waiting for Seerr to be ready..."
 timeout=300
 while ! curl -s "${SEERR_URL}/api/v1/status" >/dev/null 2>&1 && [ $timeout -gt 0 ]; do
@@ -25,30 +20,27 @@ fi
 
 echo "Seerr is ready"
 
-# Check if already initialized
 STATUS=$(curl -s "${SEERR_URL}/api/v1/status")
 INITIALIZED=$(echo "$STATUS" | grep -o '"initialized":[^,}]*' | cut -d: -f2 || echo "false")
 
 if [ "$INITIALIZED" = "true" ]; then
   echo "Seerr already initialized, checking configurations..."
 else
-  echo "Seerr not initialized - requires manual setup via UI first"
+  echo "Seerr not initialized"
   echo "Please complete initial setup at https://add.nerine.dev"
-  # Wait and retry periodically instead of exiting
   while true; do
     sleep 300
     echo "Rechecking Seerr initialization status..."
     STATUS=$(curl -s "${SEERR_URL}/api/v1/status" || echo "{}")
     INITIALIZED=$(echo "$STATUS" | grep -o '"initialized":[^,}]*' | cut -d: -f2 || echo "false")
     if [ "$INITIALIZED" = "true" ]; then
-      echo "Seerr is now initialized! Proceeding with configuration..."
+      echo "Seerr initialized; continuing"
       break
     fi
     echo "Still not initialized, will check again in 5 minutes..."
   done
 fi
 
-# Configure Jellyfin if not already configured
 echo "Checking Jellyfin configuration..."
 JELLYFIN_SETTINGS=$(curl -s "${SEERR_URL}/api/v1/settings/jellyfin")
 JELLYFIN_HOST=$(echo "$JELLYFIN_SETTINGS" | grep -o '"hostname":"[^"]*"' | cut -d'"' -f4 || echo "")
@@ -68,7 +60,6 @@ else
   echo "Jellyfin already configured: $JELLYFIN_HOST"
 fi
 
-# Configure Radarr
 echo "Checking Radarr configuration..."
 RADARR_SERVERS=$(curl -s "${SEERR_URL}/api/v1/settings/radarr")
 RADARR_COUNT=$(echo "$RADARR_SERVERS" | grep -c '"id":' || echo "0")
@@ -76,17 +67,14 @@ RADARR_COUNT=$(echo "$RADARR_SERVERS" | grep -c '"id":' || echo "0")
 if [ "$RADARR_COUNT" = "0" ]; then
   echo "Configuring Radarr..."
 
-  # Get Radarr API key from secret
   RADARR_API_KEY="${RADARR_API_KEY:-}"
   if [ -z "$RADARR_API_KEY" ]; then
     echo "Warning: RADARR_API_KEY not set, skipping Radarr configuration"
   else
-    # Get quality profiles from Radarr
     RADARR_URL="http://radarr.media.svc.cluster.local:7878"
     PROFILES=$(curl -s "${RADARR_URL}/api/v3/qualityprofile" -H "X-Api-Key: ${RADARR_API_KEY}")
     PROFILE_ID=$(echo "$PROFILES" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2 || echo "1")
 
-    # Get root folders
     FOLDERS=$(curl -s "${RADARR_URL}/api/v3/rootfolder" -H "X-Api-Key: ${RADARR_API_KEY}")
     ROOT_FOLDER=$(echo "$FOLDERS" | grep -o '"path":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "/movies")
 
@@ -114,7 +102,6 @@ else
   echo "Radarr already configured"
 fi
 
-# Configure Sonarr
 echo "Checking Sonarr configuration..."
 SONARR_SERVERS=$(curl -s "${SEERR_URL}/api/v1/settings/sonarr")
 SONARR_COUNT=$(echo "$SONARR_SERVERS" | grep -c '"id":' || echo "0")
@@ -122,17 +109,14 @@ SONARR_COUNT=$(echo "$SONARR_SERVERS" | grep -c '"id":' || echo "0")
 if [ "$SONARR_COUNT" = "0" ]; then
   echo "Configuring Sonarr..."
 
-  # Get Sonarr API key from secret
   SONARR_API_KEY="${SONARR_API_KEY:-}"
   if [ -z "$SONARR_API_KEY" ]; then
     echo "Warning: SONARR_API_KEY not set, skipping Sonarr configuration"
   else
-    # Get quality profiles from Sonarr
     SONARR_URL="http://sonarr.media.svc.cluster.local:8989"
     PROFILES=$(curl -s "${SONARR_URL}/api/v3/qualityprofile" -H "X-Api-Key: ${SONARR_API_KEY}")
     PROFILE_ID=$(echo "$PROFILES" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2 || echo "1")
 
-    # Get root folders
     FOLDERS=$(curl -s "${SONARR_URL}/api/v3/rootfolder" -H "X-Api-Key: ${SONARR_API_KEY}")
     ROOT_FOLDER=$(echo "$FOLDERS" | grep -o '"path":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "/tv")
 
@@ -166,8 +150,7 @@ fi
 
 echo "Seerr configuration complete!"
 
-# Keep running to maintain sidecar (check periodically)
 while true; do
-  sleep 3600 # Check every hour
+  sleep 3600
   echo "Configuration check completed at $(date)"
 done

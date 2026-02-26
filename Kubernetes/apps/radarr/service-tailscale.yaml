@@ -1,7 +1,3 @@
-# =============================================================================
-# Radarr Tailscale Service
-# =============================================================================
-# Exposes Radarr directly via Tailscale for Terraform and direct API access
 apiVersion: v1
 kind: Service
 metadata:
