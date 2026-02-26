@@ -10,13 +10,24 @@ provider "tailscale" {
   oauth_client_id     = data.bitwarden-secrets_secret.tailscale_oauth_client_id.value
   oauth_client_secret = data.bitwarden-secrets_secret.tailscale_oauth_secret.value
   tailnet             = data.bitwarden-secrets_secret.tailscale_tailnet.value
-  scopes              = ["devices:core", "auth_keys", "dns", "oauth_keys"]
+  scopes              = ["devices:core", "auth_keys", "dns", "oauth_keys", "policy_file"]
+}
+
+# -----------------------------------------------------------------------------
+# Tailscale ACL Policy
+# -----------------------------------------------------------------------------
+# Managed via GitOps. The provider's OAuth client (tag:ci) uses its policy_file
+# scope to apply this configuration first, which enables it to own and manage
+# other infrastructure tags.
+resource "tailscale_acl" "main" {
+  acl = file("${path.module}/../Tailscale/policy.hujson")
 }
 
 # -----------------------------------------------------------------------------
 # Tailscale Auth Key for Cluster Nodes
 # -----------------------------------------------------------------------------
 resource "tailscale_tailnet_key" "cluster" {
+  depends_on    = [tailscale_acl.main]
   reusable      = true
   preauthorized = true
   expiry        = 7776000 # 90 days in seconds
@@ -36,6 +47,7 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
 # Tailscale Auth Key for Oracle VPS Instances
 # -----------------------------------------------------------------------------
 resource "tailscale_tailnet_key" "oracle" {
+  depends_on    = [tailscale_acl.main]
   reusable      = true
   preauthorized = true
   expiry        = 7776000 # 90 days in seconds
@@ -53,14 +65,22 @@ resource "bitwarden-secrets_secret" "tailscale_oracle_auth_key" {
 # -----------------------------------------------------------------------------
 # Tailscale Auth Key for CI Runners
 # -----------------------------------------------------------------------------
-# This key must be created manually in the Tailscale Admin Console with tag:ci
-# because the Terraform OAuth client lacks permission to create tagged keys.
-# We create the secret record here with a placeholder, then update it manually.
+# This key is used by CI runners to join the tailnet so they can reach local
+# infrastructure (Proxmox, K8s). Managed by the 'Main Key' (OAuth client).
+resource "tailscale_tailnet_key" "ci" {
+  depends_on    = [tailscale_acl.main]
+  reusable      = true
+  preauthorized = true
+  expiry        = 7776000 # 90 days in seconds
+  tags          = ["tag:ci"]
+  description   = "GitHub Actions CI runners auth key"
+}
+
 resource "bitwarden-secrets_secret" "tailscale_ci_auth_key" {
   key        = "tailscale-ci-auth-key"
-  value      = "manual-setup-required"
+  value      = tailscale_tailnet_key.ci.key
   project_id = local.bitwarden_generated_project_id
-  note       = "Tailscale auth key for GitHub Actions CI runners. Created manually in Tailscale and updated here."
+  note       = "Tailscale auth key for GitHub Actions CI runners. Managed by Terraform."
 }
 
 # -----------------------------------------------------------------------------

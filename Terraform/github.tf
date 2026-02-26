@@ -22,5 +22,5 @@ resource "github_actions_variable" "bws_id" {
 
   repository    = split("/", var.github_repository)[1]
   variable_name = "BWS_ID_${each.key}"
-  value         = try(local.secret_key_to_id[each.value], "placeholder")
+  value         = local.secret_key_to_id[each.value]
 }
