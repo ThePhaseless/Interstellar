@@ -186,6 +186,27 @@ resource "bitwarden-secrets_secret" "proxmox_api_token" {
       error_message = "Secret 'proxmox-api-token' is empty. Please fill it in Bitwarden."
     }
   }
+
+}
+
+resource "bitwarden-secrets_secret" "gh_app_id" {
+  key        = "gh-app-id"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "GitHub App ID for CI authentication. Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+resource "bitwarden-secrets_secret" "gh_app_private_key" {
+  key        = "gh-app-private-key"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "GitHub App private key (PEM) for CI authentication. Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+  }
 }
 
 # -----------------------------------------------------------------------------

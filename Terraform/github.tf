@@ -26,6 +26,8 @@ locals {
     "HCLOUD_TOKEN"              = bitwarden-secrets_secret.hcloud_token.id
     "ORACLE_SSH_PRIVATE_KEY"    = bitwarden-secrets_secret.oracle_ssh_private_key.id
     "TAILSCALE_ORACLE_AUTH_KEY" = bitwarden-secrets_secret.tailscale_oracle_auth_key.id
+    "GH_APP_ID"                 = bitwarden-secrets_secret.gh_app_id.id
+    "GH_APP_PRIVATE_KEY"        = bitwarden-secrets_secret.gh_app_private_key.id
   }
 }
 
