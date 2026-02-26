@@ -66,21 +66,15 @@ jobs:
 
           echo "BW_ORGANIZATION_ID=$ORG_ID" >> $GITHUB_ENV
 
-          TS_CLUSTER_AUTH_KEY=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="tailscale-auth-key") | .value // empty')
-          if [ -z "$TS_CLUSTER_AUTH_KEY" ]; then
-            echo "::error::Could not determine Tailscale cluster auth key from Bitwarden"
-            exit 1
-          fi
-          echo "TS_CLUSTER_AUTH_KEY=$TS_CLUSTER_AUTH_KEY" >> $GITHUB_ENV
-
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
-          authkey: ${{ env.TS_CLUSTER_AUTH_KEY }}
+          oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
+          tags: tag:cluster
 
       - name: Verify Tailscale Tags
         run: |
-          sudo tailscale up --reset --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)" --accept-routes
           SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
           echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
           if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
@@ -92,26 +86,43 @@ jobs:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Setup talosctl
+        run: |
+          TALOSCTL_VERSION=v1.12.4
+          curl -sSL "https://github.com/siderolabs/talos/releases/download/${TALOSCTL_VERSION}/talosctl-linux-amd64" -o talosctl
+          chmod +x talosctl
+          sudo mv talosctl /usr/local/bin/talosctl
+          talosctl version --client
+
       - name: Configure kubeconfig
         run: |
-          mkdir -p "$HOME/.kube"
+          mkdir -p "$HOME/.kube" "$HOME/.talos"
 
           KUBECONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="kubeconfig") | .value // empty')
 
           if [ -n "$KUBECONFIG_VALUE" ]; then
             printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
+            echo "Using Kubernetes config from Bitwarden key 'kubeconfig'."
           else
-            echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
-            sudo tailscale set --operator="$USER"
-            tailscale configure kubeconfig talos-1
+            echo "Bitwarden key 'kubeconfig' not found. Generating kubeconfig from 'talosconfig'..."
+            TALOSCONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="talosconfig") | .value // empty')
+            if [ -z "$TALOSCONFIG_VALUE" ]; then
+              echo "::error::Neither Bitwarden key 'kubeconfig' nor 'talosconfig' was found"
+              exit 1
+            fi
+            printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
+            chmod 600 "$HOME/.talos/config"
+
             TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
             if [ -z "$TS_TALOS_IP" ]; then
               echo "::error::Could not resolve Tailscale IP for talos-1"
               tailscale status || true
               exit 1
             fi
+
+            talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
             sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
-            echo "Using Kubernetes API endpoint https://${TS_TALOS_IP}:6443"
+            echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
           fi
 
           chmod 600 "$HOME/.kube/config"
@@ -125,6 +136,7 @@ jobs:
             fi
             if [ "$i" -eq 30 ]; then
               echo "::error::Timed out waiting for Kubernetes API via Tailscale"
+              kubectl --kubeconfig "$HOME/.kube/config" --request-timeout=5s get --raw='/version' || true
               tailscale status || true
               exit 1
             fi
@@ -160,7 +172,7 @@ jobs:
 
       - name: Start App Port-Forwards
         run: |
-          ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
+          bash ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
           echo $! > /tmp/port-forward-apps.pid
 
           for port in 8989 7878 9696 3000 9000; do
@@ -258,21 +270,15 @@ jobs:
 
           echo "BW_ORGANIZATION_ID=$ORG_ID" >> $GITHUB_ENV
 
-          TS_CLUSTER_AUTH_KEY=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="tailscale-auth-key") | .value // empty')
-          if [ -z "$TS_CLUSTER_AUTH_KEY" ]; then
-            echo "::error::Could not determine Tailscale cluster auth key from Bitwarden"
-            exit 1
-          fi
-          echo "TS_CLUSTER_AUTH_KEY=$TS_CLUSTER_AUTH_KEY" >> $GITHUB_ENV
-
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
-          authkey: ${{ env.TS_CLUSTER_AUTH_KEY }}
+          oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
+          tags: tag:cluster
 
       - name: Verify Tailscale Tags
         run: |
-          sudo tailscale up --reset --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)" --accept-routes
           SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
           echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
           if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
@@ -284,26 +290,43 @@ jobs:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Setup talosctl
+        run: |
+          TALOSCTL_VERSION=v1.12.4
+          curl -sSL "https://github.com/siderolabs/talos/releases/download/${TALOSCTL_VERSION}/talosctl-linux-amd64" -o talosctl
+          chmod +x talosctl
+          sudo mv talosctl /usr/local/bin/talosctl
+          talosctl version --client
+
       - name: Configure kubeconfig
         run: |
-          mkdir -p "$HOME/.kube"
+          mkdir -p "$HOME/.kube" "$HOME/.talos"
 
           KUBECONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="kubeconfig") | .value // empty')
 
           if [ -n "$KUBECONFIG_VALUE" ]; then
             printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
+            echo "Using Kubernetes config from Bitwarden key 'kubeconfig'."
           else
-            echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
-            sudo tailscale set --operator="$USER"
-            tailscale configure kubeconfig talos-1
+            echo "Bitwarden key 'kubeconfig' not found. Generating kubeconfig from 'talosconfig'..."
+            TALOSCONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="talosconfig") | .value // empty')
+            if [ -z "$TALOSCONFIG_VALUE" ]; then
+              echo "::error::Neither Bitwarden key 'kubeconfig' nor 'talosconfig' was found"
+              exit 1
+            fi
+            printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
+            chmod 600 "$HOME/.talos/config"
+
             TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
             if [ -z "$TS_TALOS_IP" ]; then
               echo "::error::Could not resolve Tailscale IP for talos-1"
               tailscale status || true
               exit 1
             fi
+
+            talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
             sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
-            echo "Using Kubernetes API endpoint https://${TS_TALOS_IP}:6443"
+            echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
           fi
 
           chmod 600 "$HOME/.kube/config"
@@ -317,6 +340,7 @@ jobs:
             fi
             if [ "$i" -eq 30 ]; then
               echo "::error::Timed out waiting for Kubernetes API via Tailscale"
+              kubectl --kubeconfig "$HOME/.kube/config" --request-timeout=5s get --raw='/version' || true
               tailscale status || true
               exit 1
             fi
@@ -337,7 +361,7 @@ jobs:
 
       - name: Start App Port-Forwards
         run: |
-          ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
+          bash ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
           echo $! > /tmp/port-forward-apps.pid
 
           for port in 8989 7878 9696 3000 9000; do
