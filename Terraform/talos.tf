@@ -3,6 +3,8 @@ provider "talos" {}
 locals {
   talos_cluster_endpoint_host = var.cluster_vip
   talos_node_is_gpu           = { for node_name, node in var.nodes : node_name => node.gpu }
+  talos_bootstrap_node_name   = local.talos_node_names[0]
+  talos_bootstrap_node_ip     = local.talos_node_ips[local.talos_bootstrap_node_name]
 }
 
 # Talos Machine Secrets
@@ -73,7 +75,7 @@ data "talos_client_configuration" "cluster" {
 # Kubeconfig for Kubernetes provider access (post-bootstrap)
 resource "talos_cluster_kubeconfig" "cluster" {
   client_configuration = talos_machine_secrets.cluster.client_configuration
-  node                 = local.talos_node_ips["talos-1"]
+  node                 = local.talos_bootstrap_node_ip
 
   depends_on = [talos_machine_bootstrap.cluster]
 }
@@ -167,7 +169,8 @@ data "talos_machine_configuration" "controlplane" {
       environment = [
         "TS_AUTHKEY=${tailscale_tailnet_key.cluster.key}",
         "TS_HOSTNAME=${each.key}",
-        "TS_EXTRA_ARGS=--accept-routes --advertise-tags=tag:cluster --accept-dns=false",
+        # Keep tag:cluster during migration; use tag:node as the long-term node identity.
+        "TS_EXTRA_ARGS=--accept-routes --advertise-tags=tag:node,tag:cluster --accept-dns=false",
         "TS_AUTH_ONCE=true",
       ]
     })
@@ -188,7 +191,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
 # Bootstrap the Cluster
 resource "talos_machine_bootstrap" "cluster" {
   client_configuration = talos_machine_secrets.cluster.client_configuration
-  node                 = local.talos_node_ips["talos-1"]
+  node                 = local.talos_bootstrap_node_ip
 
   depends_on = [talos_machine_configuration_apply.controlplane]
 }

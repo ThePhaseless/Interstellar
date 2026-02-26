@@ -27,22 +27,22 @@ output "access_instructions" {
        chmod 600 ~/.talos/config
 
      2. Configure kubectl from Talos:
-       talosctl -n talos-1.${var.tailscale_magicdns_domain} kubeconfig ~/.kube/config
+       talosctl -n ${local.talos_node_names[0]}.${var.tailscale_magicdns_domain} kubeconfig ~/.kube/config
 
      3. Optional:
-       tailscale configure kubeconfig talos-1
+       tailscale configure kubeconfig ${local.talos_node_names[0]}
 
      4. Verify:
        talosctl health --nodes ${join(",", [for node_name in local.talos_node_names : "${node_name}.${var.tailscale_magicdns_domain}"])}
        kubectl get nodes
 
      5. Endpoints:
-       - API Server: talos-1.${var.tailscale_magicdns_domain}:6443
+       - API Server: ${local.talos_node_names[0]}.${var.tailscale_magicdns_domain}:6443
        - Traefik: talos-traefik.${var.tailscale_magicdns_domain}
 
      6. Check Tailscale extension:
-       talosctl -n talos-1.${var.tailscale_magicdns_domain} service ext-tailscale
-       talosctl -n talos-1.${var.tailscale_magicdns_domain} logs ext-tailscale
+       talosctl -n ${local.talos_node_names[0]}.${var.tailscale_magicdns_domain} service ext-tailscale
+       talosctl -n ${local.talos_node_names[0]}.${var.tailscale_magicdns_domain} logs ext-tailscale
   EOT
 }
 

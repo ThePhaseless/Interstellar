@@ -1,5 +1,5 @@
 provider "kubernetes" {
-  host                   = "https://talos-1:6443"
+  host                   = "https://${local.talos_bootstrap_node_name}:6443"
   client_certificate     = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.client_certificate)
   client_key             = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.client_key)
   cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.ca_certificate)

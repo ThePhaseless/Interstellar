@@ -10,9 +10,11 @@
     "tag:ci":           ["autogroup:admin", "tag:ci"],
     "tag:proxmox":      ["autogroup:admin", "tag:ci"],
     "tag:oracle":       ["autogroup:admin", "tag:ci"],
-    "tag:cluster":      ["autogroup:admin", "tag:ci"],
+    "tag:cluster":      ["autogroup:admin", "tag:ci"], // Legacy node tag (migration fallback)
+    "tag:node":         ["autogroup:admin", "tag:ci"],
     "tag:k8s-operator": ["autogroup:admin", "tag:ci"],
-    "tag:k8s":          ["autogroup:admin", "tag:k8s-operator"], // Proxy pods provisioned by the Tailscale operator
+    "tag:service":      ["autogroup:admin", "tag:k8s-operator"], // Proxy pods provisioned by the Tailscale operator
+    "tag:k8s":          ["autogroup:admin", "tag:k8s-operator"], // Legacy service tag (migration fallback)
   },
 
   // Groups
@@ -56,7 +58,7 @@
       "dst":    ["*:*"]
     },
 
-    // CI runners can access Proxmox and cluster for deployments
+    // CI runners can access Proxmox and Talos nodes for deployments
     {
       "action": "accept",
       "src":    ["tag:ci"],
@@ -64,55 +66,59 @@
         "tag:proxmox:22",      // SSH to Proxmox
         "tag:proxmox:8006",    // Proxmox API (for Terraform)
         "tag:oracle:22",       // SSH to Oracle VPS
-        "tag:cluster:6443",    // Kubernetes API
-        "tag:cluster:50000"    // Talos API
+        "tag:node:6443",       // Kubernetes API
+        "tag:node:50000",      // Talos API
+        "tag:cluster:6443",    // Legacy fallback during tag migration
+        "tag:cluster:50000"
       ]
     },
 
-    // Oracle VPS can reach Traefik proxy pod (tag:k8s) — MetalLB/cluster IPs are LAN-only
+    // Oracle VPS can reach Tailscale proxy services — MetalLB/cluster IPs are LAN-only
     {
       "action": "accept",
       "src":    ["tag:oracle"],
       "dst": [
-        "tag:k8s:80",   // Tailscale operator proxy pods (e.g. ts-traefik-*)
+        "tag:service:80",   // Tailscale operator proxy pods (e.g. ts-traefik-*)
+        "tag:service:443",
+        "tag:k8s:80",       // Legacy fallback during tag migration
         "tag:k8s:443"
       ]
     },
 
-    // Cluster nodes can communicate with each other
+    // Node-tagged Talos instances can communicate with each other
     {
       "action": "accept",
-      "src":    ["tag:cluster"],
-      "dst":    ["tag:cluster:*"]
+      "src":    ["tag:node", "tag:cluster"],
+      "dst":    ["tag:node:*", "tag:cluster:*"]
     },
 
-    // Cluster can reach Proxmox for iSCSI storage
+    // Talos nodes can reach Proxmox for iSCSI storage
     {
       "action": "accept",
-      "src":    ["tag:cluster"],
+      "src":    ["tag:node", "tag:cluster"],
       "dst":    ["tag:proxmox:3260"]
     },
 
-    // K8s Operator has full cluster access
+    // K8s Operator has full Talos node access
     {
       "action": "accept",
       "src":    ["tag:k8s-operator"],
-      "dst":    ["tag:cluster:*"]
+      "dst":    ["tag:node:*", "tag:cluster:*"]
     },
 
-    // k8s proxy pods can see each other (needed for MagicDNS resolution between pods)
+    // Service proxy pods can see each other (needed for MagicDNS resolution between pods)
     {
       "action": "accept",
-      "src":    ["tag:k8s"],
-      "dst":    ["tag:k8s:*"]
+      "src":    ["tag:service", "tag:k8s"],
+      "dst":    ["tag:service:*", "tag:k8s:*"]
     },
 
-    // Cluster nodes can resolve k8s proxy pod IPs via MagicDNS (100.100.100.100)
+    // Talos nodes can resolve service proxy pod IPs via MagicDNS (100.100.100.100)
     // Required for AdGuard to forward fold-hen.ts.net queries via Tailscale resolver
     {
       "action": "accept",
-      "src":    ["tag:cluster"],
-      "dst":    ["tag:k8s:*"]
+      "src":    ["tag:node", "tag:cluster"],
+      "dst":    ["tag:service:*", "tag:k8s:*"]
     },
 
     // Silvernet members can access cluster services (not personal devices)
@@ -124,10 +130,14 @@
         "tag:cluster:443",
         "tag:cluster:445",   // SMB
         "tag:cluster:3945",  // Copyparty SMB
-        "tag:k8s:80",        // Tailscale operator proxy pods (web traffic)
+        "tag:service:80",    // Tailscale operator proxy pods (web traffic)
+        "tag:service:443",
+        "tag:service:445",   // SMB via operator proxy
+        "tag:service:3945",
+        "tag:k8s:80",        // Legacy fallback during tag migration
         "tag:k8s:443",
-        "tag:k8s:445",       // SMB via operator proxy
-        "tag:k8s:3945"       // Copyparty SMB via operator proxy
+        "tag:k8s:445",
+        "tag:k8s:3945"
       ]
     },
 
@@ -138,7 +148,9 @@
       "dst": [
         "tag:cluster:80",
         "tag:cluster:443",
-        "tag:k8s:80",        // Tailscale operator proxy pods (web traffic)
+        "tag:service:80",    // Tailscale operator proxy pods (web traffic)
+        "tag:service:443",
+        "tag:k8s:80",        // Legacy fallback during tag migration
         "tag:k8s:443"
       ]
     },
@@ -170,7 +182,10 @@
         "tag:cluster:80",    // HTTP (Traefik)
         "tag:cluster:443",   // HTTPS (Traefik)
         "tag:cluster:53",    // DNS (AdGuard)
-        "tag:k8s:80",        // Tailscale operator proxy pods
+        "tag:service:80",    // Tailscale operator proxy pods
+        "tag:service:443",
+        "tag:service:53",
+        "tag:k8s:80",        // Legacy fallback during tag migration
         "tag:k8s:443",
         "tag:k8s:53"
       ]
@@ -183,7 +198,7 @@
     {
       "action": "accept",
       "src":    ["autogroup:admin", "group:vips"],
-      "dst":    ["tag:proxmox", "tag:oracle", "tag:cluster"],
+      "dst":    ["tag:proxmox", "tag:oracle", "tag:node", "tag:cluster"],
       "users":  ["autogroup:nonroot", "root"]
     },
 
@@ -204,8 +219,8 @@
 
     // Subnet routes (cluster pod/service CIDRs)
     "routes": {
-      "10.244.0.0/16":  ["tag:cluster"],   // Pod CIDR
-      "10.96.0.0/12":   ["tag:cluster"]    // Service CIDR
+      "10.244.0.0/16":  ["tag:node", "tag:cluster"],   // Pod CIDR
+      "10.96.0.0/12":   ["tag:node", "tag:cluster"]    // Service CIDR
     }
   },
 
@@ -213,7 +228,7 @@
   "nodeAttrs": [
     // Disable key expiry for infrastructure nodes
     {
-      "target": ["tag:cluster", "tag:oracle", "tag:proxmox"],
+      "target": ["tag:node", "tag:cluster", "tag:service", "tag:k8s", "tag:oracle", "tag:proxmox"],
       "attr":   ["funnel:deny"]
     }
   ],
