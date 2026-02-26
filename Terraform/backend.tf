@@ -13,6 +13,12 @@ terraform {
   }
 
   required_providers {
+    # GitHub provider for managing secrets and variables
+    github = {
+      source  = "integrations/github"
+      version = ">= 6.0.0"
+    }
+
     # Proxmox VM provisioning with GPU passthrough
     proxmox = {
       source  = "bpg/proxmox"

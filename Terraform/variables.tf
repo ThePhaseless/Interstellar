@@ -177,6 +177,12 @@ variable "bws_access_token" {
   type        = string
   sensitive   = true
 }
+variable "github_repository" {
+  description = "GitHub repository name (owner/repo)"
+  type        = string
+  default     = "ThePhaseless/Interstellar"
+}
+
 # -----------------------------------------------------------------------------
 # Authentik / Access Control
 # -----------------------------------------------------------------------------
