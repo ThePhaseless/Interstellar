@@ -223,8 +223,18 @@ main() {
         "tailscale-oracle-auth-key" "TAILSCALE_ORACLE_AUTH_KEY" \
         "cloudflare-api-token" "CLOUDFLARE_API_TOKEN" \
         "cloudflare-zone-id" "TF_VAR_cloudflare_zone_id" \
-        "proxmox-api-token" "PROXMOX_VE_API_TOKEN" \
         "hcloud-token" "HCLOUD_TOKEN"
+
+    # Assemble Proxmox API token
+    local px_user
+    local px_token_id
+    local px_api_token
+    px_user=$(echo "$SECRETS_JSON" | jq -r '.[] | select(.key == "proxmox-user") | .value' 2>/dev/null)
+    px_token_id=$(echo "$SECRETS_JSON" | jq -r '.[] | select(.key == "proxmox-token-id") | .value' 2>/dev/null)
+    px_api_token=$(echo "$SECRETS_JSON" | jq -r '.[] | select(.key == "proxmox-api-token") | .value' 2>/dev/null)
+    if [[ -n "$px_user" && -n "$px_token_id" && -n "$px_api_token" && "$px_user" != "null" && "$px_token_id" != "null" && "$px_api_token" != "null" ]]; then
+        export PROXMOX_VE_API_TOKEN="${px_user}!${px_token_id}=${px_api_token}"
+    fi
 
     # Hetzner Cloud token for Terraform
     if [[ -n "${HCLOUD_TOKEN:-}" ]]; then
