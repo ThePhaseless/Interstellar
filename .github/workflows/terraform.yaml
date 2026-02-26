@@ -19,6 +19,7 @@ on:
       - ".github/workflows/terraform.yaml"
 
 env:
+  TF_VERSION: "1.14.6"
   TF_WORKING_DIR: "./Terraform"
 
 jobs:
@@ -71,26 +72,30 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$HOME/.oci"
+
+          # Ensure config ends with a newline before appending
           printf "%s" "$OCI_CONFIG" > "$HOME/.oci/config"
+          [ -n "$(tail -c1 "$HOME/.oci/config")" ] && echo "" >> "$HOME/.oci/config"
+
           printf "%s" "$OCI_PRIVATE_KEY" > "$HOME/.oci/oci_api_key.pem"
           chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
 
-          # Update config file to point to the correct key location
+          # Update or append key_file path
           if grep -q '^key_file=' "$HOME/.oci/config"; then
             sed -i "s|^key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|" "$HOME/.oci/config"
           else
             echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
           fi
 
-          # Export OCI credentials as environment variables for the backend and provider
+          # Export OCI credentials
           echo "OCI_CLI_CONFIG_FILE=$HOME/.oci/config" >> $GITHUB_ENV
           echo "OCI_CLI_KEY_FILE=$HOME/.oci/oci_api_key.pem" >> $GITHUB_ENV
 
-          # Extract and export individual fields for maximum compatibility
-          echo "OCI_CLI_USER=$(grep '^user=' $HOME/.oci/config | cut -d'=' -f2)" >> $GITHUB_ENV
-          echo "OCI_CLI_TENANCY=$(grep '^tenancy=' $HOME/.oci/config | cut -d'=' -f2)" >> $GITHUB_ENV
-          echo "OCI_CLI_FINGERPRINT=$(grep '^fingerprint=' $HOME/.oci/config | cut -d'=' -f2)" >> $GITHUB_ENV
-          echo "OCI_CLI_REGION=$(grep '^region=' $HOME/.oci/config | cut -d'=' -f2)" >> $GITHUB_ENV
+          # Extract fields safely (handle potential whitespace/comments)
+          echo "OCI_CLI_USER=$(grep '^user=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
+          echo "OCI_CLI_TENANCY=$(grep '^tenancy=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
+          echo "OCI_CLI_FINGERPRINT=$(grep '^fingerprint=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
+          echo "OCI_CLI_REGION=$(grep '^region=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -219,26 +224,30 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$HOME/.oci"
+
+          # Ensure config ends with a newline before appending
           printf "%s" "$OCI_CONFIG" > "$HOME/.oci/config"
+          [ -n "$(tail -c1 "$HOME/.oci/config")" ] && echo "" >> "$HOME/.oci/config"
+
           printf "%s" "$OCI_PRIVATE_KEY" > "$HOME/.oci/oci_api_key.pem"
           chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
 
-          # Update config file to point to the correct key location
+          # Update or append key_file path
           if grep -q '^key_file=' "$HOME/.oci/config"; then
             sed -i "s|^key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|" "$HOME/.oci/config"
           else
             echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
           fi
 
-          # Export OCI credentials as environment variables for the backend and provider
+          # Export OCI credentials
           echo "OCI_CLI_CONFIG_FILE=$HOME/.oci/config" >> $GITHUB_ENV
           echo "OCI_CLI_KEY_FILE=$HOME/.oci/oci_api_key.pem" >> $GITHUB_ENV
 
-          # Extract and export individual fields for maximum compatibility
-          echo "OCI_CLI_USER=$(grep '^user=' $HOME/.oci/config | cut -d'=' -f2)" >> $GITHUB_ENV
-          echo "OCI_CLI_TENANCY=$(grep '^tenancy=' $HOME/.oci/config | cut -d'=' -f2)" >> $GITHUB_ENV
-          echo "OCI_CLI_FINGERPRINT=$(grep '^fingerprint=' $HOME/.oci/config | cut -d'=' -f2)" >> $GITHUB_ENV
-          echo "OCI_CLI_REGION=$(grep '^region=' $HOME/.oci/config | cut -d'=' -f2)" >> $GITHUB_ENV
+          # Extract fields safely (handle potential whitespace/comments)
+          echo "OCI_CLI_USER=$(grep '^user=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
+          echo "OCI_CLI_TENANCY=$(grep '^tenancy=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
+          echo "OCI_CLI_FINGERPRINT=$(grep '^fingerprint=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
+          echo "OCI_CLI_REGION=$(grep '^region=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
