@@ -4,16 +4,12 @@
   "baseBranches": ["main", "migration"],
   "extends": ["config:recommended"],
 
-  "kubernetes": {
-    "fileMatch": ["^Kubernetes/.*\\.yaml$"]
-  },
-
   "packageRules": [
     {
       "description": "Ignore legacy LinuxServer qBittorrent tags",
       "matchManagers": ["kubernetes"],
       "matchPackageNames": ["linuxserver/qbittorrent"],
-      "allowedVersions": "/^(?!20\\.).*/"
+      "allowedVersions": "^(?!20\\.).*"
     },
     {
       "automerge": true,
