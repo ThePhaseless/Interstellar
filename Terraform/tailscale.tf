@@ -63,27 +63,6 @@ resource "bitwarden-secrets_secret" "tailscale_oracle_auth_key" {
 }
 
 # -----------------------------------------------------------------------------
-# Tailscale Auth Key for CI Runners
-# -----------------------------------------------------------------------------
-# This key is used by CI runners to join the tailnet so they can reach local
-# infrastructure (Proxmox, K8s). Managed by the 'Main Key' (OAuth client).
-resource "tailscale_tailnet_key" "ci" {
-  depends_on    = [tailscale_acl.main]
-  reusable      = true
-  preauthorized = true
-  expiry        = 7776000 # 90 days in seconds
-  tags          = ["tag:ci"]
-  description   = "GitHub Actions CI runners auth key"
-}
-
-resource "bitwarden-secrets_secret" "tailscale_ci_auth_key" {
-  key        = "tailscale-ci-auth-key"
-  value      = tailscale_tailnet_key.ci.key
-  project_id = local.bitwarden_generated_project_id
-  note       = "Tailscale auth key for GitHub Actions CI runners. Managed by Terraform."
-}
-
-# -----------------------------------------------------------------------------
 # Managed OAuth Clients
 # -----------------------------------------------------------------------------
 # All OAuth clients are created by the provider (tag:ci) which owns all
