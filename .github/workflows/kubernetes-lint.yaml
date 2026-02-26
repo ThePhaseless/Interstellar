@@ -1,8 +1,3 @@
-# =============================================================================
-# Kubernetes Manifest Linting Workflow
-# =============================================================================
-# Runs kube-linter on Kubernetes manifests to catch issues before deployment.
-
 name: Kubernetes Lint
 
 on:

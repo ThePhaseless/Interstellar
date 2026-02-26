@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Ansible Linter Script
 
 set -euo pipefail
 
@@ -17,13 +16,11 @@ if ! command -v ansible-lint &>/dev/null; then
     exit 1
 fi
 
-echo -e "${GREEN}=== Ansible Linter ===${NC}"
+echo -e "${GREEN}Ansible lint${NC}"
 echo "Ansible dir: ${ANSIBLE_DIR}"
 
 cd "${REPO_ROOT}"
 
-# ansible-core 2.20+ can fail to parse YAML (including .ansible-lint) when
-# PyYAML is installed without its libyaml extension.
 if python -c 'import yaml; import sys; sys.exit(0 if hasattr(yaml, "cyaml") else 1)' 2>/dev/null; then
     :
 else
@@ -40,7 +37,6 @@ else
     fi
 fi
 
-# Skip dependency checks since roles/collections may not be installed locally
 export ANSIBLE_LINT_NODEPS=1
 
 echo "Running ansible-lint..."

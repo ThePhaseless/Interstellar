@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Terraform Linter Script
 
 set -euo pipefail
 
@@ -17,7 +16,7 @@ if ! command -v tflint &> /dev/null; then
     exit 1
 fi
 
-echo -e "${GREEN}=== Terraform Linter ===${NC}"
+echo -e "${GREEN}Terraform lint${NC}"
 echo "Terraform dir: ${TF_DIR}"
 
 cd "${TF_DIR}"

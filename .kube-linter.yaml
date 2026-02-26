@@ -1,6 +1,3 @@
-# KubeLinter Configuration
-# Per-resource exclusions use: ignore-check.kube-linter.io/<check-name>: "<reason>"
-
 checks:
   exclude:
     # Third-party images don't support read-only root filesystems
