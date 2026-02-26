@@ -66,21 +66,15 @@ jobs:
 
           echo "BW_ORGANIZATION_ID=$ORG_ID" >> $GITHUB_ENV
 
-          TS_CLUSTER_AUTH_KEY=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="tailscale-auth-key") | .value // empty')
-          if [ -z "$TS_CLUSTER_AUTH_KEY" ]; then
-            echo "::error::Could not determine Tailscale cluster auth key from Bitwarden"
-            exit 1
-          fi
-          echo "TS_CLUSTER_AUTH_KEY=$TS_CLUSTER_AUTH_KEY" >> $GITHUB_ENV
-
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
-          authkey: ${{ env.TS_CLUSTER_AUTH_KEY }}
+          oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
+          tags: tag:cluster
 
       - name: Verify Tailscale Tags
         run: |
-          sudo tailscale up --reset --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)" --accept-routes
           SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
           echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
           if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
@@ -276,21 +270,15 @@ jobs:
 
           echo "BW_ORGANIZATION_ID=$ORG_ID" >> $GITHUB_ENV
 
-          TS_CLUSTER_AUTH_KEY=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="tailscale-auth-key") | .value // empty')
-          if [ -z "$TS_CLUSTER_AUTH_KEY" ]; then
-            echo "::error::Could not determine Tailscale cluster auth key from Bitwarden"
-            exit 1
-          fi
-          echo "TS_CLUSTER_AUTH_KEY=$TS_CLUSTER_AUTH_KEY" >> $GITHUB_ENV
-
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
-          authkey: ${{ env.TS_CLUSTER_AUTH_KEY }}
+          oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
+          tags: tag:cluster
 
       - name: Verify Tailscale Tags
         run: |
-          sudo tailscale up --reset --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)" --accept-routes
           SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
           echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
           if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
