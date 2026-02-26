@@ -104,6 +104,34 @@ resource "bitwarden-secrets_secret" "oci_config" {
   }
 }
 
+resource "bitwarden-secrets_secret" "oci_private_key" {
+  key        = "oci-private-key"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "OCI API private key (.pem). Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'oci-private-key' is empty. Please fill it in Bitwarden."
+    }
+  }
+}
+
+resource "bitwarden-secrets_secret" "tf_state_bucket" {
+  key        = "tf-state-bucket"
+  value      = "tf-state"
+  project_id = local.bitwarden_project_id
+  note       = "Name of the OCI bucket for Terraform state. Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'tf-state-bucket' is empty. Please fill it in Bitwarden."
+    }
+  }
+}
+
 resource "bitwarden-secrets_secret" "proxmox_user" {
   key        = "proxmox-user"
   value      = ""
