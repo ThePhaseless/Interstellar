@@ -110,7 +110,7 @@ spec:
             - name: downloads
               nfs:
                 server: 192.168.1.10
-                path: /Storage/media/downloads
+                path: /Storage/Media/Downloads
             - name: personal
               nfs:
                 server: 192.168.1.10
@@ -225,7 +225,7 @@ spec:
             - name: downloads
               nfs:
                 server: 192.168.1.10
-                path: /Storage/media/downloads
+                path: /Storage/Media/Downloads
                 readOnly: true
             - name: personal
               nfs:

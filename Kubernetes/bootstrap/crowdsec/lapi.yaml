@@ -27,7 +27,7 @@ spec:
           image: crowdsecurity/crowdsec:v1.7.6
           env:
             - name: COLLECTIONS
-              value: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux"
+              value: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux LePresidente/jellyfin"
             - name: DISABLE_AGENT
               value: "true"
             - name: BOUNCER_KEY_traefik

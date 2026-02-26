@@ -23,6 +23,18 @@ groups:
               expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 300
@@ -36,7 +48,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -44,7 +56,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -75,6 +87,18 @@ groups:
               expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 300
@@ -88,7 +112,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -96,7 +120,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -128,6 +152,18 @@ groups:
               expr: increase(kube_pod_container_status_restarts_total[10m]) > 5
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 600
@@ -141,7 +177,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -149,7 +185,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -165,9 +201,8 @@ groups:
         isPaused: false
 
       # -----------------------------------------------------------------------
-      # Pod Not Ready – FIX: removed `== 0` PromQL filter (returned value 0 which
-      # never matched threshold `gt:0`). Now raw metric is queried and threshold
-      # is `lt:1` – fires when readiness value drops below 1.
+      # Pod Not Ready – JOIN with kube_pod_owner to exclude Job-owned pods.
+      # Fires when readiness is 0 for 5m, but only for ReplicaSet/StatefulSet/DaemonSet.
       # -----------------------------------------------------------------------
       - uid: pod-not-ready
         title: Pod Not Ready
@@ -179,9 +214,24 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: kube_pod_status_ready{condition="true"}
+              expr: |
+                kube_pod_status_ready{condition="true"} == 0
+                * on(pod, namespace) group_left(owner_kind)
+                kube_pod_owner{owner_kind=~"ReplicaSet|StatefulSet|DaemonSet"}
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 300
@@ -190,12 +240,12 @@ groups:
             model:
               conditions:
                 - evaluator:
-                    params: [1]
-                    type: lt
+                    params: [0]
+                    type: gt
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -203,7 +253,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -213,7 +263,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready
+          summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.owner_kind }}) is not ready
         labels:
           severity: warning
         isPaused: false
@@ -235,6 +285,18 @@ groups:
               expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 85
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 300
@@ -248,7 +310,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -256,7 +318,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -288,6 +350,18 @@ groups:
               expr: kube_node_status_condition{condition="Ready",status="true"}
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 300
@@ -301,7 +375,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -309,7 +383,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -341,6 +415,18 @@ groups:
               expr: (certmanager_certificate_expiration_timestamp_seconds - time()) < 1209600
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 300
@@ -354,7 +440,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -362,7 +448,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -399,6 +485,18 @@ groups:
               expr: longhorn_node_status{condition="schedulable"}
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 300
@@ -412,7 +510,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -420,7 +518,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -453,6 +551,18 @@ groups:
               expr: longhorn_volume_robustness
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 300
@@ -466,7 +576,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -474,7 +584,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -506,6 +616,18 @@ groups:
               expr: (longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes) > 0.80
               intervalMs: 1000
               maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
           - refId: C
             relativeTimeRange:
               from: 300
@@ -519,7 +641,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     params: []
                     type: last
@@ -527,7 +649,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: B
               intervalMs: 1000
               maxDataPoints: 43200
               type: threshold
@@ -569,16 +691,22 @@ templates:
     template: |
       {{ define "discord_compact" -}}
       {{- if .Alerts.Firing -}}
-      🔴 **{{ len .Alerts.Firing }} alert(s) firing**
+      ## 🚨 {{ len .Alerts.Firing }} Alert(s) Firing
       {{ range .Alerts.Firing -}}
-      • **{{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}** [{{ index .Labels "severity" | title }}]
-        {{ index .Annotations "summary" }}
+      ### 🔴 {{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}
+      > **Severity:** `{{ index .Labels "severity" | title }}`
+      > **Summary:** {{ index .Annotations "summary" }}
+      {{ if .DashboardURL }}> [📊 View Dashboard]({{ .DashboardURL }}){{ end }}
+      {{ if .PanelURL }}> [🖼️ View Panel]({{ .PanelURL }}){{ end }}
+      ---
       {{ end -}}
       {{- end -}}
       {{- if .Alerts.Resolved -}}
-      ✅ **{{ len .Alerts.Resolved }} resolved**
+      ## ✅ {{ len .Alerts.Resolved }} Alert(s) Resolved
       {{ range .Alerts.Resolved -}}
-      • **{{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}**
+      ### 🟢 {{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}
+      > **Severity:** `{{ index .Labels "severity" | title }}`
+      ---
       {{ end -}}
       {{- end -}}
       {{- end }}
