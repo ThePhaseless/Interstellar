@@ -93,6 +93,20 @@ jobs:
           chmod 600 "$HOME/.kube/config"
           echo "KUBE_CONFIG_PATH=$HOME/.kube/config" >> $GITHUB_ENV
 
+          echo "Waiting for Kubernetes API to become reachable..."
+          for i in {1..30}; do
+            if kubectl --kubeconfig "$HOME/.kube/config" --request-timeout=5s get --raw='/version' >/dev/null 2>&1; then
+              echo "Kubernetes API is reachable."
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "::error::Timed out waiting for Kubernetes API via Tailscale"
+              tailscale status || true
+              exit 1
+            fi
+            sleep 5
+          done
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
@@ -246,6 +260,20 @@ jobs:
 
           chmod 600 "$HOME/.kube/config"
           echo "KUBE_CONFIG_PATH=$HOME/.kube/config" >> $GITHUB_ENV
+
+          echo "Waiting for Kubernetes API to become reachable..."
+          for i in {1..30}; do
+            if kubectl --kubeconfig "$HOME/.kube/config" --request-timeout=5s get --raw='/version' >/dev/null 2>&1; then
+              echo "Kubernetes API is reachable."
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "::error::Timed out waiting for Kubernetes API via Tailscale"
+              tailscale status || true
+              exit 1
+            fi
+            sleep 5
+          done
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
