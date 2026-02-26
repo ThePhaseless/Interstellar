@@ -43,13 +43,13 @@ jobs:
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
-            oci-config > OCI_CONFIG
-            oci-private-key > OCI_PRIVATE_KEY
-            oci-namespace > OCI_NAMESPACE
-            tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
-            tailscale-oauth-secret > TS_OAUTH_SECRET
-            tf-state-bucket > TF_STATE_BUCKET
-            proxmox-api-token > PROXMOX_API_TOKEN_VALUE
+            d060d187-6e1f-4f94-96c0-b3e4013b3242 > OCI_CONFIG
+            37e4dc8f-7991-4acb-bcef-b3e4013b4b67 > OCI_PRIVATE_KEY
+            580f990e-bf07-467c-87d7-b3f20166cb2e > OCI_NAMESPACE
+            cd8b21df-5de9-45ad-a63c-b3e40144da94 > TS_OAUTH_CLIENT_ID
+            79ff999b-18c1-444c-8223-b3e40144e7d4 > TS_OAUTH_SECRET
+            37986ba2-35b1-4abb-851b-b3e4012ce37b > TF_STATE_BUCKET
+            b1d394d1-8ec0-429b-bb6f-b3e401759825 > PROXMOX_API_TOKEN_VALUE
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
@@ -178,13 +178,13 @@ jobs:
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
-            oci-config > OCI_CONFIG
-            oci-private-key > OCI_PRIVATE_KEY
-            oci-namespace > OCI_NAMESPACE
-            tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
-            tailscale-oauth-secret > TS_OAUTH_SECRET
-            tf-state-bucket > TF_STATE_BUCKET
-            proxmox-api-token > PROXMOX_API_TOKEN_VALUE
+            d060d187-6e1f-4f94-96c0-b3e4013b3242 > OCI_CONFIG
+            37e4dc8f-7991-4acb-bcef-b3e4013b4b67 > OCI_PRIVATE_KEY
+            580f990e-bf07-467c-87d7-b3f20166cb2e > OCI_NAMESPACE
+            cd8b21df-5de9-45ad-a63c-b3e40144da94 > TS_OAUTH_CLIENT_ID
+            79ff999b-18c1-444c-8223-b3e40144e7d4 > TS_OAUTH_SECRET
+            37986ba2-35b1-4abb-851b-b3e4012ce37b > TF_STATE_BUCKET
+            b1d394d1-8ec0-429b-bb6f-b3e401759825 > PROXMOX_API_TOKEN_VALUE
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
