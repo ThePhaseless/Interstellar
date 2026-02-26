@@ -51,6 +51,23 @@ resource "bitwarden-secrets_secret" "tailscale_oracle_auth_key" {
 }
 
 # -----------------------------------------------------------------------------
+# Tailscale Auth Key for CI Runners
+# -----------------------------------------------------------------------------
+# This key must be created manually in the Tailscale Admin Console with tag:ci
+# because the Terraform OAuth client lacks permission to create tagged keys.
+# We create the secret record here with a placeholder, then update it manually.
+resource "bitwarden-secrets_secret" "tailscale_ci_auth_key" {
+  key        = "tailscale-ci-auth-key"
+  value      = "manual-setup-required"
+  project_id = local.bitwarden_generated_project_id
+  note       = "Tailscale auth key for GitHub Actions CI runners. Created manually in Tailscale and updated here."
+}
+
+data "bitwarden-secrets_secret" "tailscale_ci_auth_key" {
+  id = bitwarden-secrets_secret.tailscale_ci_auth_key.id
+}
+
+# -----------------------------------------------------------------------------
 # Managed OAuth Clients
 # -----------------------------------------------------------------------------
 # All OAuth clients are created by the provider (tag:ci) which owns all

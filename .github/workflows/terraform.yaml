@@ -48,6 +48,7 @@ jobs:
             ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
             ${{ vars.BWS_ID_TS_OAUTH_CLIENT_ID }} > TS_OAUTH_CLIENT_ID
             ${{ vars.BWS_ID_TS_OAUTH_SECRET }} > TS_OAUTH_SECRET
+            ${{ vars.BWS_ID_TS_CI_AUTH_KEY }} > TS_CI_AUTH_KEY
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
             ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
 
@@ -62,8 +63,7 @@ jobs:
       - name: Connect to Tailscale
         uses: tailscale/github-action@v3
         with:
-          oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          auth-key: ${{ env.TS_CI_AUTH_KEY }}
           tags: tag:ci
 
       - name: Write OCI config
@@ -183,6 +183,7 @@ jobs:
             ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
             ${{ vars.BWS_ID_TS_OAUTH_CLIENT_ID }} > TS_OAUTH_CLIENT_ID
             ${{ vars.BWS_ID_TS_OAUTH_SECRET }} > TS_OAUTH_SECRET
+            ${{ vars.BWS_ID_TS_CI_AUTH_KEY }} > TS_CI_AUTH_KEY
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
             ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
 
@@ -197,8 +198,7 @@ jobs:
       - name: Connect to Tailscale
         uses: tailscale/github-action@v3
         with:
-          oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          auth-key: ${{ env.TS_CI_AUTH_KEY }}
           tags: tag:ci
 
       - name: Write OCI config
