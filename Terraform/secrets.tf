@@ -111,7 +111,7 @@ resource "bitwarden-secrets_secret" "sonarr_api_key" {
   key        = "sonarr-api-key"
   value      = "placeholder-will-be-set-by-app"
   project_id = local.bitwarden_generated_project_id
-  note       = "Sonarr API key. Initially placeholder, updated by api-extractor init container. Managed by Terraform."
+  note       = "Sonarr API key. Initially placeholder, updated by api-extractor sidecar. Managed by Terraform."
 
   lifecycle {
     ignore_changes = [value]
@@ -122,7 +122,7 @@ resource "bitwarden-secrets_secret" "radarr_api_key" {
   key        = "radarr-api-key"
   value      = "placeholder-will-be-set-by-app"
   project_id = local.bitwarden_generated_project_id
-  note       = "Radarr API key. Initially placeholder, updated by api-extractor init container. Managed by Terraform."
+  note       = "Radarr API key. Initially placeholder, updated by api-extractor sidecar. Managed by Terraform."
 
   lifecycle {
     ignore_changes = [value]
@@ -133,7 +133,7 @@ resource "bitwarden-secrets_secret" "prowlarr_api_key" {
   key        = "prowlarr-api-key"
   value      = "placeholder-will-be-set-by-app"
   project_id = local.bitwarden_generated_project_id
-  note       = "Prowlarr API key. Initially placeholder, updated by api-extractor init container. Managed by Terraform."
+  note       = "Prowlarr API key. Initially placeholder, updated by api-extractor sidecar. Managed by Terraform."
 
   lifecycle {
     ignore_changes = [value]

@@ -4,7 +4,7 @@
 # Configures Authentik as the central IdP with group-based RBAC.
 # Two proxy providers (forward_domain mode):
 #   - "private": Admins group only (homepage, *arr stack, qBittorrent, dashboards)
-#   - "public": Any Google account (Jellyseerr, Copyparty)
+#   - "public": Any Google account (Seerr, Copyparty)
 # Native OIDC providers: Grafana, Immich, Jellyfin
 # Google OAuth is the only login source (no username/password).
 # Groups managed manually in Authentik UI — no Terraform changes needed to add users.
@@ -499,4 +499,33 @@ resource "bitwarden-secrets_secret" "argocd_oidc_client_secret" {
   value      = authentik_provider_oauth2.argocd.client_secret
   project_id = local.bitwarden_generated_project_id
   note       = "ArgoCD OIDC client secret (via Authentik). Managed by Terraform."
+}
+
+resource "authentik_stage_prompt_field" "username" {
+  name      = "enrollment-field-username"
+  field_key = "username"
+  label     = "Username"
+  type      = "username" # Automatically validates for uniqueness
+  required  = true
+}
+
+resource "authentik_stage_prompt" "google_enrollment_prompt" {
+  name   = "google-enrollment-prompt"
+  fields = [authentik_stage_prompt_field.username.id]
+}
+
+resource "authentik_flow_stage_binding" "google_enrollment_prompt_binding" {
+  target = authentik_flow.google_enrollment.uuid
+  stage  = authentik_stage_prompt.google_enrollment_prompt.id
+  order  = 5 # Must run BEFORE the user_write stage (order 10)
+}
+
+resource "authentik_stage_user_login" "google_enrollment_login" {
+  name = "google-enrollment-user-login"
+}
+
+resource "authentik_flow_stage_binding" "google_enrollment_login_binding" {
+  target = authentik_flow.google_enrollment.uuid
+  stage  = authentik_stage_user_login.google_enrollment_login.id
+  order  = 20 # Must run AFTER the user_write stage (order 10)
 }

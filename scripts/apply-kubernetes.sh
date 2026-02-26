@@ -44,12 +44,20 @@ fi
 # ---------------------------------------------------------------------------
 # Preflight checks
 # ---------------------------------------------------------------------------
-for cmd in kustomize kubectl; do
+for cmd in kubectl; do
     if ! command -v "$cmd" &>/dev/null; then
         echo -e "${RED}Error: ${cmd} not found in PATH${NC}"
         exit 1
     fi
 done
+
+# Prefer standalone `kustomize` when available, otherwise fall back to `kubectl kustomize`.
+KUSTOMIZE_CMD=""
+if command -v kustomize &>/dev/null; then
+    KUSTOMIZE_CMD="kustomize build --enable-helm"
+else
+    KUSTOMIZE_CMD="kubectl kustomize"
+fi
 
 # ---------------------------------------------------------------------------
 # Build & Apply (with retries for CRD ordering)
@@ -57,21 +65,30 @@ done
 echo -e "${GREEN}=== Applying ${TARGET_PATH} ===${NC}"
 
 echo -e "${YELLOW}Building manifests...${NC}"
-MANIFESTS=$(kustomize build --enable-helm "$TARGET_PATH")
+# Use a temp file so large manifests don't get mangled and so we can retry safely.
+TMPFILE=$(mktemp)
+trap 'rm -f "${TMPFILE}"' EXIT INT TERM
 
-OBJECT_COUNT=$(echo "$MANIFESTS" | grep -c '^kind:' || true)
+if ! ${KUSTOMIZE_CMD} "${TARGET_PATH}" >"${TMPFILE}" 2>&1; then
+    echo -e "${RED}kustomize build failed. Output:${NC}"
+    sed -n '1,200p' "${TMPFILE}" >&2 || true
+    exit 1
+fi
+
+OBJECT_COUNT=$(grep -c '^kind:' "${TMPFILE}" || true)
 echo -e "${YELLOW}Applying ${OBJECT_COUNT} objects...${NC}"
 
 MAX_RETRIES=3
 for attempt in $(seq 1 $MAX_RETRIES); do
-    if echo "$MANIFESTS" | kubectl apply --server-side --force-conflicts -f -; then
+    if kubectl apply --server-side --force-conflicts -f "${TMPFILE}"; then
         break
     fi
     if [[ $attempt -lt $MAX_RETRIES ]]; then
         echo -e "${YELLOW}Apply had errors (attempt ${attempt}/${MAX_RETRIES}). Waiting 15s for CRDs to establish before retrying...${NC}"
         sleep 15
     else
-        echo -e "${RED}Apply failed after ${MAX_RETRIES} attempts.${NC}"
+        echo -e "${RED}Apply failed after ${MAX_RETRIES} attempts. Showing last 200 lines of manifests for diagnosis:${NC}"
+        sed -n '1,200p' "${TMPFILE}" >&2 || true
         exit 1
     fi
 done
