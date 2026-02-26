@@ -67,6 +67,10 @@ data "bitwarden-secrets_secret" "oci_config" {
   id = local.secret_key_to_id["oci-config"]
 }
 
+data "bitwarden-secrets_secret" "proxmox_api_token" {
+  id = local.secret_key_to_id["proxmox-api-token"]
+}
+
 # -----------------------------------------------------------------------------
 # Optional secrets (may not exist yet)
 # -----------------------------------------------------------------------------
