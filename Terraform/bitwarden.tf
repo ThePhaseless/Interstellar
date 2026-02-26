@@ -42,28 +42,9 @@ locals {
 }
 
 # -----------------------------------------------------------------------------
-# User-Managed Secrets (Terraform creates placeholders, user fills manually)
-# -----------------------------------------------------------------------------
-
-resource "bitwarden-secrets_secret" "proxmox_user" {
-  key        = "proxmox-user"
-  value      = "root@pam"
-  project_id = local.bitwarden_project_id
-  note       = "Proxmox user for API authentication. Manually managed."
-  lifecycle { ignore_changes = [value] }
-}
-
-resource "bitwarden-secrets_secret" "proxmox_token_id" {
-  key        = "proxmox-token-id"
-  value      = "terraform"
-  project_id = local.bitwarden_project_id
-  note       = "Proxmox API token ID. Manually managed."
-  lifecycle { ignore_changes = [value] }
-}
-
-# -----------------------------------------------------------------------------
 # Individual Secret Data Sources (Critical provider credentials)
 # -----------------------------------------------------------------------------
+# These must exist in Bitwarden before Terraform can run successfully.
 
 data "bitwarden-secrets_secret" "tailscale_oauth_client_id" {
   id = local.secret_key_to_id["tailscale-oauth-client-id"]
@@ -87,6 +68,26 @@ data "bitwarden-secrets_secret" "oci_config" {
 
 data "bitwarden-secrets_secret" "proxmox_api_token" {
   id = local.secret_key_to_id["proxmox-api-token"]
+}
+
+# -----------------------------------------------------------------------------
+# User-Managed Secrets (Terraform creates placeholders, user fills manually)
+# -----------------------------------------------------------------------------
+
+resource "bitwarden-secrets_secret" "proxmox_user" {
+  key        = "proxmox-user"
+  value      = "root@pam"
+  project_id = local.bitwarden_project_id
+  note       = "Proxmox user for API authentication. Manually managed."
+  lifecycle { ignore_changes = [value] }
+}
+
+resource "bitwarden-secrets_secret" "proxmox_token_id" {
+  key        = "proxmox-token-id"
+  value      = "terraform"
+  project_id = local.bitwarden_project_id
+  note       = "Proxmox API token ID. Manually managed."
+  lifecycle { ignore_changes = [value] }
 }
 
 # -----------------------------------------------------------------------------
