@@ -2,8 +2,7 @@
 # Bitwarden Secrets Manager Configuration
 # =============================================================================
 # This file configures the Bitwarden Secrets Manager provider and resources.
-# Critical provider credentials use data sources for stability, while others
-# are bootstrapped as empty placeholders.
+# All manual secrets are bootstrapped here as empty placeholders.
 
 # -----------------------------------------------------------------------------
 # Provider Configuration
@@ -35,12 +34,88 @@ locals {
 # User-Managed Secrets (Terraform creates placeholders, user fills manually)
 # -----------------------------------------------------------------------------
 
+resource "bitwarden-secrets_secret" "tailscale_oauth_client_id" {
+  key        = "tailscale-oauth-client-id"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "Tailnet management OAuth client ID (Main Key). Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'tailscale-oauth-client-id' is empty. Please fill it in Bitwarden."
+    }
+  }
+}
+
+resource "bitwarden-secrets_secret" "tailscale_oauth_secret" {
+  key        = "tailscale-oauth-secret"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "Tailnet management OAuth client secret (Main Key). Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'tailscale-oauth-secret' is empty. Please fill it in Bitwarden."
+    }
+  }
+}
+
+resource "bitwarden-secrets_secret" "tailscale_tailnet" {
+  key        = "tailscale-tailnet"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "Tailnet name (e.g. user.ts.net). Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'tailscale-tailnet' is empty. Please fill it in Bitwarden."
+    }
+  }
+}
+
+resource "bitwarden-secrets_secret" "cloudflare_api_token" {
+  key        = "cloudflare-api-token"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "Cloudflare API token with DNS edit permissions. Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'cloudflare-api-token' is empty. Please fill it in Bitwarden."
+    }
+  }
+}
+
+resource "bitwarden-secrets_secret" "oci_config" {
+  key        = "oci-config"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "OCI SDK configuration file content. Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'oci-config' is empty. Please fill it in Bitwarden."
+    }
+  }
+}
+
 resource "bitwarden-secrets_secret" "proxmox_user" {
   key        = "proxmox-user"
   value      = ""
   project_id = local.bitwarden_project_id
   note       = "Proxmox user for API authentication. Manually managed."
-  lifecycle { ignore_changes = [value] }
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'proxmox-user' is empty. Please fill it in Bitwarden."
+    }
+  }
 }
 
 resource "bitwarden-secrets_secret" "proxmox_token_id" {
@@ -48,36 +123,27 @@ resource "bitwarden-secrets_secret" "proxmox_token_id" {
   value      = ""
   project_id = local.bitwarden_project_id
   note       = "Proxmox API token ID. Manually managed."
-  lifecycle { ignore_changes = [value] }
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'proxmox-token-id' is empty. Please fill it in Bitwarden."
+    }
+  }
 }
 
-# -----------------------------------------------------------------------------
-# Individual Secret Data Sources (Critical provider credentials)
-# -----------------------------------------------------------------------------
-# These must exist in Bitwarden before Terraform can run successfully.
-
-data "bitwarden-secrets_secret" "tailscale_oauth_client_id" {
-  id = local.secret_key_to_id["tailscale-oauth-client-id"]
-}
-
-data "bitwarden-secrets_secret" "tailscale_oauth_secret" {
-  id = local.secret_key_to_id["tailscale-oauth-secret"]
-}
-
-data "bitwarden-secrets_secret" "tailscale_tailnet" {
-  id = local.secret_key_to_id["tailscale-tailnet"]
-}
-
-data "bitwarden-secrets_secret" "cloudflare_api_token" {
-  id = local.secret_key_to_id["cloudflare-api-token"]
-}
-
-data "bitwarden-secrets_secret" "oci_config" {
-  id = local.secret_key_to_id["oci-config"]
-}
-
-data "bitwarden-secrets_secret" "proxmox_api_token" {
-  id = local.secret_key_to_id["proxmox-api-token"]
+resource "bitwarden-secrets_secret" "proxmox_api_token" {
+  key        = "proxmox-api-token"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "Proxmox API token secret. Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'proxmox-api-token' is empty. Please fill it in Bitwarden."
+    }
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -112,14 +178,14 @@ resource "bitwarden-secrets_secret" "cluster_vip" {
 }
 
 # -----------------------------------------------------------------------------
-# Computed values from secrets
+# Computed values from secrets (safe defaults for plan)
 # -----------------------------------------------------------------------------
 locals {
-  tailscale_tailnet = data.bitwarden-secrets_secret.tailscale_tailnet.value
+  tailscale_tailnet = bitwarden-secrets_secret.tailscale_tailnet.value != "" ? bitwarden-secrets_secret.tailscale_tailnet.value : "unset.ts.net"
 
-  oci_tenancy_ocid = regex("tenancy=([^\n]+)", data.bitwarden-secrets_secret.oci_config.value)[0]
-  oci_user_ocid    = regex("user=([^\n]+)", data.bitwarden-secrets_secret.oci_config.value)[0]
-  oci_region       = regex("region=([^\n]+)", data.bitwarden-secrets_secret.oci_config.value)[0]
+  oci_tenancy_ocid = try(regex("tenancy=([^\n]+)", bitwarden-secrets_secret.oci_config.value)[0], "unset")
+  oci_user_ocid    = try(regex("user=([^\n]+)", bitwarden-secrets_secret.oci_config.value)[0], "unset")
+  oci_region       = try(regex("region=([^\n]+)", bitwarden-secrets_secret.oci_config.value)[0], "eu-frankfurt-1")
 
   # Resolve cluster VIP from Bitwarden when available, otherwise use Terraform variable.
   cluster_vip = length(data.bitwarden-secrets_secret.cluster_vip) > 0 ? data.bitwarden-secrets_secret.cluster_vip[0].value : var.cluster_vip

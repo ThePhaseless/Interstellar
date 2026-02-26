@@ -41,5 +41,5 @@ resource "github_actions_variable" "proxmox_token_id" {
 resource "github_actions_secret" "proxmox_token" {
   repository      = split("/", var.github_repository)[1]
   secret_name     = "PROXMOX_VE_API_TOKEN"
-  plaintext_value = "${bitwarden-secrets_secret.proxmox_user.value}!${bitwarden-secrets_secret.proxmox_token_id.value}=${data.bitwarden-secrets_secret.proxmox_api_token.value}"
+  plaintext_value = "${bitwarden-secrets_secret.proxmox_user.value}!${bitwarden-secrets_secret.proxmox_token_id.value}=${bitwarden-secrets_secret.proxmox_api_token.value}"
 }

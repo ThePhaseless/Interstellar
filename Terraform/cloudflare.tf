@@ -7,7 +7,7 @@
 # Provider Configuration
 # -----------------------------------------------------------------------------
 provider "cloudflare" {
-  api_token = data.bitwarden-secrets_secret.cloudflare_api_token.value
+  api_token = bitwarden-secrets_secret.cloudflare_api_token.value != "" ? bitwarden-secrets_secret.cloudflare_api_token.value : "0000000000000000000000000000000000000000"
 }
 
 # -----------------------------------------------------------------------------

@@ -7,8 +7,8 @@
 # Provider Configuration
 # -----------------------------------------------------------------------------
 provider "tailscale" {
-  oauth_client_id     = data.bitwarden-secrets_secret.tailscale_oauth_client_id.id
-  oauth_client_secret = data.bitwarden-secrets_secret.tailscale_oauth_secret.value
+  oauth_client_id     = bitwarden-secrets_secret.tailscale_oauth_client_id.value != "" ? bitwarden-secrets_secret.tailscale_oauth_client_id.value : "unset"
+  oauth_client_secret = bitwarden-secrets_secret.tailscale_oauth_secret.value != "" ? bitwarden-secrets_secret.tailscale_oauth_secret.value : "unset"
   tailnet             = local.tailscale_tailnet
   scopes              = ["devices:core", "auth_keys", "dns", "oauth_keys", "policy_file"]
 }
