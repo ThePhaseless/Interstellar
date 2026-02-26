@@ -39,21 +39,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate GitHub App Token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ env.GH_APP_ID }}
-          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
-
-      - name: Install BWS CLI
-        run: |
-          curl -sSL https://github.com/bitwarden/sdk/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip -o bws.zip
-          unzip -o bws.zip
-          chmod +x bws
-          sudo mv bws /usr/local/bin/
-
-      # Fetch all secrets from Bitwarden (using IDs from GitHub variables)
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v2
         with:
@@ -72,6 +57,21 @@ jobs:
             ${{ vars.BWS_ID_GH_APP_ID }} > GH_APP_ID
             ${{ vars.BWS_ID_GH_APP_PRIVATE_KEY }} > GH_APP_PRIVATE_KEY
 
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
+
+      - name: Install BWS CLI
+        run: |
+          curl -sSL https://github.com/bitwarden/sdk/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip -o bws.zip
+          unzip -o bws.zip
+          chmod +x bws
+          sudo mv bws /usr/local/bin/
+
+      # Fetch all secrets from Bitwarden (using IDs from GitHub variables)
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
         env:
@@ -244,21 +244,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate GitHub App Token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ env.GH_APP_ID }}
-          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
-
-      - name: Install BWS CLI
-        run: |
-          curl -sSL https://github.com/bitwarden/sdk/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip -o bws.zip
-          unzip -o bws.zip
-          chmod +x bws
-          sudo mv bws /usr/local/bin/
-
-      # Fetch all secrets from Bitwarden (using IDs from GitHub variables)
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v2
         with:
@@ -277,6 +262,21 @@ jobs:
             ${{ vars.BWS_ID_GH_APP_ID }} > GH_APP_ID
             ${{ vars.BWS_ID_GH_APP_PRIVATE_KEY }} > GH_APP_PRIVATE_KEY
 
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
+
+      - name: Install BWS CLI
+        run: |
+          curl -sSL https://github.com/bitwarden/sdk/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip -o bws.zip
+          unzip -o bws.zip
+          chmod +x bws
+          sudo mv bws /usr/local/bin/
+
+      # Fetch all secrets from Bitwarden (using IDs from GitHub variables)
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
         env:
