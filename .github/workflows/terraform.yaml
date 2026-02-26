@@ -11,12 +11,12 @@ on:
     branches: [main, migration]
     paths:
       - "Terraform/**"
-      - ".github/workflows/terraform.yaml"
+      - ".github/workflows/**"
   pull_request:
     branches: [main, migration]
     paths:
       - "Terraform/**"
-      - ".github/workflows/terraform.yaml"
+      - ".github/workflows/**"
 
 env:
   TF_VERSION: "1.14.6"
