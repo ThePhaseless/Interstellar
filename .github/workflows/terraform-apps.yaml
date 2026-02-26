@@ -88,8 +88,14 @@ jobs:
             echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
             sudo tailscale set --operator="$USER"
             tailscale configure kubeconfig talos-1
-            # Tailscale defaults to :443 when no port is present, but Talos API is on :6443.
-            sed -E -i 's#(server: https://[^:/[:space:]]+)$#\1:6443#' "$HOME/.kube/config"
+            TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
+            if [ -z "$TS_TALOS_IP" ]; then
+              echo "::error::Could not resolve Tailscale IP for talos-1"
+              tailscale status || true
+              exit 1
+            fi
+            sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
+            echo "Using Kubernetes API endpoint https://${TS_TALOS_IP}:6443"
           fi
 
           chmod 600 "$HOME/.kube/config"
@@ -258,8 +264,14 @@ jobs:
             echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
             sudo tailscale set --operator="$USER"
             tailscale configure kubeconfig talos-1
-            # Tailscale defaults to :443 when no port is present, but Talos API is on :6443.
-            sed -E -i 's#(server: https://[^:/[:space:]]+)$#\1:6443#' "$HOME/.kube/config"
+            TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
+            if [ -z "$TS_TALOS_IP" ]; then
+              echo "::error::Could not resolve Tailscale IP for talos-1"
+              tailscale status || true
+              exit 1
+            fi
+            sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
+            echo "Using Kubernetes API endpoint https://${TS_TALOS_IP}:6443"
           fi
 
           chmod 600 "$HOME/.kube/config"
