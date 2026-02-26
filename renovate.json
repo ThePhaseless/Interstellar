@@ -1,12 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "addLabels": [
-    "branch:{{baseBranch}}"
-  ],
-  "baseBranchPatterns": [
-    "main",
-    "migration"
-  ],
   "extends": [
     "config:recommended"
   ],
