@@ -9,10 +9,6 @@ data "bitwarden-secrets_projects" "all" {}
 
 locals {
   secret_key_to_id = { for s in data.bitwarden-secrets_list_secrets.all.secrets : s.key => s.id }
-  bitwarden_project_id = try(
-    [for p in data.bitwarden-secrets_projects.all.projects : p.id if p.name == "interstellar"][0],
-    data.bitwarden-secrets_projects.all.projects[0].id
-  )
   bitwarden_generated_project_id = try(
     [for p in data.bitwarden-secrets_projects.all.projects : p.id if p.name == "interstellar-generated"][0],
     null

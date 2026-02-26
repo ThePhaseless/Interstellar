@@ -37,7 +37,7 @@ spec:
               value: "https://watch.nerine.dev"
             # Note: Jellyfin uses its own native authentication
             # Users log in directly with Jellyfin accounts
-            # Jellyseerr uses Jellyfin as its auth provider
+            # Seerr uses Jellyfin as its auth provider
           volumeMounts:
             - name: config
               mountPath: /config

@@ -1,14 +1,14 @@
 # =============================================================================
-# Seerr Deployment (formerly Jellyseerr)
+# Seerr Deployment (successor to Jellyseerr)
 # =============================================================================
 # Uses Jellyfin as authentication provider (no external OAuth required)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jellyseerr
+  name: seerr
   namespace: media
   labels:
-    app: jellyseerr
+    app: seerr
   annotations:
     reloader.stakater.com/auto: "true"
 spec:
@@ -16,13 +16,12 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: jellyseerr
+      app: seerr
   template:
     metadata:
       labels:
-        app: jellyseerr
+        app: seerr
     spec:
-      serviceAccountName: arr-configurator
       securityContext:
         fsGroup: 1000
 
@@ -36,7 +35,7 @@ spec:
               mountPath: /app/config
 
       containers:
-        - name: jellyseerr
+        - name: seerr
           image: ghcr.io/seerr-team/seerr:v3.0.1
           securityContext:
             runAsUser: 1000
@@ -72,42 +71,7 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
 
-        # Configurator sidecar - sets up Jellyfin, Sonarr, Radarr
-        - name: configurator
-          image: curlimages/curl:8.18.0
-          command:
-            - /bin/sh
-            - /scripts/configure-jellyseerr.sh
-          env:
-            # API keys from arr-api-keys secret
-            - name: SONARR_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: arr-api-keys
-                  key: sonarr-api-key
-                  optional: true
-            - name: RADARR_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: arr-api-keys
-                  key: radarr-api-key
-                  optional: true
-          volumeMounts:
-            - name: scripts
-              mountPath: /scripts
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
-
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: jellyseerr-config
-        - name: scripts
-          configMap:
-            name: arr-scripts
-            defaultMode: 0755
+            claimName: seerr-config

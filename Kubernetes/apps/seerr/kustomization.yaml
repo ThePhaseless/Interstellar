@@ -1,5 +1,5 @@
 # =============================================================================
-# Jellyseerr Kustomization
+# Seerr Kustomization
 # =============================================================================
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -14,5 +14,5 @@ resources:
 
 labels:
   - pairs:
-      app: jellyseerr
+      app: seerr
     includeSelectors: true

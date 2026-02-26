@@ -19,7 +19,7 @@ spec:
     - noatime
   nfs:
     server: REPLACED_BY_KUSTOMIZE
-    path: /Storage/media
+    path: /Storage/Media
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -52,7 +52,7 @@ spec:
     - noatime
   nfs:
     server: REPLACED_BY_KUSTOMIZE
-    path: /Storage/media
+    path: /Storage/Media
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -85,7 +85,7 @@ spec:
     - noatime
   nfs:
     server: REPLACED_BY_KUSTOMIZE
-    path: /Storage/media/downloads
+    path: /Storage/Media/Downloads
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -151,7 +151,7 @@ spec:
     - noatime
   nfs:
     server: REPLACED_BY_KUSTOMIZE
-    path: /Storage/photos
+    path: /Storage/Photos
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

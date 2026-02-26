@@ -87,10 +87,14 @@ while true; do
     fi
   fi
 
-  kubectl patch secret arr-api-keys -n media \
-    --type='json' \
-    -p="[{\"op\": \"replace\", \"path\": \"/data/${APP_NAME}-api-key\", \"value\": \"$(echo -n $API_KEY | base64)\"}]"
+  if [ "${API_KEY}" != "${LAST_API_KEY:-}" ]; then
+    kubectl patch secret arr-api-keys -n media \
+      --type='json' \
+      -p="[{\"op\": \"replace\", \"path\": \"/data/${APP_NAME}-api-key\", \"value\": \"$(echo -n $API_KEY | base64)\"}]"
+    echo "Updated arr-api-keys secret with $APP_NAME API key"
+    LAST_API_KEY="$API_KEY"
+  fi
 
-  echo "Updated arr-api-keys secret with $APP_NAME API key"
-  exit 0
+  # Sleep and re-check so the container stays alive (sidecar must not exit)
+  sleep 60
 done
