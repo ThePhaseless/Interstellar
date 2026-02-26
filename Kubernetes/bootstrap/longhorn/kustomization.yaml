@@ -1,0 +1,50 @@
+# =============================================================================
+# LongHorn Storage Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: longhorn-system
+
+resources:
+  - namespace.yaml
+  - ingress.yaml
+
+helmCharts:
+  - name: longhorn
+    repo: https://charts.longhorn.io
+    version: 1.7.2
+    releaseName: longhorn
+    namespace: longhorn-system
+    includeCRDs: true
+    valuesInline:
+      defaultSettings:
+        storageOverProvisioningPercentage: 150
+
+patches:
+  - target:
+      kind: Namespace
+      name: longhorn-system
+    patch: |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: longhorn-system
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
+          pod-security.kubernetes.io/audit: privileged
+          pod-security.kubernetes.io/warn: privileged
+  - target:
+      kind: Job
+      name: longhorn-post-upgrade
+    patch: |
+      - op: add
+        path: /spec/ttlSecondsAfterFinished
+        value: 300
+  - target:
+      kind: Job
+      name: longhorn-pre-upgrade
+    patch: |
+      - op: add
+        path: /spec/ttlSecondsAfterFinished
+        value: 300

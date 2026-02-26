@@ -1,0 +1,25 @@
+# =============================================================================
+# NodeFeatureRule: Intel GPU Detection
+# =============================================================================
+# Maps NFD-detected Intel VGA device (PCI class 0300, vendor 8086) to the
+# intel.feature.node.kubernetes.io/gpu label used by the GPU plugin DaemonSet.
+# =============================================================================
+apiVersion: nfd.k8s-sigs.io/v1alpha1
+kind: NodeFeatureRule
+metadata:
+  name: intel-gpu
+  namespace: node-feature-discovery
+spec:
+  rules:
+    - name: intel-gpu
+      labels:
+        intel.feature.node.kubernetes.io/gpu: "true"
+      matchFeatures:
+        - feature: pci.device
+          matchExpressions:
+            vendor:
+              op: In
+              value: ["8086"]
+            class:
+              op: In
+              value: ["0300"]

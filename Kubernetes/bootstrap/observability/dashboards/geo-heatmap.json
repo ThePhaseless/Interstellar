@@ -1,0 +1,401 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Basemap",
+          "type": "default"
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "field": "Value",
+                  "fixed": "dark-green"
+                },
+                "opacity": 0.7,
+                "size": {
+                  "field": "Value",
+                  "max": 30,
+                  "min": 3
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                }
+              }
+            },
+            "location": {
+              "gazetteer": "public/gazetteer/countries.json",
+              "lookup": "geoip_country_code",
+              "mode": "lookup"
+            },
+            "name": "Requests",
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "id": "zero",
+          "lat": 30,
+          "lon": 10,
+          "zoom": 2
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} [$__range]))",
+          "instant": true,
+          "legendFormat": "{{ geoip_country_code }}",
+          "refId": "total"
+        }
+      ],
+      "title": "All Requests by Country",
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Basemap",
+          "type": "default"
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "fixed": "green"
+                },
+                "opacity": 0.7,
+                "size": {
+                  "field": "Value",
+                  "max": 25,
+                  "min": 3
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                }
+              }
+            },
+            "location": {
+              "gazetteer": "public/gazetteer/countries.json",
+              "lookup": "geoip_country_code",
+              "mode": "lookup"
+            },
+            "name": "Accepted",
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "id": "zero",
+          "lat": 30,
+          "lon": 10,
+          "zoom": 2
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus < 400 [$__range]))",
+          "instant": true,
+          "legendFormat": "{{ geoip_country_code }}",
+          "refId": "accepted"
+        }
+      ],
+      "title": "Accepted Requests by Country",
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Basemap",
+          "type": "default"
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "fixed": "red"
+                },
+                "opacity": 0.7,
+                "size": {
+                  "field": "Value",
+                  "max": 25,
+                  "min": 3
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                }
+              }
+            },
+            "location": {
+              "gazetteer": "public/gazetteer/countries.json",
+              "lookup": "geoip_country_code",
+              "mode": "lookup"
+            },
+            "name": "Blocked",
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "id": "zero",
+          "lat": 30,
+          "lon": 10,
+          "zoom": 2
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus = 403 [$__range]))",
+          "instant": true,
+          "legendFormat": "{{ geoip_country_code }}",
+          "refId": "blocked"
+        }
+      ],
+      "title": "Blocked Requests by Country (403)",
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 26
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(15, sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} [$__range])))",
+          "instant": true,
+          "legendFormat": "{{ geoip_country_code }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 15 Countries \u2014 All Requests",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 26
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(15, sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus = 403 [$__range])))",
+          "instant": true,
+          "legendFormat": "{{ geoip_country_code }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 15 Countries \u2014 Blocked",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 30,
+            "lineWidth": 2,
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Accepted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Blocked"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 26
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus < 400 [$__interval]))",
+          "legendFormat": "Accepted",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus >= 400 [$__interval]))",
+          "legendFormat": "Blocked",
+          "refId": "B"
+        }
+      ],
+      "title": "Accepted vs Blocked Over Time",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["geo", "security", "crowdsec"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "title": "Geo Request Heatmap",
+  "uid": "geo-heatmap"
+}

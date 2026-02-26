@@ -2,3 +2,4 @@
 oci-config
 terraform.tfstate*
 terraform.tfvars
+backend.auto.hcl

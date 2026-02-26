@@ -1,0 +1,25 @@
+# =============================================================================
+# CoreDNS Deployment Patch
+# =============================================================================
+# Mounts the coredns-custom ConfigMap at /etc/coredns/custom/ so the
+# `import /etc/coredns/custom/*.override` directive in the Corefile picks
+# up drop-in override files.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      containers:
+        - name: coredns
+          volumeMounts:
+            - name: custom-config-volume
+              mountPath: /etc/coredns/custom
+              readOnly: true
+      volumes:
+        - name: custom-config-volume
+          configMap:
+            name: coredns-custom
+            optional: true

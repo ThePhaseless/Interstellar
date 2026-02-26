@@ -1,0 +1,31 @@
+# =============================================================================
+# ArgoCD IngressRoute (Tailscale-only + Authentik SSO)
+# =============================================================================
+# Access restricted to:
+#   1. Tailscale/LAN IPs via private-chain middleware
+#   2. Authentik admin group (configure in Authentik UI:
+#      Applications > argocd > Policy Bindings → allow "admin" group only)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`argocd.nerine.dev`)
+      kind: Rule
+      services:
+        - name: argocd-server
+          port: 80
+      middlewares:
+        - name: private-chain
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

@@ -1,0 +1,20 @@
+# =============================================================================
+# Prowlarr Tailscale Service
+# =============================================================================
+# Exposes Prowlarr directly via Tailscale for Terraform and direct API access
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr-tailscale
+  namespace: media
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "prowlarr"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9696
+      targetPort: http
+  selector:
+    app: prowlarr

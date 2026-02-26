@@ -1,0 +1,85 @@
+# =============================================================================
+# Postfix SMTP Relay Deployment
+# =============================================================================
+# Lightweight Postfix relay that forwards all outbound email through
+# Oracle Email Delivery Service. Cluster services connect to this relay
+# instead of directly to OCI SMTP (centralised credential management).
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postfix
+  namespace: utilities
+  labels:
+    app: postfix
+spec:
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: postfix
+  template:
+    metadata:
+      labels:
+        app: postfix
+    spec:
+      containers:
+        - name: postfix
+          image: boky/postfix:v4.3.0
+          env:
+            # Relay host — OCI Email Delivery SMTP endpoint
+            - name: RELAYHOST
+              valueFrom:
+                secretKeyRef:
+                  name: smtp-credentials
+                  key: host
+            # SMTP authentication credentials
+            - name: RELAYHOST_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: smtp-credentials
+                  key: username
+            - name: RELAYHOST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: smtp-credentials
+                  key: password
+            # Use port 587 with STARTTLS for OCI Email Delivery
+            - name: RELAYHOST_PORT
+              value: "587"
+            # Allowed sender networks (cluster pod CIDR + service CIDR)
+            - name: ALLOWED_SENDER_DOMAINS
+              value: "nerine.dev"
+            - name: MYNETWORKS
+              value: "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.0/8"
+            # Mail hostname
+            - name: HOSTNAME
+              value: "mail.nerine.dev"
+            # Message size limit (25MB)
+            - name: MESSAGE_SIZE_LIMIT
+              value: "26214400"
+            # Log to stdout
+            - name: LOG_FORMAT
+              value: "json"
+            - name: TZ
+              value: "UTC"
+          ports:
+            - name: smtp
+              containerPort: 587
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            tcpSocket:
+              port: smtp
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: smtp
+            initialDelaySeconds: 10
+            periodSeconds: 10

@@ -1,0 +1,19 @@
+# =============================================================================
+# ClamAV Malware Scanning Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: security
+
+resources:
+  - namespace.yaml
+  - clamav.yaml
+  - externalsecret.yaml
+
+configMapGenerator:
+  - name: clamav-config
+    files:
+      - freshclam.conf=config/freshclam.conf
+    options:
+      disableNameSuffixHash: true

@@ -1,0 +1,28 @@
+# =============================================================================
+# Intel GPU Operator Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - nfd-namespace.yaml
+  - gpu-plugin.yaml
+  - gpu-feature-rule.yaml
+  - gpu-test.yaml
+
+helmCharts:
+  - name: node-feature-discovery
+    repo: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+    version: 0.18.3
+    releaseName: node-feature-discovery
+    namespace: node-feature-discovery
+    includeCRDs: true
+    valuesInline:
+      master:
+        replicaCount: 1
+      worker:
+        tolerations:
+          - effect: NoSchedule
+            key: node-role.kubernetes.io/control-plane
+            operator: Exists

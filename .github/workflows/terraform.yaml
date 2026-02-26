@@ -1,0 +1,238 @@
+# =============================================================================
+# Terraform CI/CD Workflow
+# =============================================================================
+# Runs Terraform plan on PRs and apply on main branch pushes.
+# Uses Bitwarden Secrets Manager for all credentials.
+
+name: Terraform
+
+on:
+  push:
+    branches: [main, migration]
+    paths:
+      - "Terraform/**"
+      - ".github/workflows/terraform.yaml"
+  pull_request:
+    branches: [main, migration]
+    paths:
+      - "Terraform/**"
+      - ".github/workflows/terraform.yaml"
+
+env:
+  TF_VERSION: "1.11.4"
+  TF_WORKING_DIR: "./Terraform"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Terraform Plan (runs on all PRs and pushes)
+  # ---------------------------------------------------------------------------
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Fetch all secrets from Bitwarden (single project)
+      - name: Get Secrets from Bitwarden
+        uses: bitwarden/sm-action@v2
+        with:
+          access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+          secrets: |
+            oci-config > OCI_CONFIG
+            oci-private-key > OCI_PRIVATE_KEY
+            oci-namespace > OCI_NAMESPACE
+            tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
+            tailscale-oauth-secret > TS_OAUTH_SECRET
+            tf-state-bucket > TF_STATE_BUCKET
+            proxmox-api-token > PROXMOX_API_TOKEN_VALUE
+
+      # Set Bitwarden provider environment variables
+      - name: Set Provider Environment Variables
+        run: |
+          echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          echo "BW_ORGANIZATION_ID=${{ secrets.BW_ORGANIZATION_ID }}" >> $GITHUB_ENV
+          echo "PROXMOX_VE_API_TOKEN=root@pam!terraform=$PROXMOX_API_TOKEN_VALUE" >> $GITHUB_ENV
+
+      # Connect to Tailscale for Proxmox access
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Write OCI config
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.oci"
+          printf "%s" "$OCI_CONFIG" > "$HOME/.oci/config"
+          printf "%s" "$OCI_PRIVATE_KEY" > "$HOME/.oci/oci_api_key.pem"
+          chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
+
+          if grep -q '^key_file=' "$HOME/.oci/config"; then
+            sed -i "s|^key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|" "$HOME/.oci/config"
+          else
+            echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
+            -backend-config="namespace=${{ env.OCI_NAMESPACE }}"
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+        continue-on-error: true
+
+      # Post plan output to PR
+      - name: Update Pull Request
+        uses: actions/github-script@v8
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: ${{ steps.plan.outputs.stdout }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`hcl
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      # Upload plan for apply job
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v6
+        with:
+          name: tfplan
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
+
+  # ---------------------------------------------------------------------------
+  # Terraform Apply (only on main branch)
+  # ---------------------------------------------------------------------------
+  apply:
+    name: Apply
+    runs-on: ubuntu-latest
+    needs: plan
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: server
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Fetch all secrets from Bitwarden (single project)
+      - name: Get Secrets from Bitwarden
+        uses: bitwarden/sm-action@v2
+        with:
+          access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+          secrets: |
+            oci-config > OCI_CONFIG
+            oci-private-key > OCI_PRIVATE_KEY
+            oci-namespace > OCI_NAMESPACE
+            tailscale-oauth-client-id > TS_OAUTH_CLIENT_ID
+            tailscale-oauth-secret > TS_OAUTH_SECRET
+            tf-state-bucket > TF_STATE_BUCKET
+            proxmox-api-token > PROXMOX_API_TOKEN_VALUE
+
+      # Set Bitwarden provider environment variables
+      - name: Set Provider Environment Variables
+        run: |
+          echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          echo "BW_ORGANIZATION_ID=${{ secrets.BW_ORGANIZATION_ID }}" >> $GITHUB_ENV
+          echo "PROXMOX_VE_API_TOKEN=root@pam!terraform=$PROXMOX_API_TOKEN_VALUE" >> $GITHUB_ENV
+
+      # Connect to Tailscale for Proxmox access
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ env.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Write OCI config
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.oci"
+          printf "%s" "$OCI_CONFIG" > "$HOME/.oci/config"
+          printf "%s" "$OCI_PRIVATE_KEY" > "$HOME/.oci/oci_api_key.pem"
+          chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
+
+          if grep -q '^key_file=' "$HOME/.oci/config"; then
+            sed -i "s|^key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|" "$HOME/.oci/config"
+          else
+            echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v7
+        with:
+          name: tfplan
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
+            -backend-config="namespace=${{ env.OCI_NAMESPACE }}"
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}

@@ -1,13 +1,7 @@
 {
-  "files.associations": {
-    "Config/Home/HomeAssistant/*.yaml": "home-assistant",
-    "Ansible/**/*.yaml": "ansible"
-  },
-  "yaml.schemas": {
-    "https://www.authelia.com/schemas/v4.38/json-schema/configuration.json": "./Config/Auth/authelia.yaml"
-  },
-  "python.terminal.activateEnvInCurrentTerminal": true,
-  "python.terminal.activateEnvironment": true,
+  "ansible.lightspeed.enabled": false,
+  "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "cSpell.ignoreRegExpList": [".*arr"],
   "cSpell.words": [
     "crowdsec",
     "jellyfin",
@@ -22,12 +16,31 @@
     "tflint",
     "traefik"
   ],
-  "cSpell.ignoreRegExpList": [".*arr"],
-  "yaml.customTags": ["!env_var", "!include_dir_merge_named"],
+  "chat.tools.terminal.autoApprove": {
+    "./scripts/lint-kubernetes.sh": true
+  },
+  "files.associations": {
+    "Ansible/**/*.yaml": "ansible",
+    "Config/Home/HomeAssistant/*.yaml": "home-assistant"
+  },
+  "json.schemaDownload.trustedDomains": {
+    "https://docs.renovatebot.com/renovate-schema.json": true,
+    "https://json-schema.org/": true,
+    "https://json.schemastore.org/": true,
+    "https://raw.githubusercontent.com/": true,
+    "https://schemastore.azurewebsites.net/": true,
+    "https://www.schemastore.org/": true
+  },
+  "opentofu.experimentalFeatures.prefillRequiredFields": true,
+  "opentofu.experimentalFeatures.validateOnSave": true,
   "python.defaultInterpreterPath": "./.venv/bin/python",
-  "ansible.lightspeed.enabled": false,
-  "ansible.python.interpreterPath": "/workspaces/Interstellar/.venv/bin/python",
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.terminal.activateEnvironment": true,
   "vs-kubernetes": {
     "disable-linters": ["resource-limits"]
+  },
+  "yaml.customTags": ["!env_var", "!ENV", "!include_dir_merge_named"],
+  "yaml.schemas": {
+    "kubernetes": "Kubernetes/bootstrap/observability/loki.yaml"
   }
 }

@@ -1,41 +1,96 @@
-- name: Setup Containers
+# Setup Proxmox host services
+# - NFS server exporting ZFS storage pool to TalosOS cluster
+
+- name: Configure Proxmox NFS Server
   hosts: proxmox
+  become: true
   vars_files:
-    - ../.private/variables.yaml
+    - vars/proxmox.yaml
   tasks:
-    - name: Enable ip forwarding
-      register: enable_ip_forward
-      ansible.posix.sysctl:
-        name: net.ipv4.ip_forward
-        value: 1
+    - name: Install NFS kernel server
+      ansible.builtin.apt:
+        name: nfs-kernel-server
         state: present
-        sysctl_file: /etc/sysctl.d/99-ipv4-forward.conf
-        reload: true
+        update_cache: true
 
-    - name: Disable swap for current session
-      ansible.builtin.command: swapoff -a
-      when: ansible_swaptotal_mb > 0
+    - name: Ensure export directories exist
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        mode: "0755"
+      loop: "{{ nfs_exports }}"
+
+    - name: Configure NFS exports
+      ansible.builtin.lineinfile:
+        path: /etc/exports
+        regexp: "^{{ item.path | regex_escape }}\\s"
+        line: "{{ item.path }} {{ nfs_allowed_hosts | map('regex_replace', '$', '(rw,sync,no_subtree_check,no_root_squash)') | join(' ') }}"
+        state: present
+      loop: "{{ nfs_exports }}"
+      notify: Re-export NFS shares
+
+    - name: Enable and start NFS server
+      ansible.builtin.systemd:
+        name: nfs-kernel-server
+        enabled: true
+        state: started
+
+    # -- Health checks --
+    - name: Flush handlers before health checks
+      ansible.builtin.meta: flush_handlers
+
+    - name: Verify NFS server is running
+      ansible.builtin.systemd:
+        name: nfs-kernel-server
+      register: nfs_service
+      failed_when: nfs_service.status.ActiveState != "active"
+
+    - name: Verify NFS exports are active
+      ansible.builtin.command:
+        cmd: exportfs -v
+      register: exportfs_output
       changed_when: false
-      become: true
+      failed_when: item.path not in exportfs_output.stdout
+      loop: "{{ nfs_exports }}"
 
-    - name: Add nomodeset to GRUB_CMDLINE_LINUX_DEFAULT
-      ansible.builtin.lineinfile:
-        path: /etc/default/grub
-        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT="(.*)"'
-        line: 'GRUB_CMDLINE_LINUX_DEFAULT="\1 nomodeset"'
-        backrefs: true
-      when: not (lookup('file', '/etc/default/grub') | regex_search('GRUB_CMDLINE_LINUX_DEFAULT=".*nomodeset.*"'))
+    - name: Test NFS shares are mountable
+      ansible.posix.mount:
+        path: "/mnt/nfs-test-{{ idx }}"
+        src: "127.0.0.1:{{ item.path }}"
+        fstype: nfs
+        opts: nfsvers=4.2,noatime
+        state: mounted
+      loop: "{{ nfs_exports }}"
+      loop_control:
+        index_var: idx
 
-    - name: Disable swap permanently, persist reboots
-      ansible.builtin.lineinfile:
-        path: /etc/fstab
-        line: "/dev/pve/swap none swap sw 0 0"
+    - name: Verify test mounts have content access
+      ansible.builtin.command:
+        cmd: "ls /mnt/nfs-test-{{ idx }}"
+      register: mount_ls
+      changed_when: false
+      loop: "{{ nfs_exports }}"
+      loop_control:
+        index_var: idx
 
-    - name: Reboot ProxmoxVE
-      ansible.builtin.reboot:
-        msg: "Rebooting to apply sysctl changes"
-        connect_timeout: 5
-      tags:
-        - skip_ansible_lint
-      register: reboot_result
-      ignore_errors: true
+    - name: Unmount test shares
+      ansible.posix.mount:
+        path: "/mnt/nfs-test-{{ idx }}"
+        state: absent
+      loop: "{{ nfs_exports }}"
+      loop_control:
+        index_var: idx
+
+    - name: Report NFS health
+      ansible.builtin.debug:
+        msg: >-
+          NFS health check passed:
+          service={{ nfs_service.status.ActiveState }},
+          exports={{ nfs_exports | map(attribute='path') | list | join(', ') }},
+          mounts=ok
+
+  handlers:
+    - name: Re-export NFS shares
+      ansible.builtin.command:
+        cmd: exportfs -ra
+      changed_when: true

@@ -1,0 +1,16 @@
+# =============================================================================
+# Seerr Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: seerr
+  namespace: media
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 5055
+      targetPort: http
+  selector:
+    app: seerr

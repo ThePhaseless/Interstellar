@@ -1,0 +1,191 @@
+# =============================================================================
+# Sonarr Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: media
+  labels:
+    app: sonarr
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9707"
+    spec:
+      serviceAccountName: arr-configurator
+
+      initContainers:
+        - name: set-external-auth
+          image: busybox:1.37
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              CONFIG="/config/config.xml"
+              if [ ! -f "$CONFIG" ]; then
+                printf '<Config>\n  <AuthenticationMethod>External</AuthenticationMethod>\n  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>\n</Config>\n' > "$CONFIG"
+                echo "Created config.xml with External auth"
+              else
+                sed -i 's|<AuthenticationMethod>[^<]*</AuthenticationMethod>|<AuthenticationMethod>External</AuthenticationMethod>|' "$CONFIG"
+                sed -i 's|<AuthenticationRequired>[^<]*</AuthenticationRequired>|<AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>|' "$CONFIG"
+                echo "Updated config.xml auth settings"
+              fi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+
+      containers:
+        - name: sonarr
+          image: linuxserver/sonarr:4.0.16
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "UTC"
+          ports:
+            - name: http
+              containerPort: 8989
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+            - name: media
+              mountPath: /media
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+        - name: api-extractor
+          image: bitnami/kubectl:latest
+          command:
+            [
+              "/bin/bash",
+              "/scripts/extract-api-key.sh",
+              "sonarr",
+              "/config/config.xml",
+            ]
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+
+        - name: exportarr
+          image: ghcr.io/onedr0p/exportarr:v2.3.0
+          args: ["sonarr"]
+          env:
+            - name: PORT
+              value: "9707"
+            - name: URL
+              value: "http://localhost:8989"
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arr-api-keys
+                  key: sonarr-api-key
+          ports:
+            - name: metrics
+              containerPort: 9707
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 30
+
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: sonarr-config
+        - name: scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-config
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarr
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`sonarr.nerine.dev`)
+      kind: Rule
+      services:
+        - name: sonarr
+          port: 8989
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+        - name: authentik
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

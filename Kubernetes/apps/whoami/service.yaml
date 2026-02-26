@@ -1,0 +1,16 @@
+# =============================================================================
+# Whoami Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+  namespace: utilities
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  selector:
+    app: whoami

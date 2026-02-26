@@ -1,0 +1,16 @@
+# =============================================================================
+# Radarr Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr
+  namespace: media
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 7878
+      targetPort: http
+  selector:
+    app: radarr

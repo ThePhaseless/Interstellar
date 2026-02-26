@@ -1,33 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ],
-  "baseBranchPatterns": [
-    "main",
-    "migration"
-  ],
-  "addLabels": [
-    "branch:{{baseBranch}}"
-  ],
+  "addLabels": ["branch:{{baseBranch}}"],
+  "baseBranches": ["main", "migration"],
+  "extends": ["config:recommended"],
+  "kubernetes": {
+    "managerFilePatterns": ["Kubernetes/**/*.yaml"]
+  },
   "packageRules": [
     {
+      "automerge": true,
       "groupName": "All non-major dependencies",
       "groupSlug": "all-minor-patch",
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "matchPackageNames": [
-        "*"
-      ],
-      "automerge": true,
-      "ignoreTests": true
+      "ignoreTests": true,
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["minor", "patch"]
     }
-  ],
-  "kubernetes": {
-    "managerFilePatterns": [
-      "Kubernetes/**/*.yaml"
-    ]
-  }
+  ]
 }

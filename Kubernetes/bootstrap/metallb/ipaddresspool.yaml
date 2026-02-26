@@ -1,0 +1,15 @@
+# =============================================================================
+# MetalLB IP Address Pool
+# =============================================================================
+# Reserved IPs for LoadBalancer services on the home LAN subnet
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: cluster-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    # 192.168.1.11-192.168.1.20 reserved for LoadBalancer services
+    - 192.168.1.11-192.168.1.20
+  autoAssign: true
+  avoidBuggyIPs: true

@@ -1,0 +1,78 @@
+# =============================================================================
+# Authentik Bootstrap Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: authentik
+
+resources:
+  - namespace.yaml
+  - externalsecret.yaml
+  - ingress.yaml
+
+helmCharts:
+  - name: authentik
+    repo: https://charts.goauthentik.io
+    version: 2025.12.4
+    releaseName: authentik
+    namespace: authentik
+    valuesInline:
+      authentik:
+        secret_key: "" # Set via AUTHENTIK_SECRET_KEY env var from secret
+        # Enable debug logging to capture detailed OAuth/token exchanges
+        log_level: debug
+        error_reporting:
+          enabled: false
+        postgresql:
+          password: "" # Set via AUTHENTIK_POSTGRESQL__PASSWORD env var from secret
+        email:
+          host: "postfix.utilities.svc.cluster.local"
+          port: 587
+          username: ""
+          password: ""
+          use_tls: false
+          use_ssl: false
+          timeout: 30
+          from: "noreply@nerine.dev"
+
+      global:
+        env:
+          - name: AUTHENTIK_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: authentik-secrets
+                key: authentik-secret-key
+          - name: AUTHENTIK_POSTGRESQL__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: authentik-secrets
+                key: authentik-postgresql-password
+          - name: AUTHENTIK_BOOTSTRAP_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: authentik-secrets
+                key: authentik-bootstrap-token
+
+      server:
+        ingress:
+          enabled: false # Using Traefik IngressRoute instead
+
+      worker: {}
+
+      # --- Embedded PostgreSQL ---
+      postgresql:
+        enabled: true
+        auth:
+          existingSecret: authentik-secrets
+          secretKeys:
+            userPasswordKey: authentik-postgresql-password
+        primary:
+          persistence:
+            enabled: true
+            size: 5Gi
+            storageClass: longhorn
+
+      # --- Service Account (required for embedded outpost) ---
+      serviceAccount:
+        create: true

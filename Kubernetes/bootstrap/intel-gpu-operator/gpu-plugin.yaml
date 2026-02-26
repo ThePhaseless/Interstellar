@@ -1,0 +1,68 @@
+# =============================================================================
+# Intel GPU Device Plugin DaemonSet
+# =============================================================================
+# Deploys the Intel GPU device plugin directly as a DaemonSet on GPU nodes.
+# This approach avoids the operator + cert-manager dependency.
+#
+# Docs: https://intel.github.io/intel-device-plugins-for-kubernetes/
+# =============================================================================
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: intel-gpu-plugin
+  namespace: intel-device-plugins
+  labels:
+    app: intel-gpu-plugin
+spec:
+  selector:
+    matchLabels:
+      app: intel-gpu-plugin
+  template:
+    metadata:
+      labels:
+        app: intel-gpu-plugin
+    spec:
+      nodeSelector:
+        intel.feature.node.kubernetes.io/gpu: "true"
+      initContainers:
+        - name: init-device-check
+          image: busybox:1.37
+          command: ["sh", "-c", "ls /dev/dri/ && echo 'GPU device found'"]
+          volumeMounts:
+            - name: devfs
+              mountPath: /dev/dri
+              readOnly: true
+      containers:
+        - name: gpu-plugin
+          image: intel/intel-gpu-plugin:0.35.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          args:
+            - -shared-dev-num=5
+            - -allocation-policy=balanced
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: devfs
+              mountPath: /dev/dri
+              readOnly: true
+            - name: sysfs
+              mountPath: /sys/class/drm
+              readOnly: true
+            - name: kubeletsockets
+              mountPath: /var/lib/kubelet/device-plugins
+      volumes:
+        - name: devfs
+          hostPath:
+            path: /dev/dri
+        - name: sysfs
+          hostPath:
+            path: /sys/class/drm
+        - name: kubeletsockets
+          hostPath:
+            path: /var/lib/kubelet/device-plugins

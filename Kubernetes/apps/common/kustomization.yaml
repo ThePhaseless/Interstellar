@@ -1,0 +1,21 @@
+# =============================================================================
+# Common Resources Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - rbac.yaml
+  - media-pv.yaml
+  - externalsecrets.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: arr-scripts
+    namespace: media
+    files:
+      - scripts/extract-api-key.sh
+      - scripts/configure-seerr.sh
+      - scripts/configure-jellyfin.sh

@@ -1,0 +1,733 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: Infrastructure Alerts
+    folder: Alerts
+    interval: 1m
+    rules:
+      # -----------------------------------------------------------------------
+      # High CPU Usage – noDataState OK (no data = no problem)
+      # Severity critical so email is sent as well
+      # Query already filters > 80, so threshold gt:0 fires on any returned series
+      # -----------------------------------------------------------------------
+      - uid: high-cpu
+        title: High CPU Usage
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: CPU usage on {{ $labels.instance }} is above 80% for 5 minutes
+        labels:
+          severity: critical
+        isPaused: false
+
+      # -----------------------------------------------------------------------
+      # High Memory Usage – noDataState OK, severity critical for email
+      # -----------------------------------------------------------------------
+      - uid: high-memory
+        title: High Memory Usage
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Memory usage on {{ $labels.instance }} is above 85% for 5 minutes
+        labels:
+          severity: critical
+        isPaused: false
+
+      # -----------------------------------------------------------------------
+      # Pod CrashLooping – noDataState OK
+      # Query filters > 5 restarts, threshold gt:0 fires on any returned series
+      # -----------------------------------------------------------------------
+      - uid: pod-crashloop
+        title: Pod CrashLooping
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: increase(kube_pod_container_status_restarts_total[10m]) > 5
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping
+        labels:
+          severity: critical
+        isPaused: false
+
+      # -----------------------------------------------------------------------
+      # Pod Not Ready – JOIN with kube_pod_owner to exclude Job-owned pods.
+      # Fires when readiness is 0 for 5m, but only for ReplicaSet/StatefulSet/DaemonSet.
+      # -----------------------------------------------------------------------
+      - uid: pod-not-ready
+        title: Pod Not Ready
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: |
+                kube_pod_status_ready{condition="true"} == 0
+                * on(pod, namespace) group_left(owner_kind)
+                kube_pod_owner{owner_kind=~"ReplicaSet|StatefulSet|DaemonSet"}
+                * on(pod, namespace) group_left()
+                (kube_pod_status_phase{phase="Pending"} == 1 or kube_pod_status_phase{phase="Running"} == 1)
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.owner_kind }}) is not ready
+        labels:
+          severity: warning
+        isPaused: false
+
+      # -----------------------------------------------------------------------
+      # PVC Almost Full – noDataState OK
+      # Query filters > 85%, threshold gt:0 fires on any returned series
+      # -----------------------------------------------------------------------
+      - uid: pvc-almost-full
+        title: PVC Almost Full
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 85
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: PVC {{ $labels.persistentvolumeclaim }} is above 85% capacity
+        labels:
+          severity: warning
+        isPaused: false
+
+      # -----------------------------------------------------------------------
+      # Node Not Ready – FIX: same `== 0` / threshold bug as pod-not-ready.
+      # noDataState: Alerting because missing node metrics may mean node is down.
+      # -----------------------------------------------------------------------
+      - uid: node-not-ready
+        title: Node Not Ready
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: kube_node_status_condition{condition="Ready",status="true"}
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [1]
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: Alerting
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Node {{ $labels.node }} is not ready
+        labels:
+          severity: critical
+        isPaused: false
+
+      # -----------------------------------------------------------------------
+      # Certificate Expiring Soon – noDataState OK (no cert-manager = no certs)
+      # Query returns seconds remaining (positive), threshold gt:0 fires correctly
+      # -----------------------------------------------------------------------
+      - uid: cert-expiring
+        title: Certificate Expiring Soon
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: (certmanager_certificate_expiration_timestamp_seconds - time()) < 1209600
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 1h
+        annotations:
+          summary: Certificate {{ $labels.name }} expires in less than 14 days
+        labels:
+          severity: warning
+        isPaused: false
+
+      # -----------------------------------------------------------------------
+      # Longhorn Disk Under Pressure – FIX:
+      #   1. `longhorn_disk_status` metric does not exist in Longhorn; replaced
+      #      with `longhorn_node_status{condition="schedulable"}` (the correct
+      #      Longhorn metric for disk schedulability).
+      #   2. Fixed the `== 0` / `gt:0` threshold bug – raw metric queried,
+      #      threshold now `lt:1` so it fires when value is 0 (not schedulable).
+      #   3. This also resolves the duplicate-labels-{} evaluation error.
+      # -----------------------------------------------------------------------
+      - uid: longhorn-disk-pressure
+        title: Longhorn Disk Under Pressure
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: longhorn_node_status{condition="schedulable"}
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [1]
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Longhorn node {{ $labels.node }} is not schedulable (disk pressure)
+        labels:
+          severity: critical
+        isPaused: false
+
+      # -----------------------------------------------------------------------
+      # Longhorn Volume Degraded – FIX: `!= 1` returned value 0 for Unknown state
+      # which `gt:0` missed. Raw metric now queried; threshold `gt:1` fires only
+      # for Degraded (2) and Faulted (3), not Unknown (0) or Healthy (1).
+      # -----------------------------------------------------------------------
+      - uid: longhorn-volume-degraded
+        title: Longhorn Volume Degraded
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: longhorn_volume_robustness
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [1]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Longhorn volume {{ $labels.pvc }} in {{ $labels.pvc_namespace }} is degraded
+        labels:
+          severity: warning
+        isPaused: false
+
+      # -----------------------------------------------------------------------
+      # Longhorn Node Storage High – noDataState OK, severity critical for email
+      # Query returns ratio > 0.80, threshold gt:0 fires correctly
+      # -----------------------------------------------------------------------
+      - uid: longhorn-node-storage-high
+        title: Longhorn Node Storage High
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: (longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes) > 0.80
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: Longhorn node {{ $labels.node }} storage usage above 80%
+        labels:
+          severity: critical
+        isPaused: false
+
+contactPoints:
+  - orgId: 1
+    name: Discord
+    receivers:
+      - uid: discord-webhook
+        type: discord
+        settings:
+          url: ${DISCORD_WEBHOOK_URL}
+          message: '{{ template "discord_compact" . }}'
+        disableResolveMessage: false
+  - orgId: 1
+    name: Email
+    receivers:
+      - uid: email-alerts
+        type: email
+        settings:
+          addresses: admin@nerine.dev
+          singleEmail: true
+        disableResolveMessage: false
+
+# Custom notification templates
+templates:
+  - orgId: 1
+    name: discord_compact
+    template: |
+      {{ define "discord_compact" -}}
+      {{- if .Alerts.Firing -}}
+      ## 🚨 {{ len .Alerts.Firing }} Alert(s) Firing
+      {{ range .Alerts.Firing -}}
+      ### 🔴 {{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}
+      > **Severity:** `{{ index .Labels "severity" | title }}`
+      > **Summary:** {{ index .Annotations "summary" }}
+      {{ if .DashboardURL }}> [📊 View Dashboard]({{ .DashboardURL }}){{ end }}
+      {{ if .PanelURL }}> [🖼️ View Panel]({{ .PanelURL }}){{ end }}
+      ---
+      {{ end -}}
+      {{- end -}}
+      {{- if .Alerts.Resolved -}}
+      ## ✅ {{ len .Alerts.Resolved }} Alert(s) Resolved
+      {{ range .Alerts.Resolved -}}
+      ### 🟢 {{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}
+      > **Severity:** `{{ index .Labels "severity" | title }}`
+      ---
+      {{ end -}}
+      {{- end -}}
+      {{- end }}
+
+policies:
+  - orgId: 1
+    receiver: Discord
+    group_by:
+      - grafana_folder
+      - alertname
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      # Critical alerts also routed to email (continue=true so Discord fires too)
+      - receiver: Email
+        object_matchers:
+          - ["severity", "=", "critical"]
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 12h
+        continue: true

@@ -1,0 +1,19 @@
+# =============================================================================
+# Jellyfin Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: media
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - pvc.yaml
+  - externalsecret.yaml
+
+labels:
+  - pairs:
+      app: jellyfin
+    includeSelectors: true

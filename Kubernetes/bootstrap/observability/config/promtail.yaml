@@ -1,0 +1,98 @@
+server:
+  http_listen_port: 3101
+  grpc_listen_port: 0
+
+positions:
+  filename: /run/promtail/positions.yaml
+
+clients:
+  - url: http://loki.observability.svc.cluster.local:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: kubernetes-pods
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels:
+          - __meta_kubernetes_pod_controller_name
+        regex: ([0-9a-z-.]+?)(-[0-9a-f]{8,10})?
+        target_label: __tmp_controller_name
+        action: replace
+      - source_labels:
+          - __meta_kubernetes_pod_label_app_kubernetes_io_name
+          - __meta_kubernetes_pod_label_app
+          - __tmp_controller_name
+          - __meta_kubernetes_pod_name
+        regex: ^;*([^;]+)(;.*)?$
+        target_label: app
+        action: replace
+      - source_labels:
+          - __meta_kubernetes_pod_node_name
+        target_label: node_name
+        action: replace
+      - source_labels:
+          - __meta_kubernetes_namespace
+        target_label: namespace
+        action: replace
+      - source_labels:
+          - __meta_kubernetes_pod_name
+        target_label: pod
+        action: replace
+      - source_labels:
+          - __meta_kubernetes_pod_container_name
+        target_label: container
+        action: replace
+      - replacement: /var/log/pods/*$1/*.log
+        separator: /
+        source_labels:
+          - __meta_kubernetes_pod_uid
+          - __meta_kubernetes_pod_container_name
+        target_label: __path__
+        action: replace
+    pipeline_stages:
+      - cri: {}
+
+      # -----------------------------------------------------------------------
+      # Traefik access log enrichment (GeoIP + client IP label)
+      # -----------------------------------------------------------------------
+      - match:
+          selector: '{namespace="traefik", container="traefik"}'
+          stages:
+            - json:
+                expressions:
+                  client_addr: ClientAddr
+            - regex:
+                expression: "^(?P<client_ip>[^:]+)"
+                source: client_addr
+            - geoip:
+                db: /geoip/db.mmdb
+                source: client_ip
+                db_type: country
+            - labels:
+                geoip_country_code:
+                client_ip:
+
+      # -----------------------------------------------------------------------
+      # Generic JSON log level extraction for all pods.
+      # Promotes the log level (from `level`, `lvl`, or `severity` fields) as
+      # a Loki label so logs can be filtered with {log_level="error"} etc.
+      # The raw log line is NOT replaced – structured JSON can be parsed at
+      # query time in Loki with `| json | line_format "{{.msg}}"`.
+      # -----------------------------------------------------------------------
+      - match:
+          selector: '{namespace=~".+"}'
+          stages:
+            - json:
+                expressions:
+                  _level: level
+                  _lvl: lvl
+                  _severity: severity
+            - template:
+                source: log_level
+                template: >-
+                  {{- if ._level }}{{ ._level | ToLower }}
+                  {{- else if ._lvl }}{{ ._lvl | ToLower }}
+                  {{- else if ._severity }}{{ ._severity | ToLower }}
+                  {{- end -}}
+            - labels:
+                log_level:

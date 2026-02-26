@@ -1,0 +1,39 @@
+# =============================================================================
+# qBittorrent Ingress (Protected by Authentik — VIP only)
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`qbittorrent.nerine.dev`)
+      kind: Rule
+      services:
+        - name: qbittorrent
+          port: 8080
+      middlewares:
+        - name: private-chain
+          namespace: traefik
+        - name: authentik
+          namespace: traefik
+    - match: Host(`qbittorrent.nerine.dev`) && PathPrefix(`/vuetorrent`)
+      kind: Rule
+      priority: 10
+      services:
+        - name: qbittorrent
+          port: 8080
+      middlewares:
+        - name: private-chain
+          namespace: traefik
+        - name: authentik
+          namespace: traefik
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"
