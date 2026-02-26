@@ -63,7 +63,7 @@ jobs:
       - name: Connect to Tailscale
         uses: tailscale/github-action@v3
         with:
-          auth-key: ${{ env.TS_CI_AUTH_KEY }}
+          authkey: ${{ env.TS_CI_AUTH_KEY }}
           tags: tag:ci
 
       - name: Write OCI config
@@ -198,7 +198,7 @@ jobs:
       - name: Connect to Tailscale
         uses: tailscale/github-action@v3
         with:
-          auth-key: ${{ env.TS_CI_AUTH_KEY }}
+          authkey: ${{ env.TS_CI_AUTH_KEY }}
           tags: tag:ci
 
       - name: Write OCI config
