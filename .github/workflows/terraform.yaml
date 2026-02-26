@@ -375,3 +375,4 @@ jobs:
           TF_VAR_bws_access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           TF_VAR_hcloud_token: ${{ env.TF_VAR_hcloud_token }}
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+# CI Trigger
