@@ -52,6 +52,7 @@ jobs:
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
             ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
+            ${{ vars.BWS_ID_HCLOUD_TOKEN }} > HCLOUD_TOKEN
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
@@ -59,6 +60,8 @@ jobs:
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
           echo "BW_ORGANIZATION_ID=${{ secrets.BW_ORGANIZATION_ID }}" >> $GITHUB_ENV
           echo "PROXMOX_VE_API_TOKEN=${{ secrets.PROXMOX_VE_API_TOKEN }}" >> $GITHUB_ENV
+          echo "TF_VAR_bws_access_token=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          echo "TF_VAR_hcloud_token=$HCLOUD_TOKEN" >> $GITHUB_ENV
 
       # Connect to Tailscale for Proxmox access
       - name: Connect to Tailscale
@@ -204,6 +207,7 @@ jobs:
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
             ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
+            ${{ vars.BWS_ID_HCLOUD_TOKEN }} > HCLOUD_TOKEN
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
@@ -211,6 +215,8 @@ jobs:
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
           echo "BW_ORGANIZATION_ID=${{ secrets.BW_ORGANIZATION_ID }}" >> $GITHUB_ENV
           echo "PROXMOX_VE_API_TOKEN=${{ secrets.PROXMOX_VE_API_TOKEN }}" >> $GITHUB_ENV
+          echo "TF_VAR_bws_access_token=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          echo "TF_VAR_hcloud_token=$HCLOUD_TOKEN" >> $GITHUB_ENV
 
       # Connect to Tailscale for Proxmox access
       - name: Connect to Tailscale

@@ -118,6 +118,20 @@ resource "bitwarden-secrets_secret" "oci_private_key" {
   }
 }
 
+resource "bitwarden-secrets_secret" "hcloud_token" {
+  key        = "hcloud-token"
+  value      = ""
+  project_id = local.bitwarden_project_id
+  note       = "Hetzner Cloud API token. Manually managed."
+  lifecycle {
+    ignore_changes = [value]
+    postcondition {
+      condition     = self.value != ""
+      error_message = "Secret 'hcloud-token' is empty. Please fill it in Bitwarden."
+    }
+  }
+}
+
 resource "bitwarden-secrets_secret" "tf_state_bucket" {
   key        = "tf-state-bucket"
   value      = "tf-state"
