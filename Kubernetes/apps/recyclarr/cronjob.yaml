@@ -21,9 +21,10 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: recyclarr
-              image: ghcr.io/recyclarr/recyclarr:7.5.2
+              image: ghcr.io/recyclarr/recyclarr:8.3.2
+              command: ["/bin/sh", "-c"]
               args:
-                - sync
+                - recyclarr state repair --adopt && recyclarr sync
               env:
                 - name: TZ
                   value: "UTC"

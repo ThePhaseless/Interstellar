@@ -18,7 +18,7 @@ spec:
           initContainers:
             # Dump Immich PostgreSQL database before borg runs
             - name: pg-dump
-              image: postgres:16-alpine
+              image: postgres:18-alpine
               command: ["/bin/sh", "-c"]
               args:
                 - |
