@@ -50,7 +50,7 @@ spec:
                 limits: { cpu: 1000m, memory: 1Gi }
           containers:
             - name: borgbackup
-              image: alpine:3.21
+              image: alpine:3.23
               command: ["/bin/sh", "/scripts/backup.sh"]
               env:
                 - name: BORG_PASSPHRASE
