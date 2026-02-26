@@ -38,14 +38,6 @@ sonarr:
           allowed: true
           until_quality: Bluray-2160p Remux
 
-    include:
-      - template: sonarr-quality-definition-series
-      - template: sonarr-v4-quality-profile-web-2160p
-      - template: sonarr-v4-custom-formats-web-2160p
-      - template: sonarr-quality-definition-anime
-      - template: sonarr-v4-quality-profile-anime
-      - template: sonarr-v4-custom-formats-anime
-
     # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
     custom_formats:
       # HDR Formats
