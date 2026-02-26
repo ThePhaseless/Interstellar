@@ -92,26 +92,43 @@ jobs:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Setup talosctl
+        run: |
+          TALOSCTL_VERSION=v1.12.4
+          curl -sSL "https://github.com/siderolabs/talos/releases/download/${TALOSCTL_VERSION}/talosctl-linux-amd64" -o talosctl
+          chmod +x talosctl
+          sudo mv talosctl /usr/local/bin/talosctl
+          talosctl version --client
+
       - name: Configure kubeconfig
         run: |
-          mkdir -p "$HOME/.kube"
+          mkdir -p "$HOME/.kube" "$HOME/.talos"
 
           KUBECONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="kubeconfig") | .value // empty')
 
           if [ -n "$KUBECONFIG_VALUE" ]; then
             printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
+            echo "Using Kubernetes config from Bitwarden key 'kubeconfig'."
           else
-            echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
-            sudo tailscale set --operator="$USER"
-            tailscale configure kubeconfig talos-1
+            echo "Bitwarden key 'kubeconfig' not found. Generating kubeconfig from 'talosconfig'..."
+            TALOSCONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="talosconfig") | .value // empty')
+            if [ -z "$TALOSCONFIG_VALUE" ]; then
+              echo "::error::Neither Bitwarden key 'kubeconfig' nor 'talosconfig' was found"
+              exit 1
+            fi
+            printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
+            chmod 600 "$HOME/.talos/config"
+
             TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
             if [ -z "$TS_TALOS_IP" ]; then
               echo "::error::Could not resolve Tailscale IP for talos-1"
               tailscale status || true
               exit 1
             fi
+
+            talosctl --talosconfig "$HOME/.talos/config" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
             sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
-            echo "Using Kubernetes API endpoint https://${TS_TALOS_IP}:6443"
+            echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
           fi
 
           chmod 600 "$HOME/.kube/config"
@@ -125,6 +142,7 @@ jobs:
             fi
             if [ "$i" -eq 30 ]; then
               echo "::error::Timed out waiting for Kubernetes API via Tailscale"
+              kubectl --kubeconfig "$HOME/.kube/config" --request-timeout=5s get --raw='/version' || true
               tailscale status || true
               exit 1
             fi
@@ -160,7 +178,7 @@ jobs:
 
       - name: Start App Port-Forwards
         run: |
-          ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
+          bash ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
           echo $! > /tmp/port-forward-apps.pid
 
           for port in 8989 7878 9696 3000 9000; do
@@ -284,26 +302,43 @@ jobs:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Setup talosctl
+        run: |
+          TALOSCTL_VERSION=v1.12.4
+          curl -sSL "https://github.com/siderolabs/talos/releases/download/${TALOSCTL_VERSION}/talosctl-linux-amd64" -o talosctl
+          chmod +x talosctl
+          sudo mv talosctl /usr/local/bin/talosctl
+          talosctl version --client
+
       - name: Configure kubeconfig
         run: |
-          mkdir -p "$HOME/.kube"
+          mkdir -p "$HOME/.kube" "$HOME/.talos"
 
           KUBECONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="kubeconfig") | .value // empty')
 
           if [ -n "$KUBECONFIG_VALUE" ]; then
             printf "%s\n" "$KUBECONFIG_VALUE" > "$HOME/.kube/config"
+            echo "Using Kubernetes config from Bitwarden key 'kubeconfig'."
           else
-            echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
-            sudo tailscale set --operator="$USER"
-            tailscale configure kubeconfig talos-1
+            echo "Bitwarden key 'kubeconfig' not found. Generating kubeconfig from 'talosconfig'..."
+            TALOSCONFIG_VALUE=$(bws secret list --output json --color no | tr -cd '[:print:]\t\n' | jq -r '.[] | select(.key=="talosconfig") | .value // empty')
+            if [ -z "$TALOSCONFIG_VALUE" ]; then
+              echo "::error::Neither Bitwarden key 'kubeconfig' nor 'talosconfig' was found"
+              exit 1
+            fi
+            printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
+            chmod 600 "$HOME/.talos/config"
+
             TS_TALOS_IP=$(tailscale ip -4 talos-1 | head -n1)
             if [ -z "$TS_TALOS_IP" ]; then
               echo "::error::Could not resolve Tailscale IP for talos-1"
               tailscale status || true
               exit 1
             fi
+
+            talosctl --talosconfig "$HOME/.talos/config" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
             sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
-            echo "Using Kubernetes API endpoint https://${TS_TALOS_IP}:6443"
+            echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
           fi
 
           chmod 600 "$HOME/.kube/config"
@@ -317,6 +352,7 @@ jobs:
             fi
             if [ "$i" -eq 30 ]; then
               echo "::error::Timed out waiting for Kubernetes API via Tailscale"
+              kubectl --kubeconfig "$HOME/.kube/config" --request-timeout=5s get --raw='/version' || true
               tailscale status || true
               exit 1
             fi
@@ -337,7 +373,7 @@ jobs:
 
       - name: Start App Port-Forwards
         run: |
-          ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
+          bash ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
           echo $! > /tmp/port-forward-apps.pid
 
           for port in 8989 7878 9696 3000 9000; do
