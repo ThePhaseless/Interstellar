@@ -125,7 +125,7 @@ jobs:
           echo "OCI_CLI_REGION=$(grep '^region=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
@@ -328,7 +328,7 @@ jobs:
           echo "OCI_CLI_REGION=$(grep '^region=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
