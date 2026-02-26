@@ -8,6 +8,12 @@
   },
   "packageRules": [
     {
+      "description": "Ignore legacy LinuxServer qBittorrent tags",
+      "matchManagers": ["kubernetes"],
+      "matchPackageNames": ["linuxserver/qbittorrent"],
+      "allowedVersions": "/^(?!20\\.).*/"
+    },
+    {
       "automerge": true,
       "groupName": "All non-major dependencies",
       "groupSlug": "all-minor-patch",
