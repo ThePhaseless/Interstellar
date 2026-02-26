@@ -1,11 +1,3 @@
-# =============================================================================
-# Tailscale Configuration
-# =============================================================================
-# This file configures Tailscale ACL policy and auth keys
-
-# -----------------------------------------------------------------------------
-# Provider Configuration
-# -----------------------------------------------------------------------------
 provider "tailscale" {
   oauth_client_id     = bitwarden-secrets_secret.tailscale_oauth_client_id.value != "" ? bitwarden-secrets_secret.tailscale_oauth_client_id.value : "unset"
   oauth_client_secret = bitwarden-secrets_secret.tailscale_oauth_secret.value != "" ? bitwarden-secrets_secret.tailscale_oauth_secret.value : "unset"
@@ -13,9 +5,7 @@ provider "tailscale" {
   scopes              = ["devices:core", "auth_keys", "dns", "oauth_keys", "policy_file"]
 }
 
-# -----------------------------------------------------------------------------
 # Tailscale ACL Policy
-# -----------------------------------------------------------------------------
 # Managed via GitOps. The provider's OAuth client (tag:ci) uses its policy_file
 # scope to apply this configuration first, which enables it to own and manage
 # other infrastructure tags.
@@ -23,9 +13,7 @@ resource "tailscale_acl" "main" {
   acl = file("${path.module}/../Tailscale/policy.hujson")
 }
 
-# -----------------------------------------------------------------------------
 # Tailscale Auth Key for Cluster Nodes
-# -----------------------------------------------------------------------------
 resource "tailscale_tailnet_key" "cluster" {
   depends_on    = [tailscale_acl.main]
   reusable      = true
@@ -43,9 +31,7 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
   note       = "Tailscale auth key for TalosOS cluster nodes. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Tailscale Auth Key for Oracle VPS Instances
-# -----------------------------------------------------------------------------
 resource "tailscale_tailnet_key" "oracle" {
   depends_on    = [tailscale_acl.main]
   reusable      = true
@@ -62,9 +48,7 @@ resource "bitwarden-secrets_secret" "tailscale_oracle_auth_key" {
   note       = "Tailscale auth key for Oracle VPS instances. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Managed OAuth Clients
-# -----------------------------------------------------------------------------
 # All OAuth clients are created by the provider (tag:ci) which owns all
 # infrastructure tags via ACL tagOwners, so any tag can be assigned here.
 
@@ -110,13 +94,10 @@ resource "bitwarden-secrets_secret" "oauth_client_secret" {
   note       = "${each.value.description} OAuth client secret. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Tailscale Device Lookup
-# -----------------------------------------------------------------------------
 # Look up Tailscale devices created by the K8s Tailscale operator.
 # On first apply (before K8s bootstrap), no devices exist — filters return
 # empty lists, and dependent resources use count = 0. No chicken-egg errors.
-# -----------------------------------------------------------------------------
 data "tailscale_devices" "cluster" {}
 
 locals {
@@ -135,13 +116,10 @@ locals {
   tailscale_adguard_ip = length(local.adguard_devices) > 0 ? local.adguard_devices[0].addresses[0] : ""
 }
 
-# -----------------------------------------------------------------------------
 # Tailscale DNS Configuration
-# -----------------------------------------------------------------------------
 # MagicDNS for *.ts.net resolution.
 # When AdGuard is deployed and reachable via Tailscale, it becomes the primary
 # DNS server for all tailnet devices. 1.1.1.1 remains as fallback.
-# -----------------------------------------------------------------------------
 resource "tailscale_dns_configuration" "cluster" {
   magic_dns          = true
   override_local_dns = true
@@ -159,9 +137,7 @@ resource "tailscale_dns_configuration" "cluster" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # Outputs
-# -----------------------------------------------------------------------------
 output "tailscale_cluster_auth_key" {
   description = "Tailscale auth key for cluster nodes (sensitive)"
   value       = tailscale_tailnet_key.cluster.key

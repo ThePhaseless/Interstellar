@@ -63,9 +63,7 @@ resource "prowlarr_application" "radarr" {
   sync_categories = local.prowlarr_radarr_sync_categories
 }
 
-# =============================================================================
 # Discord Notifications (standard events)
-# =============================================================================
 # Discord webhook for routine notifications: grabs, downloads, upgrades, etc.
 
 resource "sonarr_notification_discord" "discord" {

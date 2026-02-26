@@ -1,10 +1,3 @@
-# =============================================================================
-# Terraform Variables for TalosOS Migration
-# =============================================================================
-
-# -----------------------------------------------------------------------------
-# Proxmox Configuration
-# -----------------------------------------------------------------------------
 variable "proxmox_endpoint" {
   description = "Proxmox API endpoint URL"
   type        = string
@@ -17,9 +10,7 @@ variable "proxmox_node" {
   default     = "carbon"
 }
 
-# -----------------------------------------------------------------------------
 # Cluster Configuration
-# -----------------------------------------------------------------------------
 variable "cluster_name" {
   description = "Name of the Kubernetes cluster"
   type        = string
@@ -38,9 +29,7 @@ variable "cluster_domain" {
   default     = "nerine.dev"
 }
 
-# -----------------------------------------------------------------------------
 # Node Configuration
-# -----------------------------------------------------------------------------
 variable "nodes" {
   description = "TalosOS node configuration"
   type = map(object({
@@ -68,9 +57,7 @@ variable "nodes" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # Network Configuration
-# -----------------------------------------------------------------------------
 variable "cluster_network" {
   description = "Cluster network CIDR for Talos nodes on the home LAN"
   type        = string
@@ -89,9 +76,7 @@ variable "proxmox_cluster_bridge_name" {
   default     = "vmbr0"
 }
 
-# -----------------------------------------------------------------------------
 # TalosOS Extensions
-# -----------------------------------------------------------------------------
 variable "talos_base_extensions" {
   description = "TalosOS extensions to install on all nodes"
   type        = list(string)
@@ -130,27 +115,21 @@ variable "tf_state_bucket" {
   default     = "tf-state"
 }
 
-# -----------------------------------------------------------------------------
 # Tailscale Configuration
-# -----------------------------------------------------------------------------
 variable "tailscale_magicdns_domain" {
   description = "Tailscale MagicDNS domain suffix (e.g. fold-hen.ts.net). Found via: tailscale status --json | jq -r '.MagicDNSSuffix'"
   type        = string
   default     = "fold-hen.ts.net"
 }
 
-# -----------------------------------------------------------------------------
 # Oracle Proxy Configuration
-# -----------------------------------------------------------------------------
 variable "proxy_public_access" {
   description = "Enable public HTTP/HTTPS access to the Oracle proxy VPS. When false, only SSH and Tailscale ports are open."
   type        = bool
   default     = false
 }
 
-# -----------------------------------------------------------------------------
 # Hetzner Cloud Configuration
-# -----------------------------------------------------------------------------
 variable "hcloud_token" {
   description = "Hetzner Cloud API token. Sourced from HCLOUD_TOKEN env var via setup-env.sh."
   type        = string
@@ -169,9 +148,7 @@ variable "hetzner_storagebox_type" {
   default     = "bx11"
 }
 
-# -----------------------------------------------------------------------------
 # Secret Configuration
-# -----------------------------------------------------------------------------
 variable "bws_access_token" {
   description = "Bitwarden Secrets Manager access token for ESO bootstrap. Sourced from BWS_ACCESS_TOKEN env var."
   type        = string
@@ -183,9 +160,7 @@ variable "github_repository" {
   default     = "ThePhaseless/Interstellar"
 }
 
-# -----------------------------------------------------------------------------
 # Authentik / Access Control
-# -----------------------------------------------------------------------------
 variable "authentik_vip_emails" {
   description = "Email addresses that get admin access to private services (copyparty, etc.). Sourced from TF_VAR_authentik_vip_emails."
   type        = list(string)

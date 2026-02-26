@@ -1,6 +1,3 @@
-# NFS server configuration for Proxmox host
-# Export ZFS storage pools to TalosOS nodes via NFS
-
 nfs_exports:
   - path: /Storage # HDD — large media library
   - path: /SSDStorage # SSD — active/personal files

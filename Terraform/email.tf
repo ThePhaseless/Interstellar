@@ -1,14 +1,3 @@
-# =============================================================================
-# Oracle Email Delivery Service Configuration
-# =============================================================================
-# Provisions OCI Email Delivery for outbound SMTP relay via Postfix.
-# SMTP credentials are stored in Bitwarden and consumed by Kubernetes
-# via ExternalSecrets.
-
-# -----------------------------------------------------------------------------
-# Email Domain
-# -----------------------------------------------------------------------------
-
 resource "oci_email_email_domain" "main" {
   compartment_id = oci_identity_compartment.main.id
   name           = var.cluster_domain
@@ -20,9 +9,7 @@ resource "oci_email_email_domain" "main" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # DKIM Signing Key
-# -----------------------------------------------------------------------------
 
 resource "oci_email_dkim" "main" {
   email_domain_id = oci_email_email_domain.main.id
@@ -30,9 +17,7 @@ resource "oci_email_dkim" "main" {
   description     = "DKIM signing key for ${var.cluster_domain}"
 }
 
-# -----------------------------------------------------------------------------
 # Approved Sender
-# -----------------------------------------------------------------------------
 
 resource "oci_email_sender" "noreply" {
   compartment_id = oci_identity_compartment.main.id
@@ -44,18 +29,14 @@ resource "oci_email_sender" "noreply" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # SMTP Credentials (tied to OCI IAM user)
-# -----------------------------------------------------------------------------
 
 resource "oci_identity_smtp_credential" "postfix" {
   description = "SMTP credential for Postfix relay - Interstellar homelab"
   user_id     = local.oci_user_ocid
 }
 
-# -----------------------------------------------------------------------------
 # Cloudflare DNS Records for Email
-# -----------------------------------------------------------------------------
 
 # DKIM CNAME record for domain verification
 resource "cloudflare_dns_record" "dkim" {
@@ -78,9 +59,7 @@ resource "cloudflare_dns_record" "spf" {
   comment = "SPF record for OCI Email Delivery"
 }
 
-# -----------------------------------------------------------------------------
 # Store SMTP Credentials in Bitwarden
-# -----------------------------------------------------------------------------
 
 resource "bitwarden-secrets_secret" "smtp_host" {
   key        = "smtp-host"
@@ -103,9 +82,7 @@ resource "bitwarden-secrets_secret" "smtp_password" {
   note       = "OCI Email Delivery SMTP password. Only available at creation time. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Outputs
-# -----------------------------------------------------------------------------
 
 output "smtp_endpoint" {
   description = "OCI Email Delivery SMTP endpoint"

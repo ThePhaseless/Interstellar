@@ -1,12 +1,3 @@
-# =============================================================================
-# AdGuard Home Configuration
-# =============================================================================
-# Manages AdGuard Home DNS settings via Terraform
-
-# The AdGuard pod is a cluster workload (tag:cluster), NOT a Tailscale device.
-# Tailscale's 100.100.100.100 resolver only works from Tailscale devices, so
-# MagicDNS hostnames cannot be used as CNAME answers — AdGuard returns SERVFAIL.
-# Use standard public resolvers only.
 resource "adguard_config" "main" {
   dns = {
     upstream_dns = [

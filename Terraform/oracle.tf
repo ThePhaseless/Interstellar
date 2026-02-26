@@ -1,21 +1,8 @@
-# =============================================================================
-# Oracle Cloud Infrastructure (OCI) Configuration
-# =============================================================================
-# This file provisions the Oracle VPS for HAProxy entry point
-
-# -----------------------------------------------------------------------------
-# Provider Configuration
-# -----------------------------------------------------------------------------
-# OCI provider authentication via environment variables:
-# OCI_tenancy_ocid, OCI_user_ocid, OCI_fingerprint, OCI_private_key, OCI_region
-
 provider "oci" {
   # Authentication handled by environment variables
 }
 
-# -----------------------------------------------------------------------------
 # Data Sources
-# -----------------------------------------------------------------------------
 
 data "oci_identity_availability_domains" "ads" {
   compartment_id = oci_identity_compartment.main.id
@@ -49,9 +36,7 @@ data "oci_core_images" "ubuntu" {
   sort_order               = "DESC"
 }
 
-# -----------------------------------------------------------------------------
 # Networking
-# -----------------------------------------------------------------------------
 
 # VCN (Virtual Cloud Network)
 resource "oci_core_vcn" "main" {
@@ -153,17 +138,13 @@ resource "oci_core_subnet" "main" {
   dns_label                  = "main"
 }
 
-# -----------------------------------------------------------------------------
 # Compute Instance
-# -----------------------------------------------------------------------------
 
 resource "tls_private_key" "oracle_ssh" {
   algorithm = "ED25519"
 }
 
-# -----------------------------------------------------------------------------
 # Proxy VPS (Minimal - just HAProxy)
-# -----------------------------------------------------------------------------
 resource "oci_core_instance" "proxy" {
   compartment_id      = oci_identity_compartment.main.id
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
@@ -217,9 +198,7 @@ UPGRADES
   }
 }
 
-# -----------------------------------------------------------------------------
 # Compute VPS (Remaining resources for general workloads)
-# -----------------------------------------------------------------------------
 resource "oci_core_instance" "compute" {
   compartment_id      = oci_identity_compartment.main.id
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
@@ -273,9 +252,7 @@ UPGRADES
   }
 }
 
-# -----------------------------------------------------------------------------
 # Store SSH Key in Bitwarden
-# -----------------------------------------------------------------------------
 resource "bitwarden-secrets_secret" "oracle_ssh_private_key" {
   key        = "oracle-ssh-private-key"
   value      = tls_private_key.oracle_ssh.private_key_openssh
@@ -283,9 +260,7 @@ resource "bitwarden-secrets_secret" "oracle_ssh_private_key" {
   note       = "SSH private key for Oracle VPS instances. Managed by Terraform."
 }
 
-# -----------------------------------------------------------------------------
 # Outputs
-# -----------------------------------------------------------------------------
 output "oracle_proxy_public_ip" {
   description = "Public IP of proxy VPS"
   value       = oci_core_instance.proxy.public_ip

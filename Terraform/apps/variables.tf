@@ -1,4 +1,3 @@
-# --- Cluster-internal URLs (stored in app configs for inter-service communication) ---
 variable "sonarr_url" {
   type        = string
   description = "Sonarr cluster-internal URL (used in Prowlarr app config)"

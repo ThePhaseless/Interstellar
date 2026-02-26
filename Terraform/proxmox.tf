@@ -1,8 +1,3 @@
-# =============================================================================
-# Proxmox VM Configuration for TalosOS Cluster
-# =============================================================================
-# This file creates TalosOS VMs on Proxmox with GPU passthrough support
-
 locals {
   talos_node_names    = sort(keys(var.nodes))
   talos_has_gpu_nodes = anytrue([for node in var.nodes : node.gpu])
@@ -11,17 +6,13 @@ locals {
   }
 }
 
-# -----------------------------------------------------------------------------
 # Provider Configuration
-# -----------------------------------------------------------------------------
 provider "proxmox" {
   endpoint = var.proxmox_endpoint
   insecure = true # Self-signed cert
 }
 
-# -----------------------------------------------------------------------------
 # TalosOS ISO Image
-# -----------------------------------------------------------------------------
 # Download TalosOS base ISO with extensions pre-installed
 resource "proxmox_virtual_environment_download_file" "talos_iso_base" {
   content_type = "iso"
@@ -44,9 +35,7 @@ resource "proxmox_virtual_environment_download_file" "talos_iso_gpu" {
   file_name = "talos-${var.talos_version}-gpu-extensions-${data.talos_image_factory_urls.gpu_image.schematic_id}.iso"
 }
 
-# -----------------------------------------------------------------------------
 # TalosOS VMs
-# -----------------------------------------------------------------------------
 resource "proxmox_virtual_environment_vm" "talos" {
   for_each = var.nodes
 
@@ -147,9 +136,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # Outputs
-# -----------------------------------------------------------------------------
 output "talos_node_ips" {
   description = "Discovered IP addresses of TalosOS nodes from Proxmox guest agent"
   value       = local.talos_node_ips

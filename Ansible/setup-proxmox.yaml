@@ -1,6 +1,3 @@
-# Setup Proxmox host services
-# - NFS server exporting ZFS storage pool to TalosOS cluster
-
 - name: Configure Proxmox NFS Server
   hosts: proxmox
   become: true

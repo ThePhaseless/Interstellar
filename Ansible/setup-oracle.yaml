@@ -1,8 +1,3 @@
-# Setup Oracle VPS instances for TalosOS infrastructure
-# - oracle: All Oracle instances (proxy + compute)
-# - oracle_proxy: Proxy VPS only (HAProxy + Docker)
-# - oracle_compute: Compute VPS only (future workloads)
-
 - name: Configure Oracle VPS Instances
   hosts: oracle
   become: true
