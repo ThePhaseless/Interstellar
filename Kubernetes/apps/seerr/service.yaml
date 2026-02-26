@@ -1,15 +1,16 @@
 # =============================================================================
-# Jellyseerr PVC
+# Seerr Service
 # =============================================================================
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: Service
 metadata:
-  name: jellyseerr-config
+  name: seerr
   namespace: media
 spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 2Gi
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 5055
+      targetPort: http
+  selector:
+    app: seerr

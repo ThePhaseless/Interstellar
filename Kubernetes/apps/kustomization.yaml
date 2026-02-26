@@ -5,6 +5,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
+  # Config
+  - common/nfs-storage-config.yaml
+
   # Namespaces
   - namespaces.yaml
 
@@ -13,7 +16,7 @@ resources:
 
   # Media Stack
   - jellyfin/
-  - jellyseerr/
+  - seerr/
   - sonarr/
   - radarr/
   - prowlarr/
@@ -34,3 +37,35 @@ resources:
 
   # Backup
   - borgbackup/
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: nfs-storage-config
+      fieldPath: data.server
+    targets:
+      - select:
+          kind: PersistentVolume
+          name: media-nfs-pv
+        fieldPaths:
+          - spec.nfs.server
+      - select:
+          kind: PersistentVolume
+          name: media-nfs-pv-utilities
+        fieldPaths:
+          - spec.nfs.server
+      - select:
+          kind: PersistentVolume
+          name: downloads-nfs-pv
+        fieldPaths:
+          - spec.nfs.server
+      - select:
+          kind: PersistentVolume
+          name: personal-nfs-pv
+        fieldPaths:
+          - spec.nfs.server
+      - select:
+          kind: PersistentVolume
+          name: photos-nfs-pv
+        fieldPaths:
+          - spec.nfs.server

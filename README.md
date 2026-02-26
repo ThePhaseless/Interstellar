@@ -97,7 +97,7 @@ flowchart TB
 | Service     | Access    | Description                       |
 | ----------- | --------- | --------------------------------- |
 | Jellyfin    | Public    | Media streaming (GPU transcoding) |
-| Jellyseerr  | Public    | Media request management          |
+| Seerr       | Public    | Media request management          |
 | Sonarr      | Tailscale | TV show automation                |
 | Radarr      | Tailscale | Movie automation                  |
 | Prowlarr    | Tailscale | Indexer management                |

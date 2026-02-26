@@ -83,6 +83,29 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
 
+        - name: api-extractor
+          image: bitnami/kubectl:latest
+          command:
+            [
+              "/bin/bash",
+              "/scripts/extract-api-key.sh",
+              "radarr",
+              "/config/config.xml",
+            ]
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+
         - name: exportarr
           image: ghcr.io/onedr0p/exportarr:v2.3.0
           args: ["radarr"]
@@ -117,6 +140,10 @@ spec:
         - name: config
           persistentVolumeClaim:
             claimName: radarr-config
+        - name: scripts
+          configMap:
+            name: arr-scripts
+            defaultMode: 0755
         - name: downloads
           persistentVolumeClaim:
             claimName: downloads-pvc

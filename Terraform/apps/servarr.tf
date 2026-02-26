@@ -1,6 +1,6 @@
 locals {
-  prowlarr_sonarr_sync_categories = [5000, 5010, 5020, 5030, 5040, 5045, 5050]
-  prowlarr_radarr_sync_categories = [2000, 2010, 2020, 2030, 2040, 2045, 2050, 2060]
+  prowlarr_sonarr_sync_categories = [5000, 8000]
+  prowlarr_radarr_sync_categories = [2000, 8000]
 }
 
 resource "sonarr_download_client" "qbittorrent" {

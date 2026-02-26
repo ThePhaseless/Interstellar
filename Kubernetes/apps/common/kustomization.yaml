@@ -9,12 +9,13 @@ resources:
   - media-pv.yaml
   - externalsecrets.yaml
 
+generatorOptions:
+  disableNameSuffixHash: true
+
 configMapGenerator:
   - name: arr-scripts
     namespace: media
     files:
       - scripts/extract-api-key.sh
-      - scripts/configure-download-client.sh
-      - scripts/configure-prowlarr.sh
-      - scripts/configure-jellyseerr.sh
+      - scripts/configure-seerr.sh
       - scripts/configure-jellyfin.sh
