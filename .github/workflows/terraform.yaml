@@ -37,19 +37,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # Fetch all secrets from Bitwarden (single project)
+      # Fetch all secrets from Bitwarden (using IDs from GitHub variables)
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v2
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
-            d060d187-6e1f-4f94-96c0-b3e4013b3242 > OCI_CONFIG
-            37e4dc8f-7991-4acb-bcef-b3e4013b4b67 > OCI_PRIVATE_KEY
-            580f990e-bf07-467c-87d7-b3f20166cb2e > OCI_NAMESPACE
-            cd8b21df-5de9-45ad-a63c-b3e40144da94 > TS_OAUTH_CLIENT_ID
-            79ff999b-18c1-444c-8223-b3e40144e7d4 > TS_OAUTH_SECRET
-            37986ba2-35b1-4abb-851b-b3e4012ce37b > TF_STATE_BUCKET
-            b1d394d1-8ec0-429b-bb6f-b3e401759825 > PROXMOX_API_TOKEN_VALUE
+            ${{ vars.BWS_ID_OCI_CONFIG }} > OCI_CONFIG
+            ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
+            ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
+            ${{ vars.BWS_ID_TS_OAUTH_CLIENT_ID }} > TS_OAUTH_CLIENT_ID
+            ${{ vars.BWS_ID_TS_OAUTH_SECRET }} > TS_OAUTH_SECRET
+            ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
+            ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
@@ -172,19 +172,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # Fetch all secrets from Bitwarden (single project)
+      # Fetch all secrets from Bitwarden (using IDs from GitHub variables)
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v2
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
-            d060d187-6e1f-4f94-96c0-b3e4013b3242 > OCI_CONFIG
-            37e4dc8f-7991-4acb-bcef-b3e4013b4b67 > OCI_PRIVATE_KEY
-            580f990e-bf07-467c-87d7-b3f20166cb2e > OCI_NAMESPACE
-            cd8b21df-5de9-45ad-a63c-b3e40144da94 > TS_OAUTH_CLIENT_ID
-            79ff999b-18c1-444c-8223-b3e40144e7d4 > TS_OAUTH_SECRET
-            37986ba2-35b1-4abb-851b-b3e4012ce37b > TF_STATE_BUCKET
-            b1d394d1-8ec0-429b-bb6f-b3e401759825 > PROXMOX_API_TOKEN_VALUE
+            ${{ vars.BWS_ID_OCI_CONFIG }} > OCI_CONFIG
+            ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
+            ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
+            ${{ vars.BWS_ID_TS_OAUTH_CLIENT_ID }} > TS_OAUTH_CLIENT_ID
+            ${{ vars.BWS_ID_TS_OAUTH_SECRET }} > TS_OAUTH_SECRET
+            ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
+            ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
 
       # Set Bitwarden provider environment variables
       - name: Set Provider Environment Variables
