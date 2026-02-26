@@ -80,7 +80,7 @@ jobs:
 
       - name: Verify Tailscale Tags
         run: |
-          sudo tailscale up --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)"
+          sudo tailscale up --reset --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)" --accept-routes
           SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
           echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
           if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
@@ -272,7 +272,7 @@ jobs:
 
       - name: Verify Tailscale Tags
         run: |
-          sudo tailscale up --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)"
+          sudo tailscale up --reset --auth-key="$TS_CLUSTER_AUTH_KEY" --advertise-tags=tag:cluster --hostname="$(hostname)" --accept-routes
           SELF_TAGS=$(tailscale status --json | jq -r '.Self.Tags // [] | join(",")')
           echo "Tailscale self tags: ${SELF_TAGS:-<none>}"
           if ! echo "$SELF_TAGS" | grep -q "tag:cluster"; then
