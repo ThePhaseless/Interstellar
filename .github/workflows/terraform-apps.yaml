@@ -88,6 +88,8 @@ jobs:
             echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
             sudo tailscale set --operator="$USER"
             tailscale configure kubeconfig talos-1
+            # Tailscale defaults to :443 when no port is present, but Talos API is on :6443.
+            sed -E -i 's#(server: https://[^:/[:space:]]+)$#\1:6443#' "$HOME/.kube/config"
           fi
 
           chmod 600 "$HOME/.kube/config"
@@ -256,6 +258,8 @@ jobs:
             echo "Bitwarden key 'kubeconfig' not found. Trying tailscale configure kubeconfig talos-1..."
             sudo tailscale set --operator="$USER"
             tailscale configure kubeconfig talos-1
+            # Tailscale defaults to :443 when no port is present, but Talos API is on :6443.
+            sed -E -i 's#(server: https://[^:/[:space:]]+)$#\1:6443#' "$HOME/.kube/config"
           fi
 
           chmod 600 "$HOME/.kube/config"
