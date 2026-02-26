@@ -10,7 +10,7 @@
 # Provider Configuration
 # -----------------------------------------------------------------------------
 provider "kubernetes" {
-  host                   = talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.host
+  host                   = "https://talos-1.${var.tailscale_magicdns_domain}:6443"
   client_certificate     = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.client_certificate)
   client_key             = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.client_key)
   cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.ca_certificate)
