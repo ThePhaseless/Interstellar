@@ -191,3 +191,9 @@ variable "authentik_vip_emails" {
   type        = list(string)
   default     = []
 }
+
+variable "enable_github_mgmt" {
+  description = "Enable management of GitHub repository variables and secrets. Set to false in CI to avoid 403 errors with GITHUB_TOKEN."
+  type        = bool
+  default     = true
+}
