@@ -213,7 +213,7 @@ jobs:
 
       # Upload ENCRYPTED plan for apply job
       - name: Upload Terraform Plan
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: tfplan
           path: ${{ env.TF_WORKING_DIR }}/tfplan.gpg
@@ -333,7 +333,7 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Download Terraform Plan
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: tfplan
           path: ${{ env.TF_WORKING_DIR }}
