@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: radarr
   namespace: media
+  annotations:
+    ignore-check.kube-linter.io/latest-tag: "bitnami/kubectl versioned tags are not currently published; keep latest for this helper sidecar."
   labels:
     app: radarr
 spec:
@@ -81,7 +83,7 @@ spec:
             periodSeconds: 10
 
         - name: api-extractor
-          image: bitnami/kubectl:1.35.0
+          image: bitnami/kubectl:latest
           command:
             [
               "/bin/bash",
