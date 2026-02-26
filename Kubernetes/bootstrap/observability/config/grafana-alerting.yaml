@@ -218,6 +218,8 @@ groups:
                 kube_pod_status_ready{condition="true"} == 0
                 * on(pod, namespace) group_left(owner_kind)
                 kube_pod_owner{owner_kind=~"ReplicaSet|StatefulSet|DaemonSet"}
+                * on(pod, namespace) group_left()
+                (kube_pod_status_phase{phase="Pending"} == 1 or kube_pod_status_phase{phase="Running"} == 1)
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
