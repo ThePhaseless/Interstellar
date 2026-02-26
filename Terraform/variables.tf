@@ -20,13 +20,11 @@ variable "proxmox_node" {
 variable "proxmox_user" {
   description = "Proxmox user for API authentication (e.g. root@pam)"
   type        = string
-  default     = "root@pam"
 }
 
 variable "proxmox_token_id" {
   description = "Proxmox API token ID (e.g. terraform)"
   type        = string
-  default     = "terraform"
 }
 
 # -----------------------------------------------------------------------------
