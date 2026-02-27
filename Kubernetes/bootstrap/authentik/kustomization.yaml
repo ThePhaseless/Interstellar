@@ -55,7 +55,19 @@ helmCharts:
         ingress:
           enabled: false # Using Traefik IngressRoute instead
 
-      worker: {}
+      worker:
+        livenessProbe:
+          timeoutSeconds: 10
+          periodSeconds: 20
+          failureThreshold: 6
+        readinessProbe:
+          timeoutSeconds: 10
+          periodSeconds: 20
+          failureThreshold: 6
+        startupProbe:
+          timeoutSeconds: 10
+          periodSeconds: 20
+          failureThreshold: 90
 
       # --- Embedded PostgreSQL ---
       postgresql:
