@@ -99,6 +99,17 @@ jobs:
         run: ansible-galaxy install -r requirements.yaml
         working-directory: ${{ env.ANSIBLE_DIR }}
 
+      - name: Get changed files
+        id: changed-files
+        if: github.event_name == 'push'
+        uses: tj-actions/changed-files@v47
+        with:
+          files: |
+            Ansible/**
+            compose.proxy.yaml
+            haproxy.cfg
+            .github/workflows/ansible.yaml
+
       # Determine which playbook to run
       - name: Set playbook
         id: playbook
@@ -107,7 +118,8 @@ jobs:
             echo "name=${{ github.event.inputs.playbook }}" >> $GITHUB_OUTPUT
           else
             # On push, run based on changed files
-            CHANGED=$(git diff --name-only HEAD~1)
+            CHANGED="${{ steps.changed-files.outputs.all_changed_files }}"
+
             if echo "$CHANGED" | grep -q "setup-proxmox"; then
               echo "name=setup-proxmox.yaml" >> $GITHUB_OUTPUT
             elif echo "$CHANGED" | grep -q "setup-oracle\|compose.proxy\|haproxy"; then
