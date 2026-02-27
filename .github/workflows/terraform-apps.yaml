@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  TF_VERSION: "1.14.6"
+  TF_VERSION: "latest"
   TF_WORKING_DIR: "./Terraform/apps"
 
 concurrency:
@@ -144,6 +144,7 @@ jobs:
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
       - name: Terraform Format Check
         id: fmt
@@ -363,6 +364,7 @@ jobs:
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
       - name: Terraform Init
         run: terraform init -input=false
