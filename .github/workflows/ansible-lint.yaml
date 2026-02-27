@@ -32,7 +32,7 @@ jobs:
         run: uv tool install ansible-core && uv tool install ansible-lint
 
       - name: Cache Ansible Galaxy content
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.ansible/collections
