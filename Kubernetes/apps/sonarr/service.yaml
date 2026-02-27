@@ -3,9 +3,6 @@ kind: Service
 metadata:
   name: sonarr
   namespace: media
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: "sonarr"
 spec:
   type: ClusterIP
   ports:
