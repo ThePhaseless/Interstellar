@@ -3,7 +3,7 @@ name = "interstellar"
 version = "0.1.0"
 description = "GitOps-managed Kubernetes homelab on TalosOS"
 readme = "README.md"
-requires-python = "==3.13.*"
+requires-python = "==3.14.*"
 dependencies = [
     "ansible-dev-tools>=25.5.2",
     "oci-cli>=3.63.0",
