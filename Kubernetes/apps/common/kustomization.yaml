@@ -5,6 +5,7 @@ resources:
   - rbac.yaml
   - media-pv.yaml
   - externalsecrets.yaml
+  - media-runtime-config.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
