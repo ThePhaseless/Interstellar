@@ -64,7 +64,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: CPU usage on {{ $labels.instance }} is above 80% for 5 minutes
+          summary: CPU usage on {{ or $values.B.Labels.instance $values.B0.Labels.instance $labels.instance "unknown-instance" }} is above 80% for 5 minutes
         labels:
           severity: critical
         isPaused: false
@@ -126,7 +126,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Memory usage on {{ $labels.instance }} is above 85% for 5 minutes
+          summary: Memory usage on {{ or $values.B.Labels.instance $values.B0.Labels.instance $labels.instance "unknown-instance" }} is above 85% for 5 minutes
         labels:
           severity: critical
         isPaused: false
@@ -189,12 +189,13 @@ groups:
         execErrState: Error
         for: 0s
         annotations:
-          summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping
+          summary: Pod {{ or $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" }}/{{ or $values.B.Labels.pod $values.B0.Labels.pod $labels.pod "unknown-pod" }} is crash looping
         labels:
           severity: critical
         isPaused: false
 
       # Pod Not Ready – JOIN with kube_pod_owner to exclude Job-owned pods.
+      # Uses `== bool 0` so not-ready pods evaluate to 1 and threshold `gt:0` works.
       # Fires when readiness is 0 for 5m, but only for ReplicaSet/StatefulSet/DaemonSet.
       - uid: pod-not-ready
         title: Pod Not Ready
@@ -207,7 +208,7 @@ groups:
             datasourceUid: mimir
             model:
               expr: |
-                kube_pod_status_ready{condition="true"} == 0
+                kube_pod_status_ready{condition="true"} == bool 0
                 * on(pod, namespace) group_left(owner_kind)
                 kube_pod_owner{owner_kind=~"ReplicaSet|StatefulSet|DaemonSet"}
                 * on(pod, namespace) group_left()
@@ -257,7 +258,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.owner_kind }}) is not ready
+          summary: Pod {{ or $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" }}/{{ or $values.B.Labels.pod $values.B0.Labels.pod $labels.pod "unknown-pod" }} ({{ or $values.B.Labels.owner_kind $values.B0.Labels.owner_kind $labels.owner_kind "unknown-owner" }}) is not ready
         labels:
           severity: warning
         isPaused: false
@@ -320,7 +321,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: PVC {{ $labels.persistentvolumeclaim }} is above 85% capacity
+          summary: PVC {{ or $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" }}/{{ or $values.B.Labels.persistentvolumeclaim $values.B0.Labels.persistentvolumeclaim $labels.persistentvolumeclaim "unknown-pvc" }} is above 85% capacity
         labels:
           severity: warning
         isPaused: false
@@ -383,7 +384,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Node {{ $labels.node }} is not ready
+          summary: Node {{ or $values.B.Labels.node $values.B0.Labels.node $labels.node "unknown-node" }} is not ready
         labels:
           severity: critical
         isPaused: false
@@ -446,7 +447,7 @@ groups:
         execErrState: Error
         for: 1h
         annotations:
-          summary: Certificate {{ $labels.name }} expires in less than 14 days
+          summary: Certificate {{ or $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" }}/{{ or $values.B.Labels.name $values.B0.Labels.name $labels.name "unknown-certificate" }} expires in less than 14 days
         labels:
           severity: warning
         isPaused: false
@@ -514,7 +515,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Longhorn node {{ $labels.node }} is not schedulable (disk pressure)
+          summary: Longhorn node {{ or $values.B.Labels.node $values.B0.Labels.node $labels.node "unknown-node" }} is not schedulable (disk pressure)
         labels:
           severity: critical
         isPaused: false
@@ -578,7 +579,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Longhorn volume {{ $labels.pvc }} in {{ $labels.pvc_namespace }} is degraded
+          summary: Longhorn volume {{ or $values.B.Labels.pvc $values.B0.Labels.pvc $labels.pvc "unknown-pvc" }} in {{ or $values.B.Labels.pvc_namespace $values.B0.Labels.pvc_namespace $labels.pvc_namespace "unknown-namespace" }} is degraded
         labels:
           severity: warning
         isPaused: false
@@ -641,7 +642,7 @@ groups:
         execErrState: Error
         for: 10m
         annotations:
-          summary: Longhorn node {{ $labels.node }} storage usage above 80%
+          summary: Longhorn node {{ or $values.B.Labels.node $values.B0.Labels.node $labels.node "unknown-node" }} storage usage above 80%
         labels:
           severity: critical
         isPaused: false
