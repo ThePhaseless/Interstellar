@@ -88,10 +88,7 @@ jobs:
 
       - name: Setup talosctl
         run: |
-          TALOSCTL_VERSION=v1.12.4
-          curl -sSL "https://github.com/siderolabs/talos/releases/download/${TALOSCTL_VERSION}/talosctl-linux-amd64" -o talosctl
-          chmod +x talosctl
-          sudo mv talosctl /usr/local/bin/talosctl
+          curl -sL https://talos.dev/install | sh
           talosctl version --client
 
       - name: Configure kubeconfig

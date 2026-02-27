@@ -207,7 +207,7 @@
       "action": "accept",
       "src":    ["tag:ci"],
       "dst":    ["tag:proxmox", "tag:oracle"],
-      "users":  ["autogroup:nonroot"]
+      "users":  ["autogroup:nonroot", "root"]
     }
   ],
 

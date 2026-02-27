@@ -60,7 +60,7 @@ fetch_and_export_secret() {
     local value=""
 
     if [[ -n "${SECRETS_JSON:-}" ]]; then
-        value=$(echo "$SECRETS_JSON" |
+        value=$(printf '%s' "$SECRETS_JSON" |
             jq -r --arg key "$bws_key" '.[] | select(.key == $key) | .value' 2>/dev/null)
     fi
 
@@ -198,9 +198,9 @@ main() {
     local px_user
     local px_token_id
     local px_api_token
-    px_user=$(echo "$SECRETS_JSON" | jq -r '.[] | select(.key == "proxmox-user") | .value' 2>/dev/null)
-    px_token_id=$(echo "$SECRETS_JSON" | jq -r '.[] | select(.key == "proxmox-token-id") | .value' 2>/dev/null)
-    px_api_token=$(echo "$SECRETS_JSON" | jq -r '.[] | select(.key == "proxmox-api-token") | .value' 2>/dev/null)
+    px_user=$(printf '%s' "$SECRETS_JSON" | jq -r '.[] | select(.key == "proxmox-user") | .value' 2>/dev/null)
+    px_token_id=$(printf '%s' "$SECRETS_JSON" | jq -r '.[] | select(.key == "proxmox-token-id") | .value' 2>/dev/null)
+    px_api_token=$(printf '%s' "$SECRETS_JSON" | jq -r '.[] | select(.key == "proxmox-api-token") | .value' 2>/dev/null)
     if [[ -n "$px_user" && -n "$px_token_id" && -n "$px_api_token" && "$px_user" != "null" && "$px_token_id" != "null" && "$px_api_token" != "null" ]]; then
         export PROXMOX_VE_API_TOKEN="${px_user}!${px_token_id}=${px_api_token}"
     fi
@@ -212,7 +212,7 @@ main() {
     export KUBE_CONFIG_PATH="${KUBE_CONFIG_PATH:-$HOME/.kube/config}"
 
     local vip_raw=""
-    vip_raw=$(echo "$SECRETS_JSON" |
+    vip_raw=$(printf '%s' "$SECRETS_JSON" |
         jq -r '.[] | select(.key == "authentik-vip-emails") | .value' 2>/dev/null)
     if [[ -n "$vip_raw" && "$vip_raw" != "null" ]]; then
         export TF_VAR_authentik_vip_emails="$vip_raw"
