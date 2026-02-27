@@ -26,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      has_changes: ${{ steps.plan.outputs.has_changes }}
 
     steps:
       - name: Checkout repository
@@ -187,14 +189,30 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          terraform plan -no-color -out=tfplan
-          terraform show -no-color tfplan > plan_full.txt
+          set +e
+          terraform plan -no-color -detailed-exitcode -out=tfplan
+          PLAN_EXITCODE=$?
+          set -e
+
+          if [ "$PLAN_EXITCODE" -eq 1 ]; then
+            echo "::error::terraform plan failed"
+            exit 1
+          fi
+
+          if [ "$PLAN_EXITCODE" -eq 2 ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            terraform show -no-color tfplan > plan_full.txt
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "Terraform plan is empty. Skipping apply artifact generation."
+          fi
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
 
       - name: Encrypt Plan
+        if: steps.plan.outputs.has_changes == 'true'
         run: |
           gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
           gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" plan_full.txt
@@ -203,6 +221,7 @@ jobs:
 
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v7
+        if: steps.plan.outputs.has_changes == 'true'
         with:
           name: tfplan-apps
           path: |
@@ -221,7 +240,7 @@ jobs:
     name: Apply
     runs-on: ubuntu-latest
     needs: plan
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.plan.outputs.has_changes == 'true'
     environment: server
     permissions:
       contents: read

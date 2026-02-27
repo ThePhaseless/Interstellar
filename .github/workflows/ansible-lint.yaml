@@ -1,0 +1,49 @@
+name: Ansible Lint
+
+on:
+  push:
+    branches: [main, migration]
+    paths:
+      - "Ansible/**"
+      - ".github/workflows/ansible-lint.yaml"
+  pull_request:
+    branches: [main, migration]
+    paths:
+      - "Ansible/**"
+      - ".github/workflows/ansible-lint.yaml"
+  workflow_dispatch:
+
+env:
+  ANSIBLE_DIR: "./Ansible"
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies
+        run: uv tool install ansible-core && uv tool install ansible-lint
+
+      - name: Cache Ansible Galaxy content
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.ansible/collections
+            ~/.ansible/roles
+          key: ${{ runner.os }}-ansible-galaxy-${{ hashFiles('Ansible/requirements.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-ansible-galaxy-
+
+      - name: Install Ansible collections
+        run: ansible-galaxy install -r requirements.yaml
+        working-directory: ${{ env.ANSIBLE_DIR }}
+
+      - name: Run ansible-lint
+        run: ansible-lint ${{ env.ANSIBLE_DIR }}
