@@ -5,34 +5,32 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.ca_certificate)
 }
 
-# Bitwarden Access Token Secret
-# This secret is consumed by the bitwarden-sdk-server (ESO backend) to
-# authenticate with Bitwarden Secrets Manager. Without it, no ExternalSecrets
-# can be synced.
-#
-# The BWS_ACCESS_TOKEN env var is already available in the Terraform environment
-# (sourced from .env locally, or GitHub Secrets in CI).
-
 resource "kubernetes_namespace_v1" "external_secrets" {
   metadata {
     name = "external-secrets"
   }
+
+  lifecycle {
+    # Argo CD mutates namespace labels/annotations; don't churn Terraform plans.
+    ignore_changes = [
+      metadata[0].annotations,
+      metadata[0].labels,
+    ]
+  }
 }
 
-resource "kubernetes_secret_v1" "bitwarden_access_token" {
+# Bitwarden Access Token Secret
+# This Kubernetes secret is populated from the Bitwarden secret
+# "bitwarden-access-token-kubernetes".
+resource "kubernetes_secret_v1" "bitwarden_access_token_kubernetes" {
   depends_on = [kubernetes_namespace_v1.external_secrets]
 
   metadata {
-    name      = "bitwarden-access-token"
+    name      = "bitwarden-access-token-kubernetes"
     namespace = kubernetes_namespace_v1.external_secrets.metadata[0].name
   }
 
   data = {
-    token = var.bws_access_token
-  }
-
-  lifecycle {
-    # Don't destroy the secret if Terraform is run without the cluster
-    prevent_destroy = true
+    token = bitwarden-secrets_secret.bitwarden_access_token_kubernetes.value
   }
 }
