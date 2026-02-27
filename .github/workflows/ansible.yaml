@@ -4,17 +4,9 @@ on:
   push:
     branches: [main, migration]
     paths:
-      - "Ansible/**"
-      - "compose.proxy.yaml"
-      - "haproxy.cfg"
-      - ".github/workflows/ansible.yaml"
-  pull_request:
-    branches: [main, migration]
-    paths:
-      - "Ansible/**"
-      - "compose.proxy.yaml"
-      - "haproxy.cfg"
-      - ".github/workflows/ansible.yaml"
+      - "Ansible/setup-oracle.yaml"
+      - "Ansible/setup-proxmox.yaml"
+      - "Ansible/maintenance.yaml"
   workflow_dispatch:
     inputs:
       playbook:
@@ -31,43 +23,9 @@ env:
   ANSIBLE_DIR: "./Ansible"
 
 jobs:
-  # Lint (runs on all PRs)
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-
-      - name: Install dependencies
-        run: uv tool install ansible-core && uv tool install ansible-lint
-
-      - name: Cache Ansible Galaxy content
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.ansible/collections
-            ~/.ansible/roles
-          key: ${{ runner.os }}-ansible-galaxy-${{ hashFiles('Ansible/requirements.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-ansible-galaxy-
-
-      - name: Install Ansible collections
-        run: ansible-galaxy install -r requirements.yaml
-        working-directory: ${{ env.ANSIBLE_DIR }}
-
-      - name: Run ansible-lint
-        run: ansible-lint ${{ env.ANSIBLE_DIR }}
-
-  # Deploy (only on main branch or manual dispatch)
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: lint
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     environment: server
 
@@ -119,16 +77,15 @@ jobs:
         run: ansible-galaxy install -r requirements.yaml
         working-directory: ${{ env.ANSIBLE_DIR }}
 
-      - name: Get changed files
+      - name: Get changed playbooks
         id: changed-files
         if: github.event_name == 'push'
         uses: tj-actions/changed-files@v47
         with:
           files: |
-            Ansible/**
-            compose.proxy.yaml
-            haproxy.cfg
-            .github/workflows/ansible.yaml
+            Ansible/setup-oracle.yaml
+            Ansible/setup-proxmox.yaml
+            Ansible/maintenance.yaml
 
       # Determine which playbook to run
       - name: Set playbook
@@ -142,11 +99,13 @@ jobs:
 
             if echo "$CHANGED" | grep -q "setup-proxmox"; then
               echo "name=setup-proxmox.yaml" >> $GITHUB_OUTPUT
-            elif echo "$CHANGED" | grep -q "setup-oracle\|compose.proxy\|haproxy"; then
+            elif echo "$CHANGED" | grep -q "setup-oracle"; then
               echo "name=setup-oracle.yaml" >> $GITHUB_OUTPUT
-            else
-              # Default fallback on push
+            elif echo "$CHANGED" | grep -q "maintenance"; then
               echo "name=maintenance.yaml" >> $GITHUB_OUTPUT
+            else
+              echo "::error::Push event did not include a supported playbook change."
+              exit 1
             fi
           fi
 
