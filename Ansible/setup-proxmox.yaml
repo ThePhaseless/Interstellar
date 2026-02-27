@@ -34,7 +34,9 @@
         mode_mismatch="$(find "{{ item }}" -xdev -type d ! -perm -2775 | wc -l)"
 
         if [[ "${owner_mismatch}" -gt 0 ]]; then
-          find "{{ item }}" -xdev -type d \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} \) -print0 | xargs -0 -r chown {{ media_runtime_uid }}:{{ media_runtime_gid }}
+          find "{{ item }}" -xdev -type d \
+            \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} \) \
+            -print0 | xargs -0 -r chown {{ media_runtime_uid }}:{{ media_runtime_gid }}
         fi
 
         if [[ "${mode_mismatch}" -gt 0 ]]; then
