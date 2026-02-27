@@ -7,7 +7,6 @@ resources:
   - namespace.yaml
   - grafana.yaml
   - grafana-pvc.yaml
-  - grafana-pvc-v2.yaml
   - loki.yaml
   - mimir.yaml
   - promtail.yaml
