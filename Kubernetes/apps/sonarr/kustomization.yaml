@@ -5,7 +5,7 @@ namespace: media
 
 resources:
   - deployment.yaml
-  - service-tailscale.yaml
+  - service.yaml
 
 labels:
   - pairs:

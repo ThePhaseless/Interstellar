@@ -8,7 +8,6 @@ resources:
   - service.yaml
   - ingress.yaml
   - pvc.yaml
-  - service-tailscale.yaml
 
 labels:
   - pairs:
