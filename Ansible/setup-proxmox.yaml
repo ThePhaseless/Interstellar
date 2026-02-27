@@ -17,6 +17,37 @@
         mode: "0755"
       loop: "{{ nfs_exports }}"
 
+    - name: Ensure managed media paths exist with shared ownership
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ media_runtime_uid | string }}"
+        group: "{{ media_runtime_gid | string }}"
+        mode: "2775"
+      loop: "{{ media_managed_paths }}"
+
+    - name: Normalize media directory ownership and setgid permissions
+      ansible.builtin.shell: |
+        set -euo pipefail
+
+        owner_mismatch="$(find "{{ item }}" -xdev -type d \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} \) | wc -l)"
+        mode_mismatch="$(find "{{ item }}" -xdev -type d ! -perm -2775 | wc -l)"
+
+        if [[ "${owner_mismatch}" -gt 0 ]]; then
+          find "{{ item }}" -xdev -type d \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} \) -print0 | xargs -0 -r chown {{ media_runtime_uid }}:{{ media_runtime_gid }}
+        fi
+
+        if [[ "${mode_mismatch}" -gt 0 ]]; then
+          find "{{ item }}" -xdev -type d ! -perm -2775 -print0 | xargs -0 -r chmod 2775
+        fi
+
+        echo "owner_mismatch=${owner_mismatch} mode_mismatch=${mode_mismatch}"
+      args:
+        executable: /bin/bash
+      register: media_dir_permissions
+      changed_when: media_dir_permissions.stdout | trim != "owner_mismatch=0 mode_mismatch=0"
+      loop: "{{ media_managed_paths }}"
+
     - name: Configure NFS exports
       ansible.builtin.lineinfile:
         path: /etc/exports
