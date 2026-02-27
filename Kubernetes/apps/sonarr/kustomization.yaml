@@ -6,6 +6,7 @@ namespace: media
 resources:
   - deployment.yaml
   - service.yaml
+  - pvc.yaml
   - pvc-v2.yaml
 
 labels:
