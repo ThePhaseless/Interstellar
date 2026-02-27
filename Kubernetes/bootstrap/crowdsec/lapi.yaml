@@ -66,7 +66,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: crowdsec-data
+            claimName: crowdsec-data-v2
         - name: config
           emptyDir: {}
 ---
@@ -83,16 +83,3 @@ spec:
       targetPort: lapi
   selector:
     app: crowdsec-lapi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: crowdsec-data
-  namespace: crowdsec
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 5Gi

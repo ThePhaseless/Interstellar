@@ -137,7 +137,7 @@ spec:
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: radarr-config
+            claimName: radarr-config-v2
         - name: scripts
           configMap:
             name: arr-scripts

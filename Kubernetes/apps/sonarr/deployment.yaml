@@ -137,7 +137,7 @@ spec:
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: sonarr-config
+            claimName: sonarr-config-v2
         - name: scripts
           configMap:
             name: arr-scripts
@@ -148,19 +148,6 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: media-pvc
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: sonarr-config
-  namespace: media
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 5Gi
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
