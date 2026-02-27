@@ -158,6 +158,19 @@ resource "bitwarden-secrets_secret" "owner_email" {
   }
 }
 
+# Bitwarden Secrets — External Secrets bootstrap token (manual value)
+
+resource "bitwarden-secrets_secret" "bitwarden_access_token_kubernetes" {
+  key        = "bitwarden-access-token-kubernetes"
+  value      = "fill-me-manually"
+  project_id = "f57582a5-679a-4deb-9e5f-b3b3017d2b13"
+  note       = "Bitwarden access token used by External Secrets SDK server in Kubernetes. Fill manually in Bitwarden. Managed by Terraform."
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
 # Bitwarden Secrets — Authentik (Identity Provider)
 
 resource "bitwarden-secrets_secret" "authentik_secret_key" {

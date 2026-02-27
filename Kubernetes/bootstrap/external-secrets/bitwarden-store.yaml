@@ -19,6 +19,6 @@ spec:
       auth:
         secretRef:
           credentials:
-            name: bitwarden-access-token
+            name: bitwarden-access-token-kubernetes
             namespace: external-secrets
             key: token
