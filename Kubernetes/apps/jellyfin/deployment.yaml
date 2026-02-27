@@ -104,7 +104,7 @@ spec:
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: jellyfin-config
+            claimName: jellyfin-config-v2
         - name: cache
           emptyDir:
             sizeLimit: 10Gi

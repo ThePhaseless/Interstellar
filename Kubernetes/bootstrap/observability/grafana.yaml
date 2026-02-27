@@ -144,7 +144,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: grafana-data
+            claimName: grafana-data-v2
         - name: datasources
           configMap:
             name: grafana-datasources
@@ -186,19 +186,6 @@ spec:
       targetPort: http
   selector:
     app: grafana
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: grafana-data
-  namespace: observability
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 5Gi
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

@@ -159,7 +159,7 @@ spec:
             claimName: immich-upload
         - name: postgres-data
           persistentVolumeClaim:
-            claimName: immich-postgres
+            claimName: immich-postgres-v2
         - name: external-library
           persistentVolumeClaim:
             claimName: personal-pvc

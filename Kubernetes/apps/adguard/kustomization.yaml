@@ -8,7 +8,7 @@ resources:
   - service.yaml
   - service-tailscale.yaml
   - ingress.yaml
-  - pvc.yaml
+  - pvc-v2.yaml
   - middleware.yaml
 
 labels:

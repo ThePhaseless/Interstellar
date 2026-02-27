@@ -6,4 +6,5 @@ namespace: crowdsec
 resources:
   - namespace.yaml
   - lapi.yaml
+  - pvc-v2.yaml
   - externalsecret.yaml
