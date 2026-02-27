@@ -59,15 +59,12 @@ spec:
       containers:
         - name: qbittorrent
           image: linuxserver/qbittorrent:5.1.4
+          envFrom:
+            - configMapRef:
+                name: media-runtime-config
           env:
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
             - name: TZ
               value: "UTC"
-            - name: UMASK
-              value: "002"
             - name: DOCKER_MODS
               value: ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
           ports:

@@ -45,11 +45,10 @@ spec:
       containers:
         - name: radarr
           image: linuxserver/radarr:6.0.4
+          envFrom:
+            - configMapRef:
+                name: media-runtime-config
           env:
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
             - name: TZ
               value: "UTC"
           ports:

@@ -19,11 +19,10 @@ spec:
       containers:
         - name: bazarr
           image: linuxserver/bazarr:1.5.6
+          envFrom:
+            - configMapRef:
+                name: media-runtime-config
           env:
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
             - name: TZ
               value: "UTC"
           ports:
