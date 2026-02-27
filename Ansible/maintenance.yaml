@@ -1,6 +1,7 @@
 - name: Update ProxmoxVE
   hosts: proxmox
   become: true
+  ignore_unreachable: true
   tasks:
     - name: Update Proxmox packages
       ansible.builtin.include_tasks: tasks/update-proxmox.yaml

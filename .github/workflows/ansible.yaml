@@ -46,6 +46,16 @@ jobs:
       - name: Install dependencies
         run: uv tool install ansible-core && uv tool install ansible-lint
 
+      - name: Cache Ansible Galaxy content
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.ansible/collections
+            ~/.ansible/roles
+          key: ${{ runner.os }}-ansible-galaxy-${{ hashFiles('Ansible/requirements.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-ansible-galaxy-
+
       - name: Install Ansible collections
         run: ansible-galaxy install -r requirements.yaml
         working-directory: ${{ env.ANSIBLE_DIR }}
@@ -95,6 +105,16 @@ jobs:
       - name: Install Ansible
         run: uv tool install ansible-core
 
+      - name: Cache Ansible Galaxy content
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.ansible/collections
+            ~/.ansible/roles
+          key: ${{ runner.os }}-ansible-galaxy-${{ hashFiles('Ansible/requirements.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-ansible-galaxy-
+
       - name: Install Ansible collections
         run: ansible-galaxy install -r requirements.yaml
         working-directory: ${{ env.ANSIBLE_DIR }}
@@ -124,26 +144,16 @@ jobs:
               echo "name=setup-proxmox.yaml" >> $GITHUB_OUTPUT
             elif echo "$CHANGED" | grep -q "setup-oracle\|compose.proxy\|haproxy"; then
               echo "name=setup-oracle.yaml" >> $GITHUB_OUTPUT
-            elif echo "$CHANGED" | grep -q "maintenance.yaml\|tasks/update-proxmox.yaml\|tasks/update-apt.yaml"; then
-              echo "name=maintenance.yaml" >> $GITHUB_OUTPUT
-            elif [ -z "$CHANGED" ]; then
-              # Safety fallback when changed-files returns an empty result
-              echo "name=maintenance.yaml" >> $GITHUB_OUTPUT
             else
-              # No relevant deploy playbook changes in this push
-              echo "name=" >> $GITHUB_OUTPUT
+              # Default fallback on push
+              echo "name=maintenance.yaml" >> $GITHUB_OUTPUT
             fi
           fi
 
       - name: Run Ansible playbook
-        if: steps.playbook.outputs.name != ''
         run: |
           ansible-playbook ${{ steps.playbook.outputs.name }} \
             -e "tailscale_authkey=${{ env.TS_ORACLE_AUTHKEY }}"
         working-directory: ${{ env.ANSIBLE_DIR }}
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
-
-      - name: Skip Ansible playbook (no relevant changes)
-        if: steps.playbook.outputs.name == ''
-        run: echo "No matching playbook changes detected; skipping deploy playbook run."
