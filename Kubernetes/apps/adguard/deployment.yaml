@@ -79,4 +79,4 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: adguard-data-v2
+            claimName: adguard-data
