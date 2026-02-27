@@ -124,15 +124,23 @@ jobs:
               echo "name=setup-proxmox.yaml" >> $GITHUB_OUTPUT
             elif echo "$CHANGED" | grep -q "setup-oracle\|compose.proxy\|haproxy"; then
               echo "name=setup-oracle.yaml" >> $GITHUB_OUTPUT
-            else
+            elif echo "$CHANGED" | grep -q "maintenance.yaml\|tasks/update-proxmox.yaml\|tasks/update-apt.yaml"; then
               echo "name=maintenance.yaml" >> $GITHUB_OUTPUT
+            else
+              # No relevant deploy playbook changes in this push
+              echo "name=" >> $GITHUB_OUTPUT
             fi
           fi
 
       - name: Run Ansible playbook
+        if: steps.playbook.outputs.name != ''
         run: |
           ansible-playbook ${{ steps.playbook.outputs.name }} \
             -e "tailscale_authkey=${{ env.TS_ORACLE_AUTHKEY }}"
         working-directory: ${{ env.ANSIBLE_DIR }}
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
+
+      - name: Skip Ansible playbook (no relevant changes)
+        if: steps.playbook.outputs.name == ''
+        run: echo "No matching playbook changes detected; skipping deploy playbook run."
