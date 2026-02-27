@@ -6,6 +6,9 @@ on:
 concurrency:
   group: concurrency-lock
 
+env:
+  TF_VERSION: "latest"
+
 jobs:
   plan-destroy:
     runs-on: ubuntu-latest
@@ -54,6 +57,8 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Create OCI Private Key
         run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}
@@ -172,6 +177,8 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Create OCI Private Key
         run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}

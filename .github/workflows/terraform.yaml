@@ -16,7 +16,6 @@ on:
   workflow_dispatch:
 
 env:
-  TF_VERSION: "1.14.6"
   TF_WORKING_DIR: "./Terraform"
 
 jobs:
@@ -131,7 +130,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
       - name: Terraform Format Check
         id: fmt
@@ -318,7 +317,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
       - name: Download Terraform Plan
         uses: actions/download-artifact@v8
