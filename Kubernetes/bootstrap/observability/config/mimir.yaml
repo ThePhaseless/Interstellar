@@ -46,6 +46,7 @@ limits:
   ingestion_rate: 500000
   ingestion_burst_size: 1000000
   out_of_order_time_window: 1h
+  compactor_blocks_retention_period: 31d
 
 store_gateway:
   sharding_ring:
