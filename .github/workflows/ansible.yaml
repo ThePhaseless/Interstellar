@@ -126,6 +126,9 @@ jobs:
               echo "name=setup-oracle.yaml" >> $GITHUB_OUTPUT
             elif echo "$CHANGED" | grep -q "maintenance.yaml\|tasks/update-proxmox.yaml\|tasks/update-apt.yaml"; then
               echo "name=maintenance.yaml" >> $GITHUB_OUTPUT
+            elif [ -z "$CHANGED" ]; then
+              # Safety fallback when changed-files returns an empty result
+              echo "name=maintenance.yaml" >> $GITHUB_OUTPUT
             else
               # No relevant deploy playbook changes in this push
               echo "name=" >> $GITHUB_OUTPUT
