@@ -8,3 +8,13 @@ nfs_allowed_hosts:
   - 192.168.1.110 # talos-1
   - 192.168.1.111 # talos-2
   - 192.168.1.112 # talos-3
+
+# Shared runtime identity for media workloads (Sonarr/Radarr/Bazarr/qBittorrent).
+media_runtime_uid: 1000
+media_runtime_gid: 1000
+
+# Library paths that should always be writable by the shared media UID/GID.
+media_managed_paths:
+  - /Storage/Media/TVShows
+  - /Storage/Media/Movies
+  - /Storage/Media/Downloads
