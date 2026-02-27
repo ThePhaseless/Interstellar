@@ -13,7 +13,4 @@
 - name: Reboot the system if needed
   become: true
   ansible.builtin.reboot:
-  when:
-    - reboot_required is defined
-    - reboot_required.stat is defined
-    - reboot_required.stat.exists
+  when: reboot_required.stat.exists
