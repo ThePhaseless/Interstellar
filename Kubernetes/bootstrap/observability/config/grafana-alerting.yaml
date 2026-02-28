@@ -647,6 +647,321 @@ groups:
           severity: critical
         isPaused: false
 
+      # Traefik 5xx Error Rate – service-level HTTP error ratio.
+      - uid: traefik-high-5xx-rate
+        title: Traefik High 5xx Error Rate
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: |
+                (
+                  sum by(service) (rate(traefik_service_requests_total{code=~"5.."}[5m]))
+                  /
+                  clamp_min(sum by(service) (rate(traefik_service_requests_total[5m])), 0.001)
+                ) * 100 > 5
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Traefik service {{ $labels.service }} has 5xx error rate above 5%
+        labels:
+          severity: critical
+        isPaused: false
+
+      # Traefik p95 Latency Warning – service-level p95 response time.
+      - uid: traefik-high-p95-latency-warning
+        title: Traefik High p95 Latency (Warning)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket[5m]))) > 0.75
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: Traefik service {{ $labels.service }} p95 latency is above 750ms
+        labels:
+          severity: warning
+        isPaused: false
+
+      # Traefik p95 Latency Critical – service-level p95 response time.
+      - uid: traefik-high-p95-latency-critical
+        title: Traefik High p95 Latency (Critical)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket[5m]))) > 1.5
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: Traefik service {{ $labels.service }} p95 latency is above 1.5s
+        labels:
+          severity: critical
+        isPaused: false
+
+      # Longhorn Volume Faulted – page on hard data-path failure.
+      - uid: longhorn-volume-faulted
+        title: Longhorn Volume Faulted
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: longhorn_volume_state{state="faulted"} == 1
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: Longhorn volume {{ $labels.pvc }} in {{ $labels.pvc_namespace }} is faulted
+        labels:
+          severity: critical
+        isPaused: false
+
+      # Longhorn Node Count Drop – compare current count to the 24h peak.
+      - uid: longhorn-node-count-drop
+        title: Longhorn Node Count Drop
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: max_over_time((min(longhorn_node_count_total))[24h:1m]) - min(longhorn_node_count_total)
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: Alerting
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: Longhorn node count dropped below its 24h peak
+        labels:
+          severity: critical
+        isPaused: false
+
 contactPoints:
   - orgId: 1
     name: Discord
