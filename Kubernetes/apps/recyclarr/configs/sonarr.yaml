@@ -16,7 +16,6 @@ sonarr:
 
     quality_profiles:
       - name: Remux-1080p - Anime
-        min_format_score: 1
       - name: WEB-2160p
         qualities:
           - name: Bluray-2160p Remux
