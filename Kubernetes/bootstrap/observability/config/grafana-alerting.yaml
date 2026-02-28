@@ -64,7 +64,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: CPU usage on {{ or $values.B.Labels.instance $values.B0.Labels.instance $labels.instance "unknown-instance" }} is above 80% for 5 minutes
+          summary: CPU usage on {{ or $labels.instance "unknown-instance" }} is above 80% for 5 minutes
         labels:
           severity: critical
         isPaused: false
@@ -126,7 +126,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Memory usage on {{ or $values.B.Labels.instance $values.B0.Labels.instance $labels.instance "unknown-instance" }} is above 85% for 5 minutes
+          summary: Memory usage on {{ or $labels.instance "unknown-instance" }} is above 85% for 5 minutes
         labels:
           severity: critical
         isPaused: false
@@ -189,7 +189,7 @@ groups:
         execErrState: Error
         for: 0s
         annotations:
-          summary: Pod {{ or $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" }}/{{ or $values.B.Labels.pod $values.B0.Labels.pod $labels.pod "unknown-pod" }} is crash looping
+          summary: Pod {{ or $labels.namespace "unknown-namespace" }}/{{ or $labels.pod "unknown-pod" }} is crash looping
         labels:
           severity: critical
         isPaused: false
@@ -258,11 +258,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: >-
-            {{- $ns := or $values.A.Labels.namespace $values.A0.Labels.namespace $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" -}}
-            {{- $pod := or $values.A.Labels.pod $values.A0.Labels.pod $values.B.Labels.pod $values.B0.Labels.pod $labels.pod "unknown-pod" -}}
-            {{- $owner := or $values.A.Labels.owner_kind $values.A0.Labels.owner_kind $values.B.Labels.owner_kind $values.B0.Labels.owner_kind $labels.owner_kind "unknown-owner" -}}
-            Pod {{ if or (eq $ns "[no value]") (eq $ns "<no value>") }}unknown-namespace{{ else }}{{ $ns }}{{ end }}/{{ if or (eq $pod "[no value]") (eq $pod "<no value>") }}unknown-pod{{ else }}{{ $pod }}{{ end }} ({{ if or (eq $owner "[no value]") (eq $owner "<no value>") }}unknown-owner{{ else }}{{ $owner }}{{ end }}) is not ready
+          summary: Pod {{ or $labels.namespace "unknown-namespace" }}/{{ or $labels.pod "unknown-pod" }} ({{ or $labels.owner_kind "unknown-owner" }}) is not ready
         labels:
           severity: warning
         isPaused: false
@@ -325,7 +321,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: PVC {{ or $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" }}/{{ or $values.B.Labels.persistentvolumeclaim $values.B0.Labels.persistentvolumeclaim $labels.persistentvolumeclaim "unknown-pvc" }} is above 85% capacity
+          summary: PVC {{ or $labels.namespace "unknown-namespace" }}/{{ or $labels.persistentvolumeclaim "unknown-pvc" }} is above 85% capacity
         labels:
           severity: warning
         isPaused: false
@@ -388,7 +384,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Node {{ or $values.B.Labels.node $values.B0.Labels.node $labels.node "unknown-node" }} is not ready
+          summary: Node {{ or $labels.node "unknown-node" }} is not ready
         labels:
           severity: critical
         isPaused: false
@@ -451,7 +447,7 @@ groups:
         execErrState: Error
         for: 1h
         annotations:
-          summary: Certificate {{ or $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" }}/{{ or $values.B.Labels.name $values.B0.Labels.name $labels.name "unknown-certificate" }} expires in less than 14 days
+          summary: Certificate {{ or $labels.namespace "unknown-namespace" }}/{{ or $labels.name "unknown-certificate" }} expires in less than 14 days
         labels:
           severity: warning
         isPaused: false
@@ -519,7 +515,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Longhorn node {{ or $values.B.Labels.node $values.B0.Labels.node $labels.node "unknown-node" }} is not schedulable (disk pressure)
+          summary: Longhorn node {{ or $labels.node "unknown-node" }} is not schedulable (disk pressure)
         labels:
           severity: critical
         isPaused: false
@@ -583,7 +579,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Longhorn volume {{ or $values.B.Labels.pvc $values.B0.Labels.pvc $labels.pvc "unknown-pvc" }} in {{ or $values.B.Labels.pvc_namespace $values.B0.Labels.pvc_namespace $labels.pvc_namespace "unknown-namespace" }} is degraded
+          summary: Longhorn volume {{ or $labels.pvc "unknown-pvc" }} in {{ or $labels.pvc_namespace "unknown-namespace" }} is degraded
         labels:
           severity: warning
         isPaused: false
@@ -646,7 +642,7 @@ groups:
         execErrState: Error
         for: 10m
         annotations:
-          summary: Longhorn node {{ or $values.B.Labels.node $values.B0.Labels.node $labels.node "unknown-node" }} storage usage above 80%
+          summary: Longhorn node {{ or $labels.node "unknown-node" }} storage usage above 80%
         labels:
           severity: critical
         isPaused: false
@@ -680,18 +676,16 @@ templates:
       {{- if .Alerts.Firing -}}
       ## 🚨 {{ len .Alerts.Firing }} Alert(s) Firing
       {{ range .Alerts.Firing -}}
-      ### 🔴 {{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}
+      ### 🔴 {{ index .Labels "alertname" }}
       > **Severity:** `{{ index .Labels "severity" | title }}`
       > **Summary:** {{ index .Annotations "summary" }}
-      {{ if .DashboardURL }}> [📊 View Dashboard]({{ .DashboardURL }}){{ end }}
-      {{ if .PanelURL }}> [🖼️ View Panel]({{ .PanelURL }}){{ end }}
       ---
       {{ end -}}
       {{- end -}}
       {{- if .Alerts.Resolved -}}
       ## ✅ {{ len .Alerts.Resolved }} Alert(s) Resolved
       {{ range .Alerts.Resolved -}}
-      ### 🟢 {{ if index .Labels "rulename" }}{{ index .Labels "rulename" }}{{ else }}{{ index .Labels "alertname" }}{{ end }}
+      ### 🟢 {{ index .Labels "alertname" }}
       > **Severity:** `{{ index .Labels "severity" | title }}`
       ---
       {{ end -}}
