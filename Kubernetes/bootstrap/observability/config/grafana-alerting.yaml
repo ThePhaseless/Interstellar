@@ -208,7 +208,7 @@ groups:
             datasourceUid: mimir
             model:
               expr: |
-                kube_pod_status_ready{condition="true"} == bool 0
+                (kube_pod_status_ready{condition="true"} == bool 0)
                 * on(pod, namespace) group_left(owner_kind)
                 kube_pod_owner{owner_kind=~"ReplicaSet|StatefulSet|DaemonSet"}
                 * on(pod, namespace) group_left()
