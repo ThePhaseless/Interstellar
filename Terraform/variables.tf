@@ -124,7 +124,7 @@ variable "tailscale_magicdns_domain" {
 
 # Oracle Proxy Configuration
 variable "proxy_public_access" {
-  description = "Enable public HTTP/HTTPS access to the Oracle proxy VPS. When false, only SSH and Tailscale ports are open."
+  description = "Enable public HTTP (port 80) access to the Oracle proxy VPS. HTTPS (443), SSH, and Tailscale remain open."
   type        = bool
   default     = false
 }

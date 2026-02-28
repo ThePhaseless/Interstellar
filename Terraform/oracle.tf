@@ -100,18 +100,15 @@ resource "oci_core_security_list" "main" {
     }
   }
 
-  # Ingress: HTTPS (conditional on proxy_public_access)
-  dynamic "ingress_security_rules" {
-    for_each = var.proxy_public_access ? [1] : []
-    content {
-      protocol    = "6"
-      source      = "0.0.0.0/0"
-      description = "HTTPS traffic"
+  # Ingress: HTTPS (always enabled for public TLS entrypoint)
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    description = "HTTPS traffic"
 
-      tcp_options {
-        min = 443
-        max = 443
-      }
+    tcp_options {
+      min = 443
+      max = 443
     }
   }
 
