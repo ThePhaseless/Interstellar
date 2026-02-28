@@ -258,7 +258,11 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Pod {{ or $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" }}/{{ or $values.B.Labels.pod $values.B0.Labels.pod $labels.pod "unknown-pod" }} ({{ or $values.B.Labels.owner_kind $values.B0.Labels.owner_kind $labels.owner_kind "unknown-owner" }}) is not ready
+          summary: >-
+            {{- $ns := or $values.A.Labels.namespace $values.A0.Labels.namespace $values.B.Labels.namespace $values.B0.Labels.namespace $labels.namespace "unknown-namespace" -}}
+            {{- $pod := or $values.A.Labels.pod $values.A0.Labels.pod $values.B.Labels.pod $values.B0.Labels.pod $labels.pod "unknown-pod" -}}
+            {{- $owner := or $values.A.Labels.owner_kind $values.A0.Labels.owner_kind $values.B.Labels.owner_kind $values.B0.Labels.owner_kind $labels.owner_kind "unknown-owner" -}}
+            Pod {{ if or (eq $ns "[no value]") (eq $ns "<no value>") }}unknown-namespace{{ else }}{{ $ns }}{{ end }}/{{ if or (eq $pod "[no value]") (eq $pod "<no value>") }}unknown-pod{{ else }}{{ $pod }}{{ end }} ({{ if or (eq $owner "[no value]") (eq $owner "<no value>") }}unknown-owner{{ else }}{{ $owner }}{{ end }}) is not ready
         labels:
           severity: warning
         isPaused: false
