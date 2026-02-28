@@ -74,17 +74,6 @@ resource "oci_core_security_list" "main" {
     protocol    = "all"
   }
 
-  ingress_security_rules {
-    protocol    = "6" # TCP
-    source      = "0.0.0.0/0"
-    description = "SSH access"
-
-    tcp_options {
-      min = 22
-      max = 22
-    }
-  }
-
   # Ingress: HTTP (conditional on proxy_public_access)
   dynamic "ingress_security_rules" {
     for_each = var.proxy_public_access ? [1] : []

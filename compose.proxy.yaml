@@ -2,13 +2,11 @@ services:
   haproxy:
     container_name: haproxy
     image: haproxy:latest
-    ports:
-      - "80:80"
-      - "443:443"
+    user: "0:0"
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     restart: unless-stopped
-    network_mode: host # For Tailscale IP resolution
+    network_mode: host # Use host networking for Tailscale MagicDNS/backends.
 
   watchtower:
     container_name: watchtower
