@@ -45,14 +45,17 @@ variable "nodes" {
   default = {
     "talos-1" = {
       vmid       = 110
+      memory     = 16384
       gpu        = true
       gpu_device = "gpu" # Intel Arc B580
     }
     "talos-2" = {
-      vmid = 111
+      vmid   = 111
+      memory = 12288
     }
     "talos-3" = {
-      vmid = 112
+      vmid   = 112
+      memory = 12288
     }
   }
 }
