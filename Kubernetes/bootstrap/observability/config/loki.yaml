@@ -27,6 +27,7 @@ schema_config:
 
 limits_config:
   retention_period: 168h # 7 days
+  reject_old_samples: false
   ingestion_rate_mb: 10
   ingestion_burst_size_mb: 20
   max_query_parallelism: 32

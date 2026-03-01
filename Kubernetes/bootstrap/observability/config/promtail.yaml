@@ -66,6 +66,13 @@ scrape_configs:
                 db: /geoip/db.mmdb
                 source: client_ip
                 db_type: city
+            - labeldrop:
+                - geoip_city_name
+                - geoip_continent_code
+                - geoip_continent_name
+                - geoip_location_latitude
+                - geoip_location_longitude
+                - geoip_subdivision_name
             - labels:
                 geoip_country_name:
                 client_ip:
