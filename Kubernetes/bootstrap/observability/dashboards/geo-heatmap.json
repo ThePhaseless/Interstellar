@@ -306,9 +306,7 @@
         "displayMode": "gradient",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "/^Value$/",
-          "values": true
+          "calcs": ["lastNotNull"]
         }
       },
       "targets": [
@@ -330,13 +328,7 @@
           }
         },
         {
-          "id": "organize",
-          "options": {
-            "renameByName": {
-              "Field": "geoip_country_name",
-              "Last *": "Value"
-            }
-          }
+          "id": "rowsToFields"
         }
       ],
       "type": "bargauge"
@@ -370,9 +362,7 @@
         "displayMode": "gradient",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "/^Value$/",
-          "values": true
+          "calcs": ["lastNotNull"]
         }
       },
       "targets": [
@@ -394,13 +384,7 @@
           }
         },
         {
-          "id": "organize",
-          "options": {
-            "renameByName": {
-              "Field": "geoip_country_name",
-              "Last *": "Value"
-            }
-          }
+          "id": "rowsToFields"
         }
       ],
       "type": "bargauge"
