@@ -319,13 +319,7 @@
       "title": "Top 15 Countries \u2014 All Requests",
       "transformations": [
         {
-          "id": "labelsToFields",
-          "options": {
-            "valueLabel": "geoip_country_name"
-          }
-        },
-        {
-          "id": "merge",
+          "id": "seriesToRows",
           "options": {}
         },
         {
@@ -335,6 +329,10 @@
               "Time": true
             }
           }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
         }
       ],
       "type": "bargauge"
@@ -384,13 +382,7 @@
       "title": "Top 15 Countries \u2014 Blocked",
       "transformations": [
         {
-          "id": "labelsToFields",
-          "options": {
-            "valueLabel": "geoip_country_name"
-          }
-        },
-        {
-          "id": "merge",
+          "id": "seriesToRows",
           "options": {}
         },
         {
@@ -400,6 +392,10 @@
               "Time": true
             }
           }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
         }
       ],
       "type": "bargauge"
