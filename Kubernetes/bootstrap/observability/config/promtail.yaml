@@ -42,7 +42,7 @@ scrape_configs:
           - __meta_kubernetes_pod_container_name
         target_label: container
         action: replace
-      - replacement: /var/log/pods/*$1/*.log
+      - replacement: /var/log/pods/*$1/*.log*
         separator: /
         source_labels:
           - __meta_kubernetes_pod_uid
