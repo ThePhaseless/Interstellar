@@ -12,7 +12,11 @@
         "uid": "loki"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          }
+        },
         "overrides": []
       },
       "gridPos": {
@@ -30,28 +34,24 @@
         "layers": [
           {
             "config": {
+              "color": {
+                "field": "Value",
+                "fixed": "dark-green"
+              },
+              "fillOpacity": 0.4,
+              "shape": "circle",
               "showLegend": true,
-              "style": {
-                "color": {
-                  "field": "Value",
-                  "fixed": "dark-green"
-                },
-                "opacity": 0.7,
-                "size": {
-                  "field": "Value",
-                  "max": 30,
-                  "min": 3
-                },
-                "symbol": {
-                  "fixed": "img/icons/marker/circle.svg",
-                  "mode": "fixed"
-                }
+              "size": {
+                "field": "Value",
+                "fixed": 5,
+                "max": 30,
+                "min": 3
               }
             },
             "location": {
               "gazetteer": "public/gazetteer/countries.json",
               "lookup": "geoip_country_name",
-              "mode": "lookup"
+              "mode": "auto"
             },
             "name": "Requests",
             "type": "markers"
@@ -61,7 +61,7 @@
           "mode": "details"
         },
         "view": {
-          "id": "zero",
+          "id": "coords",
           "lat": 30,
           "lon": 10,
           "zoom": 2
@@ -78,11 +78,7 @@
       "title": "All Requests by Country",
       "transformations": [
         {
-          "id": "labelsToFields",
-          "options": {}
-        },
-        {
-          "id": "merge",
+          "id": "seriesToRows",
           "options": {}
         },
         {
@@ -92,6 +88,10 @@
               "Time": true
             }
           }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
         }
       ],
       "type": "geomap"
@@ -102,7 +102,12 @@
         "uid": "loki"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        },
         "overrides": []
       },
       "gridPos": {
@@ -120,27 +125,23 @@
         "layers": [
           {
             "config": {
+              "color": {
+                "fixed": "green"
+              },
+              "fillOpacity": 0.4,
+              "shape": "circle",
               "showLegend": true,
-              "style": {
-                "color": {
-                  "fixed": "green"
-                },
-                "opacity": 0.7,
-                "size": {
-                  "field": "Value",
-                  "max": 25,
-                  "min": 3
-                },
-                "symbol": {
-                  "fixed": "img/icons/marker/circle.svg",
-                  "mode": "fixed"
-                }
+              "size": {
+                "field": "Value",
+                "fixed": 5,
+                "max": 25,
+                "min": 3
               }
             },
             "location": {
               "gazetteer": "public/gazetteer/countries.json",
               "lookup": "geoip_country_name",
-              "mode": "lookup"
+              "mode": "auto"
             },
             "name": "Accepted",
             "type": "markers"
@@ -150,7 +151,7 @@
           "mode": "details"
         },
         "view": {
-          "id": "zero",
+          "id": "coords",
           "lat": 30,
           "lon": 10,
           "zoom": 2
@@ -167,11 +168,7 @@
       "title": "Accepted Requests by Country",
       "transformations": [
         {
-          "id": "labelsToFields",
-          "options": {}
-        },
-        {
-          "id": "merge",
+          "id": "seriesToRows",
           "options": {}
         },
         {
@@ -181,6 +178,10 @@
               "Time": true
             }
           }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
         }
       ],
       "type": "geomap"
@@ -191,7 +192,12 @@
         "uid": "loki"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          }
+        },
         "overrides": []
       },
       "gridPos": {
@@ -209,27 +215,23 @@
         "layers": [
           {
             "config": {
+              "color": {
+                "fixed": "red"
+              },
+              "fillOpacity": 0.4,
+              "shape": "circle",
               "showLegend": true,
-              "style": {
-                "color": {
-                  "fixed": "red"
-                },
-                "opacity": 0.7,
-                "size": {
-                  "field": "Value",
-                  "max": 25,
-                  "min": 3
-                },
-                "symbol": {
-                  "fixed": "img/icons/marker/circle.svg",
-                  "mode": "fixed"
-                }
+              "size": {
+                "field": "Value",
+                "fixed": 5,
+                "max": 25,
+                "min": 3
               }
             },
             "location": {
               "gazetteer": "public/gazetteer/countries.json",
               "lookup": "geoip_country_name",
-              "mode": "lookup"
+              "mode": "auto"
             },
             "name": "Blocked",
             "type": "markers"
@@ -239,7 +241,7 @@
           "mode": "details"
         },
         "view": {
-          "id": "zero",
+          "id": "coords",
           "lat": 30,
           "lon": 10,
           "zoom": 2
@@ -256,11 +258,7 @@
       "title": "Blocked Requests by Country (403)",
       "transformations": [
         {
-          "id": "labelsToFields",
-          "options": {}
-        },
-        {
-          "id": "merge",
+          "id": "seriesToRows",
           "options": {}
         },
         {
@@ -270,6 +268,10 @@
               "Time": true
             }
           }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
         }
       ],
       "type": "geomap"
