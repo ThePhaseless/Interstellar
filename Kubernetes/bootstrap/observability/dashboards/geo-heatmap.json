@@ -78,19 +78,18 @@
       "title": "All Requests by Country",
       "transformations": [
         {
-          "id": "reduce",
-          "options": {
-            "includeTimeField": false,
-            "mode": "seriesToRows",
-            "reducers": ["lastNotNull"]
-          }
+          "id": "labelsToFields",
+          "options": {}
+        },
+        {
+          "id": "merge",
+          "options": {}
         },
         {
           "id": "organize",
           "options": {
-            "renameByName": {
-              "Field": "geoip_country_name",
-              "Last *": "Value"
+            "excludeByName": {
+              "Time": true
             }
           }
         }
@@ -168,19 +167,18 @@
       "title": "Accepted Requests by Country",
       "transformations": [
         {
-          "id": "reduce",
-          "options": {
-            "includeTimeField": false,
-            "mode": "seriesToRows",
-            "reducers": ["lastNotNull"]
-          }
+          "id": "labelsToFields",
+          "options": {}
+        },
+        {
+          "id": "merge",
+          "options": {}
         },
         {
           "id": "organize",
           "options": {
-            "renameByName": {
-              "Field": "geoip_country_name",
-              "Last *": "Value"
+            "excludeByName": {
+              "Time": true
             }
           }
         }
@@ -258,19 +256,18 @@
       "title": "Blocked Requests by Country (403)",
       "transformations": [
         {
-          "id": "reduce",
-          "options": {
-            "includeTimeField": false,
-            "mode": "seriesToRows",
-            "reducers": ["lastNotNull"]
-          }
+          "id": "labelsToFields",
+          "options": {}
+        },
+        {
+          "id": "merge",
+          "options": {}
         },
         {
           "id": "organize",
           "options": {
-            "renameByName": {
-              "Field": "geoip_country_name",
-              "Last *": "Value"
+            "excludeByName": {
+              "Time": true
             }
           }
         }
