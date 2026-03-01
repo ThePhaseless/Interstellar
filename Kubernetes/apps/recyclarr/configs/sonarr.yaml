@@ -11,7 +11,7 @@ sonarr:
       type: series
 
     media_naming:
-      series: default
+      series: jellyfin
       season: default
       episodes:
         rename: true
@@ -30,8 +30,6 @@ sonarr:
     custom_format_groups:
       add:
         - trash_id: e3f37512790f00d0e89e54fe5e790d1c # [Required] Golden Rule UHD
-          select:
-            - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
         - trash_id: d920fd959d220306888f40b6f38e1578 # [Optional] Season Packs
         - trash_id: 35fb4585dcd9e2a5ac732e4309f5a45a # [Streaming Services] Asian
         - trash_id: f4a0410a1df109a66d6e47dcadcce014 # [Optional] Miscellaneous
