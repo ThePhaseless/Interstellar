@@ -217,7 +217,10 @@ resource "authentik_provider_oauth2" "grafana" {
   authorization_flow = data.authentik_flow.default-authorization-flow.id
   invalidation_flow  = data.authentik_flow.default-invalidation-flow.id
   signing_key        = data.authentik_certificate_key_pair.default.id
-  property_mappings  = data.authentik_property_mapping_provider_scope.oauth2.ids
+  property_mappings = concat(
+    data.authentik_property_mapping_provider_scope.oauth2.ids,
+    [authentik_property_mapping_provider_scope.groups.id]
+  )
   allowed_redirect_uris = [
     {
       matching_mode = "strict"
@@ -328,15 +331,15 @@ resource "authentik_group" "writers" {
   users = []
 }
 
-# Jellyfin OIDC Provider — SSO with automatic account creation
-
-# Group membership scope mapping (required for RBAC support)
-resource "authentik_property_mapping_provider_scope" "jellyfin_groups" {
-  name        = "Jellyfin Group Membership"
+# Group membership scope mapping (shared by Grafana, Jellyfin, ArgoCD)
+resource "authentik_property_mapping_provider_scope" "groups" {
+  name        = "Group Membership"
   scope_name  = "groups"
-  description = "Maps user group memberships for Jellyfin RBAC"
+  description = "Maps user group memberships for RBAC"
   expression  = "return [group.name for group in user.ak_groups.all()]"
 }
+
+# Jellyfin OIDC Provider — SSO with automatic account creation
 
 resource "authentik_provider_oauth2" "jellyfin" {
   name               = "Jellyfin"
@@ -346,7 +349,7 @@ resource "authentik_provider_oauth2" "jellyfin" {
   signing_key        = data.authentik_certificate_key_pair.default.id
   property_mappings = concat(
     data.authentik_property_mapping_provider_scope.oauth2.ids,
-    [authentik_property_mapping_provider_scope.jellyfin_groups.id]
+    [authentik_property_mapping_provider_scope.groups.id]
   )
   allowed_redirect_uris = [
     {
@@ -423,7 +426,7 @@ resource "authentik_provider_oauth2" "argocd" {
   signing_key        = data.authentik_certificate_key_pair.default.id
   property_mappings = concat(
     data.authentik_property_mapping_provider_scope.oauth2.ids,
-    [authentik_property_mapping_provider_scope.jellyfin_groups.id]
+    [authentik_property_mapping_provider_scope.groups.id]
   )
   allowed_redirect_uris = [
     {
