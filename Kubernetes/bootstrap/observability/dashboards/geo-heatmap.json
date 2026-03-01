@@ -317,28 +317,7 @@
         }
       ],
       "title": "Top 15 Countries \u2014 All Requests",
-      "transformations": [
-        {
-          "id": "labelsToFields",
-          "options": {}
-        },
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true
-            }
-          }
-        },
-        {
-          "id": "rowsToFields",
-          "options": {}
-        }
-      ],
+      "transformations": [],
       "type": "bargauge"
     },
     {
@@ -384,28 +363,7 @@
         }
       ],
       "title": "Top 15 Countries \u2014 Blocked",
-      "transformations": [
-        {
-          "id": "labelsToFields",
-          "options": {}
-        },
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true
-            }
-          }
-        },
-        {
-          "id": "rowsToFields",
-          "options": {}
-        }
-      ],
+      "transformations": [],
       "type": "bargauge"
     },
     {
