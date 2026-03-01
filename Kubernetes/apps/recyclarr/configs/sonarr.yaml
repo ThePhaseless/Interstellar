@@ -1,9 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
+
 sonarr:
   series:
     # Set the URL/API Key to your actual instance
     base_url: http://sonarr:8989
     api_key: !env_var SONARR_API_KEY
     delete_old_custom_formats: true
+
+    quality_definition:
+      type: series
 
     media_naming:
       series: default
@@ -15,53 +20,33 @@ sonarr:
         daily: default
 
     quality_profiles:
-      - name: Remux-1080p - Anime
-      - name: WEB-2160p
-        qualities:
-          - name: Bluray-2160p Remux
-          - name: Bluray-2160p
-          - name: WEBDL-2160p
-          - name: WEBRip-2160p
-          - name: HDTV-2160p
-          - name: Bluray-1080p Remux
-          - name: Bluray-1080p
-          - name: WEBRip-1080p
-          - name: WEBDL-1080p
-          - name: Bluray-720p
-          - name: WEBRip-720p
-          - name: WEBDL-720p
-          - name: Raw-HD
-          - name: HDTV-1080p
-          - name: HDTV-720p
-        upgrade:
-          allowed: true
-          until_quality: Bluray-2160p Remux
+      - trash_id: c4cadd6b35b95f62c3d47a408e53e2f7 # WEB-2160p (Combined)
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
+        reset_unmatched_scores:
+          enabled: true
 
-    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
-    custom_formats:
-      # HDR Formats
-      - trash_ids:
-          - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
-          - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
-          - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
-          - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
-        assign_scores_to:
-          - name: WEB-2160p
-
-      - trash_ids:
-          - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
-        assign_scores_to:
-          - name: WEB-2160p
-            score: 0
-
-      - trash_ids:
-          - b2550eb333d27b75833e25b8c2557b38 # 10bit
-        assign_scores_to:
-          - name: Remux-1080p - Anime
-            score: 0 # Adjust scoring as desired
-
-      - trash_ids:
-          - 026d5aadd1a6b4e550b134cb6c72b3ca # Uncensored
-        assign_scores_to:
-          - name: Remux-1080p - Anime
-            score: 100 # Adjust scoring as desired
+    custom_format_groups:
+      add:
+        - trash_id: e3f37512790f00d0e89e54fe5e790d1c # [Required] Golden Rule UHD
+          select:
+            - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
+        - trash_id: d920fd959d220306888f40b6f38e1578 # [Optional] Season Packs
+        - trash_id: 35fb4585dcd9e2a5ac732e4309f5a45a # [Streaming Services] Asian
+        - trash_id: f4a0410a1df109a66d6e47dcadcce014 # [Optional] Miscellaneous
+          select:
+            - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+            - ef4963043b0987f8485bc9106f16db38 # DV (Disk)
+            - 1bd69272e23c5e6c5b1d6c8a36fce95e # HFR
+            - 7ba05c6e0e14e793538174c679126996 # MULTi
+            - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+            - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+            - 7470a681e6205243983c4410ee4c920f # VC-1
+            - 90501962793d580d011511155c97e4e5 # VP9
+            - cddfb4e32db826151d97352b8e37c648 # x264
+            - c9eafd50846d299b862ca9bb6ea91950 # x265
+            - 041d90b435ebd773271cea047a457a6a # x266
+        - trash_id: e1053c0ef622df3749fa43c22865663a # [Optional] SDR
+          select:
+            - 83304f261cf516bb208c18c54c0adf97 # SDR (no WEBDL)

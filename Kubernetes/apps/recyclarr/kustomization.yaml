@@ -9,6 +9,8 @@ resources:
 configMapGenerator:
   - name: recyclarr-config
     namespace: media
+    options:
+      disableNameSuffixHash: true
     files:
       - configs/sonarr.yaml
       - configs/radarr.yaml
