@@ -25,6 +25,9 @@ schema_config:
         prefix: index_
         period: 24h
 
+ingester:
+  max_chunk_age: 168h
+
 limits_config:
   retention_period: 168h # 7 days
   reject_old_samples: true
