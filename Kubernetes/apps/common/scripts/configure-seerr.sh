@@ -76,7 +76,7 @@ if [ "$RADARR_COUNT" = "0" ]; then
     PROFILE_ID=$(echo "$PROFILES" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2 || echo "1")
 
     FOLDERS=$(curl -s "${RADARR_URL}/api/v3/rootfolder" -H "X-Api-Key: ${RADARR_API_KEY}")
-    ROOT_FOLDER=$(echo "$FOLDERS" | grep -o '"path":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "/movies")
+    ROOT_FOLDER=$(echo "$FOLDERS" | grep -o '"path":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "/Movies")
 
     curl -s -X POST "${SEERR_URL}/api/v1/settings/radarr" \
       -H "Content-Type: application/json" \
@@ -118,7 +118,7 @@ if [ "$SONARR_COUNT" = "0" ]; then
     PROFILE_ID=$(echo "$PROFILES" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2 || echo "1")
 
     FOLDERS=$(curl -s "${SONARR_URL}/api/v3/rootfolder" -H "X-Api-Key: ${SONARR_API_KEY}")
-    ROOT_FOLDER=$(echo "$FOLDERS" | grep -o '"path":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "/tv")
+    ROOT_FOLDER=$(echo "$FOLDERS" | grep -o '"path":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "/TVShows")
 
     curl -s -X POST "${SEERR_URL}/api/v1/settings/sonarr" \
       -H "Content-Type: application/json" \

@@ -87,7 +87,7 @@ if ! echo "$LIBRARIES" | grep -q '"Movies"'; then
   curl -sf -X POST "${JELLYFIN_URL}/Library/VirtualFolders?name=Movies&collectionType=movies&refreshLibrary=false" \
     -H "X-Emby-Authorization: ${AUTH}" \
     -H "Content-Type: application/json" \
-    -d '{"LibraryOptions":{"EnableRealtimeMonitor":true,"EnablePhotos":false,"PathInfos":[{"Path":"/media/movies"}]}}' || true
+    -d '{"LibraryOptions":{"EnableRealtimeMonitor":true,"EnablePhotos":false,"PathInfos":[{"Path":"/media/Movies"}]}}' || true
 fi
 
 if ! echo "$LIBRARIES" | grep -q '"TV Shows"'; then
@@ -95,7 +95,7 @@ if ! echo "$LIBRARIES" | grep -q '"TV Shows"'; then
   curl -sf -X POST "${JELLYFIN_URL}/Library/VirtualFolders?name=TV%20Shows&collectionType=tvshows&refreshLibrary=false" \
     -H "X-Emby-Authorization: ${AUTH}" \
     -H "Content-Type: application/json" \
-    -d '{"LibraryOptions":{"EnableRealtimeMonitor":true,"EnablePhotos":false,"PathInfos":[{"Path":"/media/tv"}]}}' || true
+    -d '{"LibraryOptions":{"EnableRealtimeMonitor":true,"EnablePhotos":false,"PathInfos":[{"Path":"/media/TVShows"}]}}' || true
 fi
 
 if [ -z "$OIDC_CLIENT_ID" ] || [ -z "$OIDC_CLIENT_SECRET" ] || [ -z "$AUTHENTIK_OIDC_ENDPOINT" ]; then
