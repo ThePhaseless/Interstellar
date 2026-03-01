@@ -7,10 +7,10 @@ radarr:
     delete_old_custom_formats: true
 
     media_naming:
-      folder: default
+      folder: jellyfin-imdb
       movie:
         rename: true
-        standard: jellyfin
+        standard: jellyfin-imdb
 
     quality_definition:
       type: movie

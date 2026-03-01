@@ -11,7 +11,7 @@ sonarr:
       type: series
 
     media_naming:
-      series: jellyfin
+      series: jellyfin-tvdb
       season: default
       episodes:
         rename: true
