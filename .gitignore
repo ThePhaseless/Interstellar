@@ -6,6 +6,7 @@ Logs/
 
 .env*
 !.env*.example
+!.envrc
 
 # Deploy
 .ansible/
@@ -21,3 +22,4 @@ charts/
 .terraform.tfstate.lock.info
 terraform.tfstate*
 .bw-provider-state
+.direnv/
