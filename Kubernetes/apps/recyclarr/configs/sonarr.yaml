@@ -45,7 +45,7 @@ sonarr:
           - name: WEB 720p
         upgrade:
           allowed: true
-          until_quality: Bluray-2160p Remux
+          until_quality: Bluray-1080p Remux
 
     custom_format_groups:
       add:
