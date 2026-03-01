@@ -301,7 +301,9 @@
       },
       "options": {
         "displayMode": "gradient",
+        "namePlacement": "left",
         "orientation": "horizontal",
+        "showUnfilled": true,
         "reduceOptions": {
           "calcs": ["lastNotNull"]
         }
@@ -366,7 +368,9 @@
       },
       "options": {
         "displayMode": "gradient",
+        "namePlacement": "left",
         "orientation": "horizontal",
+        "showUnfilled": true,
         "reduceOptions": {
           "calcs": ["lastNotNull"]
         }
