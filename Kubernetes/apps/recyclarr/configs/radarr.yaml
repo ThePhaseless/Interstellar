@@ -18,9 +18,6 @@ radarr:
     quality_profiles:
       - trash_id: d1d310673359205736b4b84acd5ea8c8 # Remux 2160p (Combined)
         qualities:
-          - name: WEBRip-720p
-          - name: WEBDL-720p
-          - name: Bluray-720p
           - name: HDTV-1080p
           - name: WEBRip-1080p
           - name: WEBDL-1080p
