@@ -281,7 +281,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "displayName": "${__field.labels.geoip_country_name}",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -318,7 +317,26 @@
         }
       ],
       "title": "Top 15 Countries \u2014 All Requests",
-      "transformations": [],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "valueLabel": "geoip_country_name"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            }
+          }
+        }
+      ],
       "type": "bargauge"
     },
     {
@@ -328,7 +346,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "displayName": "${__field.labels.geoip_country_name}",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -365,7 +382,26 @@
         }
       ],
       "title": "Top 15 Countries \u2014 Blocked",
-      "transformations": [],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "valueLabel": "geoip_country_name"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            }
+          }
+        }
+      ],
       "type": "bargauge"
     },
     {
