@@ -51,17 +51,8 @@
             openssl
           ];
 
-          shellHook = ''
-            # Let uv manage the Python toolchain & virtualenv from pyproject.toml
-            export UV_PYTHON_PREFERENCE=managed
-
-            if [[ ! -d .venv ]]; then
-              echo "Creating virtualenv via uv sync ..."
-              uv sync --quiet
-            fi
-
-            source .venv/bin/activate
-          '';
+          # Env setup is handled by .envrc (direnv) — see dotenv, venv, and secrets logic there.
+          # shellHook is intentionally minimal; use `direnv allow` to activate the full environment.
         };
       }
     );

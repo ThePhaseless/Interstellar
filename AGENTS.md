@@ -2,7 +2,14 @@
 
 ## Development
 
-Before running first script in a new shell in this repository activate the virtual environment and source the environment setup script so all required variables are loaded. Run this only once per Not before every command execution!
+The project uses **Nix flake + direnv** to provide all CLI tools and environment setup automatically. When you `cd` into the repository (with `direnv allow` run once), it will:
+
+1. Load Nix devShell tools (terraform, kubectl, kustomize, helm, etc.)
+2. Load `.env` file (if present)
+3. Create/activate Python virtualenv via `uv sync`
+4. Source `scripts/setup-env.sh` for Bitwarden secrets (if `BWS_ACCESS_TOKEN` is set)
+
+If direnv is not available, activate manually:
 
 ```bash
 source .venv/bin/activate
