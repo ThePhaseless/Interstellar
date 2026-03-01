@@ -50,7 +50,7 @@
             },
             "location": {
               "gazetteer": "public/gazetteer/countries.json",
-              "lookup": "geoip_country_code",
+              "lookup": "geoip_country_name",
               "mode": "lookup"
             },
             "name": "Requests",
@@ -69,9 +69,9 @@
       },
       "targets": [
         {
-          "expr": "sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} [$__range]))",
+          "expr": "sum by (geoip_country_name) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_name!=\"\"} [$__range]))",
           "instant": true,
-          "legendFormat": "{{ geoip_country_code }}",
+          "legendFormat": "{{ geoip_country_name }}",
           "refId": "total"
         }
       ],
@@ -121,7 +121,7 @@
             },
             "location": {
               "gazetteer": "public/gazetteer/countries.json",
-              "lookup": "geoip_country_code",
+              "lookup": "geoip_country_name",
               "mode": "lookup"
             },
             "name": "Accepted",
@@ -140,9 +140,9 @@
       },
       "targets": [
         {
-          "expr": "sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus < 400 [$__range]))",
+          "expr": "sum by (geoip_country_name) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_name!=\"\"} | json | DownstreamStatus < 400 [$__range]))",
           "instant": true,
-          "legendFormat": "{{ geoip_country_code }}",
+          "legendFormat": "{{ geoip_country_name }}",
           "refId": "accepted"
         }
       ],
@@ -192,7 +192,7 @@
             },
             "location": {
               "gazetteer": "public/gazetteer/countries.json",
-              "lookup": "geoip_country_code",
+              "lookup": "geoip_country_name",
               "mode": "lookup"
             },
             "name": "Blocked",
@@ -211,9 +211,9 @@
       },
       "targets": [
         {
-          "expr": "sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus = 403 [$__range]))",
+          "expr": "sum by (geoip_country_name) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_name!=\"\"} | json | DownstreamStatus = 403 [$__range]))",
           "instant": true,
-          "legendFormat": "{{ geoip_country_code }}",
+          "legendFormat": "{{ geoip_country_name }}",
           "refId": "blocked"
         }
       ],
@@ -254,9 +254,9 @@
       },
       "targets": [
         {
-          "expr": "topk(15, sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} [$__range])))",
+          "expr": "topk(15, sum by (geoip_country_name) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_name!=\"\"} [$__range])))",
           "instant": true,
-          "legendFormat": "{{ geoip_country_code }}",
+          "legendFormat": "{{ geoip_country_name }}",
           "refId": "A"
         }
       ],
@@ -297,9 +297,9 @@
       },
       "targets": [
         {
-          "expr": "topk(15, sum by (geoip_country_code) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus = 403 [$__range])))",
+          "expr": "topk(15, sum by (geoip_country_name) (count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_name!=\"\"} | json | DownstreamStatus = 403 [$__range])))",
           "instant": true,
-          "legendFormat": "{{ geoip_country_code }}",
+          "legendFormat": "{{ geoip_country_name }}",
           "refId": "A"
         }
       ],
@@ -373,12 +373,12 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus < 400 [$__interval]))",
+          "expr": "sum(count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_name!=\"\"} | json | DownstreamStatus < 400 [$__interval]))",
           "legendFormat": "Accepted",
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_code!=\"\"} | json | DownstreamStatus >= 400 [$__interval]))",
+          "expr": "sum(count_over_time({namespace=\"traefik\", container=\"traefik\", geoip_country_name!=\"\"} | json | DownstreamStatus >= 400 [$__interval]))",
           "legendFormat": "Blocked",
           "refId": "B"
         }

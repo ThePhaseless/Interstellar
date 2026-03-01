@@ -46,7 +46,6 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count(sum by (ClientHost) (count_over_time({namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" [$__range])))",
-          "instant": true,
           "legendFormat": "Unique IPs",
           "queryType": "instant",
           "refId": "A"
@@ -86,7 +85,6 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "sum(count_over_time({namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" [$__range]))",
-          "instant": true,
           "legendFormat": "Total Requests",
           "queryType": "instant",
           "refId": "A"
@@ -150,7 +148,6 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "topk(50, sum by (ClientHost) (count_over_time({namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" [$__range])))",
-          "instant": true,
           "legendFormat": "{{ClientHost}}",
           "queryType": "instant",
           "refId": "A"
@@ -206,7 +203,6 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "topk(20, sum by (ClientHost) (count_over_time({namespace=\"traefik\", container=\"traefik\"} | json | ClientHost != \"\" [$__range])))",
-          "instant": true,
           "legendFormat": "{{ClientHost}}",
           "queryType": "instant",
           "refId": "A"
