@@ -281,6 +281,7 @@
       },
       "fieldConfig": {
         "defaults": {
+          "displayName": "${__field.labels.geoip_country_name}",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -327,6 +328,7 @@
       },
       "fieldConfig": {
         "defaults": {
+          "displayName": "${__field.labels.geoip_country_name}",
           "thresholds": {
             "mode": "absolute",
             "steps": [
