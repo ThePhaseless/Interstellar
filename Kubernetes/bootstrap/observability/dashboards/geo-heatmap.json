@@ -76,6 +76,25 @@
         }
       ],
       "title": "All Requests by Country",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "seriesToRows",
+            "reducers": ["lastNotNull"]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Field": "geoip_country_name",
+              "Last *": "Value"
+            }
+          }
+        }
+      ],
       "type": "geomap"
     },
     {
@@ -147,6 +166,25 @@
         }
       ],
       "title": "Accepted Requests by Country",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "seriesToRows",
+            "reducers": ["lastNotNull"]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Field": "geoip_country_name",
+              "Last *": "Value"
+            }
+          }
+        }
+      ],
       "type": "geomap"
     },
     {
@@ -218,6 +256,25 @@
         }
       ],
       "title": "Blocked Requests by Country (403)",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "seriesToRows",
+            "reducers": ["lastNotNull"]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Field": "geoip_country_name",
+              "Last *": "Value"
+            }
+          }
+        }
+      ],
       "type": "geomap"
     },
     {
@@ -249,7 +306,9 @@
         "displayMode": "gradient",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": ["lastNotNull"],
+          "fields": "/^Value$/",
+          "values": true
         }
       },
       "targets": [
@@ -261,6 +320,25 @@
         }
       ],
       "title": "Top 15 Countries \u2014 All Requests",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "seriesToRows",
+            "reducers": ["lastNotNull"]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Field": "geoip_country_name",
+              "Last *": "Value"
+            }
+          }
+        }
+      ],
       "type": "bargauge"
     },
     {
@@ -292,7 +370,9 @@
         "displayMode": "gradient",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": ["lastNotNull"],
+          "fields": "/^Value$/",
+          "values": true
         }
       },
       "targets": [
@@ -304,6 +384,25 @@
         }
       ],
       "title": "Top 15 Countries \u2014 Blocked",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "seriesToRows",
+            "reducers": ["lastNotNull"]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Field": "geoip_country_name",
+              "Last *": "Value"
+            }
+          }
+        }
+      ],
       "type": "bargauge"
     },
     {
