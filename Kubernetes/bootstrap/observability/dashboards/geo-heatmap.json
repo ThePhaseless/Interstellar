@@ -78,7 +78,11 @@
       "title": "All Requests by Country",
       "transformations": [
         {
-          "id": "seriesToRows",
+          "id": "labelsToFields",
+          "options": {}
+        },
+        {
+          "id": "merge",
           "options": {}
         },
         {
@@ -88,10 +92,6 @@
               "Time": true
             }
           }
-        },
-        {
-          "id": "rowsToFields",
-          "options": {}
         }
       ],
       "type": "geomap"
@@ -168,7 +168,11 @@
       "title": "Accepted Requests by Country",
       "transformations": [
         {
-          "id": "seriesToRows",
+          "id": "labelsToFields",
+          "options": {}
+        },
+        {
+          "id": "merge",
           "options": {}
         },
         {
@@ -178,10 +182,6 @@
               "Time": true
             }
           }
-        },
-        {
-          "id": "rowsToFields",
-          "options": {}
         }
       ],
       "type": "geomap"
@@ -258,7 +258,11 @@
       "title": "Blocked Requests by Country (403)",
       "transformations": [
         {
-          "id": "seriesToRows",
+          "id": "labelsToFields",
+          "options": {}
+        },
+        {
+          "id": "merge",
           "options": {}
         },
         {
@@ -268,10 +272,6 @@
               "Time": true
             }
           }
-        },
-        {
-          "id": "rowsToFields",
-          "options": {}
         }
       ],
       "type": "geomap"
@@ -384,7 +384,13 @@
       "title": "Top 15 Countries \u2014 Blocked",
       "transformations": [
         {
-          "id": "seriesToRows",
+          "id": "labelsToFields",
+          "options": {
+            "valueLabel": "geoip_country_name"
+          }
+        },
+        {
+          "id": "merge",
           "options": {}
         },
         {
@@ -394,10 +400,6 @@
               "Time": true
             }
           }
-        },
-        {
-          "id": "rowsToFields",
-          "options": {}
         }
       ],
       "type": "bargauge"
