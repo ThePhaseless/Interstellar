@@ -211,13 +211,6 @@ main() {
 
     export KUBE_CONFIG_PATH="${KUBE_CONFIG_PATH:-$HOME/.kube/config}"
 
-    local vip_raw=""
-    vip_raw=$(printf '%s' "$SECRETS_JSON" |
-        jq -r '.[] | select(.key == "authentik-vip-emails") | .value' 2>/dev/null)
-    if [[ -n "$vip_raw" && "$vip_raw" != "null" ]]; then
-        export TF_VAR_authentik_vip_emails="$vip_raw"
-    fi
-
     log_success "Environment ready!"
 }
 
