@@ -1,278 +1,157 @@
 # Setup Guide
 
-This guide covers the prerequisites, secrets configuration, and deployment steps for the Interstellar homelab.
+## 🔐 Secrets
 
-## 🔐 Required Secrets
+### GitHub Repository Secret
 
-Before deployment, configure these secrets in **Bitwarden Secrets Manager** and **GitHub repository settings**.
+| Secret            | Description                  |
+| ----------------- | ---------------------------- |
+| `BW_ACCESS_TOKEN` | Bitwarden machine account token |
 
-### How to Obtain Secrets
+### Bitwarden Secrets (Manual)
 
-| Service                  | Documentation                                                                                        |
-| ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| **Bitwarden SM**         | [Machine Accounts](https://bitwarden.com/help/machine-accounts/)                                     |
-| **Tailscale API**        | [API Keys](https://tailscale.com/kb/1101/api#authentication)                                         |
-| **Tailscale OAuth**      | [OAuth Clients](https://tailscale.com/kb/1215/oauth-clients)                                         |
-| **OCI API Keys**         | [Required Keys and OCIDs](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm) |
-| **Cloudflare API Token** | [Create API Token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)     |
-| **Proxmox API Token**    | [API Tokens](https://pve.proxmox.com/wiki/User_Management#_api_tokens)                               |
-| **CrowdSec Bouncer Key** | [Bouncer Registration](https://docs.crowdsec.net/docs/next/bouncers/intro)                           |
+Terraform creates placeholder entries for these — fill them in Bitwarden before first `terraform apply`:
 
-### GitHub Repository Secrets
-
-| Secret            | Description                                                             |
-| ----------------- | ----------------------------------------------------------------------- |
-| `BW_ACCESS_TOKEN` | Bitwarden machine account token (single project containing all secrets) |
-
-### Bitwarden Secrets Manager
-
-All secrets should be stored in a single Bitwarden Secrets Manager project:
-
-#### OCI Secrets
-
-| Key               | Description                                     |
-| ----------------- | ----------------------------------------------- |
-| `oci-config`      | Full `~/.oci/config` file content (without key) |
-| `oci-private-key` | OCI API private key (PEM format)                |
-| `oci-namespace`   | OCI Object Storage namespace                    |
-| `tf-state-bucket` | OCI Object Storage bucket name                  |
-
-#### Infrastructure Secrets
-
-| Key                         | Description                                   | Required Permissions                                                          |
+| Key                         | Description                                   | Notes                                                                         |
 | --------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------- |
+| `oci-config`                | Full `~/.oci/config` content (without key)    | -                                                                             |
+| `oci-private-key`           | OCI API private key (PEM)                     | -                                                                             |
 | `tailscale-oauth-client-id` | Tailscale OAuth client ID                     | Scopes: `devices:core`, `keys:auth_keys` (Write) — Tags: `tag:cluster,tag:ci` |
 | `tailscale-oauth-secret`    | Tailscale OAuth client secret                 | -                                                                             |
-| `tailscale-tailnet`         | Tailscale tailnet name (e.g. `example.org`)   | -                                                                             |
-| `cloudflare-api-token`      | Cloudflare API token                          | `Zone:DNS:Edit`, `Zone:Zone:Read` for your domain                             |
-| `cloudflare-zone-id`        | Cloudflare Zone ID                            | -                                                                             |
-| `proxmox-api-token`         | Proxmox API token (`user@realm!token=secret`) | Full permissions on `/` or VM management                                      |
+| `tailscale-tailnet`         | Tailscale tailnet name                        | -                                                                             |
+| `cloudflare-api-token`      | Cloudflare API token                          | `Zone:DNS:Edit`, `Zone:Zone:Read`                                             |
+| `proxmox-user`              | Proxmox user (e.g. `root@pam`)               | -                                                                             |
+| `proxmox-token-id`          | Proxmox API token ID                          | -                                                                             |
+| `proxmox-api-token`         | Proxmox API token secret                      | -                                                                             |
+| `hcloud-token`              | Hetzner Cloud API token                       | For Storage Box (off-site backups)                                            |
 | `discord-webhook-url`       | Discord webhook for alerts                    | -                                                                             |
-| `crowdsec-api-key`          | CrowdSec enrollment key                       | -                                                                             |
-| `copyparty-admins`          | Comma-separated admin emails                  | -                                                                             |
-| `copyparty-writers`         | Comma-separated writer emails                 | -                                                                             |
+| `owner-email`               | Owner email for Authentik admin group          | -                                                                             |
+| `gh-app-id`                 | GitHub App ID for CI                           | -                                                                             |
+| `gh-app-private-key`        | GitHub App private key (PEM)                   | -                                                                             |
+| `bitwarden-access-token-kubernetes` | BWS token for External Secrets Operator | Can equal `BWS_ACCESS_TOKEN`                                                  |
+| `google-oauth-client-id`    | Google OAuth Client ID                        | [Create in GCP Console](https://console.cloud.google.com/apis/credentials)    |
+| `google-oauth-client-secret`| Google OAuth Client Secret                    | Same as above                                                                 |
 
-#### OAuth2 Proxy Secrets (Google OAuth)
+**Google OAuth redirect URIs:**
+- `https://auth.<domain>/source/oauth/callback/google/`
+- `https://grafana.<domain>/login/google`
 
-| Key                                 | Description                         | How to Set                               |
-| ----------------------------------- | ----------------------------------- | ---------------------------------------- |
-| `oauth2-proxy-google-client-id`     | Google OAuth Client ID              | Create in GCP Console, copy to Bitwarden |
-| `oauth2-proxy-google-client-secret` | Google OAuth Client Secret          | Same as above                            |
-| `oauth2-proxy-cookie-secret`        | Cookie encryption secret (32 bytes) | Auto-generated by Terraform              |
+### Auto-generated Secrets
 
-**Google OAuth Client Setup:**
+Everything else is generated by `terraform apply` and stored in `bitwarden-store-generated`. See [Terraform/secrets.tf](Terraform/secrets.tf) and [Terraform/bitwarden.tf](Terraform/bitwarden.tf) for the full list.
 
-1. Go to [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)
-2. Click **Create Credentials → OAuth Client ID**
-3. Configure the OAuth consent screen if prompted (External, add your email)
-4. Application type: **Web application**
-5. Name: `Interstellar OAuth2 Proxy`
-6. Authorized redirect URIs:
-   - `https://auth.nerine.dev/oauth2/callback` (oauth2-proxy)
-   - `https://grafana.nerine.dev/login/google` (Grafana)
-7. Copy **Client ID** and **Client Secret** to Bitwarden
-
-### Secrets Created by Terraform (do not set manually)
-
-These are generated automatically during `terraform apply` and stored in Bitwarden:
-
-| Secret                | Generated By                                 | Stored As                    |
-| --------------------- | -------------------------------------------- | ---------------------------- |
-| Tailscale auth key    | `tailscale_tailnet_key.cluster`              | `tailscale-auth-key`         |
-| OAuth2 cookie secret  | `random_password.oauth2_proxy_cookie_secret` | `oauth2-proxy-cookie-secret` |
-| Talos machine secrets | `talos_machine_secrets.cluster`              | Terraform state              |
-| Kubeconfig            | `talos_cluster_kubeconfig.cluster`           | Terraform output             |
-| Talosconfig           | `talos_machine_configuration`                | Terraform output             |
-
-## 🚀 Bootstrap & Deployment
+## 🚀 Bootstrap
 
 ### Prerequisites
 
-1. Domain configured in Cloudflare
-2. Oracle Cloud account (free tier works)
-3. Proxmox VE 8+ with IOMMU enabled
-4. Bitwarden Secrets Manager account
-5. Tailscale account with API access
-6. Tools installed: `terraform`, `ansible`, `bws`, `tailscale`
+1. Domain in Cloudflare, Oracle Cloud account, Proxmox VE 8+ (IOMMU), Bitwarden SM, Tailscale, Hetzner Cloud, Google Cloud OAuth
+2. **Nix** (provides all tools via flake) **or** manually: `terraform` ≥ 1.14.4, `ansible`, `bws`, `tailscale`, `kubectl`, `kustomize`, `helm`, `jq`, `openssl`
 
 ### 1. Environment Setup
 
-Clone the repository and load the environment variables from Bitwarden.
-
 ```bash
-# 1. Clone the repository
-git clone https://github.com/ThePhaseless/Interstellar.git
-cd Interstellar
+git clone https://github.com/ThePhaseless/Interstellar.git && cd Interstellar
 
-# 2.a. Set Bitwarden Access Token
-export BWS_ACCESS_TOKEN="<your-token>"
+# Set BWS_ACCESS_TOKEN via export or .env file
+echo 'BWS_ACCESS_TOKEN="<your-token>"' > .env
 
-# 2.b. Or create .env file in root of the repo
+# Load environment (pick one)
+direnv allow                          # Nix + direnv (recommended)
+source scripts/setup-env.sh           # Manual
 ```
 
-.env:
-BWS_ACCESS_TOKEN="<your-token>"
+### 2. Bootstrap Runbook
 
-```
-
-# 3. Fetch secrets and setup environment
-source scripts/setup-env.sh
-```
-
-This also writes `~/.talos/config` from the Bitwarden secret key `talosconfig` and attempts to configure kubectl via Tailscale using `talos-1` by default. Override with `TS_KUBECONFIG_TARGET=<hostname>` before sourcing if needed.
-
-### 2. Ordered Bootstrap Runbook
-
-Use this exact order.
-
-#### Step A: Terraform init (local backend first)
+#### A. Terraform (local backend first)
 
 ```bash
 cd Terraform
-
 terraform init -backend=false
-```
-
-#### Step B: Terraform apply
-
-```bash
 terraform apply
 ```
 
-#### Step C: Configure Oracle entrypoint
+#### B. Ansible
 
 ```bash
 cd ../Ansible
 ansible-playbook setup-oracle.yaml
+ansible-playbook setup-proxmox.yaml
 ```
 
-#### Step D: Migrate Terraform state to OCI backend
+#### C. Migrate Terraform state to OCI
 
 ```bash
 cd ../Terraform
-terraform init
+terraform init -migrate-state -backend-config=backend.auto.hcl  # type "yes"
 ```
 
-Type `yes` when Terraform asks to copy local state to the remote backend.
-
-#### Step E: Generate Bitwarden SDK TLS certificates
-
-The External Secrets Operator requires TLS certificates for the Bitwarden SDK
-server. Generate them once (valid for 10 years):
+#### D. Bitwarden SDK TLS certificates
 
 ```bash
 cd ..
 ./scripts/generate-bitwarden-tls.sh
 ```
 
-This creates a `bitwarden-tls-certs` Secret in the `external-secrets` namespace.
-
-#### Step F: Deploy Kubernetes bootstrap (without ArgoCD)
-
-Deploy bootstrap infrastructure in order. CRDs must register between applies,
-so each component is applied separately. Use `./scripts/apply-kubernetes.sh`
-which handles `kustomize build --enable-helm` + `kubectl apply --server-side`:
+#### E. Kubernetes bootstrap
 
 ```bash
 cd Kubernetes
 
-# Phase 1: Foundation
+# Phase 1 — Foundation
 ../scripts/apply-kubernetes.sh bootstrap/metallb
-# Wait for MetalLB controller to be ready
 kubectl -n metallb-system wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=120s
-# Re-apply to create IPAddressPool/L2Advertisement (requires webhook)
 ../scripts/apply-kubernetes.sh bootstrap/metallb
-
-../scripts/apply-kubernetes.sh bootstrap/nfs-csi
 ../scripts/apply-kubernetes.sh bootstrap/reloader
 
-# Phase 2: Storage & Secrets
+# Phase 2 — Storage & Secrets
 ../scripts/apply-kubernetes.sh bootstrap/longhorn
 ../scripts/apply-kubernetes.sh bootstrap/external-secrets
-# Wait for ESO pods, then re-apply to create ClusterSecretStore
 kubectl -n external-secrets wait --for=condition=ready pod -l app.kubernetes.io/name=external-secrets --timeout=180s
-# Set actual Bitwarden access token
-kubectl -n external-secrets create secret generic bitwarden-access-token \
-  --from-literal=token="$BWS_ACCESS_TOKEN" --dry-run=client -o yaml | kubectl apply --server-side -f -
 ../scripts/apply-kubernetes.sh bootstrap/external-secrets
 
-# Phase 3: Networking & Security
-../scripts/apply-kubernetes.sh bootstrap/kube-api-lb
+# Phase 3 — Networking & Security
 ../scripts/apply-kubernetes.sh bootstrap/traefik
 ../scripts/apply-kubernetes.sh bootstrap/crowdsec
 ../scripts/apply-kubernetes.sh bootstrap/tailscale-operator
 
-# Phase 4: Workloads & Observability
-# Re-apply Longhorn to create IngressRoute (needs Traefik CRDs)
-../scripts/apply-kubernetes.sh bootstrap/longhorn
+# Phase 4 — Identity, Observability & Workloads
+../scripts/apply-kubernetes.sh bootstrap/longhorn   # re-apply for IngressRoute
 ../scripts/apply-kubernetes.sh bootstrap/intel-gpu-operator
 ../scripts/apply-kubernetes.sh bootstrap/observability
+../scripts/apply-kubernetes.sh bootstrap/metrics-server
 ../scripts/apply-kubernetes.sh bootstrap/clamav
+../scripts/apply-kubernetes.sh bootstrap/authentik
+../scripts/apply-kubernetes.sh bootstrap/coredns-override
 ```
 
-#### Step G: Deploy applications
+#### F. Deploy applications
 
 ```bash
 ../scripts/apply-kubernetes.sh apps
 ```
 
-#### Step G.1: Configure applications via Terraform
-
-After apps are running, configure Sonarr, Radarr, Prowlarr, and AdGuard Home
-via Terraform. Services are reached via `kubectl port-forward`:
+#### G. Configure apps via Terraform
 
 ```bash
-# 1. Start port-forwards in background
 ./scripts/port-forward-apps.sh &
-
-# 2. Apply Terraform app configuration
 export KUBE_CONFIG_PATH=~/.kube/config
 cd ../Terraform/apps
-terraform init
-terraform apply
+terraform init && terraform apply
 ```
 
-#### Step H: Bootstrap ArgoCD (GitOps)
-
-Once everything is verified, enable ArgoCD for continuous GitOps sync:
+#### H. Bootstrap ArgoCD
 
 ```bash
-kubectl apply -k bootstrap/argocd
+cd ../Kubernetes
+../scripts/apply-kubernetes.sh bootstrap/argocd
 ```
 
-### 3. Post-bootstrap Validation
-
-Run these checks after Step B:
+### 3. Validation
 
 ```bash
-# Kubernetes API and node readiness
 kubectl get nodes -o wide
-
-# Talos health from control host
-talosctl health --nodes 192.168.1.111,192.168.1.112,192.168.1.113
-```
-
-Run these checks after Step F:
-
-```bash
-# Verify all bootstrap pods are running
+talosctl health
 kubectl get pods --all-namespaces
-
-# ClusterSecretStore health
 kubectl get clustersecretstore bitwarden-store bitwarden-store-generated
-
-# MetalLB IP pool
-kubectl -n metallb-system get ipaddresspool
-
-# Longhorn storage
-kubectl -n longhorn-system get pods
-
-# Traefik ingress controller
-kubectl -n traefik get pods
-```
-
-Confirm ArgoCD is managing the cluster resources (after Step H):
-
-```bash
 kubectl -n argocd get applications
 ```

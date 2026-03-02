@@ -162,10 +162,3 @@ variable "github_repository" {
   type        = string
   default     = "ThePhaseless/Interstellar"
 }
-
-# Authentik / Access Control
-variable "authentik_vip_emails" {
-  description = "Email addresses that get admin access to private services (copyparty, etc.). Sourced from TF_VAR_authentik_vip_emails."
-  type        = list(string)
-  default     = []
-}

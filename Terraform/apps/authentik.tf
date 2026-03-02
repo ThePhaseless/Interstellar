@@ -314,16 +314,14 @@ resource "authentik_policy_binding" "immich_admins" {
   order  = 0
 }
 
-# Jellyfin Groups — RBAC via Authentik group membership
-# "watchers" → allowed to log into Jellyfin (9p4 plugin roleClaim: roles=["watchers"])
-# "writers"  → Copyparty upload access (read is open to any Google-authenticated user)
-#
-# Owner is auto-seeded into watchers. Add other users manually in Authentik UI.
-# "Admins" group also gets Jellyfin access via the watchers_or_admins policy.
+# Jellyfin & Copyparty Groups — RBAC via Authentik group membership
+# "watchers" → allowed to log into Jellyfin
+# "writers"  → Copyparty upload access
+# Groups are created empty. Manage membership manually in the Authentik UI.
 
 resource "authentik_group" "watchers" {
   name  = "watchers"
-  users = length(data.authentik_users.owner.users) > 0 ? [data.authentik_users.owner.users[0].pk] : []
+  users = []
 }
 
 resource "authentik_group" "writers" {
