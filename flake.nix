@@ -29,6 +29,7 @@
           packages = with pkgs; [
             # Python / project dependency management (manages pyproject.toml deps)
             uv
+            oniguruma
 
             # Kubernetes
             kubectl
