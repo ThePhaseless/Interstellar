@@ -274,9 +274,14 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (service, le) (rate(traefik_service_request_duration_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (service, le) (rate(traefik_service_request_duration_seconds_bucket{service!~\".*jellyfin.*\"}[5m])))",
           "legendFormat": "{{ service }}",
           "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (service, le) (rate(traefik_service_request_duration_seconds_bucket{service=~\".*jellyfin.*\"}[5m])))",
+          "legendFormat": "{{ service }} (streaming)",
+          "refId": "B"
         }
       ],
       "title": "Request Duration P95 by Service",
