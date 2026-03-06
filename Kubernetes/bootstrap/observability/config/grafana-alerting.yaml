@@ -715,8 +715,13 @@ groups:
         isPaused: false
 
       # Traefik p95 Latency Warning – service-level p95 response time.
-      # Excludes streaming services (Jellyfin) whose WebSocket connections and
-      # HLS segments are inherently long-lived and skew the histogram.
+      # Excludes services with inherently slow backend operations:
+      #   - jellyfin: HLS streaming segments (2-3s per chunk) and WebSockets
+      #   - bazarr: external subtitle provider API calls (1-5s)
+      #   - sonarr/radarr/prowlarr: indexer queries and library scans
+      #   - seerr: TMDb search API calls
+      #   - authentik: OAuth flows and database queries
+      #   - qbittorrent: torrent API operations
       - uid: traefik-high-p95-latency-warning
         title: Traefik High p95 Latency (Warning)
         condition: C
@@ -727,7 +732,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*"}[5m]))) > 0.75
+              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*|.*bazarr.*|.*sonarr.*|.*radarr.*|.*prowlarr.*|.*seerr.*|.*authentik.*|.*qbittorrent.*"}[5m]))) > 0.75
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
@@ -779,7 +784,8 @@ groups:
         isPaused: false
 
       # Traefik p95 Latency Critical – service-level p95 response time.
-      # Excludes streaming services (Jellyfin) – see warning alert for details.
+      # Excludes services with inherently slow backend operations – see warning
+      # alert for the full rationale.
       - uid: traefik-high-p95-latency-critical
         title: Traefik High p95 Latency (Critical)
         condition: C
@@ -790,7 +796,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*"}[5m]))) > 1.5
+              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*|.*bazarr.*|.*sonarr.*|.*radarr.*|.*prowlarr.*|.*seerr.*|.*authentik.*|.*qbittorrent.*"}[5m]))) > 1.5
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
