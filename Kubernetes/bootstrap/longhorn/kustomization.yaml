@@ -19,8 +19,9 @@ helmCharts:
     includeCRDs: true
     valuesInline:
       defaultSettings:
-        storageOverProvisioningPercentage: 200
+        storageOverProvisioningPercentage: 100
         defaultReplicaCount: 2
+        replicaAutoBalance: least-effort
         # Reduce upgrade/rebuild blast radius to avoid cluster-wide IO storms.
         concurrentAutomaticEngineUpgradePerNodeLimit: 1
         concurrentReplicaRebuildPerNodeLimit: 1

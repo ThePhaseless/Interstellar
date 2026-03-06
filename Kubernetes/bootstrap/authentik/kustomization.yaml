@@ -17,8 +17,7 @@ helmCharts:
     valuesInline:
       authentik:
         secret_key: "" # Set via AUTHENTIK_SECRET_KEY env var from secret
-        # Enable debug logging to capture detailed OAuth/token exchanges
-        log_level: debug
+        log_level: info
         error_reporting:
           enabled: false
         postgresql:
