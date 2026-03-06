@@ -42,7 +42,6 @@ spec:
               mountPath: /cache
             - name: media
               mountPath: /media
-              readOnly: true
           resources:
             requests:
               cpu: 500m
