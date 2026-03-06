@@ -47,9 +47,15 @@
             # Secrets
             bws # Bitwarden Secrets Manager CLI
 
+            # Talos
+            talosctl
+
             # Utilities
             jq
             openssl
+            ripgrep
+            bubblewrap
+            socat
           ];
 
           # Env setup is handled by .envrc (direnv) — see dotenv, venv, and secrets logic there.
