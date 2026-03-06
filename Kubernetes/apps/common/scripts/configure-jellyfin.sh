@@ -77,7 +77,10 @@ else
   echo "Setup wizard completed"
 fi
 
-authenticate || { echo "Cannot authenticate, exiting"; exec sleep infinity; }
+authenticate || {
+  echo "Cannot authenticate, exiting"
+  exec sleep infinity
+}
 
 LIBRARIES=$(curl -s "${JELLYFIN_URL}/Library/VirtualFolders" \
   -H "X-Emby-Authorization: ${AUTH}" || echo "[]")
@@ -138,10 +141,16 @@ else
     -H "X-Emby-Authorization: ${AUTH}" || true
 
   sleep 15
-  wait_for_jellyfin || { echo "Error: Jellyfin failed to restart"; exec sleep infinity; }
+  wait_for_jellyfin || {
+    echo "Error: Jellyfin failed to restart"
+    exec sleep infinity
+  }
 
   sleep 5
-  authenticate || { echo "Cannot re-authenticate after restart"; exec sleep infinity; }
+  authenticate || {
+    echo "Cannot re-authenticate after restart"
+    exec sleep infinity
+  }
 
   retries=6
   while [ $retries -gt 0 ]; do
@@ -168,7 +177,7 @@ echo "Configuring SSO provider '${SSO_PROVIDER_NAME}'..."
 # but the browser loads pages via https://. Without the override, the callback page
 # embeds an http:// iframe which is blocked as mixed content, causing "Logging in..." to hang.
 printf '{"oidEndpoint":"%s","oidClientId":"%s","oidSecret":"%s","enabled":true,"enableAuthorization":true,"enableAllFolders":true,"enabledFolders":[],"adminRoles":["admins"],"roles":[],"enableFolderRoles":false,"folderRoleMapping":[],"roleClaim":"groups","oidScopes":["groups"],"defaultProvider":"SSO-Auth-OpenID","defaultUsernameClaim":"preferred_username","schemeOverride":"https"}' \
-  "$AUTHENTIK_OIDC_ENDPOINT" "$OIDC_CLIENT_ID" "$OIDC_CLIENT_SECRET" > /tmp/sso-config.json
+  "$AUTHENTIK_OIDC_ENDPOINT" "$OIDC_CLIENT_ID" "$OIDC_CLIENT_SECRET" >/tmp/sso-config.json
 
 curl -sf -X POST \
   "${JELLYFIN_URL}/sso/OID/Add/${SSO_PROVIDER_NAME}?api_key=${TOKEN}" \
@@ -183,8 +192,8 @@ echo "Configuring login branding (SSO-only login)..."
 curl -sf -X POST "${JELLYFIN_URL}/System/Configuration/branding" \
   -H "X-Emby-Authorization: ${AUTH}" \
   -H "Content-Type: application/json" \
-  -d '{"LoginDisclaimer":"<form action=\"/sso/OID/start/authentik\"><button class=\"raised block emby-button button-submit\">Sign in with Authentik</button></form>","CustomCss":"a.raised.emby-button{padding:.9em 1em;color:inherit!important}.disclaimerContainer{display:block}#loginPage .manualLoginForm .inputContainer,#loginPage .manualLoginForm .button-submit,#loginPage .manualLoginForm .checkboxContainer{display:none!important}"}' \
-  || echo "Warning: Failed to configure branding"
+  -d '{"LoginDisclaimer":"<form action=\"/sso/OID/start/authentik\"><button class=\"raised block emby-button button-submit\">Sign in with Authentik</button></form>","CustomCss":"a.raised.emby-button{padding:.9em 1em;color:inherit!important}.disclaimerContainer{display:block}#loginPage .manualLoginForm .inputContainer,#loginPage .manualLoginForm .button-submit,#loginPage .manualLoginForm .checkboxContainer{display:none!important}"}' ||
+  echo "Warning: Failed to configure branding"
 
 echo "Login branding configured — SSO is now the only visible login method"
 
