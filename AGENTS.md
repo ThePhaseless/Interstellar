@@ -185,14 +185,14 @@ terraform import prowlarr_application.radarr <ID>
 
 ## CI/CD Workflows
 
-| Path changes                           | Workflow triggered                                    |
-| -------------------------------------- | ----------------------------------------------------- |
-| `Kubernetes/**`                        | `kubernetes-lint.yaml`                                |
-| `Terraform/apps/**`                    | `terraform-apps.yaml` (plan on PR, apply on merge)   |
-| `Terraform/**` (except `Terraform/apps/**`) | `terraform.yaml` (plan on PR, apply on merge) |
-| `Ansible/**`                           | `ansible-lint.yaml`                                   |
-| `Ansible/setup-*.yaml`, `Ansible/maintenance.yaml` | `ansible.yaml` (deploy on main push, or manual) |
-| Manual only                            | `terraform-destroy.yaml` (`workflow_dispatch`)        |
+| Path changes                                       | Workflow triggered                                 |
+| -------------------------------------------------- | -------------------------------------------------- |
+| `Kubernetes/**`                                    | `kubernetes-lint.yaml`                             |
+| `Terraform/apps/**`                                | `terraform-apps.yaml` (plan on PR, apply on merge) |
+| `Terraform/**` (except `Terraform/apps/**`)        | `terraform.yaml` (plan on PR, apply on merge)      |
+| `Ansible/**`                                       | `ansible-lint.yaml`                                |
+| `Ansible/setup-*.yaml`, `Ansible/maintenance.yaml` | `ansible.yaml` (deploy on main push, or manual)    |
+| Manual only                                        | `terraform-destroy.yaml` (`workflow_dispatch`)     |
 
 ## Common Tasks
 
