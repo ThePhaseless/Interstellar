@@ -25,6 +25,7 @@ helmCharts:
     namespace: node-feature-discovery
     includeCRDs: true
     valuesInline:
+      postDeleteCleanup: false
       master:
         replicaCount: 1
       worker:

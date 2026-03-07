@@ -31,6 +31,14 @@ limits_config:
   ingestion_rate_mb: 10
   ingestion_burst_size_mb: 20
   max_query_parallelism: 32
+  per_stream_rate_limit: 0
+  retention_stream:
+    - selector: '{log_level="info"}'
+      priority: 1
+      period: 48h
+    - selector: '{log_level="debug"}'
+      priority: 2
+      period: 48h
 
 compactor:
   working_directory: /loki/compactor
