@@ -496,6 +496,145 @@
       ],
       "title": "PVC Usage",
       "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 20,
+            "lineWidth": 2,
+            "spanNulls": true
+          },
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "clamp_min(100 - (rate(intel_xe_idle_residency_ms{gt=\"gt0\"}[5m]) / 10), 0)",
+          "legendFormat": "Render/Compute (GT0)",
+          "refId": "A"
+        },
+        {
+          "expr": "clamp_min(100 - (rate(intel_xe_idle_residency_ms{gt=\"gt1\"}[5m]) / 10), 0)",
+          "legendFormat": "Media (GT1)",
+          "refId": "B"
+        }
+      ],
+      "title": "GPU Utilization (Arc B580)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "spanNulls": true
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 40
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "intel_xe_temp_celsius{sensor=\"pkg\"}",
+          "legendFormat": "GPU Package",
+          "refId": "A"
+        },
+        {
+          "expr": "intel_xe_temp_celsius{sensor=\"vram\"}",
+          "legendFormat": "VRAM",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(intel_xe_energy_microjoules_total{domain=\"card\"}[5m]) / 1e6",
+          "legendFormat": "Power (W)",
+          "refId": "C"
+        }
+      ],
+      "title": "GPU Thermals & Power (Arc B580)",
+      "type": "timeseries"
     }
   ],
   "schemaVersion": 39,
