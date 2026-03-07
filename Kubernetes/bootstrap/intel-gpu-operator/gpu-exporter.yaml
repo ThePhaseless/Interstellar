@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: intel-gpu-exporter
+  namespace: intel-device-plugins
+  labels:
+    app: intel-gpu-exporter
+spec:
+  selector:
+    matchLabels:
+      app: intel-gpu-exporter
+  template:
+    metadata:
+      labels:
+        app: intel-gpu-exporter
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        intel.feature.node.kubernetes.io/gpu: "true"
+      containers:
+        - name: exporter
+          image: python:3.13-alpine
+          command: ["python", "/app/exporter.py"]
+          ports:
+            - name: metrics
+              containerPort: 8080
+          volumeMounts:
+            - name: script
+              mountPath: /app
+              readOnly: true
+            - name: sysfs
+              mountPath: /sys/class/drm
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      volumes:
+        - name: script
+          configMap:
+            name: intel-gpu-exporter-script
+        - name: sysfs
+          hostPath:
+            path: /sys/class/drm
