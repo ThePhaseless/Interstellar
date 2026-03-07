@@ -60,8 +60,8 @@
       },
       "targets": [
         {
-          "expr": "1 - avg by (node) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))",
-          "legendFormat": "{{ node }}",
+          "expr": "sum by (instance) (rate(container_cpu_usage_seconds_total[5m])) / on(instance) group_left() kube_node_status_allocatable{resource=\"cpu\"}",
+          "legendFormat": "{{ instance }}",
           "refId": "A"
         }
       ],
@@ -121,8 +121,8 @@
       },
       "targets": [
         {
-          "expr": "1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)",
-          "legendFormat": "{{ node }}",
+          "expr": "sum by (instance) (container_memory_working_set_bytes) / on(instance) group_left() kube_node_status_allocatable{resource=\"memory\"}",
+          "legendFormat": "{{ instance }}",
           "refId": "A"
         }
       ],
