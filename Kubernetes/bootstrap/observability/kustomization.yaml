@@ -64,6 +64,13 @@ configMapGenerator:
       disableNameSuffixHash: true
       labels:
         grafana-dashboard: "true"
+  - name: grafana-dashboard-intel-gpu
+    files:
+      - dashboards/intel-gpu.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "true"
   - name: loki-config
     files:
       - config/loki.yaml
