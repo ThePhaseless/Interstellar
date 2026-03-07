@@ -95,7 +95,17 @@ scrape_configs:
                 template: >-
                   {{- if ._level }}{{ ._level | ToLower }}
                   {{- else if ._lvl }}{{ ._lvl | ToLower }}
-                  {{- else if ._severity }}{{ ._severity | ToLower }}
+                  {{- else if ._severity }}
+                    {{- if eq ._severity "0" }}emerg
+                    {{- else if eq ._severity "1" }}alert
+                    {{- else if eq ._severity "2" }}crit
+                    {{- else if eq ._severity "3" }}error
+                    {{- else if eq ._severity "4" }}warn
+                    {{- else if eq ._severity "5" }}info
+                    {{- else if eq ._severity "6" }}info
+                    {{- else if eq ._severity "7" }}debug
+                    {{- else }}{{ ._severity | ToLower }}
+                    {{- end }}
                   {{- end -}}
             - labels:
                 log_level:
