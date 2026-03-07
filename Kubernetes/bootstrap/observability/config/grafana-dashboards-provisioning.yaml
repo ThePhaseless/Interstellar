@@ -56,3 +56,11 @@ providers:
     editable: true
     options:
       path: /var/lib/grafana/dashboards/intel-gpu
+  - name: longhorn
+    orgId: 1
+    folder: "Infrastructure"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards/longhorn

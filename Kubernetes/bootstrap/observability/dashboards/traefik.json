@@ -139,7 +139,7 @@
       },
       "targets": [
         {
-          "expr": "sum(traefik_entrypoint_open_connections{entrypoint=\"websecure\"})",
+          "expr": "sum(traefik_open_connections{entrypoint=\"websecure\"})",
           "instant": true,
           "legendFormat": "Connections",
           "refId": "A"

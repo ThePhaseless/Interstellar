@@ -123,6 +123,8 @@ spec:
               mountPath: /var/lib/grafana/dashboards/access
             - name: dashboard-intel-gpu
               mountPath: /var/lib/grafana/dashboards/intel-gpu
+            - name: dashboard-longhorn
+              mountPath: /var/lib/grafana/dashboards/longhorn
           resources:
             requests:
               cpu: 50m
@@ -177,6 +179,9 @@ spec:
         - name: dashboard-intel-gpu
           configMap:
             name: grafana-dashboard-intel-gpu
+        - name: dashboard-longhorn
+          configMap:
+            name: grafana-dashboard-longhorn
 ---
 apiVersion: v1
 kind: Service

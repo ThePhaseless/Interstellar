@@ -12,11 +12,6 @@ if [ -z "$APP_NAME" ] || [ -z "$CONFIG_PATH" ]; then
   exit 1
 fi
 
-kubectl patch secret arr-api-keys -n media \
-  --type='json' \
-  -p="[{\"op\": \"replace\", \"path\": \"/data/${APP_NAME}-api-key\", \"value\": \"\"}]" \
-  >/dev/null 2>&1 || true
-
 echo "Waiting for $CONFIG_PATH to exist..."
 timeout=300
 while [ ! -f "$CONFIG_PATH" ] && [ $timeout -gt 0 ]; do

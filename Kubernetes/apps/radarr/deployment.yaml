@@ -5,6 +5,7 @@ metadata:
   namespace: media
   annotations:
     ignore-check.kube-linter.io/latest-tag: "bitnami/kubectl versioned tags are not currently published; keep latest for this helper sidecar."
+    reloader.stakater.com/auto: "true"
   labels:
     app: radarr
 spec:
