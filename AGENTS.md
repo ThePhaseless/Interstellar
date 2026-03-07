@@ -203,3 +203,17 @@ terraform import prowlarr_application.radarr <ID>
 **Expose service publicly:** Use `public-chain` or `streaming-chain` middleware, ensure domain in Cloudflare
 
 **Expose service privately:** Use `private-chain` middleware (Tailscale-only access)
+
+## Safety Rules
+
+- **NEVER recreate/delete+recreate Kubernetes resources managed by ArgoCD** — this causes data loss (PVCs get deleted, secrets lost). Always patch or edit in-place.
+- **NEVER delete PVCs, StatefulSets, or Deployments** to "fix" them. Fix the manifest and let ArgoCD reconcile.
+- **Always push changes to test them** — ArgoCD auto-syncs from git. Don't leave changes local-only.
+- **Before pushing**: Verify changes are non-destructive (no resource deletions, no name changes that would cause recreation).
+- **Critical incident history**: ArgoCD app-of-apps was once recreated by changing resource names/structure, causing all data loss. NEVER do this.
+
+## Workflow
+
+- **Kubernetes changes**: Use `git push` + ArgoCD resync. ArgoCD is the GitOps source of truth.
+- Apply script (`./scripts/apply-kubernetes.sh`) is for bootstrapping only, not routine changes.
+- **Before running `terraform` in `Terraform/apps/`**: Always ensure `./scripts/port-forward-apps.sh` is running first (check with `ss -tlnp | grep -E "8989|7878|9696|3000|9000"`).
