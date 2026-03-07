@@ -7,6 +7,15 @@ resources:
   - gpu-plugin.yaml
   - gpu-feature-rule.yaml
   - gpu-test.yaml
+  - gpu-exporter.yaml
+
+configMapGenerator:
+  - name: intel-gpu-exporter-script
+    namespace: intel-device-plugins
+    files:
+      - exporter.py=scripts/exporter.py
+    options:
+      disableNameSuffixHash: true
 
 helmCharts:
   - name: node-feature-discovery
