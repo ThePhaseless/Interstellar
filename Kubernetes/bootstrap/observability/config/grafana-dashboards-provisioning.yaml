@@ -48,3 +48,11 @@ providers:
     editable: true
     options:
       path: /var/lib/grafana/dashboards/access
+  - name: intel-gpu
+    orgId: 1
+    folder: "Infrastructure"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards/intel-gpu
