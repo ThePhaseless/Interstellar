@@ -17,7 +17,7 @@ provider "adguard" {
   host     = var.adguard_provider_url
   scheme   = "http"
   username = "admin"
-  password = "admin"
+  password = "admin123"
 }
 
 provider "authentik" {
