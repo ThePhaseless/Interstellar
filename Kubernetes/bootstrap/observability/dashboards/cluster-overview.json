@@ -60,7 +60,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (instance) (rate(container_cpu_usage_seconds_total[5m])) / on(instance) group_left() kube_node_status_allocatable{resource=\"cpu\"}",
+          "expr": "sum by (instance) (rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) / on(instance) group_left() label_replace(kube_node_status_allocatable{resource=\"cpu\"}, \"instance\", \"$1\", \"node\", \"(.*)\")",
           "legendFormat": "{{ instance }}",
           "refId": "A"
         }
@@ -121,7 +121,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (instance) (container_memory_working_set_bytes) / on(instance) group_left() kube_node_status_allocatable{resource=\"memory\"}",
+          "expr": "sum by (instance) (container_memory_working_set_bytes{container!=\"\"}) / on(instance) group_left() label_replace(kube_node_status_allocatable{resource=\"memory\"}, \"instance\", \"$1\", \"node\", \"(.*)\")",
           "legendFormat": "{{ instance }}",
           "refId": "A"
         }
