@@ -26,6 +26,10 @@ terraform {
       source  = "bitwarden/bitwarden-secrets"
       version = "0.5.4-pre"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.0.0"
+    }
 
   }
 }

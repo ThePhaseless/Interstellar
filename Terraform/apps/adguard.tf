@@ -1,3 +1,15 @@
+data "kubernetes_resources" "traefik_tailscale_secrets" {
+  api_version    = "v1"
+  kind           = "Secret"
+  namespace      = "tailscale"
+  label_selector = "tailscale.com/parent-resource=traefik,tailscale.com/parent-resource-type=svc"
+}
+
+locals {
+  traefik_tailscale_ips = jsondecode(base64decode(data.kubernetes_resources.traefik_tailscale_secrets.objects[0].data["device_ips"]))
+  traefik_tailscale_ip  = local.traefik_tailscale_ips[0]
+}
+
 resource "adguard_config" "main" {
   dns = {
     upstream_dns = [
@@ -11,8 +23,8 @@ resource "adguard_user_rules" "nerine_dev_user_rules" {
   rules = [
     "||nerine.dev^$dnsrewrite=NOERROR;A;${var.adguard_traefik_local_ip},client=192.168.0.0/16",
     "||*.nerine.dev^$dnsrewrite=NOERROR;A;${var.adguard_traefik_local_ip},client=192.168.0.0/16",
-    "||nerine.dev^$dnsrewrite=NOERROR;A;${var.traefik_tailscale_ip},client=100.64.0.0/10",
-    "||*.nerine.dev^$dnsrewrite=NOERROR;A;${var.traefik_tailscale_ip},client=100.64.0.0/10",
+    "||nerine.dev^$dnsrewrite=NOERROR;A;${local.traefik_tailscale_ip},client=100.64.0.0/10",
+    "||*.nerine.dev^$dnsrewrite=NOERROR;A;${local.traefik_tailscale_ip},client=100.64.0.0/10",
   ]
 }
 
