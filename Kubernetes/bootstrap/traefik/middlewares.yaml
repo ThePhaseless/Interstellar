@@ -68,6 +68,11 @@ spec:
     average: 100
     burst: 200
     period: 1m
+    sourceCriterion:
+      excludedIPs:
+        - "100.64.0.0/10" # Tailscale CGNAT
+        - "192.168.1.0/24" # Home LAN
+        - "10.244.0.0/16" # Pod CIDR
 ---
 # Rate Limit Streaming - 1000 req/min
 apiVersion: traefik.io/v1alpha1
@@ -80,6 +85,11 @@ spec:
     average: 1000
     burst: 2000
     period: 1m
+    sourceCriterion:
+      excludedIPs:
+        - "100.64.0.0/10" # Tailscale CGNAT
+        - "192.168.1.0/24" # Home LAN
+        - "10.244.0.0/16" # Pod CIDR
 ---
 # Authentik ForwardAuth - Google OAuth authentication via Authentik embedded outpost
 # Uses forward auth (domain level) with two proxy providers:
