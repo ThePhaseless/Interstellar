@@ -17,3 +17,4 @@ services:
     environment:
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_POLL_INTERVAL=86400 # Daily updates
+      - DOCKER_API_VERSION=1.40
