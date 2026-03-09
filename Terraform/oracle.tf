@@ -122,6 +122,17 @@ resource "oci_core_security_list" "main" {
       max = 3478
     }
   }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    description = "SSH access"
+
+    tcp_options {
+      min = 22
+      max = 22
+    }
+  }
 }
 
 resource "oci_core_subnet" "main" {
@@ -191,7 +202,7 @@ UPGRADES
   }
 
   lifecycle {
-    ignore_changes = [metadata["user_data"]]
+    ignore_changes = [metadata["user_data"], source_details[0].source_id]
   }
 }
 
@@ -245,7 +256,7 @@ UPGRADES
   }
 
   lifecycle {
-    ignore_changes = [metadata["user_data"]]
+    ignore_changes = [metadata["user_data"], source_details[0].source_id]
   }
 }
 

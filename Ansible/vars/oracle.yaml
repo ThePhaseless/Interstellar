@@ -1,4 +1,4 @@
-tailscale_args: --ssh
+tailscale_args: --ssh --hostname=proxy
 
 traefik_backend_host: traefik.fold-hen.ts.net
 tailscale_authkey: "{{ lookup('env', 'TAILSCALE_ORACLE_AUTH_KEY') }}"
