@@ -42,9 +42,6 @@
             terraform
             tflint
 
-            # Networking
-            tailscale
-
             # Secrets
             bws # Bitwarden Secrets Manager CLI
 
