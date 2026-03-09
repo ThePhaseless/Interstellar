@@ -83,6 +83,10 @@ resource "authentik_group" "admins" {
   name         = "admins"
   is_superuser = true
   users        = length(data.authentik_users.owner.users) > 0 ? [data.authentik_users.owner.users[0].pk] : []
+
+  lifecycle {
+    ignore_changes = [users]
+  }
 }
 
 # Google-Only Authentication Flow — No username/password
@@ -322,11 +326,19 @@ resource "authentik_policy_binding" "immich_admins" {
 resource "authentik_group" "watchers" {
   name  = "watchers"
   users = []
+
+  lifecycle {
+    ignore_changes = [users]
+  }
 }
 
 resource "authentik_group" "writers" {
   name  = "writers"
   users = []
+
+  lifecycle {
+    ignore_changes = [users]
+  }
 }
 
 # Group membership scope mapping (shared by Grafana, Jellyfin, ArgoCD)
