@@ -13,6 +13,34 @@
   roles:
     - role: artis3n.tailscale.machine
 
+- name: Open firewall ports on Proxy VPS
+  hosts: oracle_proxy
+  become: true
+  tasks:
+    - name: Allow HTTP traffic through iptables
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "80"
+        ctstate: NEW
+        jump: ACCEPT
+        action: insert
+        rule_num: 5
+
+    - name: Allow HTTPS traffic through iptables
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "443"
+        ctstate: NEW
+        jump: ACCEPT
+        action: insert
+        rule_num: 6
+
+    - name: Persist iptables rules
+      ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+      changed_when: true
+
 - name: Deploy HAProxy on Proxy VPS
   hosts: oracle_proxy
   become: true
