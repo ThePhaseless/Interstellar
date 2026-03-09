@@ -111,6 +111,17 @@ resource "oci_core_security_list" "main" {
       max = 41641
     }
   }
+
+  ingress_security_rules {
+    protocol    = "17" # UDP
+    source      = "0.0.0.0/0"
+    description = "Tailscale STUN"
+
+    udp_options {
+      min = 3478
+      max = 3478
+    }
+  }
 }
 
 resource "oci_core_subnet" "main" {
