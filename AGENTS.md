@@ -1,150 +1,100 @@
-# Copilot Instructions for Interstellar Homelab
+# Project Guidelines
 
-## Development
+## Architecture
 
-The project uses **Nix flake + direnv** to provide all CLI tools and environment setup automatically. When you `cd` into the repository (with `direnv allow` run once), it will:
+GitOps homelab: TalosOS Kubernetes on Proxmox, public access via Oracle HAProxy → Tailscale → Traefik. All infrastructure is declarative and version-controlled.
 
-1. Load Nix devShell tools (terraform, kubectl, kustomize, helm, etc.)
-2. Load `.env` file (if present)
-3. Create/activate Python virtualenv via `uv sync`
-4. Source `scripts/setup-env.sh` for Bitwarden secrets (if `BWS_ACCESS_TOKEN` is set)
-
-If direnv is not available, activate manually:
-
-```bash
-source .venv/bin/activate
-source scripts/setup-env.sh
-```
-
-For Kubernetes deployments, use `./scripts/apply-kubernetes.sh <path>` which runs Helm-enabled `kustomize build` + `kubectl apply --server-side`. Never use `kubectl apply -k` (it lacks Helm support).
-
-```bash
-./scripts/apply-kubernetes.sh Kubernetes/bootstrap/metallb
-./scripts/apply-kubernetes.sh Kubernetes/apps
-```
-
-## Architecture Overview
-
-This is a GitOps-managed Kubernetes homelab on TalosOS (Proxmox VMs) with public access via Oracle VPS → Tailscale → Traefik. ArgoCD deploys everything from Git.
-
-**Key flow:** Internet → HAProxy (Oracle) → Tailscale mesh → Traefik → Services
-
-## Directory Structure
-
-- `Kubernetes/bootstrap/` - Core infrastructure (ArgoCD, MetalLB, LongHorn, Traefik, External Secrets)
-- `Kubernetes/apps/` - Application workloads organized by service name
-- `Kubernetes/apps/common/` - Shared resources: RBAC, PVCs, ExternalSecrets, configurator scripts
-- `Terraform/` - Infrastructure provisioning (Proxmox VMs, Oracle VPS, Talos cluster, Cloudflare DNS)
-- `Ansible/` - Host configuration (Proxmox routing/NAT + NFS host prep, Oracle HAProxy)
-- `Tailscale/policy.hujson` - ACL policy (HJSON format with comments)
+| Layer                | Tool                                     | Location                                                         |
+| -------------------- | ---------------------------------------- | ---------------------------------------------------------------- |
+| Cluster provisioning | Terraform + Talos                        | `Terraform/`                                                     |
+| VM & cloud infra     | Terraform                                | `Terraform/`                                                     |
+| App configuration    | Terraform                                | `Terraform/apps/`                                                |
+| Kubernetes manifests | Kustomize                                | `Kubernetes/`                                                    |
+| GitOps delivery      | ArgoCD (app-of-apps)                     | `Kubernetes/bootstrap/argocd/`                                   |
+| Server setup         | Ansible                                  | `Ansible/`                                                       |
+| Secrets              | Bitwarden SM + External Secrets Operator | `Terraform/secrets.tf`, `Kubernetes/bootstrap/external-secrets/` |
 
 ## Kubernetes Conventions
 
-### Kustomize Structure
+### App structure
 
-All manifests use Kustomize. Each app folder contains: `kustomization.yaml`, `deployment.yaml`, `service.yaml`, `ingress.yaml`, `pvc.yaml`.
+Each app lives in `Kubernetes/apps/<name>/` with `kustomization.yaml`, `deployment.yaml`, `service.yaml`, and optionally `ingress.yaml`, `pvc.yaml`, `externalsecret.yaml`.
 
-### Namespaces
+- **Namespaces**: `media`, `utilities`, `home` — declared in `Kubernetes/apps/namespaces.yaml`
+- **Labels**: Always include `app: <name>` via kustomization `labels` block
+- **ConfigMaps**: Use `configMapGenerator` with `disableNameSuffixHash: true`
+- **New apps**: Add the directory to `Kubernetes/apps/kustomization.yaml` resources list; ArgoCD auto-syncs
 
-- `media` - All \*arr apps, Jellyfin, qBittorrent
-- `traefik` - Ingress controller + middlewares
-- `external-secrets` - Bitwarden integration
-- Bootstrap components get their own namespaces
+### Ingress
 
-### Ingress Pattern
+Uses Traefik `IngressRoute` CRD (`traefik.io/v1alpha1`), not standard `Ingress`. Pattern:
 
-Use Traefik `IngressRoute` (not standard Ingress). Apply middleware chains:
+- Entrypoint: `websecure`, certResolver: `letsencrypt`
+- Domain: `*.nerine.dev`
+- Middleware chain: reference `public-chain@kubernetescrd` from `traefik` namespace for public routes
+- Global middlewares live in `traefik` namespace; app-specific ones in the app's namespace
 
-- `public-chain` - Public services (security headers + CrowdSec + rate limit)
-- `streaming-chain` - Media streaming (relaxed rate limits)
-- `private-chain` - Tailscale-only access (`tailscale-only` middleware)
+### Secrets
 
-Example:
+- `ClusterSecretStore` names: `bitwarden-store` (manual) or `bitwarden-store-generated` (Terraform-created)
+- 1-hour refresh interval on ExternalSecrets
+- API key extraction: sidecar containers read app config → update Bitwarden → Terraform reads back
 
-```yaml
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-spec:
-  routes:
-    - middlewares:
-        - name: private-chain
-          namespace: traefik
-```
+### Storage
 
-### Secrets Management
+- NFS v4.2 PersistentVolumes defined in `Kubernetes/apps/common/media-pv.yaml`
+- Mount options: `nfsvers=4.2,noatime`, reclaim policy: `Retain`, access mode: `ReadWriteMany`
+- Longhorn CSI for non-NFS persistent storage
 
-Never hardcode secrets. Use ExternalSecrets with `ClusterSecretStore: bitwarden-store` (manually managed secrets) or `bitwarden-store-generated` (Terraform-generated secrets):
+### Deployments
 
-```yaml
-apiVersion: external-secrets.io/v1
-kind: ExternalSecret
-spec:
-  secretStoreRef:
-    name: bitwarden-store
-    kind: ClusterSecretStore
-  data:
-    - secretKey: api-token
-      remoteRef:
-        key: my-secret-name # Bitwarden secret name
-```
+- `Recreate` strategy for stateful/GPU apps (Jellyfin, Immich, AdGuard)
+- Annotation `reloader.stakater.com/auto: "true"` for config-change restarts
+- GPU resources: `gpu.intel.com/xe: "1"` (Intel Arc, only on GPU-labeled node)
 
-### GPU Workloads
+## Terraform Conventions
 
-GPU-bound services (Jellyfin, Immich ML, Copyparty) must use:
+- **Naming**: Resources use `kebab-case`, locals use `snake_case`
+- **Secrets**: `random_password` → `bitwarden-secrets_secret` with `lifecycle { ignore_changes = [value] }`
+- **User secrets**: Validated with `postcondition` (fail if empty placeholder)
+- **State**: Main → OCI Object Storage; Apps → Kubernetes secret backend
+- **Variables**: Cluster config in `variables.tf`, app endpoints in `Terraform/apps/variables.tf`
 
-```yaml
-nodeSelector:
-  intel.feature.node.kubernetes.io/gpu: "true"
-resources:
-  requests:
-    gpu.intel.com/xe: "1"
-  limits:
-    gpu.intel.com/xe: "1"
-```
-
-### \*arr Apps Pattern
-
-Media apps use init containers + sidecars for auto-configuration:
-
-1. `api-extractor` init container extracts API key from config.xml
-2. `configurator` sidecar configures download clients via API
-3. Scripts in `Kubernetes/apps/common/scripts/`
-
-## Linting & Validation
+## Build & Test
 
 ```bash
-# Kubernetes manifests
-./scripts/lint-kubernetes.sh
+# Environment (requires BWS_ACCESS_TOKEN in .env)
+direnv allow                              # Nix devShell + secrets
 
-# Ansible playbooks
-./scripts/lint-ansible.sh
+# Linting (also runs in CI)
+scripts/lint-kubernetes.sh                # kustomize build | kube-linter
+scripts/lint-terraform.sh                 # tflint
+scripts/lint-ansible.sh                   # ansible-lint
 
-# Terraform
-./scripts/lint-terraform.sh
+# Apply
+cd Terraform && terraform plan            # IaC preview
+scripts/apply-kubernetes.sh               # Safe kustomize apply with diff
 ```
 
-## Applying Kubernetes Manifests
+Pre-commit hooks enforce: ruff (Python), terraform fmt/validate, yaml/json formatting, secret detection.
 
-```bash
-# Apply a single component
-./scripts/apply-kubernetes.sh Kubernetes/bootstrap/metallb
+## Maintaining These Docs
 
-# Apply all apps
-./scripts/apply-kubernetes.sh Kubernetes/apps
-```
+When you discover a non-obvious project behavior — something that caused a mistake, required trial-and-error, or contradicts common defaults — append it to the **Key Gotchas** section of the nearest `AGENTS.md` file (root for cross-cutting, `Kubernetes/AGENTS.md` for manifest-specific, etc.).
 
-Disabled kube-linter checks (see `.kube-linter.yaml`):
+**Write if** the fact would prevent a future agent from making the same mistake (e.g., a port that isn't the upstream default, a resource name that must match a hardcoded reference elsewhere, an ordering dependency between resources).
 
-- `no-read-only-root-fs` - Third-party images
-- `run-as-non-root` - Many apps require root
-- `unset-cpu-requirements` / `unset-memory-requirements` - Init containers
+**Don't write** obvious conventions already enforced by linters, information already present in these docs, temporary debugging context, or anything derivable by reading the manifest it applies to.
 
-## Terraform Patterns
+Keep entries to one bullet point. If a section grows beyond ~15 bullets, consolidate or remove items that have become obvious through established patterns in the codebase.
 
-- State stored in OCI Object Storage
-- Secrets fetched from Bitwarden via `bws` CLI in CI
-- Talos machine configs use `config_patches` for customization
-- See `Terraform/talos.tf` for cluster configuration pattern
+## Key Gotchas
+
+- **TLS terminates at Traefik**, not at the app or HAProxy. Apps serve plain HTTP internally. ArgoCD runs with `--insecure`.
+- **Tailscale access is internal only**: Public DNS only has Oracle VPS IP; Tailscale users reach services via Tailscale network directly, not through DNS dual-stack.
+- **Sonarr/Radarr external auth**: Init containers write `config.xml` with `<AuthenticationMethod>External</AuthenticationMethod>` — Traefik forward-auth injects `Remote-User`.
+- **NFS server IP**: Injected via ConfigMap replacement in root `Kubernetes/kustomization.yaml`, not hardcoded.
+- **Middleware namespaces matter**: When referencing a middleware from another namespace, include `namespace: <ns>` in the IngressRoute.
 
 ### Terraform App Configuration (`Terraform/apps/`)
 
