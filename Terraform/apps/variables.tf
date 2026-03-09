@@ -73,12 +73,6 @@ variable "adguard_provider_url" {
   default     = "localhost:3000"
 }
 
-variable "traefik_tailscale_ip" {
-  type        = string
-  description = "Traefik Tailscale IP for AdGuard A-record rewrites (Tailscale clients). Stable while pod secret intact; update if traefik device is re-registered."
-  default     = "100.107.133.42"
-}
-
 variable "adguard_traefik_local_ip" {
   type        = string
   description = "Traefik MetalLB IP for DNS rewrites (*.nerine.dev) - used by local network clients"
