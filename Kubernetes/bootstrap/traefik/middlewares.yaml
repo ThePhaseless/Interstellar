@@ -45,7 +45,7 @@ spec:
   # Note: Traefik v3 uses InFlightReq for connection limiting
   # Timeout is handled at entry point level
   inFlightReq:
-    amount: 100
+    amount: 500
 ---
 # Streaming Timeout - Unlimited for media
 apiVersion: traefik.io/v1alpha1
@@ -56,40 +56,6 @@ metadata:
 spec:
   inFlightReq:
     amount: 500 # Higher limit for streaming
----
-# Rate Limit - 100 req/min, burst 200
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: rate-limit
-  namespace: traefik
-spec:
-  rateLimit:
-    average: 100
-    burst: 200
-    period: 1m
-    sourceCriterion:
-      excludedIPs:
-        - "100.64.0.0/10" # Tailscale CGNAT
-        - "192.168.1.0/24" # Home LAN
-        - "10.244.0.0/16" # Pod CIDR
----
-# Rate Limit Streaming - 1000 req/min
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: rate-limit-streaming
-  namespace: traefik
-spec:
-  rateLimit:
-    average: 1000
-    burst: 2000
-    period: 1m
-    sourceCriterion:
-      excludedIPs:
-        - "100.64.0.0/10" # Tailscale CGNAT
-        - "192.168.1.0/24" # Home LAN
-        - "10.244.0.0/16" # Pod CIDR
 ---
 # Authentik ForwardAuth - Google OAuth authentication via Authentik embedded outpost
 # Uses forward auth (domain level) with two proxy providers:
@@ -133,7 +99,8 @@ spec:
       - name: tailscale-only
       - name: timeout-standard
 ---
-# Public Chain - For public web services (security-headers + CrowdSec + rate limit)
+# Public Chain - For public web services (security-headers + CrowdSec)
+# Rate limiting handled by CrowdSec bouncer (clientTrustedIPs excludes local/Tailscale)
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -144,10 +111,10 @@ spec:
     middlewares:
       - name: security-headers
       - name: crowdsec-bouncer
-      - name: rate-limit
       - name: timeout-standard
 ---
-# Streaming Chain - For Jellyfin and media (security-headers + relaxed rate limit)
+# Streaming Chain - For Jellyfin and media (security-headers + relaxed limits)
+# Rate limiting handled by CrowdSec bouncer (clientTrustedIPs excludes local/Tailscale)
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -158,5 +125,4 @@ spec:
     middlewares:
       - name: security-headers
       - name: crowdsec-bouncer
-      - name: rate-limit-streaming
       - name: timeout-streaming
