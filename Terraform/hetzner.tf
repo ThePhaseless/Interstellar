@@ -39,6 +39,12 @@ resource "hcloud_storage_box" "backups" {
     zfs_enabled          = true
   }
 
+  snapshot_plan = {
+    max_snapshots = 7
+    minute        = 0
+    hour          = 6
+  }
+
   ssh_keys = [
     tls_private_key.borg_ssh_key.public_key_openssh
   ]
