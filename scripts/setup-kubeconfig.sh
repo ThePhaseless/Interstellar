@@ -120,7 +120,7 @@ if [[ -n "$bootstrap_node" ]]; then
                 log_warn "Could not resolve node name from Tailscale, defaulting to ${talos_node}"
             fi
         else
-            # No Tailscale — use the LAN IP directly
+            # No Tailscale CLI — fall back to LAN IP
             talos_node="$bootstrap_node"
             log_warn "Tailscale not available, using LAN IP: ${talos_node}"
         fi
@@ -130,23 +130,38 @@ else
     if command -v tailscale &>/dev/null; then
         tailscale_domain=$(tailscale status --json 2>/dev/null | jq -r '.MagicDNSSuffix // empty' 2>/dev/null || true)
     fi
-    talos_node="talos-1.${tailscale_domain:-fold-hen.ts.net}"
+    if [[ -z "$tailscale_domain" ]]; then
+        log_error "No node found in talosconfig and Tailscale MagicDNS domain could not be determined."
+        exit 1
+    fi
+    talos_node="talos-1.${tailscale_domain}"
     log_warn "No node found in talosconfig, defaulting to ${talos_node}"
 fi
 
+# --- Resolve Tailscale IP ---
+# talosctl needs both -e (endpoint) and -n (node) overridden to the Tailscale IP,
+# because the talosconfig stores LAN IPs which are unreachable remotely.
+talos_ip=$(getent hosts "$talos_node" 2>/dev/null | awk '{print $1}')
+if [[ -z "$talos_ip" ]]; then
+    talos_ip="$talos_node"  # Fallback: use the hostname directly
+fi
+
 # --- Kubeconfig ---
-log_info "Generating kubeconfig via talosctl (node: ${talos_node})..."
+log_info "Generating kubeconfig via talosctl (node: ${talos_node}, ip: ${talos_ip})..."
 
 mkdir -p "$KUBE_DIR"
 chmod 700 "$KUBE_DIR"
 
-if talosctl -n "$talos_node" kubeconfig "$KUBE_CONFIG" --force 2>/dev/null; then
+if talosctl -e "$talos_ip" -n "$talos_ip" kubeconfig "$KUBE_CONFIG" --force 2>/dev/null; then
     chmod 600 "$KUBE_CONFIG"
+    # Patch the kubeconfig server: talosctl writes the cluster VIP (LAN IP),
+    # replace it with the Tailscale IP so kubectl works remotely.
+    sed -i "s|server: https://[0-9.]\+:6443|server: https://${talos_ip}:6443|" "$KUBE_CONFIG"
     log_success "Kubeconfig written to ${KUBE_CONFIG}"
 else
     log_error "Failed to generate kubeconfig. Is the node reachable?"
     log_info "  Ensure Tailscale is connected and the cluster is running."
-    log_info "  You can try manually: talosctl -n ${talos_node} kubeconfig ${KUBE_CONFIG}"
+    log_info "  You can try manually: talosctl -e ${talos_ip} -n ${talos_ip} kubeconfig ${KUBE_CONFIG}"
     exit 1
 fi
 
