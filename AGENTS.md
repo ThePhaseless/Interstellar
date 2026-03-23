@@ -92,6 +92,7 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 
 - **TLS terminates at Traefik**, not at the app or HAProxy. Apps serve plain HTTP internally. ArgoCD runs with `--insecure`.
 - **Tailscale DNS split-horizon**: Public DNS (Cloudflare) only has Oracle VPS IP. Tailscale clients use AdGuard as their DNS (configured in `tailscale.tf`), which rewrites `*.nerine.dev` to Traefik's Tailscale IP via client-based rules in `adguard.tf`.
+- **Tailscale exit nodes on Proxmox need kernel forwarding enabled**: Advertising `0.0.0.0/0` and `::/0` is not enough; `net.ipv4.ip_forward=1` and `net.ipv6.conf.all.forwarding=1` must be set or clients lose internet when selecting the exit node.
 - **Sonarr/Radarr external auth**: Init containers write `config.xml` with `<AuthenticationMethod>External</AuthenticationMethod>` — Traefik forward-auth injects `Remote-User`.
 - **NFS server IP**: Injected via ConfigMap replacement in root `Kubernetes/kustomization.yaml`, not hardcoded.
 - **Middleware namespaces matter**: When referencing a middleware from another namespace, include `namespace: <ns>` in the IngressRoute.
