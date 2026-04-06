@@ -3,6 +3,12 @@
   "extends": [
     "config:recommended"
   ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "kubernetes": {
+    "fileMatch": ["(^|/)Kubernetes/.+\\.ya?ml$"]
+  },
   "packageRules": [
     {
       "description": "Ignore legacy LinuxServer qBittorrent tags",
