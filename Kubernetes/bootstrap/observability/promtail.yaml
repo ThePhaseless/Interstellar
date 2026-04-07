@@ -34,7 +34,7 @@ spec:
 
       containers:
         - name: promtail
-          image: grafana/promtail:3.6.7
+          image: grafana/promtail:3.6.10
           args:
             - -config.file=/etc/promtail/promtail.yaml
           env:

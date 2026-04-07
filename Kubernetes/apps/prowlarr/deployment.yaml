@@ -45,7 +45,7 @@ spec:
 
       containers:
         - name: prowlarr
-          image: linuxserver/prowlarr:2.3.0
+          image: linuxserver/prowlarr:2.3.5
           envFrom:
             - configMapRef:
                 name: media-runtime-config
