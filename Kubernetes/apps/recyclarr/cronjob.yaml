@@ -21,7 +21,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: recyclarr
-              image: ghcr.io/recyclarr/recyclarr:8.3.2
+              image: ghcr.io/recyclarr/recyclarr:8.5.1
               command: ["/bin/sh", "-c"]
               args:
                 - recyclarr state repair --adopt && recyclarr sync
