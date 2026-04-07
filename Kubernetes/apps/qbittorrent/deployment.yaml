@@ -18,7 +18,7 @@ spec:
     spec:
       initContainers:
         - name: config-init
-          image: linuxserver/qbittorrent:5.1.4
+          image: linuxserver/qbittorrent:14.3.9
           command:
             - /bin/sh
             - -c
@@ -58,7 +58,7 @@ spec:
               mountPath: /config
       containers:
         - name: qbittorrent
-          image: linuxserver/qbittorrent:5.1.4
+          image: linuxserver/qbittorrent:14.3.9
           envFrom:
             - configMapRef:
                 name: media-runtime-config
