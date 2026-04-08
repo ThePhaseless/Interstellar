@@ -91,7 +91,8 @@
       "action": "accept",
       "src":    ["autogroup:shared"],
       "dst": [
-        "tag:minecraft:25565"   // Minecraft Java Edition
+        "tag:minecraft:25565",   // Minecraft Java Edition
+        "tag:minecraft:8100",
       ]
     },
 
