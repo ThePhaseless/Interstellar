@@ -93,7 +93,7 @@
       "dst": [
         "tag:minecraft:25565"   // Minecraft Java Edition
       ]
-    }
+    },
 
     // Node-tagged Talos instances can communicate with each other
     {
@@ -208,7 +208,7 @@
     {
       "action": "accept",
       "src":    ["autogroup:admin", "group:vips"],
-      "dst":    ["tag:proxmox", "tag:oracle", "tag:node", "tag:cluster"],
+      "dst":    ["tag:proxmox", "tag:oracle", "tag:node", "tag:cluster", "tag:minecraft"],
       "users":  ["autogroup:nonroot", "root"]
     },
 
