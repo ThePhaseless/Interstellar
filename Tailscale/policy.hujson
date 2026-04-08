@@ -15,6 +15,7 @@
     "tag:k8s-operator": ["autogroup:admin", "tag:ci"],
     "tag:service":      ["autogroup:admin", "tag:k8s-operator"], // Proxy pods provisioned by the Tailscale operator
     "tag:k8s":          ["autogroup:admin", "tag:k8s-operator"], // Legacy service tag (migration fallback)
+    "tag:minecraft": ["autogroup:admin", "tag:ci"], // Allow connecting though minecraft server port
   },
 
   // Groups
@@ -84,6 +85,15 @@
         "tag:k8s:443"
       ]
     },
+
+    // Minecraft tag
+    {
+      "action": "accept",
+      "src":    ["autogroup:shared"],
+      "dst": [
+        "tag:minecraft:25565"   // Minecraft Java Edition
+      ]
+    }
 
     // Node-tagged Talos instances can communicate with each other
     {
