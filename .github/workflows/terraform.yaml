@@ -7,12 +7,14 @@ on:
       - "Terraform/**"
       - "!Terraform/apps/**"
       - ".github/workflows/terraform.yaml"
+      - "Tailscale/**"
   pull_request:
     branches: [main, migration]
     paths:
       - "Terraform/**"
       - "!Terraform/apps/**"
       - ".github/workflows/terraform.yaml"
+      - "Tailscale/**"
   workflow_dispatch:
 
 env:
