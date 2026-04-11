@@ -14,7 +14,7 @@ provider "proxmox" {
 
 # TalosOS ISO Image
 # Download TalosOS base ISO with extensions pre-installed
-resource "proxmox_virtual_environment_download_file" "talos_iso_base" {
+resource "proxmox_download_file" "talos_iso_base" {
   content_type = "iso"
   datastore_id = "local"
   node_name    = var.proxmox_node
@@ -24,7 +24,7 @@ resource "proxmox_virtual_environment_download_file" "talos_iso_base" {
 }
 
 # Download TalosOS GPU ISO (only when at least one GPU node exists)
-resource "proxmox_virtual_environment_download_file" "talos_iso_gpu" {
+resource "proxmox_download_file" "talos_iso_gpu" {
   count = local.talos_has_gpu_nodes ? 1 : 0
 
   content_type = "iso"
@@ -84,7 +84,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   # Boot from ISO for initial install
   cdrom {
-    file_id   = each.value.gpu ? proxmox_virtual_environment_download_file.talos_iso_gpu[0].id : proxmox_virtual_environment_download_file.talos_iso_base.id
+    file_id   = each.value.gpu ? proxmox_download_file.talos_iso_gpu[0].id : proxmox_download_file.talos_iso_base.id
     interface = "ide0"
   }
 
