@@ -7,7 +7,9 @@
     "enabled": true
   },
   "kubernetes": {
-    "fileMatch": ["(^|/)Kubernetes/.+\\.ya?ml$"]
+    "managerFilePatterns": [
+      "/(^|/)Kubernetes/.+\\.ya?ml$/"
+    ]
   },
   "packageRules": [
     {
