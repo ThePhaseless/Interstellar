@@ -23,8 +23,12 @@ resource "adguard_user_rules" "nerine_dev_user_rules" {
   rules = [
     "||nerine.dev^$dnsrewrite=NOERROR;A;${var.adguard_traefik_local_ip},client=192.168.0.0/16",
     "||*.nerine.dev^$dnsrewrite=NOERROR;A;${var.adguard_traefik_local_ip},client=192.168.0.0/16",
+    # Tailscale clients with real Tailscale CGNAT IPs
     "||nerine.dev^$dnsrewrite=NOERROR;A;${local.traefik_tailscale_ip},client=100.64.0.0/10",
     "||*.nerine.dev^$dnsrewrite=NOERROR;A;${local.traefik_tailscale_ip},client=100.64.0.0/10",
+    # Tailscale clients via operator pods (appear as pod CIDR in AdGuard due to NAT)
+    "||nerine.dev^$dnsrewrite=NOERROR;A;${local.traefik_tailscale_ip},client=10.244.0.0/16",
+    "||*.nerine.dev^$dnsrewrite=NOERROR;A;${local.traefik_tailscale_ip},client=10.244.0.0/16",
   ]
 }
 
