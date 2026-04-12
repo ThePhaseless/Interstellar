@@ -83,9 +83,6 @@ spec:
           volumeMounts:
             - name: upload
               mountPath: /usr/src/app/upload
-            - name: external-library
-              mountPath: /external
-              readOnly: true
             - name: immich-config
               mountPath: /immich-config
               readOnly: true
@@ -161,9 +158,6 @@ spec:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: immich-postgres
-        - name: external-library
-          persistentVolumeClaim:
-            claimName: personal-pvc
         - name: oauth-secrets
           secret:
             secretName: immich-oauth-secrets
