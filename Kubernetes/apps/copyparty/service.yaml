@@ -9,9 +9,6 @@ spec:
     - name: http
       port: 3923
       targetPort: http
-    - name: smb
-      port: 3945
-      targetPort: smb
   selector:
     app: copyparty
 ---
