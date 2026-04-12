@@ -67,6 +67,9 @@ spec:
                 - name: photos
                   mountPath: /photos
                   readOnly: true
+                - name: external-library
+                  mountPath: /external
+                  readOnly: true
                 - name: db-dump
                   mountPath: /db-dump
                   readOnly: true
@@ -85,6 +88,9 @@ spec:
             - name: photos
               persistentVolumeClaim:
                 claimName: immich-upload
+            - name: external-library
+              persistentVolumeClaim:
+                claimName: personal-pvc
             - name: db-dump
               emptyDir:
                 sizeLimit: 5Gi

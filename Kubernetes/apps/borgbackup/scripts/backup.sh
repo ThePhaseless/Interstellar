@@ -57,6 +57,7 @@ borg create \
     \
     ::'immich-{now:%Y-%m-%dT%H:%M:%S}' \
     /photos \
+    /external \
     /db-dump
 
 backup_exit=$?
