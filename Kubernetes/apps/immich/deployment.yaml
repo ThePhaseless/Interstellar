@@ -21,7 +21,7 @@ spec:
       initContainers:
         # Build Immich config JSON with OAuth settings from secrets
         - name: build-oauth-config
-          image: busybox:1.37
+          image: busybox:1.37@sha256:1487d0af5f52b4ba31c7e465126ee2123fe3f2305d638e7827681e7cf6c83d5e
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -50,7 +50,7 @@ spec:
 
       containers:
         - name: immich-server
-          image: ghcr.io/immich-app/immich-server:v2.7.4
+          image: ghcr.io/immich-app/immich-server:v2.7.4@sha256:040b2fed8f7f6b7405f9b4b26348b4656355e4d4ed0852b8e966d453dd6635cc
           env:
             - name: TZ
               value: "UTC"
@@ -108,7 +108,7 @@ spec:
 
         # PostgreSQL Sidecar
         - name: postgres
-          image: tensorchord/pgvecto-rs:pg16-v0.3.0
+          image: tensorchord/pgvecto-rs:pg16-v0.3.0@sha256:b89f8ddbb28400d428d3c5e3e860f578cde85ad8e78544a8b687b97937cfc50b
           env:
             - name: POSTGRES_DB
               value: "immich"
@@ -139,7 +139,7 @@ spec:
 
         # Redis Sidecar
         - name: redis
-          image: redis:8-alpine
+          image: redis:8-alpine@sha256:81b6f81d6a6c5b9019231a2e8eb10085e3a139a34f833dcc965a8a959b040b72
           ports:
             - name: redis
               containerPort: 6379

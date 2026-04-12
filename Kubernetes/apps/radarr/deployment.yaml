@@ -26,7 +26,7 @@ spec:
 
       initContainers:
         - name: set-external-auth
-          image: busybox:1.37
+          image: busybox:1.37@sha256:1487d0af5f52b4ba31c7e465126ee2123fe3f2305d638e7827681e7cf6c83d5e
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -45,7 +45,7 @@ spec:
 
       containers:
         - name: radarr
-          image: linuxserver/radarr:6.1.1
+          image: linuxserver/radarr:6.1.1@sha256:cd70546fc97169788530386b42cf47ba1b16d091b4dc2264cd54099dd13c6f7f
           envFrom:
             - configMapRef:
                 name: media-runtime-config
@@ -83,7 +83,7 @@ spec:
             periodSeconds: 10
 
         - name: api-extractor
-          image: bitnami/kubectl:latest
+          image: bitnami/kubectl:latest@sha256:59ad45e8bd79e7af7592ff2852b32adcb0da50792bc52ce44679d5c5f1b4d415
           command:
             [
               "/bin/bash",
@@ -106,7 +106,7 @@ spec:
               memory: 64Mi
 
         - name: exportarr
-          image: ghcr.io/onedr0p/exportarr:v2.3.0
+          image: ghcr.io/onedr0p/exportarr:v2.3.0@sha256:af535d94061cf97a52e1661945ffba78c03f9443eae7c0da1a80a5a4be56b520
           args: ["radarr"]
           env:
             - name: PORT

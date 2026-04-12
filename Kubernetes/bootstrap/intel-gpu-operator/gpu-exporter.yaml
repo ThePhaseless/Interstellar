@@ -21,7 +21,7 @@ spec:
         intel.feature.node.kubernetes.io/gpu: "true"
       containers:
         - name: exporter
-          image: python:3.14-alpine
+          image: python:3.14-alpine@sha256:01f125438100bb6b5770c0b1349e5200b23ca0ae20a976b5bd8628457af607ae
           command: ["python", "/app/exporter.py"]
           ports:
             - name: metrics

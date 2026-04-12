@@ -22,7 +22,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: scanner
-              image: clamav/clamav:1.5.2-34
+              image: clamav/clamav:1.5.2-34@sha256:65ae17252e5fc2605ff0a0ccd18dd2dd43f8aef6591d999cdee2f5b6714b5668
               command:
                 - /bin/sh
                 - -c
@@ -157,7 +157,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: scanner
-              image: clamav/clamav:1.5.2-34
+              image: clamav/clamav:1.5.2-34@sha256:65ae17252e5fc2605ff0a0ccd18dd2dd43f8aef6591d999cdee2f5b6714b5668
               command:
                 - /bin/sh
                 - -c
