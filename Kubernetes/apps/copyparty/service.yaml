@@ -11,21 +11,4 @@ spec:
       targetPort: http
   selector:
     app: copyparty
----
-# Tailscale-exposed SMB service
-apiVersion: v1
-kind: Service
-metadata:
-  name: copyparty-smb
-  namespace: utilities
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: "files-smb"
-spec:
-  type: ClusterIP
-  ports:
-    - name: smb
-      port: 445
-      targetPort: smb
-  selector:
-    app: copyparty
+
