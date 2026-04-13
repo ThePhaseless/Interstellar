@@ -25,8 +25,6 @@ spec:
           ports:
             - name: http
               containerPort: 3923
-            - name: smb
-              containerPort: 3945
           volumeMounts:
             - name: config-template
               mountPath: /config
