@@ -10,11 +10,9 @@
     "tag:ci":           ["autogroup:admin", "tag:ci"],
     "tag:proxmox":      ["autogroup:admin", "tag:ci"],
     "tag:oracle":       ["autogroup:admin", "tag:ci"],
-    "tag:cluster":      ["autogroup:admin", "tag:ci"], // Legacy node tag (migration fallback)
     "tag:node":         ["autogroup:admin", "tag:ci"],
     "tag:k8s-operator": ["autogroup:admin", "tag:ci"],
     "tag:service":      ["autogroup:admin", "tag:k8s-operator"], // Proxy pods provisioned by the Tailscale operator
-    "tag:k8s":          ["autogroup:admin", "tag:k8s-operator"], // Legacy service tag (migration fallback)
     "tag:minecraft": ["autogroup:admin", "tag:ci"], // Allow connecting though minecraft server port
   },
 
@@ -68,9 +66,7 @@
         "tag:proxmox:8006",    // Proxmox API (for Terraform)
         "tag:oracle:22",       // SSH to Oracle VPS
         "tag:node:6443",       // Kubernetes API
-        "tag:node:50000",      // Talos API
-        "tag:cluster:6443",    // Legacy fallback during tag migration
-        "tag:cluster:50000"
+        "tag:node:50000"       // Talos API
       ]
     },
 
@@ -80,9 +76,7 @@
       "src":    ["tag:oracle"],
       "dst": [
         "tag:service:80",   // Tailscale operator proxy pods (e.g. ts-traefik-*)
-        "tag:service:443",
-        "tag:k8s:80",       // Legacy fallback during tag migration
-        "tag:k8s:443"
+        "tag:service:443"
       ]
     },
 
@@ -99,14 +93,14 @@
     // Node-tagged Talos instances can communicate with each other
     {
       "action": "accept",
-      "src":    ["tag:node", "tag:cluster"],
-      "dst":    ["tag:node:*", "tag:cluster:*"]
+      "src":    ["tag:node"],
+      "dst":    ["tag:node:*"]
     },
 
     // Talos nodes can reach Proxmox for iSCSI storage
     {
       "action": "accept",
-      "src":    ["tag:node", "tag:cluster"],
+      "src":    ["tag:node"],
       "dst":    ["tag:proxmox:3260"]
     },
 
@@ -114,22 +108,22 @@
     {
       "action": "accept",
       "src":    ["tag:k8s-operator"],
-      "dst":    ["tag:node:*", "tag:cluster:*"]
+      "dst":    ["tag:node:*"]
     },
 
     // Service proxy pods can see each other (needed for MagicDNS resolution between pods)
     {
       "action": "accept",
-      "src":    ["tag:service", "tag:k8s"],
-      "dst":    ["tag:service:*", "tag:k8s:*"]
+      "src":    ["tag:service"],
+      "dst":    ["tag:service:*"]
     },
 
     // Talos nodes can resolve service proxy pod IPs via MagicDNS (100.100.100.100)
     // Required for AdGuard to forward fold-hen.ts.net queries via Tailscale resolver
     {
       "action": "accept",
-      "src":    ["tag:node", "tag:cluster"],
-      "dst":    ["tag:service:*", "tag:k8s:*"]
+      "src":    ["tag:node"],
+      "dst":    ["tag:service:*"]
     },
 
     // Silvernet members can access cluster services (not personal devices)
@@ -137,18 +131,10 @@
       "action": "accept",
       "src":    ["group:silvernet"],
       "dst": [
-        "tag:cluster:80",
-        "tag:cluster:443",
-        "tag:cluster:445",   // SMB
-        "tag:cluster:3945",  // Copyparty SMB
         "tag:service:80",    // Tailscale operator proxy pods (web traffic)
         "tag:service:443",
         "tag:service:445",   // SMB via operator proxy
-        "tag:service:3945",
-        "tag:k8s:80",        // Legacy fallback during tag migration
-        "tag:k8s:443",
-        "tag:k8s:445",
-        "tag:k8s:3945"
+        "tag:service:3945"   // Copyparty port
       ]
     },
 
@@ -157,12 +143,8 @@
       "action": "accept",
       "src":    ["group:media"],
       "dst": [
-        "tag:cluster:80",
-        "tag:cluster:443",
         "tag:service:80",    // Tailscale operator proxy pods (web traffic)
-        "tag:service:443",
-        "tag:k8s:80",        // Legacy fallback during tag migration
-        "tag:k8s:443"
+        "tag:service:443"
       ]
     },
 
@@ -171,7 +153,7 @@
       "action": "accept",
       "src":    ["group:dns"],
       "dst": [
-        "tag:cluster:53"     // DNS (TCP and UDP)
+        "tag:service:53"     // DNS via AdGuard proxy pod (TCP and UDP)
       ]
     },
 
@@ -190,15 +172,9 @@
       "action": "accept",
       "src":    ["autogroup:shared"],
       "dst": [
-        "tag:cluster:80",    // HTTP (Traefik)
-        "tag:cluster:443",   // HTTPS (Traefik)
-        "tag:cluster:53",    // DNS (AdGuard)
         "tag:service:80",    // Tailscale operator proxy pods
         "tag:service:443",
-        "tag:service:53",
-        "tag:k8s:80",        // Legacy fallback during tag migration
-        "tag:k8s:443",
-        "tag:k8s:53"
+        "tag:service:53"     // DNS (AdGuard)
       ]
     }
   ],
@@ -209,7 +185,7 @@
     {
       "action": "accept",
       "src":    ["autogroup:admin", "group:vips"],
-      "dst":    ["tag:proxmox", "tag:oracle", "tag:node", "tag:cluster", "tag:minecraft"],
+      "dst":    ["tag:proxmox", "tag:oracle", "tag:node", "tag:minecraft"],
       "users":  ["autogroup:nonroot", "root"]
     },
 
@@ -230,8 +206,8 @@
 
     // Subnet routes (cluster pod/service CIDRs)
     "routes": {
-      "10.244.0.0/16":  ["tag:node", "tag:cluster"],   // Pod CIDR
-      "10.96.0.0/12":   ["tag:node", "tag:cluster"]    // Service CIDR
+      "10.244.0.0/16":  ["tag:node"],   // Pod CIDR
+      "10.96.0.0/12":   ["tag:node"]    // Service CIDR
     }
   },
 
@@ -256,7 +232,7 @@
   "nodeAttrs": [
     // Disable key expiry for infrastructure nodes
     {
-      "target": ["tag:node", "tag:cluster", "tag:service", "tag:k8s", "tag:oracle", "tag:proxmox"],
+      "target": ["tag:node", "tag:service", "tag:oracle", "tag:proxmox"],
       "attr":   ["funnel:deny"]
     }
   ],

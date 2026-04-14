@@ -19,8 +19,7 @@ resource "tailscale_tailnet_key" "cluster" {
   reusable      = true
   preauthorized = true
   expiry        = 7776000 # 90 days in seconds
-  # During migration, include both legacy tag:cluster and new tag:node.
-  tags        = ["tag:cluster", "tag:node"]
+  tags        = ["tag:node"]
   description = "TalosOS node auth key"
 }
 

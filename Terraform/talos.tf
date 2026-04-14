@@ -169,8 +169,7 @@ data "talos_machine_configuration" "controlplane" {
       environment = [
         "TS_AUTHKEY=${tailscale_tailnet_key.cluster.key}",
         "TS_HOSTNAME=${each.key}",
-        # Keep tag:cluster during migration; use tag:node as the long-term node identity.
-        "TS_EXTRA_ARGS=--accept-routes --advertise-tags=tag:node,tag:cluster --accept-dns=false",
+        "TS_EXTRA_ARGS=--accept-routes --advertise-tags=tag:node --accept-dns=false",
         "TS_AUTH_ONCE=true",
       ]
     })
