@@ -44,6 +44,7 @@ radarr:
     custom_format_groups:
       add:
         - trash_id: ff204bbcecdd487d1cefcefdbf0c278d # [Required] Golden Rule UHD
+        - trash_id: f993ad37540147e4d00e66503545d81b # [Streaming Services] Anime
         - trash_id: 9337080378236ce4c0b183e35790d2a7 # [Optional] Miscellaneous
           select:
             - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
