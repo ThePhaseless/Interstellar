@@ -6,7 +6,6 @@ resources:
   - nfd-namespace.yaml
   - gpu-plugin.yaml
   - gpu-feature-rule.yaml
-  - gpu-test.yaml
   - gpu-exporter.yaml
 
 configMapGenerator:
