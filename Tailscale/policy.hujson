@@ -23,7 +23,7 @@
   "groups": {
     // Full admin access - infrastructure operators
     "group:vips": [
-      "kukubaorch@gmail.com"
+      // Add admin email addresses here
     ],
 
     // Science club members - shared access to cluster services
@@ -234,6 +234,23 @@
       "10.96.0.0/12":   ["tag:node", "tag:cluster"]    // Service CIDR
     }
   },
+
+  // Grants
+  // Kubernetes API proxy: impersonate Tailscale admins as system:masters
+  // This gives autogroup:admin full cluster-admin access without hardcoding emails.
+  "grants": [
+    {
+      "src": ["autogroup:admin"],
+      "dst": ["tag:k8s-operator"],
+      "app": {
+        "tailscale.com/cap/kubernetes": [{
+          "impersonate": {
+            "groups": ["system:masters"]
+          }
+        }]
+      }
+    }
+  ],
 
   // Node Attributes
   "nodeAttrs": [

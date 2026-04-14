@@ -6,7 +6,6 @@ namespace: tailscale
 resources:
   - namespace.yaml
   - externalsecret.yaml
-  - rbac.yaml
 
 # Install Tailscale Operator via Helm
 helmCharts:
