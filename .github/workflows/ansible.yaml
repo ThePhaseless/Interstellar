@@ -21,7 +21,7 @@ on:
 
 concurrency:
   group: ansible-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   ANSIBLE_DIR: "./Ansible"
