@@ -21,6 +21,25 @@ spec:
           ports:
             - name: http
               containerPort: 8191
+          env:
+            - name: PROXY_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: byparr-proxy
+                  key: proxy-server
+                  optional: true
+            - name: PROXY_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: byparr-proxy
+                  key: proxy-username
+                  optional: true
+            - name: PROXY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: byparr-proxy
+                  key: proxy-password
+                  optional: true
           resources:
             requests:
               cpu: 100m

@@ -6,6 +6,7 @@ namespace: media
 resources:
   - deployment.yaml
   - service.yaml
+  - externalsecret.yaml
 
 labels:
   - pairs:
