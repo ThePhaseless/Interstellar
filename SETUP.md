@@ -16,7 +16,7 @@ Terraform creates placeholder entries for these — fill them in Bitwarden befor
 | --------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------- |
 | `oci-config`                | Full `~/.oci/config` content (without key)    | -                                                                             |
 | `oci-private-key`           | OCI API private key (PEM)                     | -                                                                             |
-| `tailscale-oauth-client-id` | Tailscale OAuth client ID                     | Scopes: `devices:core`, `keys:auth_keys` (Write) — Tags: `tag:cluster,tag:ci` |
+| `tailscale-oauth-client-id` | Tailscale OAuth client ID                     | Scopes: `devices:core`, `keys:auth_keys` (Write) — Tags: `tag:ci` |
 | `tailscale-oauth-secret`    | Tailscale OAuth client secret                 | -                                                                             |
 | `tailscale-tailnet`         | Tailscale tailnet name                        | -                                                                             |
 | `cloudflare-api-token`      | Cloudflare API token                          | `Zone:DNS:Edit`, `Zone:Zone:Read`                                             |
