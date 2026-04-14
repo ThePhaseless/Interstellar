@@ -28,3 +28,18 @@ data:
       end
     end
     return hs
+  resource.customizations.health.batch_CronJob: |
+    hs = {}
+    if obj.spec.suspend ~= nil and obj.spec.suspend then
+      hs.status = "Suspended"
+      hs.message = "CronJob is suspended"
+      return hs
+    end
+    hs.status = "Healthy"
+    if obj.status ~= nil then
+      if obj.status.active ~= nil and #obj.status.active > 0 then
+        hs.status = "Progressing"
+        hs.message = "CronJob has active jobs"
+      end
+    end
+    return hs
