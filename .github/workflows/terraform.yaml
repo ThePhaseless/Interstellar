@@ -17,6 +17,10 @@ on:
       - "Tailscale/**"
   workflow_dispatch:
 
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   TF_WORKING_DIR: "./Terraform"
 
