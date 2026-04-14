@@ -23,7 +23,7 @@
   "groups": {
     // Full admin access - infrastructure operators
     "group:vips": [
-      // Add admin email addresses here
+      "kukubaorch@gmail.com"
     ],
 
     // Science club members - shared access to cluster services
