@@ -14,6 +14,10 @@ on:
       - ".kube-linter.yaml"
       - ".github/workflows/kubernetes-lint.yaml"
 
+concurrency:
+  group: kubernetes-lint-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     name: Lint Kubernetes Manifests

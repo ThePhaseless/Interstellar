@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: concurrency-lock
+  group: terraform-destroy
+  cancel-in-progress: false
 
 env:
   TF_VERSION: "latest"

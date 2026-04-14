@@ -19,6 +19,10 @@ on:
           - setup-proxmox.yaml
           - maintenance.yaml
 
+concurrency:
+  group: ansible-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   ANSIBLE_DIR: "./Ansible"
 

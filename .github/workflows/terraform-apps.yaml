@@ -18,7 +18,8 @@ env:
   TF_WORKING_DIR: "./Terraform/apps"
 
 concurrency:
-  group: terraform-apps
+  group: terraform-apps-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   plan:
