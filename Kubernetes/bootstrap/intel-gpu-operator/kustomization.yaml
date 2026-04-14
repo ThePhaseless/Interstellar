@@ -7,6 +7,7 @@ resources:
   - gpu-plugin.yaml
   - gpu-feature-rule.yaml
   - gpu-exporter.yaml
+  - gpu-test.yaml
 
 configMapGenerator:
   - name: intel-gpu-exporter-script
