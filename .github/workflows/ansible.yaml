@@ -39,7 +39,7 @@ jobs:
 
       # Fetch secrets from Bitwarden (using IDs from GitHub variables)
       - name: Get Secrets from Bitwarden
-        uses: bitwarden/sm-action@v2
+        uses: bitwarden/sm-action@v3.0.0
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
