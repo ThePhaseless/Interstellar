@@ -17,7 +17,7 @@ spec:
       serviceAccountName: alloy
       containers:
         - name: alloy
-          image: grafana/alloy:v1.15.1
+          image: grafana/alloy:v1.16.0
           args:
             - run
             - /etc/alloy/config.alloy
