@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: copyparty
-          image: ghcr.io/9001/copyparty-ac:1.20.13
+          image: ghcr.io/9001/copyparty-ac:1.20.14
           args:
             - -c
             - /config/copyparty.conf
