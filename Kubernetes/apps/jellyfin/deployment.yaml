@@ -69,7 +69,7 @@ spec:
 
         # Setup sidecar - completes wizard, creates users from VIP list
         - name: setup
-          image: curlimages/curl:8.19.0
+          image: curlimages/curl:8.20.0
           command: ["/bin/sh"]
           args:
             - /scripts/configure-jellyfin.sh
