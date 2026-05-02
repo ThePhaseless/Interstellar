@@ -157,6 +157,7 @@ CI runs `terraform plan` on PRs touching `Terraform/` (not `Terraform/apps/`). A
 ## Key Gotchas
 
 - **Provider URLs differ between local and CI**: Locally use `localhost` via `scripts/port-forward-apps.sh`; CI overrides with `TF_VAR_*` pointing to Tailscale MagicDNS names.
+- **Main Terraform Kubernetes provider must use the Talos MagicDNS FQDN**: Bare hostnames like `talos-1` do not resolve on GitHub runners; use `<node>.<tailscale_magicdns_domain>`.
 - **Bitwarden provider is pre-release**: `bitwarden-secrets` version `0.5.4-pre` — pin exactly, don't use `>=`.
 - **Cloudflare provider uses conditional token**: Falls back to dummy token `"0000..."` when secret is empty (bootstrap phase). Same pattern for Tailscale provider.
 - **OCI auth via environment**: Uses `OCI_CONFIG` and `OCI_PRIVATE_KEY` env vars sourced from Bitwarden by `scripts/setup-env.sh`, not `~/.oci/config` file.
