@@ -29,11 +29,23 @@ jobs:
     permissions:
       contents: read
     outputs:
+      apply_changes: ${{ steps.apply-changes.outputs.any_changed }}
       has_changes: ${{ steps.plan.outputs.has_changes }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Detect apply-relevant changes
+        id: apply-changes
+        if: github.event_name == 'push'
+        uses: tj-actions/changed-files@v47
+        with:
+          files: |
+            Terraform/**
+            Tailscale/**
+          files_ignore: |
+            Terraform/apps/**
 
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v3.0.0
@@ -104,6 +116,8 @@ jobs:
       - name: Resolve and ping Talos bootstrap endpoint
         shell: bash
         run: |
+          TALOS_DOMAIN="fold-hen.ts.net"
+          TALOS_NODES=(talos-1 talos-2 talos-3)
           TS_TALOS_HOST="talos-1.fold-hen.ts.net"
           TS_TALOS_IP="$(tailscale ip -4 "$TS_TALOS_HOST" 2>/dev/null | head -n 1 || true)"
 
@@ -121,8 +135,19 @@ jobs:
             exit 1
           fi
 
-          echo "$TS_TALOS_IP $TS_TALOS_HOST" | sudo tee -a /etc/hosts >/dev/null
-          echo "Registered $TS_TALOS_HOST -> $TS_TALOS_IP"
+          for node_name in "${TALOS_NODES[@]}"; do
+            node_host="${node_name}.${TALOS_DOMAIN}"
+            node_ip="$(tailscale ip -4 "$node_host" 2>/dev/null | head -n 1 || true)"
+
+            if [ -z "$node_ip" ]; then
+              echo "::error::Could not resolve $node_host via Tailscale"
+              tailscale status || true
+              exit 1
+            fi
+
+            echo "$node_ip $node_host" | sudo tee -a /etc/hosts >/dev/null
+            echo "Registered $node_host -> $node_ip"
+          done
 
       - name: Write OCI config
         shell: bash
@@ -244,6 +269,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: plan
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' &&
+      needs.plan.outputs.apply_changes == 'true' &&
       needs.plan.outputs.has_changes == 'true'
     permissions:
       contents: read
@@ -321,6 +347,8 @@ jobs:
       - name: Resolve and ping Talos bootstrap endpoint
         shell: bash
         run: |
+          TALOS_DOMAIN="fold-hen.ts.net"
+          TALOS_NODES=(talos-1 talos-2 talos-3)
           TS_TALOS_HOST="talos-1.fold-hen.ts.net"
           TS_TALOS_IP="$(tailscale ip -4 "$TS_TALOS_HOST" 2>/dev/null | head -n 1 || true)"
 
@@ -338,8 +366,19 @@ jobs:
             exit 1
           fi
 
-          echo "$TS_TALOS_IP $TS_TALOS_HOST" | sudo tee -a /etc/hosts >/dev/null
-          echo "Registered $TS_TALOS_HOST -> $TS_TALOS_IP"
+          for node_name in "${TALOS_NODES[@]}"; do
+            node_host="${node_name}.${TALOS_DOMAIN}"
+            node_ip="$(tailscale ip -4 "$node_host" 2>/dev/null | head -n 1 || true)"
+
+            if [ -z "$node_ip" ]; then
+              echo "::error::Could not resolve $node_host via Tailscale"
+              tailscale status || true
+              exit 1
+            fi
+
+            echo "$node_ip $node_host" | sudo tee -a /etc/hosts >/dev/null
+            echo "Registered $node_host -> $node_ip"
+          done
 
       - name: Write OCI config
         shell: bash

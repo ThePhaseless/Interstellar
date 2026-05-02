@@ -125,6 +125,12 @@ variable "tailscale_magicdns_domain" {
   default     = "fold-hen.ts.net"
 }
 
+variable "talos_api_endpoints" {
+  description = "Reachable Talos API endpoint per node. Defaults to Tailscale MagicDNS hostnames for CI and routine operations; override with LAN IPs for first bootstrap before nodes join Tailscale."
+  type        = map(string)
+  default     = {}
+}
+
 # Oracle Proxy Configuration
 variable "proxy_public_access" {
   description = "Enable public HTTP (port 80) access to the Oracle proxy VPS. HTTPS (443) remains open; SSH is intended via Tailscale only."
