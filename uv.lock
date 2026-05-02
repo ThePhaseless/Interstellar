@@ -670,7 +670,7 @@ wheels = [
 
 [[package]]
 name = "oci"
-version = "2.170.0"
+version = "2.173.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
@@ -681,14 +681,14 @@ dependencies = [
     { name = "pytz" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/39/9a/6cc66cf3012e8f7e699d88f09ce9b2364afce8bcbc9fb7473a8aa9225e15/oci-2.170.0.tar.gz", hash = "sha256:1e205a395e856b6514501d34595dd1e8e261415aaaab2c97f77fd2fc9618dcc3", size = 17014345, upload-time = "2026-04-07T07:38:00.103Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5e/94/1c0a6c95738eb4c7bb462f3520fbb1b5c7a9995482c909e9e7c1ce8f6679/oci-2.173.0.tar.gz", hash = "sha256:83ef55ef8aa22cabd6c5e7847d2fa7c45316a6f1133c999a7661edee91bc19a5", size = 17129073, upload-time = "2026-04-28T07:28:23.183Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/a1/bc99b0809c49c1cac99250446ddd4f3e5cab8442a256ceb9ee59ddedca0d/oci-2.170.0-py3-none-any.whl", hash = "sha256:49adf0ffaf754c07c43194d19d2e11f5e1b602a95bb365bb384d939ff365b1b4", size = 34700441, upload-time = "2026-04-07T07:37:52.151Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/35/ddbc4bec5f0eca26e334afc3f37a39ce52018c28732c6b8b0f5cbe2e7c5e/oci-2.173.0-py3-none-any.whl", hash = "sha256:b50fe600d460c2643fc38e94a359e5d84c6411e6e111fa133485bdf1883a9628", size = 34951801, upload-time = "2026-04-28T07:28:15.529Z" },
 ]
 
 [[package]]
 name = "oci-cli"
-version = "3.78.0"
+version = "3.81.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "arrow" },
@@ -706,9 +706,9 @@ dependencies = [
     { name = "six" },
     { name = "terminaltables" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e6/b9/900e2a9321f78afbe6ddc969252be23567b3d4860dd669495ea5146b45b8/oci_cli-3.78.0.tar.gz", hash = "sha256:b8fb0015f12eb79e8b910870bc80569a98ba24a631b3d6d1b37f833d60d21273", size = 8027768, upload-time = "2026-04-07T12:08:25.7Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b0/b9/a473e3536e70b183101b47c87e327ce629cbc8b444903eaa24dbffc98798/oci_cli-3.81.0.tar.gz", hash = "sha256:29eb399b9efff12f2c01ac5ebaafd498a01e453ffd12aaac15339b7be70f77fa", size = 8122912, upload-time = "2026-04-28T11:25:53.63Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c5/b8/a0f6c11e8fc52535a9cc83f9f544bb9db89655c150567a85072ba38df879/oci_cli-3.78.0-py3-none-any.whl", hash = "sha256:a91641c4f9d97318f6b7741937d5131dd39f519aee8e34af1d8c68055cd8ff49", size = 26360146, upload-time = "2026-04-07T12:08:16.855Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/50/75d920663f3a45e52782014a71def95ee17f0dc8d584a9e1d90ef107eae1/oci_cli-3.81.0-py3-none-any.whl", hash = "sha256:29cd8a79fb0e35ae4dd997600fcd61f21608ee72352e959cf6de84fcf4bad51e", size = 26557504, upload-time = "2026-04-28T11:25:46.257Z" },
 ]
 
 [[package]]
@@ -853,14 +853,14 @@ wheels = [
 
 [[package]]
 name = "pyopenssl"
-version = "25.3.0"
+version = "26.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/80/be/97b83a464498a79103036bc74d1038df4a7ef0e402cfaf4d5e113fb14759/pyopenssl-25.3.0.tar.gz", hash = "sha256:c981cb0a3fd84e8602d7afc209522773b94c1c2446a3c710a75b06fe1beae329", size = 184073, upload-time = "2025-09-17T00:32:21.037Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/11/a62e1d33b373da2b2c2cd9eb508147871c80f12b1cacde3c5d314922afdd/pyopenssl-26.0.0.tar.gz", hash = "sha256:f293934e52936f2e3413b89c6ce36df66a0b34ae1ea3a053b8c5020ff2f513fc", size = 185534, upload-time = "2026-03-15T14:28:26.353Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/81/ef2b1dfd1862567d573a4fdbc9f969067621764fbb74338496840a1d2977/pyopenssl-25.3.0-py3-none-any.whl", hash = "sha256:1fda6fc034d5e3d179d39e59c1895c9faeaf40a79de5fc4cbbfbe0d36f4a77b6", size = 57268, upload-time = "2025-09-17T00:32:19.474Z" },
+    { url = "https://files.pythonhosted.org/packages/fb/7d/d4f7d908fa8415571771b30669251d57c3cf313b36a856e6d7548ae01619/pyopenssl-26.0.0-py3-none-any.whl", hash = "sha256:df94d28498848b98cc1c0ffb8ef1e71e40210d3b0a8064c9d29571ed2904bf81", size = 57969, upload-time = "2026-03-15T14:28:24.864Z" },
 ]
 
 [[package]]
