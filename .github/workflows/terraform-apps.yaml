@@ -103,22 +103,32 @@ jobs:
           printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
           chmod 600 "$HOME/.talos/config"
 
-          TS_TALOS_IP=$(tailscale status --json | jq -r '
+          TS_STATUS_JSON=$(tailscale status --json)
+          TS_MAGICDNS_SUFFIX=$(jq -r '.MagicDNSSuffix // empty' <<<"$TS_STATUS_JSON")
+          TS_TALOS_NODE=$(jq -r '
+            (
+              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | .HostName] +
+              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | .HostName]
+            ) | map(select(. != null and . != "")) | .[0] // empty
+          ' <<<"$TS_STATUS_JSON")
+          TS_TALOS_IP=$(jq -r '
             def v4_ips: (.TailscaleIPs // .Addresses // [] | map(select(test("^[0-9]+\\."))));
             (
               [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | v4_ips[]] +
               [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | v4_ips[]]
             ) | .[0] // empty
-          ')
-          if [ -z "$TS_TALOS_IP" ]; then
-            echo "::error::Could not resolve Tailscale IP for any online tag:node device (or legacy tag:cluster fallback)"
+          ' <<<"$TS_STATUS_JSON")
+          if [ -z "$TS_TALOS_IP" ] || [ -z "$TS_TALOS_NODE" ] || [ -z "$TS_MAGICDNS_SUFFIX" ]; then
+            echo "::error::Could not resolve an online Talos node and MagicDNS suffix from Tailscale"
             tailscale status || true
             exit 1
           fi
 
+          TS_TALOS_HOST="${TS_TALOS_NODE}.${TS_MAGICDNS_SUFFIX}"
+
           talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
-          sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
-          echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
+          sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_HOST}:6443#g" "$HOME/.kube/config"
+          echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_HOST}:6443"
 
           chmod 600 "$HOME/.kube/config"
           echo "KUBE_CONFIG_PATH=$HOME/.kube/config" >> $GITHUB_ENV
@@ -331,22 +341,32 @@ jobs:
           printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
           chmod 600 "$HOME/.talos/config"
 
-          TS_TALOS_IP=$(tailscale status --json | jq -r '
+          TS_STATUS_JSON=$(tailscale status --json)
+          TS_MAGICDNS_SUFFIX=$(jq -r '.MagicDNSSuffix // empty' <<<"$TS_STATUS_JSON")
+          TS_TALOS_NODE=$(jq -r '
+            (
+              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | .HostName] +
+              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | .HostName]
+            ) | map(select(. != null and . != "")) | .[0] // empty
+          ' <<<"$TS_STATUS_JSON")
+          TS_TALOS_IP=$(jq -r '
             def v4_ips: (.TailscaleIPs // .Addresses // [] | map(select(test("^[0-9]+\\."))));
             (
               [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | v4_ips[]] +
               [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | v4_ips[]]
             ) | .[0] // empty
-          ')
-          if [ -z "$TS_TALOS_IP" ]; then
-            echo "::error::Could not resolve Tailscale IP for any online tag:node device (or legacy tag:cluster fallback)"
+          ' <<<"$TS_STATUS_JSON")
+          if [ -z "$TS_TALOS_IP" ] || [ -z "$TS_TALOS_NODE" ] || [ -z "$TS_MAGICDNS_SUFFIX" ]; then
+            echo "::error::Could not resolve an online Talos node and MagicDNS suffix from Tailscale"
             tailscale status || true
             exit 1
           fi
 
+          TS_TALOS_HOST="${TS_TALOS_NODE}.${TS_MAGICDNS_SUFFIX}"
+
           talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
-          sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_IP}:6443#g" "$HOME/.kube/config"
-          echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_IP}:6443"
+          sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_HOST}:6443#g" "$HOME/.kube/config"
+          echo "Generated kubeconfig via talosctl with API endpoint https://${TS_TALOS_HOST}:6443"
 
           chmod 600 "$HOME/.kube/config"
           echo "KUBE_CONFIG_PATH=$HOME/.kube/config" >> $GITHUB_ENV
