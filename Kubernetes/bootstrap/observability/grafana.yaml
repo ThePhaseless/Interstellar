@@ -22,7 +22,7 @@ spec:
         runAsGroup: 472
       containers:
         - name: grafana
-          image: grafana/grafana:12.4.3
+          image: grafana/grafana:13.0.1
           env:
             - name: GF_SERVER_ROOT_URL
               value: "https://grafana.nerine.dev"
