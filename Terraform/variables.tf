@@ -126,7 +126,7 @@ variable "tailscale_magicdns_domain" {
 }
 
 variable "talos_api_endpoints" {
-  description = "Reachable Talos API endpoint per node. Defaults to Tailscale MagicDNS hostnames for CI and routine operations; override with LAN IPs for first bootstrap before nodes join Tailscale."
+  description = "Reachable Talos API endpoint per node. Defaults to live Tailscale device IPs when available, and falls back to LAN IPs for first bootstrap before nodes join Tailscale."
   type        = map(string)
   default     = {}
 }

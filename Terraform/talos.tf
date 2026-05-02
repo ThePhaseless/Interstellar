@@ -5,8 +5,12 @@ locals {
   talos_node_hostnames = {
     for node_name in local.talos_node_names : node_name => "${node_name}.${var.tailscale_magicdns_domain}"
   }
+  talos_tailscale_ips = {
+    for device in data.tailscale_devices.cluster.devices : device.hostname => device.addresses[0]
+    if contains(local.talos_node_names, device.hostname) && length(device.addresses) > 0
+  }
   talos_node_api_endpoints = {
-    for node_name in local.talos_node_names : node_name => lookup(var.talos_api_endpoints, node_name, local.talos_node_hostnames[node_name])
+    for node_name in local.talos_node_names : node_name => lookup(var.talos_api_endpoints, node_name, lookup(local.talos_tailscale_ips, node_name, local.talos_node_ips[node_name]))
   }
   talos_node_is_gpu             = { for node_name, node in var.nodes : node_name => node.gpu }
   talos_bootstrap_node_name     = local.talos_node_names[0]

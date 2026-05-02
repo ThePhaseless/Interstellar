@@ -158,7 +158,7 @@ CI runs `terraform plan` on PRs touching `Terraform/` (not `Terraform/apps/`). A
 
 - **Provider URLs differ between local and CI**: Locally use `localhost` via `scripts/port-forward-apps.sh`; CI overrides with `TF_VAR_*` pointing to Tailscale MagicDNS names.
 - **Talos devices are currently tagged `tag:cluster` in Tailscale**: CI access rules must allow both `tag:cluster` and `tag:node`, or GitHub runners will join the tailnet successfully but still be unable to resolve or reach Talos nodes.
-- **Talos provider endpoints should stay on MagicDNS hostnames after bootstrap**: `talos_machine_configuration_apply`, `talos_machine_bootstrap`, and `talos_cluster_kubeconfig` must use Tailscale-reachable hostnames in CI; only first bootstrap before Tailscale comes up should override `talos_api_endpoints` back to LAN IPs.
+- **Talos provider endpoints should use live Tailscale IPs once nodes join the tailnet**: `talos_machine_configuration_apply`, `talos_machine_bootstrap`, and `talos_cluster_kubeconfig` work reliably in CI with `data.tailscale_devices.cluster` addresses; keep `data.talos_client_configuration` on MagicDNS hostnames for user-facing talosconfig output, and fall back to LAN IPs only before Tailscale comes up.
 - **Bitwarden provider is pre-release**: `bitwarden-secrets` version `0.5.4-pre` — pin exactly, don't use `>=`.
 - **Cloudflare provider uses conditional token**: Falls back to dummy token `"0000..."` when secret is empty (bootstrap phase). Same pattern for Tailscale provider.
 - **OCI auth via environment**: Uses `OCI_CONFIG` and `OCI_PRIVATE_KEY` env vars sourced from Bitwarden by `scripts/setup-env.sh`, not `~/.oci/config` file.
