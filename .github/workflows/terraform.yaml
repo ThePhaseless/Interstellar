@@ -100,49 +100,22 @@ jobs:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
+          ping: talos-1.fold-hen.ts.net
 
-      - name: Register Talos hostnames
+      - name: Resolve Talos bootstrap endpoint
         shell: bash
         run: |
-          TS_TALOS_PEERS=()
-          for attempt in {1..24}; do
-            TS_STATUS_JSON=$(tailscale status --json)
-            mapfile -t TS_TALOS_PEERS < <(jq -r '
-              def peers:
-                if (.Peer | type) == "object" then [.Peer[]]
-                elif (.Peer | type) == "array" then .Peer
-                else []
-                end;
+          TS_TALOS_HOST="talos-1.fold-hen.ts.net"
+          TS_TALOS_IP="$(tailscale ip -4 "$TS_TALOS_HOST" 2>/dev/null | head -n 1 || true)"
 
-              peers[]
-              | select(.Online == true)
-              | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
-              | [((.DNSName // .HostName // "") | sub("\\.$"; "")), (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))]
-              | @tsv
-            ' <<<"$TS_STATUS_JSON")
+          if [ -z "$TS_TALOS_IP" ]; then
+            echo "::error::Could not resolve $TS_TALOS_HOST via Tailscale"
+            tailscale status || true
+            exit 1
+          fi
 
-            if [ "${#TS_TALOS_PEERS[@]}" -gt 0 ]; then
-              break
-            fi
-
-            if [ "$attempt" -eq 24 ]; then
-              echo "::error::Could not resolve any online Talos peers from Tailscale"
-              tailscale status || true
-              exit 1
-            fi
-
-            echo "Talos peers are not visible yet; retrying ($attempt/24)..."
-            sleep 5
-          done
-
-          for peer in "${TS_TALOS_PEERS[@]}"; do
-            IFS=$'\t' read -r dns_name ip_address <<<"$peer"
-            if [ -z "$dns_name" ] || [ -z "$ip_address" ]; then
-              continue
-            fi
-            echo "$ip_address $dns_name" | sudo tee -a /etc/hosts >/dev/null
-            echo "Registered $dns_name -> $ip_address"
-          done
+          echo "$TS_TALOS_IP $TS_TALOS_HOST" | sudo tee -a /etc/hosts >/dev/null
+          echo "Registered $TS_TALOS_HOST -> $TS_TALOS_IP"
 
       - name: Write OCI config
         shell: bash
@@ -337,49 +310,22 @@ jobs:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
+          ping: talos-1.fold-hen.ts.net
 
-      - name: Register Talos hostnames
+      - name: Resolve Talos bootstrap endpoint
         shell: bash
         run: |
-          TS_TALOS_PEERS=()
-          for attempt in {1..24}; do
-            TS_STATUS_JSON=$(tailscale status --json)
-            mapfile -t TS_TALOS_PEERS < <(jq -r '
-              def peers:
-                if (.Peer | type) == "object" then [.Peer[]]
-                elif (.Peer | type) == "array" then .Peer
-                else []
-                end;
+          TS_TALOS_HOST="talos-1.fold-hen.ts.net"
+          TS_TALOS_IP="$(tailscale ip -4 "$TS_TALOS_HOST" 2>/dev/null | head -n 1 || true)"
 
-              peers[]
-              | select(.Online == true)
-              | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
-              | [((.DNSName // .HostName // "") | sub("\\.$"; "")), (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))]
-              | @tsv
-            ' <<<"$TS_STATUS_JSON")
+          if [ -z "$TS_TALOS_IP" ]; then
+            echo "::error::Could not resolve $TS_TALOS_HOST via Tailscale"
+            tailscale status || true
+            exit 1
+          fi
 
-            if [ "${#TS_TALOS_PEERS[@]}" -gt 0 ]; then
-              break
-            fi
-
-            if [ "$attempt" -eq 24 ]; then
-              echo "::error::Could not resolve any online Talos peers from Tailscale"
-              tailscale status || true
-              exit 1
-            fi
-
-            echo "Talos peers are not visible yet; retrying ($attempt/24)..."
-            sleep 5
-          done
-
-          for peer in "${TS_TALOS_PEERS[@]}"; do
-            IFS=$'\t' read -r dns_name ip_address <<<"$peer"
-            if [ -z "$dns_name" ] || [ -z "$ip_address" ]; then
-              continue
-            fi
-            echo "$ip_address $dns_name" | sudo tee -a /etc/hosts >/dev/null
-            echo "Registered $dns_name -> $ip_address"
-          done
+          echo "$TS_TALOS_IP $TS_TALOS_HOST" | sudo tee -a /etc/hosts >/dev/null
+          echo "Registered $TS_TALOS_HOST -> $TS_TALOS_IP"
 
       - name: Write OCI config
         shell: bash
