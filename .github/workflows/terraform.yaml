@@ -113,7 +113,9 @@ jobs:
             exit 1
           fi
 
-          if ! tailscale ping -c 1 "$TS_TALOS_IP"; then
+          TS_PING_OUTPUT="$(tailscale ping -c 1 "$TS_TALOS_IP" 2>&1 || true)"
+          echo "$TS_PING_OUTPUT"
+          if ! grep -q '^pong from ' <<<"$TS_PING_OUTPUT"; then
             echo "::error::Could not reach $TS_TALOS_HOST ($TS_TALOS_IP) via Tailscale"
             tailscale status || true
             exit 1
@@ -328,7 +330,9 @@ jobs:
             exit 1
           fi
 
-          if ! tailscale ping -c 1 "$TS_TALOS_IP"; then
+          TS_PING_OUTPUT="$(tailscale ping -c 1 "$TS_TALOS_IP" 2>&1 || true)"
+          echo "$TS_PING_OUTPUT"
+          if ! grep -q '^pong from ' <<<"$TS_PING_OUTPUT"; then
             echo "::error::Could not reach $TS_TALOS_HOST ($TS_TALOS_IP) via Tailscale"
             tailscale status || true
             exit 1

@@ -10,6 +10,7 @@
     "tag:ci":           ["autogroup:admin", "tag:ci"],
     "tag:proxmox":      ["autogroup:admin", "tag:ci"],
     "tag:oracle":       ["autogroup:admin", "tag:ci"],
+    "tag:cluster":      ["autogroup:admin", "tag:ci"],
     "tag:node":         ["autogroup:admin", "tag:ci"],
     "tag:k8s-operator": ["autogroup:admin", "tag:ci"],
     "tag:service":      ["autogroup:admin", "tag:k8s-operator"], // Proxy pods provisioned by the Tailscale operator
@@ -65,6 +66,8 @@
         "tag:proxmox:22",      // SSH to Proxmox
         "tag:proxmox:8006",    // Proxmox API (for Terraform)
         "tag:oracle:22",       // SSH to Oracle VPS
+        "tag:cluster:6443",    // Kubernetes API (current Talos tag)
+        "tag:cluster:50000",   // Talos API (current Talos tag)
         "tag:node:6443",       // Kubernetes API
         "tag:node:50000"       // Talos API
       ]
@@ -90,7 +93,13 @@
       ]
     },
 
-    // Node-tagged Talos instances can communicate with each other
+    // Talos instances can communicate with each other
+    {
+      "action": "accept",
+      "src":    ["tag:cluster"],
+      "dst":    ["tag:cluster:*"]
+    },
+
     {
       "action": "accept",
       "src":    ["tag:node"],
@@ -100,11 +109,23 @@
     // Talos nodes can reach Proxmox for iSCSI storage
     {
       "action": "accept",
+      "src":    ["tag:cluster"],
+      "dst":    ["tag:proxmox:3260"]
+    },
+
+    {
+      "action": "accept",
       "src":    ["tag:node"],
       "dst":    ["tag:proxmox:3260"]
     },
 
     // K8s Operator has full Talos node access
+    {
+      "action": "accept",
+      "src":    ["tag:k8s-operator"],
+      "dst":    ["tag:cluster:*"]
+    },
+
     {
       "action": "accept",
       "src":    ["tag:k8s-operator"],
@@ -120,6 +141,12 @@
 
     // Talos nodes can resolve service proxy pod IPs via MagicDNS (100.100.100.100)
     // Required for AdGuard to forward fold-hen.ts.net queries via Tailscale resolver
+    {
+      "action": "accept",
+      "src":    ["tag:cluster"],
+      "dst":    ["tag:service:*"]
+    },
+
     {
       "action": "accept",
       "src":    ["tag:node"],
@@ -185,7 +212,7 @@
     {
       "action": "accept",
       "src":    ["autogroup:admin", "group:vips"],
-      "dst":    ["tag:proxmox", "tag:oracle", "tag:node", "tag:minecraft"],
+      "dst":    ["tag:proxmox", "tag:oracle", "tag:cluster", "tag:node", "tag:minecraft"],
       "users":  ["autogroup:nonroot", "root"]
     },
 
@@ -206,8 +233,8 @@
 
     // Subnet routes (cluster pod/service CIDRs)
     "routes": {
-      "10.244.0.0/16":  ["tag:node"],   // Pod CIDR
-      "10.96.0.0/12":   ["tag:node"]    // Service CIDR
+      "10.244.0.0/16":  ["tag:cluster", "tag:node"], // Pod CIDR
+      "10.96.0.0/12":   ["tag:cluster", "tag:node"]  // Service CIDR
     }
   },
 
@@ -232,7 +259,7 @@
   "nodeAttrs": [
     // Disable key expiry for infrastructure nodes
     {
-      "target": ["tag:node", "tag:service", "tag:oracle", "tag:proxmox"],
+      "target": ["tag:cluster", "tag:node", "tag:service", "tag:oracle", "tag:proxmox"],
       "attr":   ["funnel:deny"]
     }
   ],
