@@ -2,9 +2,16 @@ provider "talos" {}
 
 locals {
   talos_cluster_endpoint_host = var.cluster_vip
-  talos_node_is_gpu           = { for node_name, node in var.nodes : node_name => node.gpu }
-  talos_bootstrap_node_name   = local.talos_node_names[0]
-  talos_bootstrap_node_ip     = local.talos_node_ips[local.talos_bootstrap_node_name]
+  talos_node_hostnames = {
+    for node_name in local.talos_node_names : node_name => "${node_name}.${var.tailscale_magicdns_domain}"
+  }
+  talos_node_api_endpoints = {
+    for node_name in local.talos_node_names : node_name => lookup(var.talos_api_endpoints, node_name, local.talos_node_hostnames[node_name])
+  }
+  talos_node_is_gpu             = { for node_name, node in var.nodes : node_name => node.gpu }
+  talos_bootstrap_node_name     = local.talos_node_names[0]
+  talos_bootstrap_node_ip       = local.talos_node_ips[local.talos_bootstrap_node_name]
+  talos_bootstrap_node_endpoint = local.talos_node_api_endpoints[local.talos_bootstrap_node_name]
 }
 
 # Talos Machine Secrets
@@ -66,8 +73,8 @@ data "talos_image_factory_urls" "gpu_image" {
 data "talos_client_configuration" "cluster" {
   cluster_name         = var.cluster_name
   client_configuration = talos_machine_secrets.cluster.client_configuration
-  endpoints            = [for node_name in local.talos_node_names : local.talos_node_ips[node_name]]
-  nodes                = [for node_name in local.talos_node_names : local.talos_node_ips[node_name]]
+  endpoints            = [for node_name in local.talos_node_names : local.talos_node_hostnames[node_name]]
+  nodes                = [for node_name in local.talos_node_names : local.talos_node_hostnames[node_name]]
 
   depends_on = [proxmox_virtual_environment_vm.talos]
 }
@@ -75,7 +82,8 @@ data "talos_client_configuration" "cluster" {
 # Kubeconfig for Kubernetes provider access (post-bootstrap)
 resource "talos_cluster_kubeconfig" "cluster" {
   client_configuration = talos_machine_secrets.cluster.client_configuration
-  node                 = local.talos_bootstrap_node_ip
+  endpoint             = local.talos_bootstrap_node_endpoint
+  node                 = local.talos_bootstrap_node_endpoint
 
   depends_on = [talos_machine_bootstrap.cluster]
 }
@@ -182,7 +190,8 @@ resource "talos_machine_configuration_apply" "controlplane" {
 
   client_configuration_wo        = talos_machine_secrets.cluster.client_configuration
   machine_configuration_input_wo = data.talos_machine_configuration.controlplane[each.key].machine_configuration
-  node                           = local.talos_node_ips[each.key]
+  endpoint                       = local.talos_node_api_endpoints[each.key]
+  node                           = local.talos_node_api_endpoints[each.key]
 
   depends_on = [proxmox_virtual_environment_vm.talos]
 }
@@ -190,7 +199,8 @@ resource "talos_machine_configuration_apply" "controlplane" {
 # Bootstrap the Cluster
 resource "talos_machine_bootstrap" "cluster" {
   client_configuration = talos_machine_secrets.cluster.client_configuration
-  node                 = local.talos_bootstrap_node_ip
+  endpoint             = local.talos_bootstrap_node_endpoint
+  node                 = local.talos_bootstrap_node_endpoint
 
   depends_on = [talos_machine_configuration_apply.controlplane]
 }
