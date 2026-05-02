@@ -4,35 +4,36 @@
 
 ### GitHub Repository Secret
 
-| Secret            | Description                  |
-| ----------------- | ---------------------------- |
+| Secret            | Description                     |
+| ----------------- | ------------------------------- |
 | `BW_ACCESS_TOKEN` | Bitwarden machine account token |
 
 ### Bitwarden Secrets (Manual)
 
 Terraform creates placeholder entries for these — fill them in Bitwarden before first `terraform apply`:
 
-| Key                         | Description                                   | Notes                                                                         |
-| --------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------- |
-| `oci-config`                | Full `~/.oci/config` content (without key)    | -                                                                             |
-| `oci-private-key`           | OCI API private key (PEM)                     | -                                                                             |
-| `tailscale-oauth-client-id` | Tailscale OAuth client ID                     | Scopes: `devices:core`, `keys:auth_keys` (Write) — Tags: `tag:ci` |
-| `tailscale-oauth-secret`    | Tailscale OAuth client secret                 | -                                                                             |
-| `tailscale-tailnet`         | Tailscale tailnet name                        | -                                                                             |
-| `cloudflare-api-token`      | Cloudflare API token                          | `Zone:DNS:Edit`, `Zone:Zone:Read`                                             |
-| `proxmox-user`              | Proxmox user (e.g. `root@pam`)               | -                                                                             |
-| `proxmox-token-id`          | Proxmox API token ID                          | -                                                                             |
-| `proxmox-api-token`         | Proxmox API token secret                      | -                                                                             |
-| `hcloud-token`              | Hetzner Cloud API token                       | For Storage Box (off-site backups)                                            |
-| `discord-webhook-url`       | Discord webhook for alerts                    | -                                                                             |
-| `owner-email`               | Owner email for Authentik admin group          | -                                                                             |
-| `gh-app-id`                 | GitHub App ID for CI                           | -                                                                             |
-| `gh-app-private-key`        | GitHub App private key (PEM)                   | -                                                                             |
-| `bitwarden-access-token-kubernetes` | BWS token for External Secrets Operator | Can equal `BWS_ACCESS_TOKEN`                                                  |
-| `google-oauth-client-id`    | Google OAuth Client ID                        | [Create in GCP Console](https://console.cloud.google.com/apis/credentials)    |
-| `google-oauth-client-secret`| Google OAuth Client Secret                    | Same as above                                                                 |
+| Key                                 | Description                                | Notes                                                                      |
+| ----------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------- |
+| `oci-config`                        | Full `~/.oci/config` content (without key) | -                                                                          |
+| `oci-private-key`                   | OCI API private key (PEM)                  | -                                                                          |
+| `tailscale-oauth-client-id`         | Tailscale OAuth client ID                  | Scopes: `devices:core`, `keys:auth_keys` (Write) — Tags: `tag:ci`          |
+| `tailscale-oauth-secret`            | Tailscale OAuth client secret              | -                                                                          |
+| `tailscale-tailnet`                 | Tailscale tailnet name                     | -                                                                          |
+| `cloudflare-api-token`              | Cloudflare API token                       | `Zone:DNS:Edit`, `Zone:Zone:Read`                                          |
+| `proxmox-user`                      | Proxmox user (e.g. `root@pam`)             | -                                                                          |
+| `proxmox-token-id`                  | Proxmox API token ID                       | -                                                                          |
+| `proxmox-api-token`                 | Proxmox API token secret                   | -                                                                          |
+| `hcloud-token`                      | Hetzner Cloud API token                    | For Storage Box (off-site backups)                                         |
+| `discord-webhook-url`               | Discord webhook for alerts                 | -                                                                          |
+| `owner-email`                       | Owner email for Authentik admin group      | -                                                                          |
+| `gh-app-id`                         | GitHub App ID for CI                       | -                                                                          |
+| `gh-app-private-key`                | GitHub App private key (PEM)               | -                                                                          |
+| `bitwarden-access-token-kubernetes` | BWS token for External Secrets Operator    | Can equal `BWS_ACCESS_TOKEN`                                               |
+| `google-oauth-client-id`            | Google OAuth Client ID                     | [Create in GCP Console](https://console.cloud.google.com/apis/credentials) |
+| `google-oauth-client-secret`        | Google OAuth Client Secret                 | Same as above                                                              |
 
 **Google OAuth redirect URIs:**
+
 - `https://auth.<domain>/source/oauth/callback/google/`
 - `https://grafana.<domain>/login/google`
 
