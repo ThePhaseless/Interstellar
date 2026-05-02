@@ -23,7 +23,7 @@ if ! command -v kube-linter &>/dev/null; then
     export PATH="/home/vscode/go/bin:${PATH}"
     if ! command -v kube-linter &>/dev/null; then
         echo -e "${RED}Error: kube-linter not found in PATH${NC}"
-        echo "Install with: go install golang.stackrox.io/kube-linter/cmd/kube-linter@latest"
+        echo "Run 'mise install' to install the pinned repository toolchain."
         exit 1
     fi
 fi
@@ -36,7 +36,8 @@ echo ""
 
 if ! command -v kustomize &>/dev/null; then
     echo -e "${RED}Error: standalone kustomize not found in PATH${NC}"
-    echo "Install kustomize >= ${MIN_KUSTOMIZE_VERSION} to support Helm v4 with --enable-helm"
+    echo "Run 'mise install' to install the pinned repository toolchain."
+    echo "This repo expects standalone kustomize >= ${MIN_KUSTOMIZE_VERSION} for --enable-helm support."
     exit 1
 fi
 

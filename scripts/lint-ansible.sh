@@ -12,7 +12,7 @@ NC='\033[0m'
 
 if ! command -v ansible-lint &>/dev/null; then
     echo -e "${RED}Error: ansible-lint not found${NC}"
-    echo "Install with: uv tool install ansible-lint"
+    echo "Run 'mise run install' to sync the project's Python dependencies into .venv."
     exit 1
 fi
 
@@ -24,17 +24,7 @@ cd "${REPO_ROOT}"
 if python -c 'import yaml; import sys; sys.exit(0 if hasattr(yaml, "cyaml") else 1)' 2>/dev/null; then
     :
 else
-    echo "PyYAML libyaml support missing; installing PyYAML 6.0.2 wheel..."
-    if command -v uv &>/dev/null; then
-        uv pip install --only-binary :all: "pyyaml==6.0.2" || {
-            echo -e "${RED}Error: could not install PyYAML 6.0.2 wheel.${NC}"
-            echo "Hint: use Python 3.13 for this repo (see .python-version)."
-            exit 1
-        }
-    else
-        echo -e "${RED}Error: uv not found (needed to install PyYAML wheel)${NC}"
-        exit 1
-    fi
+    echo "PyYAML libyaml support missing; continuing with the pure-Python loader."
 fi
 
 export ANSIBLE_LINT_NODEPS=1

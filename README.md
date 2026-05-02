@@ -170,7 +170,7 @@ Interstellar/
 
 ## 🚀 Getting Started
 
-All setup and bootstrap instructions live in [SETUP.md](SETUP.md). Use that file as the single source of truth.
+All setup and bootstrap instructions live in [SETUP.md](SETUP.md). Local tool versions are pinned in `.mise.toml`, and `SETUP.md` is the single source of truth for bootstrapping the environment.
 
 ## 💾 Storage Configuration
 

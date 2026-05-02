@@ -6,7 +6,10 @@ Logs/
 
 .env*
 !.env*.example
-!.envrc
+mise.local.toml
+.mise.local.toml
+mise.local.lock
+.mise.local.lock
 
 # Deploy
 .ansible/
