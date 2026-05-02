@@ -87,34 +87,47 @@ jobs:
         id: talos-node
         shell: bash
         run: |
-          TS_STATUS_JSON=$(tailscale status --json)
-          TS_TALOS_PEERS=$(jq -c '
-            def peers:
-              if (.Peer | type) == "object" then [.Peer[]]
-              elif (.Peer | type) == "array" then .Peer
-              else []
-              end;
+          TS_TALOS_PEERS='[]'
+          TS_TALOS_HOST=''
+          TS_TALOS_IP=''
 
-            [
-              peers[]
-              | select(.Online == true)
-              | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
-              | {
-                  host: ((.DNSName // .HostName // "") | sub("\\.$"; "")),
-                  ip: (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))
-                }
-              | select(.host != "" and .ip != "")
-            ]
-          ' <<<"$TS_STATUS_JSON")
+          for attempt in {1..24}; do
+            TS_STATUS_JSON=$(tailscale status --json)
+            TS_TALOS_PEERS=$(jq -c '
+              def peers:
+                if (.Peer | type) == "object" then [.Peer[]]
+                elif (.Peer | type) == "array" then .Peer
+                else []
+                end;
 
-          TS_TALOS_HOST=$(jq -r '.[0].host // empty' <<<"$TS_TALOS_PEERS")
-          TS_TALOS_IP=$(jq -r '.[0].ip // empty' <<<"$TS_TALOS_PEERS")
+              [
+                peers[]
+                | select(.Online == true)
+                | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
+                | {
+                    host: ((.DNSName // .HostName // "") | sub("\\.$"; "")),
+                    ip: (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))
+                  }
+                | select(.host != "" and .ip != "")
+              ]
+            ' <<<"$TS_STATUS_JSON")
 
-          if [ -z "$TS_TALOS_HOST" ] || [ -z "$TS_TALOS_IP" ]; then
-            echo "::error::Could not resolve an online Talos hostname and IP from Tailscale"
-            tailscale status || true
-            exit 1
-          fi
+            TS_TALOS_HOST=$(jq -r '.[0].host // empty' <<<"$TS_TALOS_PEERS")
+            TS_TALOS_IP=$(jq -r '.[0].ip // empty' <<<"$TS_TALOS_PEERS")
+
+            if [ -n "$TS_TALOS_HOST" ] && [ -n "$TS_TALOS_IP" ]; then
+              break
+            fi
+
+            if [ "$attempt" -eq 24 ]; then
+              echo "::error::Could not resolve an online Talos hostname and IP from Tailscale"
+              tailscale status || true
+              exit 1
+            fi
+
+            echo "Talos peers are not visible yet; retrying ($attempt/24)..."
+            sleep 5
+          done
 
           jq -r '.[] | "\(.ip)\t\(.host)"' <<<"$TS_TALOS_PEERS" | while IFS=$'\t' read -r ip_address dns_name; do
             echo "$ip_address $dns_name" | sudo tee -a /etc/hosts >/dev/null
@@ -343,34 +356,47 @@ jobs:
         id: talos-node
         shell: bash
         run: |
-          TS_STATUS_JSON=$(tailscale status --json)
-          TS_TALOS_PEERS=$(jq -c '
-            def peers:
-              if (.Peer | type) == "object" then [.Peer[]]
-              elif (.Peer | type) == "array" then .Peer
-              else []
-              end;
+          TS_TALOS_PEERS='[]'
+          TS_TALOS_HOST=''
+          TS_TALOS_IP=''
 
-            [
-              peers[]
-              | select(.Online == true)
-              | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
-              | {
-                  host: ((.DNSName // .HostName // "") | sub("\\.$"; "")),
-                  ip: (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))
-                }
-              | select(.host != "" and .ip != "")
-            ]
-          ' <<<"$TS_STATUS_JSON")
+          for attempt in {1..24}; do
+            TS_STATUS_JSON=$(tailscale status --json)
+            TS_TALOS_PEERS=$(jq -c '
+              def peers:
+                if (.Peer | type) == "object" then [.Peer[]]
+                elif (.Peer | type) == "array" then .Peer
+                else []
+                end;
 
-          TS_TALOS_HOST=$(jq -r '.[0].host // empty' <<<"$TS_TALOS_PEERS")
-          TS_TALOS_IP=$(jq -r '.[0].ip // empty' <<<"$TS_TALOS_PEERS")
+              [
+                peers[]
+                | select(.Online == true)
+                | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
+                | {
+                    host: ((.DNSName // .HostName // "") | sub("\\.$"; "")),
+                    ip: (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))
+                  }
+                | select(.host != "" and .ip != "")
+              ]
+            ' <<<"$TS_STATUS_JSON")
 
-          if [ -z "$TS_TALOS_HOST" ] || [ -z "$TS_TALOS_IP" ]; then
-            echo "::error::Could not resolve an online Talos hostname and IP from Tailscale"
-            tailscale status || true
-            exit 1
-          fi
+            TS_TALOS_HOST=$(jq -r '.[0].host // empty' <<<"$TS_TALOS_PEERS")
+            TS_TALOS_IP=$(jq -r '.[0].ip // empty' <<<"$TS_TALOS_PEERS")
+
+            if [ -n "$TS_TALOS_HOST" ] && [ -n "$TS_TALOS_IP" ]; then
+              break
+            fi
+
+            if [ "$attempt" -eq 24 ]; then
+              echo "::error::Could not resolve an online Talos hostname and IP from Tailscale"
+              tailscale status || true
+              exit 1
+            fi
+
+            echo "Talos peers are not visible yet; retrying ($attempt/24)..."
+            sleep 5
+          done
 
           jq -r '.[] | "\(.ip)\t\(.host)"' <<<"$TS_TALOS_PEERS" | while IFS=$'\t' read -r ip_address dns_name; do
             echo "$ip_address $dns_name" | sudo tee -a /etc/hosts >/dev/null

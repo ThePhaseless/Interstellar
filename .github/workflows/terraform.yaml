@@ -104,26 +104,36 @@ jobs:
       - name: Register Talos hostnames
         shell: bash
         run: |
-          TS_STATUS_JSON=$(tailscale status --json)
-          mapfile -t TS_TALOS_PEERS < <(jq -r '
-            def peers:
-              if (.Peer | type) == "object" then [.Peer[]]
-              elif (.Peer | type) == "array" then .Peer
-              else []
-              end;
+          TS_TALOS_PEERS=()
+          for attempt in {1..24}; do
+            TS_STATUS_JSON=$(tailscale status --json)
+            mapfile -t TS_TALOS_PEERS < <(jq -r '
+              def peers:
+                if (.Peer | type) == "object" then [.Peer[]]
+                elif (.Peer | type) == "array" then .Peer
+                else []
+                end;
 
-            peers[]
-            | select(.Online == true)
-            | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
-            | [((.DNSName // .HostName // "") | sub("\\.$"; "")), (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))]
-            | @tsv
-          ' <<<"$TS_STATUS_JSON")
+              peers[]
+              | select(.Online == true)
+              | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
+              | [((.DNSName // .HostName // "") | sub("\\.$"; "")), (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))]
+              | @tsv
+            ' <<<"$TS_STATUS_JSON")
 
-          if [ "${#TS_TALOS_PEERS[@]}" -eq 0 ]; then
-            echo "::error::Could not resolve any online Talos peers from Tailscale"
-            tailscale status || true
-            exit 1
-          fi
+            if [ "${#TS_TALOS_PEERS[@]}" -gt 0 ]; then
+              break
+            fi
+
+            if [ "$attempt" -eq 24 ]; then
+              echo "::error::Could not resolve any online Talos peers from Tailscale"
+              tailscale status || true
+              exit 1
+            fi
+
+            echo "Talos peers are not visible yet; retrying ($attempt/24)..."
+            sleep 5
+          done
 
           for peer in "${TS_TALOS_PEERS[@]}"; do
             IFS=$'\t' read -r dns_name ip_address <<<"$peer"
@@ -331,26 +341,36 @@ jobs:
       - name: Register Talos hostnames
         shell: bash
         run: |
-          TS_STATUS_JSON=$(tailscale status --json)
-          mapfile -t TS_TALOS_PEERS < <(jq -r '
-            def peers:
-              if (.Peer | type) == "object" then [.Peer[]]
-              elif (.Peer | type) == "array" then .Peer
-              else []
-              end;
+          TS_TALOS_PEERS=()
+          for attempt in {1..24}; do
+            TS_STATUS_JSON=$(tailscale status --json)
+            mapfile -t TS_TALOS_PEERS < <(jq -r '
+              def peers:
+                if (.Peer | type) == "object" then [.Peer[]]
+                elif (.Peer | type) == "array" then .Peer
+                else []
+                end;
 
-            peers[]
-            | select(.Online == true)
-            | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
-            | [((.DNSName // .HostName // "") | sub("\\.$"; "")), (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))]
-            | @tsv
-          ' <<<"$TS_STATUS_JSON")
+              peers[]
+              | select(.Online == true)
+              | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
+              | [((.DNSName // .HostName // "") | sub("\\.$"; "")), (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))]
+              | @tsv
+            ' <<<"$TS_STATUS_JSON")
 
-          if [ "${#TS_TALOS_PEERS[@]}" -eq 0 ]; then
-            echo "::error::Could not resolve any online Talos peers from Tailscale"
-            tailscale status || true
-            exit 1
-          fi
+            if [ "${#TS_TALOS_PEERS[@]}" -gt 0 ]; then
+              break
+            fi
+
+            if [ "$attempt" -eq 24 ]; then
+              echo "::error::Could not resolve any online Talos peers from Tailscale"
+              tailscale status || true
+              exit 1
+            fi
+
+            echo "Talos peers are not visible yet; retrying ($attempt/24)..."
+            sleep 5
+          done
 
           for peer in "${TS_TALOS_PEERS[@]}"; do
             IFS=$'\t' read -r dns_name ip_address <<<"$peer"
