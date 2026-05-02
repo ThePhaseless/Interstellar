@@ -72,7 +72,6 @@ jobs:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
-          ping: talos-1.fold-hen.ts.net
 
       - name: Verify Tailscale Tags
         run: |
@@ -84,7 +83,7 @@ jobs:
             exit 1
           fi
 
-      - name: Resolve Talos bootstrap endpoint
+      - name: Resolve and ping Talos bootstrap endpoint
         id: talos-node
         shell: bash
         run: |
@@ -93,6 +92,12 @@ jobs:
 
           if [ -z "$TS_TALOS_IP" ]; then
             echo "::error::Could not resolve $TS_TALOS_HOST via Tailscale"
+            tailscale status || true
+            exit 1
+          fi
+
+          if ! tailscale ping -c 1 "$TS_TALOS_IP"; then
+            echo "::error::Could not reach $TS_TALOS_HOST ($TS_TALOS_IP) via Tailscale"
             tailscale status || true
             exit 1
           fi
@@ -307,7 +312,6 @@ jobs:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
-          ping: talos-1.fold-hen.ts.net
 
       - name: Verify Tailscale Tags
         run: |
@@ -319,7 +323,7 @@ jobs:
             exit 1
           fi
 
-      - name: Resolve Talos bootstrap endpoint
+      - name: Resolve and ping Talos bootstrap endpoint
         id: talos-node
         shell: bash
         run: |
@@ -328,6 +332,12 @@ jobs:
 
           if [ -z "$TS_TALOS_IP" ]; then
             echo "::error::Could not resolve $TS_TALOS_HOST via Tailscale"
+            tailscale status || true
+            exit 1
+          fi
+
+          if ! tailscale ping -c 1 "$TS_TALOS_IP"; then
+            echo "::error::Could not reach $TS_TALOS_HOST ($TS_TALOS_IP) via Tailscale"
             tailscale status || true
             exit 1
           fi
