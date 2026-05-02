@@ -1,0 +1,38 @@
+min_version = "2026.4.28"
+
+[tools]
+python = "3.14.4"
+uv = "0.11.8"
+terraform = "1.15.0"
+kubectl = "1.35.4"
+kustomize = "5.8.1"
+helm = "3.20.2"
+kube-linter = "0.8.3"
+tflint = "0.61.0"
+talosctl = "1.12.7"
+bitwarden-secrets-manager = "1.0.0"
+jq = "1.8.1"
+ripgrep = "15.1.0"
+yq = "4.53.2"
+
+[settings]
+python.uv_venv_auto = "create|source"
+
+[env]
+_.file = ".env"
+
+[tasks.lint]
+description = "Run all repository lint tasks"
+depends = ["lint-kubernetes", "lint-terraform", "lint-ansible"]
+
+[tasks.lint-kubernetes]
+description = "Validate kustomize builds and lint Kubernetes manifests"
+run = "./scripts/lint-kubernetes.sh"
+
+[tasks.lint-terraform]
+description = "Run TFLint against Terraform"
+run = "./scripts/lint-terraform.sh"
+
+[tasks.lint-ansible]
+description = "Run ansible-lint against Ansible playbooks"
+run = "./scripts/lint-ansible.sh"

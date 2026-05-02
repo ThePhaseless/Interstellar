@@ -63,13 +63,17 @@ Uses Traefik `IngressRoute` CRD (`traefik.io/v1alpha1`), not standard `Ingress`.
 ## Build & Test
 
 ```bash
-# Environment (requires BWS_ACCESS_TOKEN in .env)
-direnv allow                              # Nix devShell + secrets
+# Environment (requires BWS_ACCESS_TOKEN in .env or exported)
+mise trust
+mise install
+mise run install                          # uv sync --frozen into .venv
+source scripts/setup-env.sh               # when Bitwarden-backed secrets are needed in this shell
 
 # Linting (also runs in CI)
-scripts/lint-kubernetes.sh                # kustomize build | kube-linter
-scripts/lint-terraform.sh                 # tflint
-scripts/lint-ansible.sh                   # ansible-lint
+mise run lint                             # all linters
+mise run lint-kubernetes                  # kustomize build | kube-linter
+mise run lint-terraform                   # tflint
+mise run lint-ansible                     # ansible-lint
 
 # Apply
 cd Terraform && terraform plan            # IaC preview
@@ -97,6 +101,7 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 - **NFS server IP**: Injected via ConfigMap replacement in root `Kubernetes/kustomization.yaml`, not hardcoded.
 - **Middleware namespaces matter**: When referencing a middleware from another namespace, include `namespace: <ns>` in the IngressRoute.
 - **Terraform CI auto-applies on main pushes**: Routine Terraform runs rely on backend state locks with `-lock-timeout` rather than manual approval gates; Ansible deploys use non-canceling job-level concurrency.
+- **Mise only auto-loads static repo env**: `.env` and the uv-managed `.venv` come from `.mise.toml`, but Bitwarden/Tailscale exports still require `source scripts/setup-env.sh` in the shell that will run Terraform or Ansible commands.
 
 ### Terraform App Configuration (`Terraform/apps/`)
 
@@ -104,9 +109,10 @@ This sub-project uses **Terraform** to configure Sonarr, Radarr, Prowlarr, and A
 
 **Prerequisites:**
 
-- Terraform (`terraform`) installed (>= 1.11.4)
+- Terraform (`terraform`) installed (>= 1.14.4)
 - `KUBE_CONFIG_PATH` set (e.g. `~/.kube/config`) — required for the kubernetes backend
-- Environment sourced: `source .venv/bin/activate && source scripts/setup-env.sh`
+- Repo trusted and toolchain installed: `mise trust && mise install && mise run install`
+- Bitwarden-backed environment sourced in the current shell: `source scripts/setup-env.sh`
 
 **Running locally** (services are accessed via `kubectl port-forward`):
 

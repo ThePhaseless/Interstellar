@@ -17,8 +17,14 @@ if you want a different namespace or secret name.
 
 ## Prerequisites
 
-Services are accessed directly via **Tailscale MagicDNS** — no port-forwarding required.
-Ensure you are connected to the Tailscale network where the cluster services are exposed.
+Local provider defaults point at `localhost`, so start the app port-forwards before running Terraform. If you prefer direct Tailscale or MagicDNS endpoints, override the `TF_VAR_*_provider_url` variables.
+
+Project environment setup:
+
+- `mise` installed and activated in your shell
+- From the repo root: `mise trust && mise install && mise run install`
+- Bitwarden-backed environment loaded in the current shell: `source scripts/setup-env.sh`
+- `KUBE_CONFIG_PATH` exported (for example `~/.kube/config`)
 
 Required Bitwarden secrets:
 
@@ -28,13 +34,19 @@ Required Bitwarden secrets:
 
 ## Usage
 
-1. Connect to the Tailscale network
-2. Export Bitwarden Secrets Manager environment variables (same as infra):
-   - BWS_ACCESS_TOKEN
-   - BW_ORGANIZATION_ID
+1. Ensure `BWS_ACCESS_TOKEN` is set (export it or put it in `.env` at the repo root)
+2. From the repo root, trust and install the pinned toolchain and Python dependencies
+3. Source Bitwarden-backed environment variables into your current shell
+4. Start the app port-forwards
+5. Export `KUBE_CONFIG_PATH`
 
 ```
-source .venv/bin/activate && source scripts/setup-env.sh
+mise trust
+mise install
+mise run install
+source scripts/setup-env.sh
+./scripts/port-forward-apps.sh &
+export KUBE_CONFIG_PATH=~/.kube/config
 cd Terraform/apps
 terraform init
 terraform plan
