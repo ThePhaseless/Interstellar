@@ -10,7 +10,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-if ! command -v tflint &> /dev/null; then
+if ! command -v tflint &>/dev/null; then
     echo -e "${RED}Error: tflint not found${NC}"
     echo "Run 'mise install' to install the pinned repository toolchain."
     exit 1
