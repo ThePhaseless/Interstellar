@@ -17,12 +17,9 @@ on:
       - "Tailscale/**"
   workflow_dispatch:
 
-concurrency:
-  group: terraform-${{ github.ref }}
-  cancel-in-progress: false
-
 env:
   TF_WORKING_DIR: "./Terraform"
+  TF_PLUGIN_CACHE_DIR: "${{ github.workspace }}/.terraform.d/plugin-cache"
 
 jobs:
   # Terraform Plan (runs on all PRs and pushes)
@@ -138,6 +135,18 @@ jobs:
         with:
           terraform_wrapper: false
 
+      - name: Prepare Terraform Plugin Cache
+        run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
+
+      - name: Cache Terraform Providers
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+          key: ${{ runner.os }}-terraform-main-${{
+            hashFiles('Terraform/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-main-
+
       - name: Terraform Format Check
         id: fmt
         run: terraform fmt -check -recursive
@@ -169,7 +178,7 @@ jobs:
         id: plan
         run: |
           set +e
-          terraform plan -no-color -detailed-exitcode -out=tfplan
+          terraform plan -no-color -detailed-exitcode -lock-timeout=10m -out=tfplan
           PLAN_EXITCODE=$?
           set -e
 
@@ -180,7 +189,6 @@ jobs:
 
           if [ "$PLAN_EXITCODE" -eq 2 ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            terraform show -no-color tfplan > plan_full.txt
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
             echo "Terraform plan is empty. Skipping apply artifact generation."
@@ -197,27 +205,23 @@ jobs:
         if: steps.plan.outputs.has_changes == 'true'
         run: |
           gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
-          gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" plan_full.txt
-          rm -f tfplan plan_full.txt
+          rm -f tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Upload ENCRYPTED plan for apply job
       - name: Upload Terraform Plan
         if: steps.plan.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: tfplan
-          path: |
-            ${{ env.TF_WORKING_DIR }}/tfplan.gpg
-            ${{ env.TF_WORKING_DIR }}/plan_full.txt.gpg
+          path: ${{ env.TF_WORKING_DIR }}/tfplan.gpg
 
   # Terraform Apply (only on main branch)
   apply:
     name: Apply
     runs-on: ubuntu-latest
     needs: plan
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.plan.outputs.has_changes == 'true'
-    environment: server
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' &&
+      needs.plan.outputs.has_changes == 'true'
     permissions:
       contents: read
 
@@ -325,6 +329,18 @@ jobs:
         with:
           terraform_wrapper: false
 
+      - name: Prepare Terraform Plugin Cache
+        run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
+
+      - name: Cache Terraform Providers
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+          key: ${{ runner.os }}-terraform-main-${{
+            hashFiles('Terraform/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-main-
+
       - name: Download Terraform Plan
         uses: actions/download-artifact@v8
         with:
@@ -348,7 +364,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve -lock-timeout=10m tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
@@ -356,4 +372,3 @@ jobs:
           TF_VAR_bws_access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           TF_VAR_hcloud_token: ${{ env.TF_VAR_hcloud_token }}
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-# CI Trigger

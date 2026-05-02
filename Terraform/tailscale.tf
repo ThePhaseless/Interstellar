@@ -19,8 +19,8 @@ resource "tailscale_tailnet_key" "cluster" {
   reusable      = true
   preauthorized = true
   expiry        = 7776000 # 90 days in seconds
-  tags        = ["tag:node"]
-  description = "TalosOS node auth key"
+  tags          = ["tag:node"]
+  description   = "TalosOS node auth key"
 }
 
 # Store the auth key in Bitwarden for External Secrets Operator

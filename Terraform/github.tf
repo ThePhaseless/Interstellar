@@ -45,7 +45,7 @@ resource "github_actions_variable" "proxmox_token_id" {
 }
 
 resource "github_actions_secret" "proxmox_token" {
-  repository      = local.github_repo_name
-  secret_name     = "PROXMOX_VE_API_TOKEN"
-  plaintext_value = "${bitwarden-secrets_secret.proxmox_user.value}!${bitwarden-secrets_secret.proxmox_token_id.value}=${bitwarden-secrets_secret.proxmox_api_token.value}"
+  repository  = local.github_repo_name
+  secret_name = "PROXMOX_VE_API_TOKEN"
+  value       = "${bitwarden-secrets_secret.proxmox_user.value}!${bitwarden-secrets_secret.proxmox_token_id.value}=${bitwarden-secrets_secret.proxmox_api_token.value}"
 }

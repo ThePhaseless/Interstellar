@@ -5,7 +5,6 @@ on:
 
 concurrency:
   group: terraform-destroy
-  cancel-in-progress: false
 
 env:
   TF_VERSION: "latest"
@@ -42,7 +41,6 @@ jobs:
         uses: astral-sh/setup-uv@v8.1.0
         with:
           activate-environment: true
-          enable-cache: true
           cache-local-path: .venv
 
       - name: Install Project Dependencies
@@ -62,7 +60,9 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Create OCI Private Key
-        run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}
+        run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{
+          secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600
+          ${OCI_private_key_path}
 
       - name: Setup Tailscale
         uses: tailscale/github-action@v4
@@ -70,13 +70,14 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           tags: tag:ci
-          use-cache: "true"
           version: latest
           args: --accept-dns=false
 
       - name: Terraform Init
         working-directory: Terraform
-        run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
+        run:
+          terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME
+          }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
 
       - name: Plan Terraform Destroy (Preserving Proxmox)
         working-directory: Terraform
@@ -133,7 +134,9 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: server
-      url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      url:
+        https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id
+        }}
     # ⚠️ IMPORTANT: To enforce manual approval, go to Settings -> Environments -> server -> "Required reviewers" in your Repo.
     env:
       UV_LINK_MODE: copy
@@ -162,7 +165,6 @@ jobs:
         uses: astral-sh/setup-uv@v8.1.0
         with:
           activate-environment: true
-          enable-cache: true
           cache-local-path: .venv
 
       - name: Install Project Dependencies
@@ -172,7 +174,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: Terraform/.terraform
-          key: ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl') }}
+          key:
+            ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl')
+            }}
           restore-keys: |
             ${{ runner.os }}-terraform-
 
@@ -182,20 +186,23 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Create OCI Private Key
-        run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{ secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600 ${OCI_private_key_path}
+        run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{
+          secrets.TF_VAR_PRIVATE_KEY }}" > ${OCI_private_key_path} && chmod 600
+          ${OCI_private_key_path}
 
       - name: Setup Tailscale
         uses: tailscale/github-action@v4
         with:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
-          use-cache: "true"
           version: latest
           args: --accept-dns=false
 
       - name: Terraform Init
         working-directory: Terraform
-        run: terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
+        run:
+          terraform init -input=false -backend-config="bucket=${{ vars.TF_BUCKET_NAME
+          }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
 
       - name: Download Terraform Plan
         uses: actions/download-artifact@v8
