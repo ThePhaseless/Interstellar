@@ -19,10 +19,6 @@ on:
           - setup-proxmox.yaml
           - maintenance.yaml
 
-concurrency:
-  group: ansible-${{ github.ref }}
-  cancel-in-progress: false
-
 env:
   ANSIBLE_DIR: "./Ansible"
 
@@ -30,8 +26,10 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    environment: server
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch')
+    concurrency:
+      group: ansible-deploy-main
 
     steps:
       - name: Checkout repository

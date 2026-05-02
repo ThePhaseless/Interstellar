@@ -96,6 +96,7 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 - **Sonarr/Radarr external auth**: Init containers write `config.xml` with `<AuthenticationMethod>External</AuthenticationMethod>` — Traefik forward-auth injects `Remote-User`.
 - **NFS server IP**: Injected via ConfigMap replacement in root `Kubernetes/kustomization.yaml`, not hardcoded.
 - **Middleware namespaces matter**: When referencing a middleware from another namespace, include `namespace: <ns>` in the IngressRoute.
+- **Terraform CI auto-applies on main pushes**: Routine Terraform runs rely on backend state locks with `-lock-timeout` rather than manual approval gates; Ansible deploys use non-canceling job-level concurrency.
 
 ### Terraform App Configuration (`Terraform/apps/`)
 
