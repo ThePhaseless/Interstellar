@@ -180,9 +180,9 @@ data "talos_machine_configuration" "controlplane" {
 resource "talos_machine_configuration_apply" "controlplane" {
   for_each = var.nodes
 
-  client_configuration        = talos_machine_secrets.cluster.client_configuration
-  machine_configuration_input = data.talos_machine_configuration.controlplane[each.key].machine_configuration
-  node                        = local.talos_node_ips[each.key]
+  client_configuration_wo        = talos_machine_secrets.cluster.client_configuration
+  machine_configuration_input_wo = data.talos_machine_configuration.controlplane[each.key].machine_configuration
+  node                           = local.talos_node_ips[each.key]
 
   depends_on = [proxmox_virtual_environment_vm.talos]
 }
