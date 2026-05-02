@@ -83,6 +83,47 @@ jobs:
             exit 1
           fi
 
+      - name: Resolve Talos hostnames
+        id: talos-node
+        shell: bash
+        run: |
+          TS_STATUS_JSON=$(tailscale status --json)
+          TS_TALOS_PEERS=$(jq -c '
+            def peers:
+              if (.Peer | type) == "object" then [.Peer[]]
+              elif (.Peer | type) == "array" then .Peer
+              else []
+              end;
+
+            [
+              peers[]
+              | select(.Online == true)
+              | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
+              | {
+                  host: ((.DNSName // .HostName // "") | sub("\\.$"; "")),
+                  ip: (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))
+                }
+              | select(.host != "" and .ip != "")
+            ]
+          ' <<<"$TS_STATUS_JSON")
+
+          TS_TALOS_HOST=$(jq -r '.[0].host // empty' <<<"$TS_TALOS_PEERS")
+          TS_TALOS_IP=$(jq -r '.[0].ip // empty' <<<"$TS_TALOS_PEERS")
+
+          if [ -z "$TS_TALOS_HOST" ] || [ -z "$TS_TALOS_IP" ]; then
+            echo "::error::Could not resolve an online Talos hostname and IP from Tailscale"
+            tailscale status || true
+            exit 1
+          fi
+
+          jq -r '.[] | "\(.ip)\t\(.host)"' <<<"$TS_TALOS_PEERS" | while IFS=$'\t' read -r ip_address dns_name; do
+            echo "$ip_address $dns_name" | sudo tee -a /etc/hosts >/dev/null
+            echo "Registered $dns_name -> $ip_address"
+          done
+
+          echo "host=$TS_TALOS_HOST" >> "$GITHUB_OUTPUT"
+          echo "ip=$TS_TALOS_IP" >> "$GITHUB_OUTPUT"
+
       - name: Setup kubectl
         uses: azure/setup-kubectl@v5
 
@@ -103,28 +144,8 @@ jobs:
           printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
           chmod 600 "$HOME/.talos/config"
 
-          TS_STATUS_JSON=$(tailscale status --json)
-          TS_MAGICDNS_SUFFIX=$(jq -r '.MagicDNSSuffix // empty' <<<"$TS_STATUS_JSON")
-          TS_TALOS_NODE=$(jq -r '
-            (
-              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | .HostName] +
-              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | .HostName]
-            ) | map(select(. != null and . != "")) | .[0] // empty
-          ' <<<"$TS_STATUS_JSON")
-          TS_TALOS_IP=$(jq -r '
-            def v4_ips: (.TailscaleIPs // .Addresses // [] | map(select(test("^[0-9]+\\."))));
-            (
-              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | v4_ips[]] +
-              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | v4_ips[]]
-            ) | .[0] // empty
-          ' <<<"$TS_STATUS_JSON")
-          if [ -z "$TS_TALOS_IP" ] || [ -z "$TS_TALOS_NODE" ] || [ -z "$TS_MAGICDNS_SUFFIX" ]; then
-            echo "::error::Could not resolve an online Talos node and MagicDNS suffix from Tailscale"
-            tailscale status || true
-            exit 1
-          fi
-
-          TS_TALOS_HOST="${TS_TALOS_NODE}.${TS_MAGICDNS_SUFFIX}"
+          TS_TALOS_HOST='${{ steps.talos-node.outputs.host }}'
+          TS_TALOS_IP='${{ steps.talos-node.outputs.ip }}'
 
           talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
           sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_HOST}:6443#g" "$HOME/.kube/config"
@@ -318,6 +339,47 @@ jobs:
             exit 1
           fi
 
+      - name: Resolve Talos hostnames
+        id: talos-node
+        shell: bash
+        run: |
+          TS_STATUS_JSON=$(tailscale status --json)
+          TS_TALOS_PEERS=$(jq -c '
+            def peers:
+              if (.Peer | type) == "object" then [.Peer[]]
+              elif (.Peer | type) == "array" then .Peer
+              else []
+              end;
+
+            [
+              peers[]
+              | select(.Online == true)
+              | select(((.Tags // []) | index("tag:node")) != null or ((.Tags // []) | index("tag:cluster")) != null)
+              | {
+                  host: ((.DNSName // .HostName // "") | sub("\\.$"; "")),
+                  ip: (((.TailscaleIPs // .Addresses // []) | map(select(test("^[0-9]+\\."))) | .[0] // ""))
+                }
+              | select(.host != "" and .ip != "")
+            ]
+          ' <<<"$TS_STATUS_JSON")
+
+          TS_TALOS_HOST=$(jq -r '.[0].host // empty' <<<"$TS_TALOS_PEERS")
+          TS_TALOS_IP=$(jq -r '.[0].ip // empty' <<<"$TS_TALOS_PEERS")
+
+          if [ -z "$TS_TALOS_HOST" ] || [ -z "$TS_TALOS_IP" ]; then
+            echo "::error::Could not resolve an online Talos hostname and IP from Tailscale"
+            tailscale status || true
+            exit 1
+          fi
+
+          jq -r '.[] | "\(.ip)\t\(.host)"' <<<"$TS_TALOS_PEERS" | while IFS=$'\t' read -r ip_address dns_name; do
+            echo "$ip_address $dns_name" | sudo tee -a /etc/hosts >/dev/null
+            echo "Registered $dns_name -> $ip_address"
+          done
+
+          echo "host=$TS_TALOS_HOST" >> "$GITHUB_OUTPUT"
+          echo "ip=$TS_TALOS_IP" >> "$GITHUB_OUTPUT"
+
       - name: Setup kubectl
         uses: azure/setup-kubectl@v5
 
@@ -341,28 +403,8 @@ jobs:
           printf "%s\n" "$TALOSCONFIG_VALUE" > "$HOME/.talos/config"
           chmod 600 "$HOME/.talos/config"
 
-          TS_STATUS_JSON=$(tailscale status --json)
-          TS_MAGICDNS_SUFFIX=$(jq -r '.MagicDNSSuffix // empty' <<<"$TS_STATUS_JSON")
-          TS_TALOS_NODE=$(jq -r '
-            (
-              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | .HostName] +
-              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | .HostName]
-            ) | map(select(. != null and . != "")) | .[0] // empty
-          ' <<<"$TS_STATUS_JSON")
-          TS_TALOS_IP=$(jq -r '
-            def v4_ips: (.TailscaleIPs // .Addresses // [] | map(select(test("^[0-9]+\\."))));
-            (
-              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:node")) | v4_ips[]] +
-              [(.Peer // {})[] | select(.Online == true) | select((.Tags // []) | index("tag:cluster")) | v4_ips[]]
-            ) | .[0] // empty
-          ' <<<"$TS_STATUS_JSON")
-          if [ -z "$TS_TALOS_IP" ] || [ -z "$TS_TALOS_NODE" ] || [ -z "$TS_MAGICDNS_SUFFIX" ]; then
-            echo "::error::Could not resolve an online Talos node and MagicDNS suffix from Tailscale"
-            tailscale status || true
-            exit 1
-          fi
-
-          TS_TALOS_HOST="${TS_TALOS_NODE}.${TS_MAGICDNS_SUFFIX}"
+          TS_TALOS_HOST='${{ steps.talos-node.outputs.host }}'
+          TS_TALOS_IP='${{ steps.talos-node.outputs.ip }}'
 
           talosctl --talosconfig "$HOME/.talos/config" -e "$TS_TALOS_IP" -n "$TS_TALOS_IP" kubeconfig "$HOME/.kube/config"
           sed -E -i "s#server: https://[^[:space:]]+#server: https://${TS_TALOS_HOST}:6443#g" "$HOME/.kube/config"
