@@ -1,0 +1,48 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
+  lockFileMaintenance: {
+    enabled: true,
+    automerge: true,
+  },
+  kubernetes: {
+    managerFilePatterns: ["/(^|/)Kubernetes/.+\\.ya?ml$/"],
+  },
+  packageRules: [
+    {
+      description: "Ignore legacy LinuxServer qBittorrent tags",
+      matchManagers: ["kubernetes"],
+      matchPackageNames: ["linuxserver/qbittorrent"],
+      allowedVersions: "!/^20\\./",
+    },
+    {
+      automerge: true,
+      groupName: "All non-major dependencies",
+      groupSlug: "all-minor-patch",
+      ignoreTests: true,
+      matchPackageNames: ["*"],
+      matchUpdateTypes: ["minor", "patch"],
+    },
+    {
+      // Group Talos + Kubernetes into a single PR so they're always bumped together
+      matchDatasources: ["github-releases"],
+      matchPackageNames: ["siderolabs/talos", "kubernetes/kubernetes"],
+      groupName: "talos-cluster",
+      groupSlug: "talos-cluster",
+    },
+  ],
+  "pre-commit": {
+    enabled: true,
+    automerge: true,
+  },
+  regexManagers: [
+    {
+      fileMatch: ["\\.tf$"],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>[^:]+?) depName=(?<depName>.+?)( versioning=(?<versioning>.+?))?( extractVersion=(?<extractVersion>.+?))?( registryUrl=(?<registryUrl>.+?))?\\s.+?[:=]\\s*[\"']?(?<currentValue>.+?)[\"']?\\s",
+      ],
+      versioningTemplate: "{{#if versioning}}{{{versioning}}}{{else}}semver-coerced{{/if}}",
+      extractVersionTemplate: "{{#if extractVersion}}{{{extractVersion}}}{{else}}^v?(?<version>.+)${{/if}}",
+    },
+  ],
+}
