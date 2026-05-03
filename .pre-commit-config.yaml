@@ -1,10 +1,10 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.13
+    rev: v0.15.12
     hooks:
       - id: ruff-format
-        args: [--fix]
       - id: ruff-check
+        args: [--fix]
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.104.0
     hooks:
