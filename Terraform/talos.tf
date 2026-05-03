@@ -192,10 +192,10 @@ data "talos_machine_configuration" "controlplane" {
 resource "talos_machine_configuration_apply" "controlplane" {
   for_each = var.nodes
 
-  client_configuration_wo        = talos_machine_secrets.cluster.client_configuration
-  machine_configuration_input_wo = data.talos_machine_configuration.controlplane[each.key].machine_configuration
-  endpoint                       = local.talos_node_api_endpoints[each.key]
-  node                           = local.talos_node_api_endpoints[each.key]
+  client_configuration        = talos_machine_secrets.cluster.client_configuration
+  machine_configuration_input = data.talos_machine_configuration.controlplane[each.key].machine_configuration
+  endpoint                    = local.talos_node_api_endpoints[each.key]
+  node                        = local.talos_node_api_endpoints[each.key]
 
   depends_on = [proxmox_virtual_environment_vm.talos]
 }
