@@ -13,6 +13,7 @@ spec:
   selector:
     app: adguard
 
+
 # LoadBalancer for LAN DNS access (MetalLB)
 ---
 apiVersion: v1

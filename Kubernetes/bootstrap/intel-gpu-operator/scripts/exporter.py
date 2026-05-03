@@ -11,7 +11,7 @@ def read_sysfs(path):
     try:
         with open(path) as f:
             return f.read().strip()
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return None
 
 
@@ -109,16 +109,12 @@ def collect_metrics():
             for i in range(1, 5):
                 val = read_int(os.path.join(hwmon_dir, f"fan{i}_input"))
                 if val is not None:
-                    lines.append(
-                        f'intel_xe_fan_rpm{{card="{card}",fan="{i}"}} {val}'
-                    )
+                    lines.append(f'intel_xe_fan_rpm{{card="{card}",fan="{i}"}} {val}')
 
             # Power cap
             val = read_int(os.path.join(hwmon_dir, "power1_cap"))
             if val is not None:
-                lines.append(
-                    f'intel_xe_power_cap_watts{{card="{card}"}} {val / 1e6}'
-                )
+                lines.append(f'intel_xe_power_cap_watts{{card="{card}"}} {val / 1e6}')
 
     return "\n".join(lines) + "\n"
 
