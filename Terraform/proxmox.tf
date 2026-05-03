@@ -21,6 +21,9 @@ resource "proxmox_download_file" "talos_iso_base" {
 
   url       = data.talos_image_factory_urls.base_image.urls.iso
   file_name = "talos-${var.talos_version}-extensions-${data.talos_image_factory_urls.base_image.schematic_id}.iso"
+  lifecycle {
+    ignore_changes = [url, file_name]
+  }
 }
 
 # Download TalosOS GPU ISO (only when at least one GPU node exists)
@@ -33,6 +36,9 @@ resource "proxmox_download_file" "talos_iso_gpu" {
 
   url       = data.talos_image_factory_urls.gpu_image.urls.iso
   file_name = "talos-${var.talos_version}-gpu-extensions-${data.talos_image_factory_urls.gpu_image.schematic_id}.iso"
+  lifecycle {
+    ignore_changes = [url, file_name]
+  }
 }
 
 # TalosOS VMs
