@@ -178,12 +178,36 @@ url = "https://github.com/siderolabs/talos/releases/download/v1.13.0/talosctl-wi
 provenance = "cosign"
 
 [[tools.terraform]]
-version = "1.14.4"
+version = "1.15.1"
 backend = "aqua:hashicorp/terraform"
 
+[tools.terraform."platforms.linux-arm64"]
+checksum = "sha256:d0e5707a2ef8ff05dc546b8c0acee5b6f6968ba83c1208230364187a56480b42"
+url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_linux_arm64.zip"
+
+[tools.terraform."platforms.linux-arm64-musl"]
+checksum = "sha256:d0e5707a2ef8ff05dc546b8c0acee5b6f6968ba83c1208230364187a56480b42"
+url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_linux_arm64.zip"
+
 [tools.terraform."platforms.linux-x64"]
-checksum = "sha256:4a24b18865d9419ba7882567cb7429dd1525b3e2029a9e38f612d476ba8c3dea"
-url = "https://releases.hashicorp.com/terraform/1.14.4/terraform_1.14.4_linux_amd64.zip"
+checksum = "sha256:0921fee8c8435253ca49390a02109e906042e611a4e17f69e922261f5176c74f"
+url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_linux_amd64.zip"
+
+[tools.terraform."platforms.linux-x64-musl"]
+checksum = "sha256:0921fee8c8435253ca49390a02109e906042e611a4e17f69e922261f5176c74f"
+url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_linux_amd64.zip"
+
+[tools.terraform."platforms.macos-arm64"]
+checksum = "sha256:01535b614be222dbd1344a8eb9162c3b54cc3b65c4212e8d4d9a2be72666ccff"
+url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_darwin_arm64.zip"
+
+[tools.terraform."platforms.macos-x64"]
+checksum = "sha256:182fcb3d94e52daf904e412541d92cbe2a86bf28c0fb442da15ede2aa8c3fe76"
+url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_darwin_amd64.zip"
+
+[tools.terraform."platforms.windows-x64"]
+checksum = "sha256:3890c08de67ebef2a3f8948b8b0afe53e28ed2f4eb84d1d2246f5b61d8ebd393"
+url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_windows_amd64.zip"
 
 [[tools.tflint]]
 version = "0.62.0"
