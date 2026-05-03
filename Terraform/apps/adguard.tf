@@ -30,7 +30,6 @@ resource "adguard_user_rules" "nerine_dev_user_rules" {
     "||nerine.dev^$dnsrewrite=NOERROR;A;${local.traefik_tailscale_ip},client=10.244.0.0/16",
     "||*.nerine.dev^$dnsrewrite=NOERROR;A;${local.traefik_tailscale_ip},client=10.244.0.0/16",
     "@@||brightdata.com^$important",
-    null
   ]
 }
 
