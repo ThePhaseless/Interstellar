@@ -1,6 +1,5 @@
 terraform {
-  # Terraform 1.15.0 mis-handles the pinned Bitwarden prerelease during backend init.
-  required_version = ">= 1.14.4, != 1.15.0"
+  required_version = ">= 1.15.1"
 
   # OCI Object Storage backend for state storage
   # Authentication via ~/.oci/config file (SDK/CLI standard config)
