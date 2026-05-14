@@ -113,41 +113,15 @@ jobs:
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Resolve and ping Talos bootstrap endpoint
+      - name: Resolve reachable Talos API endpoint
         shell: bash
         run: |
-          TALOS_DOMAIN="fold-hen.ts.net"
-          TALOS_NODES=(talos-1 talos-2 talos-3)
-          TS_TALOS_HOST="talos-1.fold-hen.ts.net"
-          TS_TALOS_IP="$(tailscale ip -4 "$TS_TALOS_HOST" 2>/dev/null | head -n 1 || true)"
+          eval "$(./scripts/resolve-talos-api-endpoint.sh --shell)"
 
-          if [ -z "$TS_TALOS_IP" ]; then
-            echo "::error::Could not resolve $TS_TALOS_HOST via Tailscale"
-            tailscale status || true
-            exit 1
-          fi
+          echo "$TALOS_API_IP $TALOS_API_HOST" | sudo tee -a /etc/hosts >/dev/null
+          echo "Registered $TALOS_API_HOST -> $TALOS_API_IP"
 
-          TS_PING_OUTPUT="$(tailscale ping -c 1 "$TS_TALOS_IP" 2>&1 || true)"
-          echo "$TS_PING_OUTPUT"
-          if ! grep -q '^pong from ' <<<"$TS_PING_OUTPUT"; then
-            echo "::error::Could not reach $TS_TALOS_HOST ($TS_TALOS_IP) via Tailscale"
-            tailscale status || true
-            exit 1
-          fi
-
-          for node_name in "${TALOS_NODES[@]}"; do
-            node_host="${node_name}.${TALOS_DOMAIN}"
-            node_ip="$(tailscale ip -4 "$node_host" 2>/dev/null | head -n 1 || true)"
-
-            if [ -z "$node_ip" ]; then
-              echo "::error::Could not resolve $node_host via Tailscale"
-              tailscale status || true
-              exit 1
-            fi
-
-            echo "$node_ip $node_host" | sudo tee -a /etc/hosts >/dev/null
-            echo "Registered $node_host -> $node_ip"
-          done
+          echo "TF_VAR_kubernetes_api_host=$TALOS_API_HOST" >> "$GITHUB_ENV"
 
       - name: Write OCI config
         shell: bash
@@ -344,41 +318,15 @@ jobs:
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Resolve and ping Talos bootstrap endpoint
+      - name: Resolve reachable Talos API endpoint
         shell: bash
         run: |
-          TALOS_DOMAIN="fold-hen.ts.net"
-          TALOS_NODES=(talos-1 talos-2 talos-3)
-          TS_TALOS_HOST="talos-1.fold-hen.ts.net"
-          TS_TALOS_IP="$(tailscale ip -4 "$TS_TALOS_HOST" 2>/dev/null | head -n 1 || true)"
+          eval "$(./scripts/resolve-talos-api-endpoint.sh --shell)"
 
-          if [ -z "$TS_TALOS_IP" ]; then
-            echo "::error::Could not resolve $TS_TALOS_HOST via Tailscale"
-            tailscale status || true
-            exit 1
-          fi
+          echo "$TALOS_API_IP $TALOS_API_HOST" | sudo tee -a /etc/hosts >/dev/null
+          echo "Registered $TALOS_API_HOST -> $TALOS_API_IP"
 
-          TS_PING_OUTPUT="$(tailscale ping -c 1 "$TS_TALOS_IP" 2>&1 || true)"
-          echo "$TS_PING_OUTPUT"
-          if ! grep -q '^pong from ' <<<"$TS_PING_OUTPUT"; then
-            echo "::error::Could not reach $TS_TALOS_HOST ($TS_TALOS_IP) via Tailscale"
-            tailscale status || true
-            exit 1
-          fi
-
-          for node_name in "${TALOS_NODES[@]}"; do
-            node_host="${node_name}.${TALOS_DOMAIN}"
-            node_ip="$(tailscale ip -4 "$node_host" 2>/dev/null | head -n 1 || true)"
-
-            if [ -z "$node_ip" ]; then
-              echo "::error::Could not resolve $node_host via Tailscale"
-              tailscale status || true
-              exit 1
-            fi
-
-            echo "$node_ip $node_host" | sudo tee -a /etc/hosts >/dev/null
-            echo "Registered $node_host -> $node_ip"
-          done
+          echo "TF_VAR_kubernetes_api_host=$TALOS_API_HOST" >> "$GITHUB_ENV"
 
       - name: Write OCI config
         shell: bash
