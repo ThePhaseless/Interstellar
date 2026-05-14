@@ -94,11 +94,13 @@ tailscale_domain=""
 talos_ip=""
 
 if command -v tailscale &>/dev/null; then
-    resolved_talos_shell="$(${REPO_ROOT}/scripts/resolve-talos-api-endpoint.sh --shell 2>/dev/null || true)"
+    resolved_talos_shell="$(bash "${REPO_ROOT}/scripts/resolve-talos-api-endpoint.sh" --shell 2>/dev/null || true)"
     if [[ -n "$resolved_talos_shell" ]]; then
         eval "$resolved_talos_shell"
-        talos_node="$TALOS_API_HOST"
-        talos_ip="$TALOS_API_IP"
+        if [[ -n "${TALOS_API_HOST:-}" && -n "${TALOS_API_IP:-}" ]]; then
+            talos_node="$TALOS_API_HOST"
+            talos_ip="$TALOS_API_IP"
+        fi
     else
         tailscale_domain=$(tailscale status --json 2>/dev/null | jq -r '.MagicDNSSuffix // empty' 2>/dev/null || true)
     fi
