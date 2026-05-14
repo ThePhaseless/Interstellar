@@ -98,7 +98,12 @@ jobs:
         id: talos-node
         shell: bash
         run: |
-          eval "$(./scripts/resolve-talos-api-endpoint.sh --shell)"
+          eval "$(bash ./scripts/resolve-talos-api-endpoint.sh --shell)"
+
+          if [ -z "${TALOS_API_HOST:-}" ] || [ -z "${TALOS_API_IP:-}" ]; then
+            echo "::error::Could not determine a reachable Talos API endpoint"
+            exit 1
+          fi
 
           echo "$TALOS_API_IP $TALOS_API_HOST" | sudo tee -a /etc/hosts >/dev/null
           echo "Registered $TALOS_API_HOST -> $TALOS_API_IP"
@@ -326,7 +331,12 @@ jobs:
         id: talos-node
         shell: bash
         run: |
-          eval "$(./scripts/resolve-talos-api-endpoint.sh --shell)"
+          eval "$(bash ./scripts/resolve-talos-api-endpoint.sh --shell)"
+
+          if [ -z "${TALOS_API_HOST:-}" ] || [ -z "${TALOS_API_IP:-}" ]; then
+            echo "::error::Could not determine a reachable Talos API endpoint"
+            exit 1
+          fi
 
           echo "$TALOS_API_IP $TALOS_API_HOST" | sudo tee -a /etc/hosts >/dev/null
           echo "Registered $TALOS_API_HOST -> $TALOS_API_IP"
