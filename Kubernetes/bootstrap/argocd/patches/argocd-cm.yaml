@@ -19,6 +19,48 @@ data:
     hs = {}
     hs.status = "Progressing"
     hs.message = ""
+
+    if obj.metadata ~= nil
+      and obj.metadata.name == "app-of-apps"
+      and obj.metadata.namespace == "argocd" then
+      if obj.status ~= nil and obj.status.resources ~= nil then
+        for _, resource in ipairs(obj.status.resources) do
+          if resource.status ~= nil and resource.status ~= "Synced" then
+            hs.status = "Degraded"
+            hs.message = resource.kind .. "/" .. resource.name .. " is " .. resource.status
+            return hs
+          end
+
+          if resource.health ~= nil
+            and resource.health.status ~= nil
+            and resource.health.status ~= "Healthy" then
+            hs.status = resource.health.status
+            if resource.health.message ~= nil then
+              hs.message = resource.health.message
+            else
+              hs.message = resource.kind .. "/" .. resource.name .. " is " .. resource.health.status
+            end
+            return hs
+          end
+        end
+
+        hs.status = "Healthy"
+        return hs
+      end
+
+      if obj.status ~= nil
+        and obj.status.operationState ~= nil
+        and obj.status.operationState.phase == "Failed" then
+        hs.status = "Degraded"
+        if obj.status.operationState.message ~= nil then
+          hs.message = obj.status.operationState.message
+        end
+        return hs
+      end
+
+      return hs
+    end
+
     if obj.status ~= nil then
       if obj.status.health ~= nil then
         hs.status = obj.status.health.status
