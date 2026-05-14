@@ -47,9 +47,7 @@ radarr:
         - trash_id: f993ad37540147e4d00e66503545d81b # [Streaming Services] Anime
         - trash_id: 9337080378236ce4c0b183e35790d2a7 # [Optional] Miscellaneous
           select:
-            - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
             - 73613461ac2cea99d52c4cd6e177ab82 # HFR
-            - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
             - 11cd1db7165d6a7ad9a83bc97b8b1060 # VC-1
             - ae4cfaa9283a4f2150ac3da08e388723 # VP9
             - 2899d84dc9372de3408e6d8cc18e9666 # x264
