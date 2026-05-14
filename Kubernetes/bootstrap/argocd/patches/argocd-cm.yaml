@@ -70,3 +70,6 @@ data:
       end
     end
     return hs
+  resource.customizations.ignoreDifferences.all: |
+    jqPathExpressions:
+      - '.metadata.annotations."argocd.argoproj.io/tracking-id"'

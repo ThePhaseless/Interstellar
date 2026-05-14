@@ -238,6 +238,7 @@ volumes:
 - Talos static control-plane pod logs under `/var/log/pods/kube-system_kube-{apiserver,controller-manager,scheduler}-*/*/*.log` are not reliably picked up by the generic Promtail `kubernetes_sd` pod scrape here; add explicit file globs if you need those logs in Loki or alerting.
 - One-shot or TTL-cleaned `Job` resources should not stay in ArgoCD steady-state `resources:` lists here; once Kubernetes garbage-collects them, Argo will keep the app `OutOfSync` trying to recreate the missing Job.
 - The repo self-manages `argocd/app-of-apps`, so the custom ArgoCD `Application` health script must special-case that root app and derive health from `.status.resources`; mirroring its own `.status.health` makes the root app stay recursively `Degraded`.
+- Legacy bootstrap resources that predate `application.resourceTrackingMethod: annotation` need a one-time live adoption with `argocd.argoproj.io/tracking-id`; after that, ArgoCD compare also needs to ignore that annotation or the adopted bootstrap resources stay falsely `OutOfSync`.
 
 ## Lint validation
 
