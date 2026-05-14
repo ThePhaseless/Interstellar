@@ -10,10 +10,10 @@
   },
   packageRules: [
     {
-      description: "Ignore legacy LinuxServer qBittorrent tags",
+      description: "Ignore broken and legacy LinuxServer qBittorrent tags",
       matchManagers: ["kubernetes"],
       matchPackageNames: ["linuxserver/qbittorrent"],
-      allowedVersions: "!/^20\\./",
+      allowedVersions: "!/^(20\\.|5\\.2\\.)/",
     },
     {
       automerge: true,
