@@ -14,4 +14,3 @@ resources:
   - metrics-server/
   - clamav/
   - authentik/
-  - coredns-override/

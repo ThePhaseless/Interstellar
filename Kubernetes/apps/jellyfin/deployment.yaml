@@ -19,6 +19,11 @@ spec:
       labels:
         app: jellyfin
     spec:
+      # Resolve Authentik through Traefik locally instead of patching CoreDNS.
+      hostAliases:
+        - ip: 192.168.1.11
+          hostnames:
+            - auth.nerine.dev
       # Schedule on GPU node
       nodeSelector:
         intel.feature.node.kubernetes.io/gpu: "true"
