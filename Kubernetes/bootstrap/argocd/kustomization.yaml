@@ -35,3 +35,9 @@ patches:
     target:
       kind: ConfigMap
       name: argocd-rbac-cm
+  - target:
+      labelSelector: app.kubernetes.io/component=redis-secret-init
+    patch: |-
+      - op: replace
+        path: /metadata/annotations/helm.sh~1hook-delete-policy
+        value: before-hook-creation,hook-succeeded
