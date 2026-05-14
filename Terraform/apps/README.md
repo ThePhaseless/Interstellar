@@ -8,6 +8,7 @@ Kubernetes secret using the kubernetes backend.
 - Sonarr and Radarr qBittorrent download clients
 - Prowlarr applications for Sonarr and Radarr
 - AdGuard Home DNS rewrites and filter lists
+- Jellyfin provider integration and import workflow
 
 ## Backend
 
@@ -25,10 +26,12 @@ Project environment setup:
 - From the repo root: `mise trust && mise install && mise run install`
 - Bitwarden-backed environment loaded in the current shell: `source scripts/setup-env.sh`
 - `KUBE_CONFIG_PATH` exported (for example `~/.kube/config`)
+- Go installed locally if you want to run the Jellyfin import helper
 
 Required Bitwarden secrets:
 
 - `sonarr-api-key`, `radarr-api-key`, `prowlarr-api-key` — \*arr API keys
+- `jellyfin-admin-password` — Jellyfin bootstrap/admin password
 - `qbittorrent-username`, `qbittorrent-password` — qBittorrent credentials
 - `adguard-admin-username`, `adguard-admin-password` — AdGuard admin credentials (plaintext)
 
@@ -53,6 +56,13 @@ terraform plan
 terraform apply
 ```
 
+The Jellyfin provider is published on Terraform Registry as `ThePhaseless/jellyfin`,
+so `terraform init` now uses the standard registry installation flow.
+
+The repo now manages Jellyfin bootstrap state directly in `Terraform/apps/jellyfin.tf`:
+libraries, the SSO plugin repository/package, SSO plugin configuration, and login branding.
+The Kubernetes setup sidecar is no longer the source of truth for those settings.
+
 ## Importing Existing Resources
 
 If services are already configured, import them before applying to avoid duplicates:
@@ -64,4 +74,15 @@ terraform import prowlarr_application.sonarr 1
 terraform import prowlarr_application.radarr 2
 terraform import adguard_rewrite.nerine_dev_wildcard '*.nerine.dev/100.72.236.33'
 terraform import adguard_rewrite.nerine_dev 'nerine.dev/100.72.236.33'
+```
+
+The repo includes curated import blocks in `Terraform/apps/jellyfin.imports.tf` for
+the live Jellyfin resources it manages. If you need to expand the managed surface
+area later, regenerate a fresh comparison snapshot from the live server with:
+
+```bash
+export JELLYFIN_ENDPOINT=http://localhost:8096
+export JELLYFIN_USERNAME=admin
+export JELLYFIN_PASSWORD="$(bws secret list --output json --color no | jq -r '.[] | select(.key=="jellyfin-admin-password") | .value')"
+go run github.com/ThePhaseless/terraform-provider-jellyfin/cmd/jellyfin-import@v0.1.0
 ```

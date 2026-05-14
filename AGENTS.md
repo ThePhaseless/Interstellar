@@ -96,8 +96,12 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 
 - **TLS terminates at Traefik**, not at the app or HAProxy. Apps serve plain HTTP internally. ArgoCD runs with `--insecure`.
 - **Tailscale DNS split-horizon**: Public DNS (Cloudflare) only has Oracle VPS IP. Tailscale clients use AdGuard as their DNS (configured in `tailscale.tf`), which rewrites `*.nerine.dev` to Traefik's Tailscale IP via client-based rules in `adguard.tf`.
+- **Kubernetes pods do not automatically get the same split-horizon behavior as Tailscale clients**: In-cluster server-side calls to `*.nerine.dev` still follow normal cluster DNS unless CoreDNS is explicitly taught otherwise, so OIDC discovery from pods can hit the public Oracle IP and fail even when browser-based access works.
 - **Tailscale exit nodes on Proxmox need kernel forwarding enabled**: Advertising `0.0.0.0/0` and `::/0` is not enough; `net.ipv4.ip_forward=1` and `net.ipv6.conf.all.forwarding=1` must be set or clients lose internet when selecting the exit node.
 - **Sonarr/Radarr external auth**: Init containers write `config.xml` with `<AuthenticationMethod>External</AuthenticationMethod>` — Traefik forward-auth injects `Remote-User`.
+- **Longhorn can keep a volume `attached`/`healthy` while the node mount is effectively read-only**: If apps start reporting `Read-only file system`, check the node's `/proc/mounts` for `emergency_ro` on the PVC before adding scheduling workarounds; this needs volume/filesystem repair or remount, not pod rescheduling.
+- **For Longhorn `emergency_ro` incidents, snapshot first and try a clean detach/reattach before fsck or manifest changes**: Creating manual Longhorn snapshots, scaling the owning workload to `0` until the volume detaches, then scaling it back up restored the mounts to `rw` in this cluster without recreating any resources or rolling data back.
+- **Talos control-plane etcd lives under `/var/lib/etcd` inside `EPHEMERAL` on these nodes, not a dedicated `ETCD` partition**: `talosctl reset --system-labels-to-wipe ETCD` fails here; rebuilding a removed etcd member needs a broader maintenance plan than a partition-only wipe.
 - **NFS server IP**: Injected via ConfigMap replacement in root `Kubernetes/kustomization.yaml`, not hardcoded.
 - **Middleware namespaces matter**: When referencing a middleware from another namespace, include `namespace: <ns>` in the IngressRoute.
 - **Terraform CI auto-applies on main pushes**: Routine Terraform runs rely on backend state locks with `-lock-timeout` rather than manual approval gates; Ansible deploys use non-canceling job-level concurrency.
@@ -174,4 +178,4 @@ terraform import prowlarr_application.radarr <ID>
 
 - **Kubernetes changes**: Use `git push` + ArgoCD resync. ArgoCD is the GitOps source of truth.
 - Apply script (`./scripts/apply-kubernetes.sh`) is for bootstrapping only, not routine changes.
-- **Before running `terraform` in `Terraform/apps/`**: Always ensure `./scripts/port-forward-apps.sh` is running first (check with `ss -tlnp | grep -E "8989|7878|9696|3000|9000"`).
+- **Before running `terraform` in `Terraform/apps/`**: Always ensure `./scripts/port-forward-apps.sh` is running first (check with `ss -tlnp | grep -E "8989|7878|9696|8096|3000|9000"`).

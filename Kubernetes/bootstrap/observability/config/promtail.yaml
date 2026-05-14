@@ -109,3 +109,38 @@ scrape_configs:
                   {{- end -}}
             - labels:
                 log_level:
+
+  # Talos control-plane static pods are present on disk under /var/log/pods,
+  # but they are not reliably discovered by the generic kubernetes_sd job.
+  # Scrape them explicitly so Loki can alert on control-plane failures.
+  - job_name: kube-system-static-pods
+    static_configs:
+      - targets: [localhost]
+        labels:
+          app: kube-apiserver
+          component: kube-apiserver
+          container: kube-apiserver
+          job: kube-system-static-pods
+          namespace: kube-system
+          pod: kube-apiserver
+          __path__: /var/log/pods/kube-system_kube-apiserver-*/*/*.log
+      - targets: [localhost]
+        labels:
+          app: kube-controller-manager
+          component: kube-controller-manager
+          container: kube-controller-manager
+          job: kube-system-static-pods
+          namespace: kube-system
+          pod: kube-controller-manager
+          __path__: /var/log/pods/kube-system_kube-controller-manager-*/*/*.log
+      - targets: [localhost]
+        labels:
+          app: kube-scheduler
+          component: kube-scheduler
+          container: kube-scheduler
+          job: kube-system-static-pods
+          namespace: kube-system
+          pod: kube-scheduler
+          __path__: /var/log/pods/kube-system_kube-scheduler-*/*/*.log
+    pipeline_stages:
+      - cri: {}

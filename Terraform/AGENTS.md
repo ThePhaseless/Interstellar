@@ -157,6 +157,9 @@ CI runs `terraform plan` on PRs touching `Terraform/` (not `Terraform/apps/`). A
 ## Key Gotchas
 
 - **Provider URLs differ between local and CI**: Locally use `localhost` via `scripts/port-forward-apps.sh`; CI overrides with `TF_VAR_*` pointing to Tailscale MagicDNS names.
+- **Jellyfin provider is now registry-backed**: Use released versions of `ThePhaseless/jellyfin` in `Terraform/apps` rather than reintroducing the old local mirror/bootstrap flow.
+- **Current Jellyfin library imports should omit `library_options_json` unless you have a verified update payload**: Importing existing libraries worked, but replaying the imported options back through `/Library/VirtualFolders/LibraryOptions` returned HTTP 400 on this server with Jellyfin 10.11.8.
+- **SSO-Auth plugin configuration must use the raw `/Plugins/<plugin-id>/Configuration` JSON shape, not the `/sso/OID/Add/<provider>` payload**: For this server that means `SamlConfigs = {}` plus `OidConfigs = { authentik = { ... } }`; posting the simplified `OID/Add` body through `jellyfin_plugin_configuration` made `/sso/OID/start/authentik` fail with `Provider does not exist`.
 - **Talos devices are currently tagged `tag:cluster` in Tailscale**: CI access rules must allow both `tag:cluster` and `tag:node`, or GitHub runners will join the tailnet successfully but still be unable to resolve or reach Talos nodes.
 - **Talos provider endpoints should use live Tailscale IPs once nodes join the tailnet**: `talos_machine_configuration_apply`, `talos_machine_bootstrap`, and `talos_cluster_kubeconfig` work reliably in CI with `data.tailscale_devices.cluster` addresses; keep `data.talos_client_configuration` on MagicDNS hostnames for user-facing talosconfig output, and fall back to LAN IPs only before Tailscale comes up.
 - **Bitwarden provider is pre-release**: `bitwarden-secrets` version `0.5.4-pre` — pin exactly, don't use `>=`.

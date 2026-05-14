@@ -25,4 +25,10 @@ provider "authentik" {
   token = data.bitwarden-secrets_secret.authentik_bootstrap_token.value
 }
 
+provider "jellyfin" {
+  endpoint = var.jellyfin_provider_url
+  username = var.jellyfin_admin_username
+  password = data.bitwarden-secrets_secret.jellyfin_admin_password.value
+}
+
 provider "kubernetes" {}

@@ -971,6 +971,144 @@ groups:
           severity: critical
         isPaused: false
 
+      # Pod Storage I/O Errors – catches the app-visible symptom of broken PVCs
+      # before Kubernetes readiness necessarily flips.
+      - uid: pod-storage-io-errors
+        title: Pod Storage I/O Errors
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              datasource:
+                type: loki
+                uid: loki
+              editorMode: code
+              expr: 'sum by(namespace, pod) (count_over_time({namespace=~"media|utilities|home|longhorn-system"} |~ "Read-only file system|Input/output error|I/O error" [5m]))'
+              intervalMs: 1000
+              maxDataPoints: 43200
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [3]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} is logging repeated storage I/O errors
+        labels:
+          severity: critical
+        isPaused: false
+
+      # API Server etcd Corruption – explicit static pod log scrape is required
+      # on Talos because these logs are not captured by the generic pod job.
+      - uid: apiserver-etcd-corrupt
+        title: API Server etcd Corruption
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              datasource:
+                type: loki
+                uid: loki
+              editorMode: code
+              expr: 'sum(count_over_time({job="kube-system-static-pods", namespace="kube-system", component="kube-apiserver"} |= "etcdserver: corrupt cluster" [5m]))'
+              intervalMs: 1000
+              maxDataPoints: 43200
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: kube-apiserver is logging etcd corruption errors
+        labels:
+          severity: critical
+        isPaused: false
+
 contactPoints:
   - orgId: 1
     name: Discord

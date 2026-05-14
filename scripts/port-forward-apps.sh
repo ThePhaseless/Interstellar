@@ -6,6 +6,7 @@ SERVICES=(
     "sonarr    media     sonarr           8989 8989"
     "radarr    media     radarr           7878 7878"
     "prowlarr  media     prowlarr         9696 9696"
+    "jellyfin  media     jellyfin         8096 8096"
     "adguard   home      adguard          3000 3000"
     "authentik authentik authentik-server 9000 80"
 )
