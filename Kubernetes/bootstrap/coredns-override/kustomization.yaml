@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Retain ownership of the base CoreDNS ConfigMap so ArgoCD does not prune the
+# live kube-system/coredns object. The Jellyfin split-horizon fix is handled in
+# the workload via hostAliases instead of cluster-wide DNS overrides.
+configMapGenerator:
+  - name: coredns
+    namespace: kube-system
+    files:
+      - Corefile=config/Corefile
+    options:
+      disableNameSuffixHash: true
