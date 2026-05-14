@@ -8,7 +8,6 @@ resources:
   - service.yaml
   - ingress.yaml
   - pvc.yaml
-  - externalsecret.yaml
 
 labels:
   - pairs:

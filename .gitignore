@@ -26,3 +26,4 @@ charts/
 terraform.tfstate*
 .bw-provider-state
 .direnv/
+/tmp/

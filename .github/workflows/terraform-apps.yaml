@@ -5,11 +5,13 @@ on:
     branches: [main, migration]
     paths:
       - "Terraform/apps/**"
+      - "scripts/port-forward-apps.sh"
       - ".github/workflows/terraform-apps.yaml"
   pull_request:
     branches: [main, migration]
     paths:
       - "Terraform/apps/**"
+      - "scripts/port-forward-apps.sh"
       - ".github/workflows/terraform-apps.yaml"
   workflow_dispatch:
 
@@ -209,7 +211,7 @@ jobs:
           bash ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
           echo $! > /tmp/port-forward-apps.pid
 
-          for port in 8989 7878 9696 3000 9000; do
+          for port in 8989 7878 9696 8096 3000 9000; do
             for i in {1..45}; do
               if (echo > "/dev/tcp/127.0.0.1/$port") >/dev/null 2>&1; then
                 break
@@ -451,7 +453,7 @@ jobs:
           bash ./scripts/port-forward-apps.sh > /tmp/port-forward-apps.log 2>&1 &
           echo $! > /tmp/port-forward-apps.pid
 
-          for port in 8989 7878 9696 3000 9000; do
+          for port in 8989 7878 9696 8096 3000 9000; do
             for i in {1..45}; do
               if (echo > "/dev/tcp/127.0.0.1/$port") >/dev/null 2>&1; then
                 break

@@ -233,6 +233,10 @@ volumes:
       secretName: <app>-secrets
 ```
 
+## Key Gotchas
+
+- Talos static control-plane pod logs under `/var/log/pods/kube-system_kube-{apiserver,controller-manager,scheduler}-*/*/*.log` are not reliably picked up by the generic Promtail `kubernetes_sd` pod scrape here; add explicit file globs if you need those logs in Loki or alerting.
+
 ## Lint validation
 
 Run `scripts/lint-kubernetes.sh` after changes — it builds with kustomize and runs kube-linter. CI runs the same check on PRs touching `Kubernetes/`.

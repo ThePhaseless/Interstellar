@@ -16,4 +16,3 @@ configMapGenerator:
     files:
       - scripts/extract-api-key.sh
       - scripts/configure-seerr.sh
-      - scripts/configure-jellyfin.sh

@@ -73,6 +73,18 @@ variable "adguard_provider_url" {
   default     = "localhost:3000"
 }
 
+variable "jellyfin_provider_url" {
+  type        = string
+  description = "Jellyfin URL reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  default     = "http://localhost:8096"
+}
+
+variable "jellyfin_admin_username" {
+  type        = string
+  description = "Jellyfin admin username used for bootstrap/provider authentication"
+  default     = "admin"
+}
+
 variable "adguard_traefik_local_ip" {
   type        = string
   description = "Traefik MetalLB IP for DNS rewrites (*.nerine.dev) - used by local network clients"
@@ -95,6 +107,24 @@ variable "bitwarden_prowlarr_api_key_name" {
   type        = string
   description = "Bitwarden secret key name for Prowlarr API key"
   default     = "prowlarr-api-key"
+}
+
+variable "bitwarden_jellyfin_admin_password_name" {
+  type        = string
+  description = "Bitwarden secret key name for the Jellyfin admin password"
+  default     = "jellyfin-admin-password"
+}
+
+variable "bitwarden_jellyfin_oidc_client_id_name" {
+  type        = string
+  description = "Bitwarden secret key name for the Jellyfin OIDC client ID"
+  default     = "authentik-jellyfin-client-id"
+}
+
+variable "bitwarden_jellyfin_oidc_client_secret_name" {
+  type        = string
+  description = "Bitwarden secret key name for the Jellyfin OIDC client secret"
+  default     = "authentik-jellyfin-client-secret"
 }
 
 # --- Authentik ---
