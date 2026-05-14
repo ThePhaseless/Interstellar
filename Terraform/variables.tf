@@ -133,6 +133,12 @@ variable "talos_api_endpoints" {
   default     = {}
 }
 
+variable "kubernetes_api_host" {
+  description = "Reachable Talos MagicDNS hostname to use for Kubernetes provider access when the default bootstrap node hostname is not serving the API over Tailscale."
+  type        = string
+  default     = null
+}
+
 # Oracle Proxy Configuration
 variable "proxy_public_access" {
   description = "Enable public HTTP (port 80) access to the Oracle proxy VPS. HTTPS (443) remains open; SSH is intended via Tailscale only."

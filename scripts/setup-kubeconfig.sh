@@ -87,63 +87,61 @@ if [[ -z "$bootstrap_node" ]]; then
     bootstrap_node=$(jq -r '.contexts | to_entries[0].value.endpoints[0] // empty' <<< "$(yq -o=json '.' "$TALOS_CONFIG" 2>/dev/null)" 2>/dev/null || true)
 fi
 
-# Resolve via Tailscale MagicDNS: try node names from talosconfig
-# The Terraform config sets nodes to LAN IPs; we need MagicDNS names for Tailscale access.
-# Extract the first node name from Bitwarden or use known convention.
+# Resolve via Tailscale MagicDNS: prefer the first Talos host that is actually
+# serving the Kubernetes API over Tailscale, then fall back to talosconfig data.
 talos_node=""
 tailscale_domain=""
+talos_ip=""
 
-# Try to get the MagicDNS domain from the talosconfig (endpoints may be IPs or FQDNs)
-if [[ -n "$bootstrap_node" ]]; then
-    if [[ "$bootstrap_node" =~ \.ts\.net$ ]]; then
-        # Already a MagicDNS FQDN
-        talos_node="$bootstrap_node"
+if command -v tailscale &>/dev/null; then
+    resolved_talos_shell="$(${REPO_ROOT}/scripts/resolve-talos-api-endpoint.sh --shell 2>/dev/null || true)"
+    if [[ -n "$resolved_talos_shell" ]]; then
+        eval "$resolved_talos_shell"
+        talos_node="$TALOS_API_HOST"
+        talos_ip="$TALOS_API_IP"
     else
-        # It's a LAN IP — resolve via Tailscale MagicDNS
-        # Get the MagicDNS domain
-        if command -v tailscale &>/dev/null; then
-            tailscale_domain=$(tailscale status --json 2>/dev/null | jq -r '.MagicDNSSuffix // empty' 2>/dev/null || true)
-        fi
-
-        if [[ -n "$tailscale_domain" ]]; then
-            # Try to find the node name by matching the IP in tailscale status
-            ts_node_name=$(tailscale status --json 2>/dev/null | jq -r --arg ip "$bootstrap_node" '
-                .Peer | to_entries[] |
-                select(.value.TailscaleIPs[]? == $ip or (.value.HostName | test("talos"))) |
-                .value.HostName' 2>/dev/null | head -1 || true)
-
-            if [[ -n "$ts_node_name" ]]; then
-                talos_node="${ts_node_name}.${tailscale_domain}"
-            else
-                # Default to talos-1 (first sorted node name from Terraform)
-                talos_node="talos-1.${tailscale_domain}"
-                log_warn "Could not resolve node name from Tailscale, defaulting to ${talos_node}"
-            fi
-        else
-            # No Tailscale CLI — fall back to LAN IP
-            talos_node="$bootstrap_node"
-            log_warn "Tailscale not available, using LAN IP: ${talos_node}"
-        fi
-    fi
-else
-    # No node found in talosconfig at all — use default
-    if command -v tailscale &>/dev/null; then
         tailscale_domain=$(tailscale status --json 2>/dev/null | jq -r '.MagicDNSSuffix // empty' 2>/dev/null || true)
     fi
-    if [[ -z "$tailscale_domain" ]]; then
-        log_error "No node found in talosconfig and Tailscale MagicDNS domain could not be determined."
-        exit 1
-    fi
-    talos_node="talos-1.${tailscale_domain}"
-    log_warn "No node found in talosconfig, defaulting to ${talos_node}"
 fi
 
 # --- Resolve Tailscale IP ---
 # talosctl needs both -e (endpoint) and -n (node) overridden to the Tailscale IP,
 # because the talosconfig stores LAN IPs which are unreachable remotely.
-talos_ip=$(getent hosts "$talos_node" 2>/dev/null | awk '{print $1}')
+if [[ -z "$talos_node" ]]; then
+    if [[ -n "$bootstrap_node" ]]; then
+        if [[ "$bootstrap_node" =~ \.ts\.net$ ]]; then
+            talos_node="$bootstrap_node"
+        else
+            if [[ -n "$tailscale_domain" ]]; then
+                ts_node_name=$(tailscale status --json 2>/dev/null | jq -r --arg ip "$bootstrap_node" '
+                    .Peer | to_entries[] |
+                    select(.value.TailscaleIPs[]? == $ip or (.value.HostName | test("talos"))) |
+                    .value.HostName' 2>/dev/null | head -1 || true)
+
+                if [[ -n "$ts_node_name" ]]; then
+                    talos_node="${ts_node_name}.${tailscale_domain}"
+                else
+                    talos_node="$bootstrap_node"
+                    log_warn "Could not resolve a Talos MagicDNS hostname, falling back to ${talos_node}"
+                fi
+            else
+                talos_node="$bootstrap_node"
+                log_warn "Tailscale not available, using LAN IP: ${talos_node}"
+            fi
+        fi
+    fi
+fi
+
+if [[ -z "$talos_node" ]]; then
+    log_error "Could not determine a Talos node for kubeconfig generation."
+    exit 1
+fi
+
 if [[ -z "$talos_ip" ]]; then
-    talos_ip="$talos_node"  # Fallback: use the hostname directly
+    talos_ip=$(getent hosts "$talos_node" 2>/dev/null | awk '{print $1}')
+    if [[ -z "$talos_ip" ]]; then
+        talos_ip="$talos_node"  # Fallback: use the hostname directly
+    fi
 fi
 
 # --- Kubeconfig ---
