@@ -239,6 +239,7 @@ volumes:
 - One-shot or TTL-cleaned `Job` resources should not stay in ArgoCD steady-state `resources:` lists here; once Kubernetes garbage-collects them, Argo will keep the app `OutOfSync` trying to recreate the missing Job.
 - The repo self-manages `argocd/app-of-apps`, so the custom ArgoCD `Application` health script must special-case that root app and derive health from `.status.resources`; mirroring its own `.status.health` makes the root app stay recursively `Degraded`.
 - Legacy bootstrap resources that predate `application.resourceTrackingMethod: annotation` need a one-time live adoption with `argocd.argoproj.io/tracking-id`; after that, ArgoCD compare also needs to ignore that annotation or the adopted bootstrap resources stay falsely `OutOfSync`.
+- Root app health should also ignore completed hook resources with `requiresPruning=true` such as `argocd-redis-secret-init` RBAC; otherwise `app-of-apps` stays falsely `Degraded` even after the cluster is already reconciled.
 
 ## Lint validation
 
