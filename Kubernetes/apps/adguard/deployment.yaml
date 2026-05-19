@@ -27,7 +27,7 @@ spec:
 
       containers:
         - name: adguard
-          image: adguard/adguardhome:v0.107.74
+          image: adguard/adguardhome:v0.107.75
           env:
             - name: TZ
               value: "UTC"
