@@ -155,9 +155,10 @@
 
     // Tailnet DNS override forces clients through AdGuard; every member who can
     // use the tailnet needs DNS reachability even when app access stays scoped.
+    // CI also needs DNS reachability in workflows that accept tailnet DNS.
     {
       "action": "accept",
-      "src":    ["autogroup:member"],
+      "src":    ["autogroup:member", "tag:ci"],
       "dst":    ["tag:service:53"]
     },
 
