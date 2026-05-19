@@ -29,6 +29,10 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
   value      = tailscale_tailnet_key.cluster.key
   project_id = local.bitwarden_generated_project_id
   note       = "Tailscale auth key for TalosOS nodes. Managed by Terraform."
+
+  lifecycle {
+    ignore_changes = [value]
+  }
 }
 
 # Tailscale Auth Key for Oracle VPS Instances
@@ -46,6 +50,10 @@ resource "bitwarden-secrets_secret" "tailscale_oracle_auth_key" {
   value      = tailscale_tailnet_key.oracle.key
   project_id = local.bitwarden_generated_project_id
   note       = "Tailscale auth key for Oracle VPS instances. Managed by Terraform."
+
+  lifecycle {
+    ignore_changes = [value]
+  }
 }
 
 # Managed OAuth Clients
