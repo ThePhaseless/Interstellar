@@ -101,32 +101,50 @@ resource "bitwarden-secrets_secret" "oauth_client_secret" {
 data "tailscale_devices" "cluster" {}
 
 locals {
-  # Find AdGuard DNS device by hostname
+  tailscale_magicdns_domain = trimsuffix(var.tailscale_magicdns_domain, ".")
+  adguard_tailscale_name    = "adguard.${local.tailscale_magicdns_domain}"
+
+  # Find exactly one AdGuard DNS device in this tailnet.
   adguard_devices = [
     for d in data.tailscale_devices.cluster.devices : d
-    if d.hostname == "adguard"
+    if d.hostname == "adguard" && trimsuffix(d.name, ".") == local.adguard_tailscale_name
   ]
-  tailscale_adguard_ip = length(local.adguard_devices) > 0 ? local.adguard_devices[0].addresses[0] : ""
+  tailscale_adguard_ip = length(local.adguard_devices) == 1 ? local.adguard_devices[0].addresses[0] : ""
 }
 
 # Tailscale DNS Configuration
 # MagicDNS for *.ts.net resolution.
-# When AdGuard is deployed and reachable via Tailscale, it becomes the primary
-# DNS server for all tailnet devices. 1.1.1.1 remains as fallback.
+# AdGuard is the only tailnet DNS resolver so nerine.dev cannot resolve via
+# public DNS while clients are connected through Tailscale.
 resource "tailscale_dns_configuration" "cluster" {
   magic_dns          = true
   override_local_dns = true
 
-  # AdGuard as primary DNS (only when device exists on the tailnet)
   dynamic "nameservers" {
     for_each = local.tailscale_adguard_ip != "" ? [local.tailscale_adguard_ip] : []
     content {
-      address = nameservers.value
+      address            = nameservers.value
+      use_with_exit_node = true
     }
   }
 
-  nameservers {
-    address = "1.1.1.1"
+  dynamic "split_dns" {
+    for_each = local.tailscale_adguard_ip != "" ? [local.tailscale_adguard_ip] : []
+    content {
+      domain = var.cluster_domain
+
+      nameservers {
+        address            = split_dns.value
+        use_with_exit_node = true
+      }
+    }
+  }
+
+  lifecycle {
+    precondition {
+      condition     = length(local.adguard_devices) == 1 && local.tailscale_adguard_ip != ""
+      error_message = "Expected exactly one Tailscale device named ${local.adguard_tailscale_name}; found ${length(local.adguard_devices)}. Refusing to publish tailnet DNS without an unambiguous split-horizon resolver."
+    }
   }
 }
 

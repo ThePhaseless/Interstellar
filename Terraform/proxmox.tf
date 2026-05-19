@@ -1,6 +1,10 @@
 locals {
-  talos_node_names    = sort(keys(var.nodes))
-  talos_has_gpu_nodes = anytrue([for node in var.nodes : node.gpu])
+  talos_node_names         = sort(keys(var.nodes))
+  talos_has_gpu_nodes      = anytrue([for node in var.nodes : node.gpu])
+  talos_node_has_data_disk = { for node_name, node in var.nodes : node_name => node.data_disk_size != null }
+  talos_node_data_disk_serial = {
+    for node_name, node in var.nodes : node_name => format("lh-data-%d", node.vmid)
+  }
   talos_node_ips = {
     for node_name, node in var.nodes : node_name => "192.168.1.${node.vmid}"
   }
@@ -88,6 +92,18 @@ resource "proxmox_virtual_environment_vm" "talos" {
     discard      = "on"
   }
 
+  dynamic "disk" {
+    for_each = local.talos_node_has_data_disk[each.key] ? [1] : []
+    content {
+      datastore_id = var.vm_os_datastore_id
+      interface    = "scsi1"
+      size         = each.value.data_disk_size
+      file_format  = "raw"
+      discard      = "on"
+      serial       = local.talos_node_data_disk_serial[each.key]
+    }
+  }
+
   # Boot from ISO for initial install
   cdrom {
     file_id   = each.value.gpu ? proxmox_download_file.talos_iso_gpu[0].id : proxmox_download_file.talos_iso_base.id
@@ -131,6 +147,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   lifecycle {
     ignore_changes = [
+      cdrom,
       initialization,
       tags,
     ]

@@ -153,6 +153,14 @@
       "dst":    ["tag:service:*"]
     },
 
+    // Tailnet DNS override forces clients through AdGuard; every member who can
+    // use the tailnet needs DNS reachability even when app access stays scoped.
+    {
+      "action": "accept",
+      "src":    ["autogroup:member"],
+      "dst":    ["tag:service:53"]
+    },
+
     // Silvernet members can access cluster services (not personal devices)
     {
       "action": "accept",

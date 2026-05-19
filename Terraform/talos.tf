@@ -12,10 +12,11 @@ locals {
   talos_node_api_endpoints = {
     for node_name in local.talos_node_names : node_name => lookup(var.talos_api_endpoints, node_name, lookup(local.talos_tailscale_ips, node_name, local.talos_node_ips[node_name]))
   }
-  talos_node_is_gpu             = { for node_name, node in var.nodes : node_name => node.gpu }
-  talos_bootstrap_node_name     = local.talos_node_names[0]
-  talos_bootstrap_node_ip       = local.talos_node_ips[local.talos_bootstrap_node_name]
-  talos_bootstrap_node_endpoint = local.talos_node_api_endpoints[local.talos_bootstrap_node_name]
+  talos_longhorn_data_disk_symlink = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
+  talos_node_is_gpu                = { for node_name, node in var.nodes : node_name => node.gpu }
+  talos_bootstrap_node_name        = local.talos_node_names[0]
+  talos_bootstrap_node_ip          = local.talos_node_ips[local.talos_bootstrap_node_name]
+  talos_bootstrap_node_endpoint    = local.talos_node_api_endpoints[local.talos_bootstrap_node_name]
 }
 
 # Talos Machine Secrets
@@ -149,6 +150,36 @@ data "talos_machine_configuration" "controlplane" {
         }
       }
     }),
+
+    local.talos_node_has_data_disk[each.key] ? yamlencode({
+      machine = {
+        kubelet = {
+          extraMounts = [
+            {
+              destination = "/var/mnt/longhorn"
+              type        = "bind"
+              source      = "/var/mnt/longhorn"
+              options     = ["bind", "rshared", "rw"]
+            }
+          ]
+        }
+      }
+    }) : null,
+
+    local.talos_node_has_data_disk[each.key] ? yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "UserVolumeConfig"
+      name       = "longhorn"
+      volumeType = "disk"
+      provisioning = {
+        diskSelector = {
+          match = "disk.transport == 'virtio' && '${local.talos_longhorn_data_disk_symlink}' in disk.symlinks"
+        }
+      }
+      filesystem = {
+        type = "ext4"
+      }
+    }) : null,
 
     # Minimal cluster-level settings
     yamlencode({

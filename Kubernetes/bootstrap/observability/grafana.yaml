@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: grafana
   namespace: observability
+  annotations:
+    reloader.stakater.com/auto: "true"
   labels:
     app: grafana
 spec:
