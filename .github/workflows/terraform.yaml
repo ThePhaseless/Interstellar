@@ -112,6 +112,7 @@ jobs:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
+          args: --accept-dns=false
 
       - name: Resolve reachable Talos API endpoint
         shell: bash
@@ -322,6 +323,7 @@ jobs:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
+          args: --accept-dns=false
 
       - name: Resolve reachable Talos API endpoint
         shell: bash

@@ -83,6 +83,7 @@ jobs:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
+          args: --accept-dns=false
 
       - name: Verify Tailscale Tags
         run: |
@@ -316,6 +317,7 @@ jobs:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
+          args: --accept-dns=false
 
       - name: Verify Tailscale Tags
         run: |

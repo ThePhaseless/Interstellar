@@ -53,6 +53,7 @@ jobs:
           oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
           tags: tag:ci
+          args: --accept-dns=false
 
       - name: Setup SSH Agent
         uses: webfactory/ssh-agent@v0.10.0
