@@ -12,6 +12,19 @@ locals {
 }
 
 resource "adguard_config" "main" {
+  dhcp = {
+    enabled   = false
+    interface = "eth0"
+
+    ipv4_settings = {
+      gateway_ip     = "192.168.1.1"
+      range_start    = "192.168.1.2"
+      range_end      = "192.168.1.254"
+      subnet_mask    = "255.255.255.0"
+      lease_duration = 86400
+    }
+  }
+
   dns = {
     upstream_dns = [
       "https://1.1.1.1/dns-query",

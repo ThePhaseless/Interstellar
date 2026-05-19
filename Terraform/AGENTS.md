@@ -157,6 +157,7 @@ CI runs `terraform plan` on PRs touching `Terraform/` (not `Terraform/apps/`). A
 ## Key Gotchas
 
 - **Provider URLs differ between local and CI**: Locally use `localhost` via `scripts/port-forward-apps.sh`; CI overrides with `TF_VAR_*` pointing to Tailscale MagicDNS names.
+- **AdGuard `adguard_config` must keep a syntactically valid disabled DHCP block**: the provider replays DHCP settings during DNS updates, and AdGuard rejects blank DHCPv4 IP fields even when DHCP is disabled.
 - **Jellyfin provider is now registry-backed**: Use released versions of `ThePhaseless/jellyfin` in `Terraform/apps` rather than reintroducing the old local mirror/bootstrap flow.
 - **Current Jellyfin library imports should omit `library_options_json` unless you have a verified update payload**: Importing existing libraries worked, but replaying the imported options back through `/Library/VirtualFolders/LibraryOptions` returned HTTP 400 on this server with Jellyfin 10.11.8.
 - **SSO-Auth plugin configuration must use the raw `/Plugins/<plugin-id>/Configuration` JSON shape, not the `/sso/OID/Add/<provider>` payload**: For this server that means `SamlConfigs = {}` plus `OidConfigs = { authentik = { ... } }`; posting the simplified `OID/Add` body through `jellyfin_plugin_configuration` made `/sso/OID/start/authentik` fail with `Provider does not exist`.
