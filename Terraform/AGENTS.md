@@ -169,5 +169,6 @@ CI runs `terraform plan` on PRs touching `Terraform/` (not `Terraform/apps/`). A
 - **Cloudflare provider uses conditional token**: Falls back to dummy token `"0000..."` when secret is empty (bootstrap phase). Same pattern for Tailscale provider.
 - **Tailscale tailnet auth key values are create-time only**: Bitwarden secrets that store `tailscale_tailnet_key.*.key` must ignore later `value` drift, or refresh will plan to overwrite the stored auth key with `null`.
 - **GitHub Actions runners should connect to Tailscale with `--accept-dns=false`**: tailnet DNS is intentionally AdGuard-only, so accepting it during CI can break public DNS resolution before Terraform has a chance to apply ACL/DNS fixes.
+- **Root Terraform CI resolves Proxmox through Tailscale status**: with tailnet DNS disabled in CI, workflow steps must set `TF_VAR_proxmox_endpoint` to the unique `carbon` Tailscale IPv4 address before running plan/apply.
 - **OCI auth via environment**: Uses `OCI_CONFIG` and `OCI_PRIVATE_KEY` env vars sourced from Bitwarden by `scripts/setup-env.sh`, not `~/.oci/config` file.
 - **GitHub secrets sync**: BWS secret IDs (not values) are stored as GitHub Actions variables; the CI runner resolves them at runtime via `bws secret get`.

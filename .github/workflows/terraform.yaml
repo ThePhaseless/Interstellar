@@ -114,6 +114,38 @@ jobs:
           tags: tag:ci
           args: --accept-dns=false
 
+      - name: Resolve Proxmox endpoint
+        shell: bash
+        run: |
+          tailscale_status_json="$(tailscale status --json)"
+
+          mapfile -t proxmox_ips < <(
+            jq -r '
+              .Peer
+              | to_entries[]
+              | select(.value.HostName == "carbon")
+              | .value.TailscaleIPs[]?
+              | select(test(":") | not)
+            ' <<<"$tailscale_status_json" | sort -u
+          )
+
+          if [ "${#proxmox_ips[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one Tailscale IPv4 address for Proxmox host carbon, found ${#proxmox_ips[@]}"
+            tailscale status || true
+            exit 1
+          fi
+
+          proxmox_ip="${proxmox_ips[0]}"
+          magicdns_domain="$(jq -r '.MagicDNSSuffix // empty' <<<"$tailscale_status_json")"
+
+          echo "TF_VAR_proxmox_endpoint=https://${proxmox_ip}:8006" >> "$GITHUB_ENV"
+          if [ -n "$magicdns_domain" ]; then
+            echo "$proxmox_ip carbon carbon.${magicdns_domain}" | sudo tee -a /etc/hosts >/dev/null
+          else
+            echo "$proxmox_ip carbon" | sudo tee -a /etc/hosts >/dev/null
+          fi
+          echo "Registered Proxmox endpoint carbon -> $proxmox_ip"
+
       - name: Resolve reachable Talos API endpoint
         shell: bash
         run: |
@@ -324,6 +356,38 @@ jobs:
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
           tags: tag:ci
           args: --accept-dns=false
+
+      - name: Resolve Proxmox endpoint
+        shell: bash
+        run: |
+          tailscale_status_json="$(tailscale status --json)"
+
+          mapfile -t proxmox_ips < <(
+            jq -r '
+              .Peer
+              | to_entries[]
+              | select(.value.HostName == "carbon")
+              | .value.TailscaleIPs[]?
+              | select(test(":") | not)
+            ' <<<"$tailscale_status_json" | sort -u
+          )
+
+          if [ "${#proxmox_ips[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one Tailscale IPv4 address for Proxmox host carbon, found ${#proxmox_ips[@]}"
+            tailscale status || true
+            exit 1
+          fi
+
+          proxmox_ip="${proxmox_ips[0]}"
+          magicdns_domain="$(jq -r '.MagicDNSSuffix // empty' <<<"$tailscale_status_json")"
+
+          echo "TF_VAR_proxmox_endpoint=https://${proxmox_ip}:8006" >> "$GITHUB_ENV"
+          if [ -n "$magicdns_domain" ]; then
+            echo "$proxmox_ip carbon carbon.${magicdns_domain}" | sudo tee -a /etc/hosts >/dev/null
+          else
+            echo "$proxmox_ip carbon" | sudo tee -a /etc/hosts >/dev/null
+          fi
+          echo "Registered Proxmox endpoint carbon -> $proxmox_ip"
 
       - name: Resolve reachable Talos API endpoint
         shell: bash
