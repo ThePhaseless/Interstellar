@@ -19,6 +19,7 @@ helmCharts:
     includeCRDs: true
     valuesInline:
       defaultSettings:
+        defaultDataPath: /var/mnt/longhorn
         storageOverProvisioningPercentage: 100
         defaultReplicaCount: 2
         replicaAutoBalance: least-effort

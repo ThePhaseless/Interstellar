@@ -6,8 +6,9 @@ data "kubernetes_resources" "traefik_tailscale_secrets" {
 }
 
 locals {
-  traefik_tailscale_ips = jsondecode(base64decode(data.kubernetes_resources.traefik_tailscale_secrets.objects[0].data["device_ips"]))
-  traefik_tailscale_ip  = local.traefik_tailscale_ips[0]
+  traefik_tailscale_device_ips_raw = try(data.kubernetes_resources.traefik_tailscale_secrets.objects[0].data["device_ips"], "")
+  traefik_tailscale_ips            = local.traefik_tailscale_device_ips_raw != "" ? try(jsondecode(base64decode(local.traefik_tailscale_device_ips_raw)), []) : []
+  traefik_tailscale_ip             = try(local.traefik_tailscale_ips[0], "")
 }
 
 resource "adguard_config" "main" {
@@ -31,6 +32,13 @@ resource "adguard_user_rules" "nerine_dev_user_rules" {
     "||*.nerine.dev^$dnsrewrite=NOERROR;A;${local.traefik_tailscale_ip},client=10.244.0.0/16",
     "@@||brightdata.com^$important",
   ]
+
+  lifecycle {
+    precondition {
+      condition     = local.traefik_tailscale_ip != ""
+      error_message = "Traefik Tailscale IP was not found; refusing to publish broken nerine.dev DNS rewrites. Check the Tailscale operator and Traefik Service exposure."
+    }
+  }
 }
 
 resource "adguard_list_filter" "adguard_dns_filter" {
