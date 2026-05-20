@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: mcpjungle
-          image: mcpjungle/mcpjungle:0.4.4
+          image: mcpjungle/mcpjungle:0.4.5
           env:
             - name: TZ
               value: "UTC"
