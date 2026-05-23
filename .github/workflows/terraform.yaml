@@ -26,7 +26,8 @@ jobs:
   plan:
     name: Plan
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      contents: read
     outputs:
       apply_changes: ${{ steps.apply-changes.outputs.any_changed }}
       has_changes: ${{ steps.plan.outputs.has_changes }}
@@ -61,6 +62,15 @@ jobs:
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
             ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
             ${{ vars.BWS_ID_HCLOUD_TOKEN }} > HCLOUD_TOKEN
+            ${{ vars.BWS_ID_GH_APP_ID }} > GH_APP_ID
+            ${{ vars.BWS_ID_GH_APP_PRIVATE_KEY }} > GH_APP_PRIVATE_KEY
+
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
 
       - name: Install BWS CLI
         run: |
@@ -213,7 +223,7 @@ jobs:
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       - name: Terraform Validate
         id: validate
@@ -222,7 +232,7 @@ jobs:
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       - name: Terraform Plan
         id: plan
@@ -249,7 +259,7 @@ jobs:
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
           TF_VAR_bws_access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           TF_VAR_hcloud_token: ${{ env.TF_VAR_hcloud_token }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       - name: Encrypt Plan
         if: steps.plan.outputs.has_changes == 'true'
@@ -273,7 +283,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' &&
       needs.plan.outputs.apply_changes == 'true' &&
       needs.plan.outputs.has_changes == 'true'
-    permissions: write-all
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -294,6 +305,15 @@ jobs:
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
             ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
             ${{ vars.BWS_ID_HCLOUD_TOKEN }} > HCLOUD_TOKEN
+            ${{ vars.BWS_ID_GH_APP_ID }} > GH_APP_ID
+            ${{ vars.BWS_ID_GH_APP_PRIVATE_KEY }} > GH_APP_PRIVATE_KEY
+
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
 
       - name: Install BWS CLI
         run: |
@@ -450,7 +470,7 @@ jobs:
         env:
           BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -lock-timeout=10m tfplan
@@ -460,4 +480,4 @@ jobs:
           BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
           TF_VAR_bws_access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           TF_VAR_hcloud_token: ${{ env.TF_VAR_hcloud_token }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
