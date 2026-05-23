@@ -29,23 +29,11 @@ jobs:
     permissions:
       contents: read
     outputs:
-      apply_changes: ${{ steps.apply-changes.outputs.any_changed }}
       has_changes: ${{ steps.plan.outputs.has_changes }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-
-      - name: Detect apply-relevant changes
-        id: apply-changes
-        if: github.event_name == 'push'
-        uses: tj-actions/changed-files@v47
-        with:
-          files: |
-            Terraform/**
-            Tailscale/**
-          files_ignore: |
-            Terraform/apps/**
 
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v3.0.0
@@ -280,8 +268,7 @@ jobs:
     name: Apply
     runs-on: ubuntu-latest
     needs: plan
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' &&
-      needs.plan.outputs.apply_changes == 'true' &&
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' &&
       needs.plan.outputs.has_changes == 'true'
     permissions:
       contents: read
