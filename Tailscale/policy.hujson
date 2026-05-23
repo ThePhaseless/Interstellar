@@ -41,14 +41,6 @@
     ]
   },
 
-  // Hosts
-  // Named hosts for easier ACL rules.
-  // Keep only stable/static addresses to avoid drift with DHCP-assigned Talos node IPs.
-  "hosts": {
-    "proxmox":     "100.100.232.73",
-    "cluster-vip": "100.67.213.79"
-  },
-
   // Access Control Lists
   "acls": [
     // Admins and VIPs have full access to everything

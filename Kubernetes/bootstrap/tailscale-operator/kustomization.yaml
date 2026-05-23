@@ -22,6 +22,5 @@ helmCharts:
         hostname: "talos-operator"
       apiServerProxyConfig:
         mode: "true"
-      proxies:
-        authKeyTags:
-          - "tag:service"
+      proxyConfig:
+        defaultTags: "tag:service"
