@@ -11,7 +11,7 @@ resources:
 helmCharts:
   - name: tailscale-operator
     repo: https://pkgs.tailscale.com/helmcharts
-    version: 1.96.5
+    version: 1.98.3
     releaseName: tailscale
     namespace: tailscale
     valuesInline:

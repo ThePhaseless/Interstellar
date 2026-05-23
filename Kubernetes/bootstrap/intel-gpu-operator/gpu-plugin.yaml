@@ -18,7 +18,7 @@ spec:
         intel.feature.node.kubernetes.io/gpu: "true"
       initContainers:
         - name: init-device-check
-          image: busybox:1.37
+          image: busybox:1.38
           command: ["sh", "-c", "ls /dev/dri/ && echo 'GPU device found'"]
           volumeMounts:
             - name: devfs
