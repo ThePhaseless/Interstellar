@@ -24,7 +24,7 @@ spec:
       # Seerr v3 runs as non-root (UID 1000) - fix existing config ownership
       initContainers:
         - name: fix-permissions
-          image: busybox:1.37
+          image: busybox:1.38
           command: ["sh", "-c", "chown -R 1000:1000 /app/config"]
           volumeMounts:
             - name: config

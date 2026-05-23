@@ -21,7 +21,7 @@ spec:
       initContainers:
         # Build Immich config JSON with OAuth settings from secrets
         - name: build-oauth-config
-          image: busybox:1.37
+          image: busybox:1.38
           command: ["/bin/sh", "-c"]
           args:
             - |

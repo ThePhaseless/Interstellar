@@ -12,7 +12,7 @@ spec:
         intel.feature.node.kubernetes.io/gpu: "true"
       containers:
         - name: gpu-test
-          image: busybox:1.37
+          image: busybox:1.38
           command:
             - /bin/sh
             - -c
