@@ -17,7 +17,7 @@ spec:
           restartPolicy: OnFailure
           initContainers:
             # Dump Immich PostgreSQL database before borg runs
-            - name: pg-dump
+            - name: pg-dump-immich
               image: postgres:18-alpine
               command: ["/bin/sh", "-c"]
               args:
@@ -43,6 +43,33 @@ spec:
               resources:
                 requests: { cpu: 100m, memory: 256Mi }
                 limits: { cpu: 1000m, memory: 1Gi }
+            # Dump Authentik PostgreSQL database before borg runs
+            - name: pg-dump-authentik
+              image: postgres:18-alpine
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  echo "$(date) Starting Authentik PostgreSQL dump..."
+                  pg_dump \
+                    -h authentik-postgresql.authentik.svc.cluster.local \
+                    -p 5432 \
+                    -U authentik \
+                    -d authentik \
+                    -Fc \
+                    -f /authentik-dump/authentik.dump
+                  echo "$(date) Database dump complete ($(du -h /authentik-dump/authentik.dump | cut -f1))"
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: authentik-secrets
+                      key: authentik-postgresql-password
+              volumeMounts:
+                - name: authentik-dump
+                  mountPath: /authentik-dump
+              resources:
+                requests: { cpu: 100m, memory: 256Mi }
+                limits: { cpu: 500m, memory: 512Mi }
           containers:
             - name: borgbackup
               image: alpine:3.23
@@ -73,6 +100,9 @@ spec:
                 - name: db-dump
                   mountPath: /db-dump
                   readOnly: true
+                - name: authentik-dump
+                  mountPath: /authentik-dump
+                  readOnly: true
                 - name: borg-ssh-key
                   mountPath: /secrets/ssh
                   readOnly: true
@@ -94,6 +124,9 @@ spec:
             - name: db-dump
               emptyDir:
                 sizeLimit: 5Gi
+            - name: authentik-dump
+              emptyDir:
+                sizeLimit: 2Gi
             - name: borg-ssh-key
               secret:
                 secretName: borg-secrets

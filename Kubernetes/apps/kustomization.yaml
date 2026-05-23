@@ -34,6 +34,8 @@ resources:
 
   # Backup
   - borgbackup/
+  - media-backup/
+  - home-backup/
 
 replacements:
   - source:

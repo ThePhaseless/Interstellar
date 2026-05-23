@@ -13,6 +13,8 @@ resources:
   - alloy.yaml
   - kube-state-metrics.yaml
   - externalsecret.yaml
+  - backup-externalsecret.yaml
+  - backup-cronjob.yaml
 
 configMapGenerator:
   - name: grafana-dashboard-cluster
@@ -104,5 +106,10 @@ configMapGenerator:
   - name: grafana-alerting
     files:
       - alerting.yaml=config/grafana-alerting.yaml
+    options:
+      disableNameSuffixHash: true
+  - name: observability-backup-script
+    files:
+      - scripts/backup-observability.sh
     options:
       disableNameSuffixHash: true
