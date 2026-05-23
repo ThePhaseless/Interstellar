@@ -29,10 +29,6 @@ chmod 600 ~/.ssh/config
 
 export BORG_RSH="ssh -p 23 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30"
 
-BORG_USER=$(echo "$BORG_REPO" | sed -n 's|ssh://\([^@]*\)@.*|\1|p')
-info "Ensuring remote backup directory exists (user: ${BORG_USER})..."
-ssh -p 23 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new "${BORG_USER}@${BORG_SERVER_HOST}" "mkdir -p backups/utilities" 2>/dev/null || true
-
 info "Checking borg repository..."
 if ! borg info "$BORG_REPO" >/dev/null 2>&1; then
     info "Repository not found — initializing..."
@@ -55,28 +51,21 @@ borg create \
     --exclude '*.tmp' \
     --exclude '*.log' \
     \
-    ::'utilities-{now:%Y-%m-%dT%H:%M:%S}' \
-    /photos \
-    /external \
-    /db-dump \
-    /authentik-dump
+    ::'media-{now:%Y-%m-%dT%H:%M:%S}' \
+    /sonarr \
+    /radarr \
+    /prowlarr \
+    /bazarr \
+    /jellyfin \
+    /qbittorrent \
+    /seerr
 
 backup_exit=$?
 
 info "Pruning repository..."
 borg prune \
     --list \
-    --glob-archives 'utilities-*' \
-    --show-rc \
-    --keep-daily 7 \
-    --keep-weekly 4 \
-    --keep-monthly 6
-
-# Prune old archives from before the rename (immich-* -> utilities-*)
-# Remove this block once all old archives have expired
-borg prune \
-    --list \
-    --glob-archives 'immich-*' \
+    --glob-archives 'media-*' \
     --show-rc \
     --keep-daily 7 \
     --keep-weekly 4 \

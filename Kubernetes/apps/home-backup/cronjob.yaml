@@ -1,0 +1,71 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: home-backup
+  namespace: home
+spec:
+  schedule: "30 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 120
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: borgbackup
+              image: alpine:3.23
+              command: ["/bin/sh", "/scripts/backup.sh"]
+              env:
+                - name: BORG_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: passphrase
+                - name: BORG_REPO
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: repo-url
+                - name: BORG_SERVER_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: server-host
+              volumeMounts:
+                - name: adguard-data
+                  mountPath: /adguard
+                  readOnly: true
+                - name: borg-ssh-key
+                  mountPath: /secrets/ssh
+                  readOnly: true
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+                - name: borg-cache
+                  mountPath: /root/.cache/borg
+              resources:
+                requests: { cpu: 100m, memory: 256Mi }
+                limits: { cpu: 1000m, memory: 1Gi }
+          volumes:
+            - name: adguard-data
+              persistentVolumeClaim:
+                claimName: adguard-data
+            - name: borg-ssh-key
+              secret:
+                secretName: borg-secrets
+                items:
+                  - key: ssh-private-key
+                    path: id_ed25519
+                    mode: 0600
+                defaultMode: 0600
+            - name: backup-script
+              configMap:
+                name: home-backup-script
+                defaultMode: 0755
+            - name: borg-cache
+              emptyDir:
+                sizeLimit: 2Gi
