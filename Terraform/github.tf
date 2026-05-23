@@ -44,6 +44,12 @@ resource "github_actions_variable" "proxmox_token_id" {
   value         = bitwarden-secrets_secret.proxmox_token_id.value
 }
 
+resource "github_actions_variable" "tailscale_magicdns_domain" {
+  repository    = local.github_repo_name
+  variable_name = "TAILSCALE_MAGICDNS_DOMAIN"
+  value         = var.tailscale_magicdns_domain
+}
+
 resource "github_actions_secret" "proxmox_token" {
   repository  = local.github_repo_name
   secret_name = "PROXMOX_VE_API_TOKEN"
