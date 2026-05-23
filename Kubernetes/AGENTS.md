@@ -245,3 +245,21 @@ volumes:
 ## Lint validation
 
 Run `scripts/lint-kubernetes.sh` after changes — it builds with kustomize and runs kube-linter. CI runs the same check on PRs touching `Kubernetes/`.
+
+## Emergency Recovery
+
+### Longhorn volume in `emergency_ro` (read-only filesystem)
+
+**Never delete the PVC as a first step.** The filesystem is locked read-only by the kernel to prevent further damage, but the data is still readable. Deleting the PVC destroys the only copy of the data.
+
+**Correct recovery sequence:**
+
+1. **Scale the StatefulSet/Deployment to `0`** — this releases the mount so the volume can be manipulated safely
+2. **Wait for Longhorn to detach the volume** — check `kubectl get volume -n longhorn-system <volume-name>`, wait for `status.state: detached`
+3. **Attach the volume to a node** — `kubectl patch volume -n longhorn-system <volume-name> --type=merge -p '{"spec":{"nodeID":"<node>"}}'`
+4. **Copy data to safety** — run a privileged pod on that node mounting the raw block device read-only, `cp -a` everything to a safe location (another PVC, NFS share, or temporary location)
+5. **Attempt repair** — install `e2fsprogs` in the pod and run `e2fsck -y /dev/longhorn/<volume-name>`
+6. **If fsck succeeds**, scale the app back up — Kubernetes will re-mount the volume read-write
+7. **Only if fsck fails and data is confirmed lost**, then delete the PVC and let the StatefulSet recreate it
+
+**Alternative: use Longhorn snapshots.** Before any destructive action, check `kubectl get snapshot -n longhorn-system -l longhornvolume=<volume-name>` — if a recent healthy snapshot exists, revert to it (`kubectl patch volume -n longhorn-system <volume-name> --type=merge -p '{"spec":{"snapshot":"<snapshot-name>"}}'`), then re-attach.
