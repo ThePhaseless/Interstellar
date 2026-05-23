@@ -68,18 +68,79 @@ url = "https://get.helm.sh/helm-v4.1.4-windows-amd64.tar.gz"
 version = "1.8.1"
 backend = "aqua:jqlang/jq"
 
+[tools.jq."platforms.linux-arm64"]
+checksum = "sha256:6bc62f25981328edd3cfcfe6fe51b073f2d7e7710d7ef7fcdac28d4e384fc3d4"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-arm64"
+provenance = "github-attestations"
+
+[tools.jq."platforms.linux-arm64-musl"]
+checksum = "sha256:6bc62f25981328edd3cfcfe6fe51b073f2d7e7710d7ef7fcdac28d4e384fc3d4"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-arm64"
+provenance = "github-attestations"
+
 [tools.jq."platforms.linux-x64"]
 checksum = "sha256:020468de7539ce70ef1bceaf7cde2e8c4f2ca6c3afb84642aabc5c97d9fc2a0d"
 url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64"
+provenance = "github-attestations"
+
+[tools.jq."platforms.linux-x64-musl"]
+checksum = "sha256:020468de7539ce70ef1bceaf7cde2e8c4f2ca6c3afb84642aabc5c97d9fc2a0d"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64"
+provenance = "github-attestations"
+
+[tools.jq."platforms.macos-arm64"]
+checksum = "sha256:a9fe3ea2f86dfc72f6728417521ec9067b343277152b114f4e98d8cb0e263603"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-macos-arm64"
+provenance = "github-attestations"
+
+[tools.jq."platforms.macos-x64"]
+checksum = "sha256:e80dbe0d2a2597e3c11c404f03337b981d74b4a8504b70586c354b7697a7c27f"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-macos-amd64"
+provenance = "github-attestations"
+
+[tools.jq."platforms.windows-x64"]
+checksum = "sha256:23cb60a1354eed6bcc8d9b9735e8c7b388cd1fdcb75726b93bc299ef22dd9334"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-windows-amd64.exe"
 provenance = "github-attestations"
 
 [[tools.kube-linter]]
 version = "0.8.3"
 backend = "aqua:stackrox/kube-linter"
 
+[tools.kube-linter."platforms.linux-arm64"]
+checksum = "sha256:9c39d35252e0dcafb16b26197b9e93ba578e44eb402c3c6660fc94e08f94094f"
+url = "https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux_arm64"
+provenance = "cosign"
+
+[tools.kube-linter."platforms.linux-arm64-musl"]
+checksum = "sha256:9c39d35252e0dcafb16b26197b9e93ba578e44eb402c3c6660fc94e08f94094f"
+url = "https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux_arm64"
+provenance = "cosign"
+
 [tools.kube-linter."platforms.linux-x64"]
 checksum = "sha256:618d299a3e2839c8ca9d86fce0db617be0fba41f0fecbbbfb7fbf1c04299fae1"
 url = "https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux"
+provenance = "cosign"
+
+[tools.kube-linter."platforms.linux-x64-musl"]
+checksum = "sha256:618d299a3e2839c8ca9d86fce0db617be0fba41f0fecbbbfb7fbf1c04299fae1"
+url = "https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux"
+provenance = "cosign"
+
+[tools.kube-linter."platforms.macos-arm64"]
+checksum = "sha256:662277a6a267ba2cb1371b56539a371872ef142b196fa0d87195e4213773cdf8"
+url = "https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-darwin_arm64"
+provenance = "cosign"
+
+[tools.kube-linter."platforms.macos-x64"]
+checksum = "sha256:d935e2bc89e272c74227cdc4ac4dba35f468e0e486e846e5892231a301c91a67"
+url = "https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-darwin"
+provenance = "cosign"
+
+[tools.kube-linter."platforms.windows-x64"]
+checksum = "sha256:8b0ccf51f18ab786fdcdede55046afc701a75c75122e046a2f0d3244bc91274a"
+url = "https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter.exe"
+provenance = "cosign"
 
 [[tools.kubectl]]
 version = "1.36.0"
@@ -117,26 +178,100 @@ url = "https://dl.k8s.io/v1.36.0/bin/windows/amd64/kubectl.exe"
 version = "5.8.1"
 backend = "aqua:kubernetes-sigs/kustomize"
 
+[tools.kustomize."platforms.linux-arm64"]
+checksum = "sha256:0953ea3e476f66d6ddfcd911d750f5167b9365aa9491b2326398e289fef2c142"
+url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_linux_arm64.tar.gz"
+
+[tools.kustomize."platforms.linux-arm64-musl"]
+checksum = "sha256:0953ea3e476f66d6ddfcd911d750f5167b9365aa9491b2326398e289fef2c142"
+url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_linux_arm64.tar.gz"
+
 [tools.kustomize."platforms.linux-x64"]
 checksum = "sha256:029a7f0f4e1932c52a0476cf02a0fd855c0bb85694b82c338fc648dcb53a819d"
 url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_linux_amd64.tar.gz"
 
+[tools.kustomize."platforms.linux-x64-musl"]
+checksum = "sha256:029a7f0f4e1932c52a0476cf02a0fd855c0bb85694b82c338fc648dcb53a819d"
+url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_linux_amd64.tar.gz"
+
+[tools.kustomize."platforms.macos-arm64"]
+checksum = "sha256:8886f8a78474e608cc81234f729fda188a9767da23e28925802f00ece2bab288"
+url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_darwin_arm64.tar.gz"
+
+[tools.kustomize."platforms.macos-x64"]
+checksum = "sha256:ee7cf0c1e3592aa7bb66ba82b359933a95e7f2e0b36e5f53ed0a4535b017f2f8"
+url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_darwin_amd64.tar.gz"
+
+[tools.kustomize."platforms.windows-x64"]
+checksum = "sha256:8ec7f5e815e526d4622c06df0a7793d8cfb6eb1c74f816b46166097fef8b26c6"
+url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_windows_amd64.zip"
+
 [[tools.python]]
-version = "3.14.4"
+version = "3.14.5"
 backend = "core:python"
 
+[tools.python."platforms.linux-arm64"]
+checksum = "sha256:bea1aa66159eaf97ade1225e40b7060d709154da961aa37792bb8066d8f6af49"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.linux-arm64-musl"]
+checksum = "sha256:011e29568c2a6ed64938fba0793ca6225c99bc4d804143a26875b5f9ee3fc7fa"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-aarch64-unknown-linux-musl-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
 [tools.python."platforms.linux-x64"]
-checksum = "sha256:fe9a9c32d13870af632cbac3dfc7528ae53597e94472aa4c7d6a42e8166136cd"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260414/cpython-3.14.4+20260414-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "blake3:a1c289075e88a3a31f93ddffec2c4e7a75ea663b204d93d8969046cc4aebd55f"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.linux-x64-musl"]
+checksum = "sha256:6bc02ce4575e5d5379f4533f3d3f77acfdfd5ccd9c4edf790fcdd84578a1df01"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-x86_64-unknown-linux-musl-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.macos-arm64"]
+checksum = "sha256:1bb0b3d45448dfe7e916dc62144cfd7d7a611dc6ccf05b8bb71662cc5c2a1ad2"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-aarch64-apple-darwin-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.macos-x64"]
+checksum = "sha256:38662e526797db4e90b3381706b96821979fece0b536ac14b5c4e1a97e0590d5"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-x86_64-apple-darwin-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.windows-x64"]
+checksum = "sha256:4d26ade49e9571ccb3bd1a88cfc72c52b11a9a9f6e204a57f38592aed137566a"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [[tools.ripgrep]]
 version = "15.1.0"
 backend = "aqua:BurntSushi/ripgrep"
 
+[tools.ripgrep."platforms.linux-arm64"]
+checksum = "sha256:2b661c6ef508e902f388e9098d9c4c5aca72c87b55922d94abdba830b4dc885e"
+url = "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-aarch64-unknown-linux-gnu.tar.gz"
+
 [tools.ripgrep."platforms.linux-x64"]
 checksum = "sha256:1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599"
 url = "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-unknown-linux-musl.tar.gz"
+
+[tools.ripgrep."platforms.linux-x64-musl"]
+checksum = "sha256:1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599"
+url = "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-unknown-linux-musl.tar.gz"
+
+[tools.ripgrep."platforms.macos-arm64"]
+checksum = "sha256:378e973289176ca0c6054054ee7f631a065874a352bf43f0fa60ef079b6ba715"
+url = "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-aarch64-apple-darwin.tar.gz"
+
+[tools.ripgrep."platforms.macos-x64"]
+checksum = "sha256:64811cb24e77cac3057d6c40b63ac9becf9082eedd54ca411b475b755d334882"
+url = "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-apple-darwin.tar.gz"
+
+[tools.ripgrep."platforms.windows-x64"]
+checksum = "sha256:124510b94b6baa3380d051fdf4650eaa80a302c876d611e9dba0b2e18d87493a"
+url = "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-pc-windows-msvc.zip"
 
 [[tools.talosctl]]
 version = "1.13.0"
@@ -178,36 +313,36 @@ url = "https://github.com/siderolabs/talos/releases/download/v1.13.0/talosctl-wi
 provenance = "cosign"
 
 [[tools.terraform]]
-version = "1.15.1"
+version = "1.15.2"
 backend = "aqua:hashicorp/terraform"
 
 [tools.terraform."platforms.linux-arm64"]
-checksum = "sha256:d0e5707a2ef8ff05dc546b8c0acee5b6f6968ba83c1208230364187a56480b42"
-url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_linux_arm64.zip"
+checksum = "sha256:cf27657e96bbdc6116f4c16a0c801d36ae6410d7210183a520ac6b2198fb723e"
+url = "https://releases.hashicorp.com/terraform/1.15.2/terraform_1.15.2_linux_arm64.zip"
 
 [tools.terraform."platforms.linux-arm64-musl"]
-checksum = "sha256:d0e5707a2ef8ff05dc546b8c0acee5b6f6968ba83c1208230364187a56480b42"
-url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_linux_arm64.zip"
+checksum = "sha256:cf27657e96bbdc6116f4c16a0c801d36ae6410d7210183a520ac6b2198fb723e"
+url = "https://releases.hashicorp.com/terraform/1.15.2/terraform_1.15.2_linux_arm64.zip"
 
 [tools.terraform."platforms.linux-x64"]
-checksum = "sha256:0921fee8c8435253ca49390a02109e906042e611a4e17f69e922261f5176c74f"
-url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_linux_amd64.zip"
+checksum = "sha256:c56ff2bc7e6ce9b3879a50392b03c2ea074b47688bf503ff966c87fb01b2aab8"
+url = "https://releases.hashicorp.com/terraform/1.15.2/terraform_1.15.2_linux_amd64.zip"
 
 [tools.terraform."platforms.linux-x64-musl"]
-checksum = "sha256:0921fee8c8435253ca49390a02109e906042e611a4e17f69e922261f5176c74f"
-url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_linux_amd64.zip"
+checksum = "sha256:c56ff2bc7e6ce9b3879a50392b03c2ea074b47688bf503ff966c87fb01b2aab8"
+url = "https://releases.hashicorp.com/terraform/1.15.2/terraform_1.15.2_linux_amd64.zip"
 
 [tools.terraform."platforms.macos-arm64"]
-checksum = "sha256:01535b614be222dbd1344a8eb9162c3b54cc3b65c4212e8d4d9a2be72666ccff"
-url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_darwin_arm64.zip"
+checksum = "sha256:4204bc3450418a7ce423e58451b053e5daed625ad6c6a15de98bc09345269f99"
+url = "https://releases.hashicorp.com/terraform/1.15.2/terraform_1.15.2_darwin_arm64.zip"
 
 [tools.terraform."platforms.macos-x64"]
-checksum = "sha256:182fcb3d94e52daf904e412541d92cbe2a86bf28c0fb442da15ede2aa8c3fe76"
-url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_darwin_amd64.zip"
+checksum = "sha256:2bb701bc2db93ed39613df4f4e033ec4c2de9eba1c036d9a2f62cffc988af066"
+url = "https://releases.hashicorp.com/terraform/1.15.2/terraform_1.15.2_darwin_amd64.zip"
 
 [tools.terraform."platforms.windows-x64"]
-checksum = "sha256:3890c08de67ebef2a3f8948b8b0afe53e28ed2f4eb84d1d2246f5b61d8ebd393"
-url = "https://releases.hashicorp.com/terraform/1.15.1/terraform_1.15.1_windows_amd64.zip"
+checksum = "sha256:a7e25570dd85f363581e96cac0b468257c45945ca8875d951413b6606c9b86d4"
+url = "https://releases.hashicorp.com/terraform/1.15.2/terraform_1.15.2_windows_amd64.zip"
 
 [[tools.tflint]]
 version = "0.62.0"
@@ -242,18 +377,72 @@ checksum = "sha256:d2b28caf4f312805edd06c7aede494135d1babb301db32e9b68994d203893
 url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.0/tflint_windows_amd64.zip"
 
 [[tools.uv]]
-version = "0.11.8"
+version = "0.11.12"
 backend = "aqua:astral-sh/uv"
 
+[tools.uv."platforms.linux-arm64"]
+checksum = "sha256:b70e87f15f12d750d218042c4ed36e41de0757eab249d332ee2e242e4174b5d5"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.12/uv-aarch64-unknown-linux-musl.tar.gz"
+provenance = "github-attestations"
+
+[tools.uv."platforms.linux-arm64-musl"]
+checksum = "sha256:b70e87f15f12d750d218042c4ed36e41de0757eab249d332ee2e242e4174b5d5"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.12/uv-aarch64-unknown-linux-musl.tar.gz"
+provenance = "github-attestations"
+
 [tools.uv."platforms.linux-x64"]
-checksum = "sha256:de82507d12e31cfc86c1c776238f7c248e48e40d996dedc812d64fdd31c6ed12"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.8/uv-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:591a7557f5ba7e51565f338dd4c50cebc12820ec2ebb8403a4304685f8d53ab9"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.12/uv-x86_64-unknown-linux-musl.tar.gz"
+provenance = "github-attestations"
+
+[tools.uv."platforms.linux-x64-musl"]
+checksum = "sha256:591a7557f5ba7e51565f338dd4c50cebc12820ec2ebb8403a4304685f8d53ab9"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.12/uv-x86_64-unknown-linux-musl.tar.gz"
+provenance = "github-attestations"
+
+[tools.uv."platforms.macos-arm64"]
+checksum = "sha256:bb7c6ef869ec00cd1452f4884acf23d00b153c356ba9197ae99a1bc1ceadb7f3"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.12/uv-aarch64-apple-darwin.tar.gz"
+provenance = "github-attestations"
+
+[tools.uv."platforms.macos-x64"]
+checksum = "sha256:32fb217e6181384bf6534b31adcc66cd552eff98643c4bb35832be8552486912"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.12/uv-x86_64-apple-darwin.tar.gz"
+provenance = "github-attestations"
+
+[tools.uv."platforms.windows-x64"]
+checksum = "sha256:e46956a6b088a0382101c797eef945c1b03826e629e968d434cf838d42d85b6b"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.12/uv-x86_64-pc-windows-msvc.zip"
 provenance = "github-attestations"
 
 [[tools.yq]]
 version = "4.53.2"
 backend = "aqua:mikefarah/yq"
 
+[tools.yq."platforms.linux-arm64"]
+checksum = "sha256:03061b2a50c7a498de2bbb92d7cb078ce433011f085a4994117c2726be4106ea"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.2/yq_linux_arm64"
+
+[tools.yq."platforms.linux-arm64-musl"]
+checksum = "sha256:03061b2a50c7a498de2bbb92d7cb078ce433011f085a4994117c2726be4106ea"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.2/yq_linux_arm64"
+
 [tools.yq."platforms.linux-x64"]
 checksum = "sha256:d56bf5c6819e8e696340c312bd70f849dc1678a7cda9c2ad63eebd906371d56b"
 url = "https://github.com/mikefarah/yq/releases/download/v4.53.2/yq_linux_amd64"
+
+[tools.yq."platforms.linux-x64-musl"]
+checksum = "sha256:d56bf5c6819e8e696340c312bd70f849dc1678a7cda9c2ad63eebd906371d56b"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.2/yq_linux_amd64"
+
+[tools.yq."platforms.macos-arm64"]
+checksum = "sha256:541ba2287560df70f561955e2d7f7e1cd00cf2a15a884f6b5c87a4bfa887bc07"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.2/yq_darwin_arm64"
+
+[tools.yq."platforms.macos-x64"]
+checksum = "sha256:616b0a0f6a5b79d746f05a169c2b9bb40dee00c605ef165b9a1c1681bba738ac"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.2/yq_darwin_amd64"
+
+[tools.yq."platforms.windows-x64"]
+checksum = "sha256:2aee32f1de46a20672f48c25df3018839798bd509143f2ce05fdab1550ff5592"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.2/yq_windows_amd64.exe"
