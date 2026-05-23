@@ -29,7 +29,6 @@ jobs:
     permissions:
       contents: read
       actions: write
-      secrets: write
     outputs:
       apply_changes: ${{ steps.apply-changes.outputs.any_changed }}
       has_changes: ${{ steps.plan.outputs.has_changes }}
@@ -279,7 +278,6 @@ jobs:
     permissions:
       contents: read
       actions: write
-      secrets: write
 
     steps:
       - name: Checkout repository
