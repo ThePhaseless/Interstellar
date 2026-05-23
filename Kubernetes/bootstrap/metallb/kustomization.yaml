@@ -19,6 +19,13 @@ helmCharts:
     namespace: metallb-system
     includeCRDs: true
     valuesInline:
+      prometheus:
+        serviceMonitor:
+          enabled: false
+      frr-k8s:
+        prometheus:
+          serviceMonitor:
+            enabled: false
       speaker:
         # All Talos nodes are control-plane nodes and Kubernetes automatically
         # labels them with node.kubernetes.io/exclude-from-external-load-balancers.
