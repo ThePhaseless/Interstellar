@@ -50,7 +50,7 @@ spec:
           resources:
             requests:
               cpu: 500m
-              memory: 1Gi
+              memory: 2Gi
               # Intel GPU resource
               gpu.intel.com/xe: "1"
             limits:
