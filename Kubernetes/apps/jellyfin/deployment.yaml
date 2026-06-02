@@ -47,10 +47,6 @@ spec:
               mountPath: /cache
             - name: media
               mountPath: /media
-            - name: branding
-              mountPath: /config/config/branding.xml
-              subPath: branding.xml
-              readOnly: true
           resources:
             requests:
               cpu: 500m
@@ -86,9 +82,3 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: media-pvc
-        - name: branding
-          configMap:
-            name: jellyfin-branding
-            items:
-              - key: branding.xml
-                path: branding.xml
