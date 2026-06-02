@@ -73,3 +73,11 @@ resource "jellyfin_plugin_configuration" "sso_auth" {
     }
   })
 }
+
+resource "jellyfin_branding_configuration" "this" {
+  configuration_json = jsonencode({
+    LoginDisclaimer     = file("${path.module}/files/jellyfin/branding/disclaimer.html")
+    CustomCss           = file("${path.module}/files/jellyfin/branding/custom.css")
+    SplashscreenEnabled = false
+  })
+}
