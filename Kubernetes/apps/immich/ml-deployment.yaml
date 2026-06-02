@@ -38,7 +38,7 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 1Gi
+              memory: 4Gi
               gpu.intel.com/xe: "1"
             limits:
               cpu: 4000m
