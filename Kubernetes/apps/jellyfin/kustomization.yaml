@@ -9,6 +9,12 @@ resources:
   - ingress.yaml
   - pvc.yaml
 
+configMapGenerator:
+  - name: jellyfin-branding
+    namespace: media
+    files:
+      - branding.xml
+
 labels:
   - pairs:
       app: jellyfin
