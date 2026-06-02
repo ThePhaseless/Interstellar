@@ -59,7 +59,7 @@ resource "jellyfin_plugin_configuration" "sso_auth" {
         FolderRoleMapping          = []
         RoleClaim                  = "groups"
         OidScopes                  = ["groups"]
-        DefaultProvider            = "SSO-Auth-OpenID"
+        DefaultProvider            = ""
         SchemeOverride             = "https"
         NewPath                    = false
         CanonicalLinks             = {}
@@ -71,13 +71,5 @@ resource "jellyfin_plugin_configuration" "sso_auth" {
         DoNotLoadProfile           = false
       }
     }
-  })
-}
-
-resource "jellyfin_branding_configuration" "this" {
-  configuration_json = jsonencode({
-    LoginDisclaimer     = "<form action=\"/sso/OID/start/authentik\"><button class=\"raised block emby-button button-submit\">Sign in with Authentik</button></form>"
-    CustomCss           = "a.raised.emby-button{padding:.9em 1em;color:inherit!important}.disclaimerContainer{display:block}#loginPage .manualLoginForm .inputContainer,#loginPage .manualLoginForm .button-submit,#loginPage .manualLoginForm .checkboxContainer{display:none!important}"
-    SplashscreenEnabled = false
   })
 }
