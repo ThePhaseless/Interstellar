@@ -72,6 +72,10 @@ resource "jellyfin_plugin_configuration" "sso_auth" {
       }
     }
   })
+
+  lifecycle {
+    ignore_changes = [configuration_json]
+  }
 }
 
 resource "jellyfin_branding_configuration" "this" {
