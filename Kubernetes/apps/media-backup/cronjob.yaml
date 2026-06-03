@@ -19,7 +19,7 @@ spec:
           containers:
             - name: borgbackup
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/backup.sh"]
+              command: ["/bin/sh", "/scripts/backup-3eo.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
@@ -104,7 +104,7 @@ spec:
           containers:
             - name: borgbackup
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/backup.sh"]
+              command: ["/bin/sh", "/scripts/backup-hsi.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
@@ -189,7 +189,7 @@ spec:
           containers:
             - name: borgbackup
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/backup.sh"]
+              command: ["/bin/sh", "/scripts/backup-ueo.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
