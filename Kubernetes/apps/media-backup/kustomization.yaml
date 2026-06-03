@@ -11,19 +11,19 @@ configMapGenerator:
   - name: media-backup-3eo-script
     namespace: media
     files:
-      - scripts/backup-3eo.sh=scripts/backup-3eo.sh
+      - backup-3eo.sh=scripts/backup-3eo.sh
     options:
       disableNameSuffixHash: true
   - name: media-backup-hsi-script
     namespace: media
     files:
-      - scripts/backup-hsi.sh=scripts/backup-hsi.sh
+      - backup-hsi.sh=scripts/backup-hsi.sh
     options:
       disableNameSuffixHash: true
   - name: media-backup-ueo-script
     namespace: media
     files:
-      - scripts/backup-ueo.sh=scripts/backup-ueo.sh
+      - backup-ueo.sh=scripts/backup-ueo.sh
     options:
       disableNameSuffixHash: true
 
