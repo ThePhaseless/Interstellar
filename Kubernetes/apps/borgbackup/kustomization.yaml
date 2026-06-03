@@ -6,6 +6,7 @@ namespace: utilities
 resources:
   - cronjob.yaml
   - externalsecret.yaml
+  - externalsecret-authentik.yaml
 
 configMapGenerator:
   - name: borgbackup-script
