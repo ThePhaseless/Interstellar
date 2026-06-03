@@ -63,6 +63,7 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       name: authentik-secrets
+                      namespace: authentik
                       key: authentik-postgresql-password
               volumeMounts:
                 - name: authentik-dump
