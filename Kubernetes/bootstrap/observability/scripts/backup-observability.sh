@@ -39,49 +39,69 @@ else
     info "Repository exists"
 fi
 
-info "Starting backup..."
-borg create \
-    --verbose \
-    --filter AME \
-    --list \
-    --stats \
-    --show-rc \
-    --compression zstd,3 \
-    --exclude-caches \
-    --exclude '*.tmp' \
-    --exclude '*.log' \
-    \
-    ::'observability-{now:%Y-%m-%dT%H:%M:%S}' \
-    /data \
-    /grafana \
-    /loki
+TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S')
+BACKUP_EXIT=0
 
-backup_exit=$?
+for service in mimir grafana loki; do
+    case $service in
+        mimir)   src=/data ;;
+        grafana) src=/grafana ;;
+        loki)    src=/loki ;;
+    esac
+
+    info "Backing up $service from $src..."
+    if [ -d "$src" ]; then
+        borg create \
+            --verbose \
+            --filter AME \
+            --list \
+            --stats \
+            --show-rc \
+            --compression zstd,3 \
+            --exclude-caches \
+            --exclude '*.tmp' \
+            --exclude '*.log' \
+            \
+            ::"observability-${service}-${TIMESTAMP}" \
+            "$src"
+        rc=$?
+        if [ $rc -gt $BACKUP_EXIT ]; then
+            BACKUP_EXIT=$rc
+        fi
+    else
+        info "WARNING: $src does not exist, skipping $service"
+    fi
+done
 
 info "Pruning repository..."
-borg prune \
-    --list \
-    --glob-archives 'observability-*' \
-    --show-rc \
-    --keep-daily 7 \
-    --keep-weekly 4 \
-    --keep-monthly 6
-
-prune_exit=$?
+PRUNE_EXIT=0
+for service in mimir grafana loki; do
+    borg prune \
+        --list \
+        --glob-archives "observability-${service}-*" \
+        --show-rc \
+        --keep-daily 7 \
+        --keep-weekly 4 \
+        --keep-monthly 6
+    rc=$?
+    if [ $rc -gt $PRUNE_EXIT ]; then
+        PRUNE_EXIT=$rc
+    fi
+done
 
 info "Compacting repository..."
 borg compact
-compact_exit=$?
+COMPACT_EXIT=$?
 
-global_exit=$((backup_exit > prune_exit ? backup_exit : prune_exit))
-global_exit=$((compact_exit > global_exit ? compact_exit : global_exit))
+GLOBAL_EXIT=$((BACKUP_EXIT > PRUNE_EXIT ? BACKUP_EXIT : PRUNE_EXIT))
+GLOBAL_EXIT=$((COMPACT_EXIT > GLOBAL_EXIT ? COMPACT_EXIT : GLOBAL_EXIT))
 
-if [ ${global_exit} -eq 0 ]; then
+if [ ${GLOBAL_EXIT} -eq 0 ]; then
     info "Backup, Prune, and Compact finished successfully"
-elif [ ${global_exit} -eq 1 ]; then
+elif [ ${GLOBAL_EXIT} -eq 1 ]; then
     info "Backup, Prune, and/or Compact finished with warnings"
 else
     info "Backup, Prune, and/or Compact finished with errors"
 fi
 
-exit ${global_exit}
+exit ${GLOBAL_EXIT}

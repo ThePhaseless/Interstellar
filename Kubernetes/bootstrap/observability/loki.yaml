@@ -58,17 +58,9 @@ spec:
         - name: config
           configMap:
             name: loki-config
-
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: longhorn
-        resources:
-          requests:
-            storage: 1Gi
+        - name: data
+          persistentVolumeClaim:
+            claimName: data-loki-0-rwx
 ---
 apiVersion: v1
 kind: Service

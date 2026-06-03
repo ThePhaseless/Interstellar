@@ -150,7 +150,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: grafana-data
+            claimName: grafana-data-rwx
         - name: datasources
           configMap:
             name: grafana-datasources

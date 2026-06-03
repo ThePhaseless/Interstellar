@@ -108,6 +108,7 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 - **Terraform CI auto-applies on main branch**: Apply runs on any `main` branch event (push or workflow_dispatch) where the plan detects changes. Uses `-lock-timeout` for state locking; Ansible deploys use non-canceling job-level concurrency.
 - **Mise only auto-loads static repo env**: `.env` and the uv-managed `.venv` come from `.mise.toml`, but Bitwarden/Tailscale exports still require `source scripts/setup-env.sh` in the shell that will run Terraform or Ansible commands.
 - **Main Terraform CI uses a GitHub App token for API access**: `terraform.yaml` uses `actions/create-github-app-token@v3` to generate a token with `repo` scope for Terraform's `github_actions_variable`/`github_actions_secret` data sources. The default `GITHUB_TOKEN` with `permissions: write-all` is **insufficient** for reading repository variables and secrets via the API. The GH App ID and private key are stored in Bitwarden as `GH_APP_ID` and `GH_APP_PRIVATE_KEY`.
+- **Longhorn volumes with `recurring-job-group.longhorn.io/default: enabled` auto-delete user-created snapshots**: The Longhorn admission webhook re-adds this label if removed, so snapshots created via `kubectl apply` are deleted within seconds. For migrations requiring persistent snapshots, use direct data copy via a temporary Job (mount old PVC read-only, new PVC read-write, `cp -a`) instead of the snapshot/restore flow.
 
 ### Terraform App Configuration (`Terraform/apps/`)
 
