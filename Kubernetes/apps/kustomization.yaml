@@ -37,9 +37,6 @@ resources:
   - media-backup/
   - home-backup/
 
-  # Storage
-  - minio/
-
 replacements:
   - source:
       kind: ConfigMap

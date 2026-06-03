@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: grafana-data-rwx
+  name: data-loki-0-rwx
   namespace: observability
 spec:
   accessModes:
@@ -9,4 +9,4 @@ spec:
   storageClassName: longhorn-rwx
   resources:
     requests:
-      storage: 2Gi
+      storage: 1Gi

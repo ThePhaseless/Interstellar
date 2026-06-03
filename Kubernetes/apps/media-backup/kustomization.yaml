@@ -8,10 +8,24 @@ resources:
   - externalsecret.yaml
 
 configMapGenerator:
-  - name: media-backup-script
+  - name: media-backup-3eo-script
     namespace: media
     files:
-      - scripts/backup.sh
+      - scripts/backup-3eo.sh=scripts/backup-3eo.sh
+    options:
+      disableNameSuffixHash: true
+  - name: media-backup-hsi-script
+    namespace: media
+    files:
+      - scripts/backup-hsi.sh=scripts/backup-hsi.sh
+    options:
+      disableNameSuffixHash: true
+  - name: media-backup-ueo-script
+    namespace: media
+    files:
+      - scripts/backup-ueo.sh=scripts/backup-ueo.sh
+    options:
+      disableNameSuffixHash: true
 
 labels:
   - pairs:

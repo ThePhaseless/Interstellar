@@ -8,7 +8,9 @@ resources:
   - grafana.yaml
   - grafana-pvc.yaml
   - loki.yaml
+  - loki-pvc.yaml
   - mimir.yaml
+  - mimir-pvc.yaml
   - promtail.yaml
   - alloy.yaml
   - kube-state-metrics.yaml

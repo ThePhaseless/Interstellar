@@ -18,7 +18,7 @@ spec:
           containers:
             - name: borgbackup
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/backup.sh"]
+              command: ["/bin/sh", "/scripts/backup-observability.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
@@ -59,13 +59,13 @@ spec:
           volumes:
             - name: mimir-data
               persistentVolumeClaim:
-                claimName: data-mimir-0
+                claimName: data-mimir-0-rwx
             - name: grafana-data
               persistentVolumeClaim:
-                claimName: grafana-data
+                claimName: grafana-data-rwx
             - name: loki-data
               persistentVolumeClaim:
-                claimName: data-loki-0
+                claimName: data-loki-0-rwx
             - name: borg-ssh-key
               secret:
                 secretName: borg-secrets
