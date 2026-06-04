@@ -17,6 +17,8 @@
 #   BORG_LEGACY_GLOBS     — space-separated extra `--glob-archives` patterns
 #                           to keep pruning (for archive families renamed or
 #                           split away). Example: "immich-*"
+#   BORG_EXCLUDES         — space-separated extra borg exclude patterns applied
+#                           to every target in this CronJob.
 #
 # Pod layout expected:
 #   /secrets/ssh/id_ed25519  (mode 0600)   — SSH private key
@@ -73,6 +75,10 @@ fi
 
 BACKUP_EXIT=0
 SEEN=""
+EXCLUDE_FILE=$(mktemp)
+for exclude in ${BORG_EXCLUDES:-}; do
+    printf '%s\n' "$exclude" >>"$EXCLUDE_FILE"
+done
 
 # Heredoc loop keeps variable updates in the current shell (no subshell).
 while IFS= read -r target; do
@@ -88,7 +94,7 @@ while IFS= read -r target; do
     fi
     info "Backing up '$prefix' from: $paths"
     # shellcheck disable=SC2086
-    borg create \
+    if borg create \
         --verbose \
         --filter AME \
         --list \
@@ -98,10 +104,14 @@ while IFS= read -r target; do
         --exclude-caches \
         --exclude '*.tmp' \
         --exclude '*.log' \
+        --exclude-from "$EXCLUDE_FILE" \
         \
         ::"${prefix}-{now:%Y-%m-%dT%H:%M:%S}" \
-        $paths
-    rc=$?
+        $paths; then
+        rc=0
+    else
+        rc=$?
+    fi
     if [ "$rc" -gt "$BACKUP_EXIT" ]; then
         BACKUP_EXIT=$rc
     fi
@@ -113,14 +123,17 @@ EOF
 PRUNE_EXIT=0
 for prefix in $SEEN; do
     info "Pruning '${prefix}-*' archives..."
-    borg prune \
+    if borg prune \
         --list \
         --glob-archives "${prefix}-*" \
         --show-rc \
         --keep-daily 7 \
         --keep-weekly 4 \
-        --keep-monthly 6
-    rc=$?
+        --keep-monthly 6; then
+        rc=0
+    else
+        rc=$?
+    fi
     if [ "$rc" -gt "$PRUNE_EXIT" ]; then
         PRUNE_EXIT=$rc
     fi
@@ -129,14 +142,17 @@ done
 if [ -n "${BORG_LEGACY_GLOBS:-}" ]; then
     for glob in $BORG_LEGACY_GLOBS; do
         info "Pruning legacy '$glob' archives..."
-        borg prune \
+        if borg prune \
             --list \
             --glob-archives "$glob" \
             --show-rc \
             --keep-daily 7 \
             --keep-weekly 4 \
-            --keep-monthly 6
-        rc=$?
+            --keep-monthly 6; then
+            rc=0
+        else
+            rc=$?
+        fi
         if [ "$rc" -gt "$PRUNE_EXIT" ]; then
             PRUNE_EXIT=$rc
         fi
@@ -144,8 +160,11 @@ if [ -n "${BORG_LEGACY_GLOBS:-}" ]; then
 fi
 
 info "Compacting repository..."
-borg compact
-COMPACT_EXIT=$?
+if borg compact; then
+    COMPACT_EXIT=0
+else
+    COMPACT_EXIT=$?
+fi
 
 GLOBAL=$((BACKUP_EXIT > PRUNE_EXIT ? BACKUP_EXIT : PRUNE_EXIT))
 GLOBAL=$((COMPACT_EXIT > GLOBAL ? COMPACT_EXIT : GLOBAL))
