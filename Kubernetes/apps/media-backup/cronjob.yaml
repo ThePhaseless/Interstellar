@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: media-backup-3eo
+  name: media-backup
   namespace: media
 spec:
   schedule: "0 4 * * *"
@@ -14,250 +14,28 @@ spec:
       backoffLimit: 2
       template:
         spec:
-          nodeName: talos-3eo-d4m
-          restartPolicy: OnFailure
+          serviceAccountName: media-backup
+          restartPolicy: Never
           containers:
-            - name: borgbackup
+            - name: orchestrator
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/borg-backup.sh"]
+              command: ["/bin/sh", "/scripts/media-backup-orchestrator.sh"]
               env:
-                - name: BORG_PASSPHRASE
+                - name: POD_NAMESPACE
                   valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: passphrase
-                - name: BORG_REPO
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: repo-url
-                - name: BORG_SERVER_HOST
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: server-host
-                - name: BORG_BACKUP_TARGETS
-                  value: |
-                    sonarr:/sonarr
-                    radarr:/radarr
-                    prowlarr:/prowlarr
-                - name: BORG_LEGACY_GLOBS
-                  value: "media-3eo-* media-*"
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: JOB_TIMEOUT_SECONDS
+                  value: "7200"
               volumeMounts:
-                - name: sonarr-config
-                  mountPath: /sonarr
-                  readOnly: true
-                - name: radarr-config
-                  mountPath: /radarr
-                  readOnly: true
-                - name: prowlarr-config
-                  mountPath: /prowlarr
-                  readOnly: true
-                - name: borg-ssh-key
-                  mountPath: /secrets/ssh
-                  readOnly: true
                 - name: backup-script
                   mountPath: /scripts
                   readOnly: true
-                - name: borg-cache
-                  mountPath: /root/.cache/borg
               resources:
-                requests: { cpu: 200m, memory: 512Mi }
-                limits: { cpu: 2000m, memory: 2Gi }
+                requests: { cpu: 100m, memory: 128Mi }
+                limits: { cpu: 500m, memory: 512Mi }
           volumes:
-            - name: sonarr-config
-              persistentVolumeClaim:
-                claimName: sonarr-config
-            - name: radarr-config
-              persistentVolumeClaim:
-                claimName: radarr-config
-            - name: prowlarr-config
-              persistentVolumeClaim:
-                claimName: prowlarr-config
-            - name: borg-ssh-key
-              secret:
-                secretName: borg-secrets
-                items:
-                  - key: ssh-private-key
-                    path: id_ed25519
-                    mode: 0600
-                defaultMode: 0600
             - name: backup-script
               configMap:
                 name: media-backup-script
                 defaultMode: 0755
-            - name: borg-cache
-              emptyDir:
-                sizeLimit: 2Gi
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: media-backup-hsi
-  namespace: media
-spec:
-  schedule: "10 4 * * *"
-  concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 1
-  jobTemplate:
-    spec:
-      ttlSecondsAfterFinished: 120
-      backoffLimit: 2
-      template:
-        spec:
-          nodeName: talos-hsi-gnb
-          restartPolicy: OnFailure
-          containers:
-            - name: borgbackup
-              image: alpine:3.23
-              command: ["/bin/sh", "/scripts/borg-backup.sh"]
-              env:
-                - name: BORG_PASSPHRASE
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: passphrase
-                - name: BORG_REPO
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: repo-url
-                - name: BORG_SERVER_HOST
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: server-host
-                - name: BORG_BACKUP_TARGETS
-                  value: |
-                    bazarr:/bazarr
-                    qbittorrent:/qbittorrent
-                    seerr:/seerr
-                - name: BORG_LEGACY_GLOBS
-                  value: "media-hsi-* media-*"
-              volumeMounts:
-                - name: bazarr-config
-                  mountPath: /bazarr
-                  readOnly: true
-                - name: qbittorrent-config
-                  mountPath: /qbittorrent
-                  readOnly: true
-                - name: seerr-config
-                  mountPath: /seerr
-                  readOnly: true
-                - name: borg-ssh-key
-                  mountPath: /secrets/ssh
-                  readOnly: true
-                - name: backup-script
-                  mountPath: /scripts
-                  readOnly: true
-                - name: borg-cache
-                  mountPath: /root/.cache/borg
-              resources:
-                requests: { cpu: 200m, memory: 512Mi }
-                limits: { cpu: 2000m, memory: 2Gi }
-          volumes:
-            - name: bazarr-config
-              persistentVolumeClaim:
-                claimName: bazarr-config
-            - name: qbittorrent-config
-              persistentVolumeClaim:
-                claimName: qbittorrent-config
-            - name: seerr-config
-              persistentVolumeClaim:
-                claimName: seerr-config
-            - name: borg-ssh-key
-              secret:
-                secretName: borg-secrets
-                items:
-                  - key: ssh-private-key
-                    path: id_ed25519
-                    mode: 0600
-                defaultMode: 0600
-            - name: backup-script
-              configMap:
-                name: media-backup-script
-                defaultMode: 0755
-            - name: borg-cache
-              emptyDir:
-                sizeLimit: 2Gi
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: media-backup-ueo
-  namespace: media
-spec:
-  schedule: "20 4 * * *"
-  concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 1
-  jobTemplate:
-    spec:
-      ttlSecondsAfterFinished: 120
-      backoffLimit: 2
-      template:
-        spec:
-          nodeName: talos-ueo-rhk
-          restartPolicy: OnFailure
-          containers:
-            - name: borgbackup
-              image: alpine:3.23
-              command: ["/bin/sh", "/scripts/borg-backup.sh"]
-              env:
-                - name: BORG_PASSPHRASE
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: passphrase
-                - name: BORG_REPO
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: repo-url
-                - name: BORG_SERVER_HOST
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: server-host
-                - name: BORG_BACKUP_TARGETS
-                  value: |
-                    jellyfin:/jellyfin
-                - name: BORG_EXCLUDES
-                  value: "/jellyfin/metadata/library"
-                - name: BORG_LEGACY_GLOBS
-                  value: "media-ueo-* media-*"
-              volumeMounts:
-                - name: jellyfin-config
-                  mountPath: /jellyfin
-                  readOnly: true
-                - name: borg-ssh-key
-                  mountPath: /secrets/ssh
-                  readOnly: true
-                - name: backup-script
-                  mountPath: /scripts
-                  readOnly: true
-                - name: borg-cache
-                  mountPath: /root/.cache/borg
-              resources:
-                requests: { cpu: 200m, memory: 512Mi }
-                limits: { cpu: 2000m, memory: 2Gi }
-          volumes:
-            - name: jellyfin-config
-              persistentVolumeClaim:
-                claimName: jellyfin-config
-            - name: borg-ssh-key
-              secret:
-                secretName: borg-secrets
-                items:
-                  - key: ssh-private-key
-                    path: id_ed25519
-                    mode: 0600
-                defaultMode: 0600
-            - name: backup-script
-              configMap:
-                name: media-backup-script
-                defaultMode: 0755
-            - name: borg-cache
-              emptyDir:
-                sizeLimit: 2Gi
