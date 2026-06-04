@@ -223,6 +223,8 @@ spec:
                 - name: BORG_BACKUP_TARGETS
                   value: |
                     jellyfin:/jellyfin
+                - name: BORG_EXCLUDES
+                  value: "/jellyfin/metadata/library"
                 - name: BORG_LEGACY_GLOBS
                   value: "media-ueo-* media-*"
               volumeMounts:
