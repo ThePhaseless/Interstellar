@@ -18,7 +18,7 @@ spec:
           containers:
             - name: borgbackup
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/backup-observability.sh"]
+              command: ["/bin/sh", "/scripts/borg-backup.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
@@ -35,6 +35,11 @@ spec:
                     secretKeyRef:
                       name: borg-secrets
                       key: server-host
+                - name: BORG_BACKUP_TARGETS
+                  value: |
+                    observability-mimir:/data
+                    observability-grafana:/grafana
+                    observability-loki:/loki
               volumeMounts:
                 - name: mimir-data
                   mountPath: /data

@@ -74,9 +74,9 @@ resource "bitwarden-secrets_secret" "borg_passphrase" {
 
 resource "bitwarden-secrets_secret" "borg_repo_url" {
   key        = "borg-repo-url"
-  value      = "ssh://${hcloud_storage_box.backups.username}@${hcloud_storage_box.backups.server}:23/./backups/immich"
+  value      = "ssh://${hcloud_storage_box.backups.username}@${hcloud_storage_box.backups.server}:23/./backups/interstellar"
   project_id = local.bitwarden_generated_project_id
-  note       = "BorgBackup repository URL on Hetzner Storage Box. Managed by Terraform."
+  note       = "BorgBackup repository URL on Hetzner Storage Box (shared by all backup jobs). Managed by Terraform."
 }
 
 resource "bitwarden-secrets_secret" "borg_server_host" {

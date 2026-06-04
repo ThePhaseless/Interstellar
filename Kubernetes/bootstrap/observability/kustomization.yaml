@@ -112,6 +112,6 @@ configMapGenerator:
       disableNameSuffixHash: true
   - name: observability-backup-script
     files:
-      - scripts/backup-observability.sh
+      - scripts/borg-backup.sh
     options:
       disableNameSuffixHash: true

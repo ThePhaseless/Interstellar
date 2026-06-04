@@ -12,7 +12,9 @@ configMapGenerator:
   - name: borgbackup-script
     namespace: utilities
     files:
-      - scripts/backup.sh
+      - scripts/borg-backup.sh
+    options:
+      disableNameSuffixHash: true
 
 labels:
   - pairs:
