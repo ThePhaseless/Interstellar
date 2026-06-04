@@ -104,6 +104,10 @@ while IFS= read -r target; do
         --exclude-caches \
         --exclude '*.tmp' \
         --exclude '*.log' \
+        --exclude '*.log.*' \
+        --exclude '*/log' \
+        --exclude '*/logs' \
+        --exclude 'logs.db' \
         --exclude-from "$EXCLUDE_FILE" \
         \
         ::"${prefix}-{now:%Y-%m-%dT%H:%M:%S}" \
