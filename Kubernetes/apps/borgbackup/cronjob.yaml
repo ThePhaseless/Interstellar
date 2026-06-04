@@ -16,7 +16,6 @@ spec:
         spec:
           restartPolicy: OnFailure
           initContainers:
-            # Dump Immich PostgreSQL database before borg runs
             - name: pg-dump-immich
               image: postgres:18-alpine
               command: ["/bin/sh", "-c"]
@@ -43,7 +42,6 @@ spec:
               resources:
                 requests: { cpu: 100m, memory: 256Mi }
                 limits: { cpu: 1000m, memory: 1Gi }
-            # Dump Authentik PostgreSQL database before borg runs
             - name: pg-dump-authentik
               image: postgres:18-alpine
               command: ["/bin/sh", "-c"]
@@ -73,7 +71,7 @@ spec:
           containers:
             - name: borgbackup
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/backup.sh"]
+              command: ["/bin/sh", "/scripts/borg-backup.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
@@ -90,6 +88,11 @@ spec:
                     secretKeyRef:
                       name: borg-secrets
                       key: server-host
+                - name: BORG_BACKUP_TARGETS
+                  value: |
+                    utilities:/photos /external /db-dump /authentik-dump
+                - name: BORG_LEGACY_GLOBS
+                  value: "immich-*"
               volumeMounts:
                 - name: photos
                   mountPath: /photos

@@ -168,3 +168,88 @@ kubectl get pods --all-namespaces
 kubectl get clustersecretstore bitwarden-store bitwarden-store-generated
 kubectl -n argocd get applications
 ```
+
+## Restore from Backups
+
+### Prerequisites
+
+Retrieve secrets from Bitwarden:
+
+```bash
+source scripts/setup-env.sh
+BORG_REPO=$(bws secret get borg-repo-url --output json | jq -r .value)
+BORG_PASSPHRASE=$(bws secret get borg-passphrase --output json | jq -r .value)
+BORG_SERVER_HOST=$(bws secret get borg-server-host --output json | jq -r .value)
+BORG_SSH_KEY=$(bws secret get borg-ssh-private-key --output json | jq -r .value)
+```
+
+Set up SSH:
+
+```bash
+mkdir -p ~/.ssh
+echo "$BORG_SSH_KEY" > ~/.ssh/id_ed25519_borg
+chmod 600 ~/.ssh/id_ed25519_borg
+ssh-keyscan -p 23 "$BORG_SERVER_HOST" >> ~/.ssh/known_hosts
+
+export BORG_RSH="ssh -p 23 -i ~/.ssh/id_ed25519_borg"
+export BORG_PASSPHRASE
+export BORG_REPO
+```
+
+### List available archives
+
+```bash
+borg list "$BORG_REPO"
+```
+
+Filter by app:
+
+```bash
+borg list "$BORG_REPO" | grep '^sonarr-'
+borg list "$BORG_REPO" | grep '^jellyfin-'
+```
+
+### Restore a single app
+
+Extract to a local directory, then copy into the PVC:
+
+```bash
+mkdir -p /tmp/restore
+borg extract "$BORG_REPO::sonarr-2026-06-01T04:00:00" --strip-components=1 -C /tmp/restore
+
+# Scale app down, copy data into PVC, scale back up
+kubectl -n media scale deployment sonarr --replicas=0
+kubectl -n media cp /tmp/restore/sonarr sonarr-0:/config
+kubectl -n media scale deployment sonarr --replicas=1
+```
+
+### Restore a database (Immich/Authentik)
+
+Database dumps are stored in the `utilities-*` archives at `/db-dump/` and `/authentik-dump/`:
+
+```bash
+borg extract "$BORG_REPO::utilities-2026-06-01T03:00:00" db-dump/immich.dump authentik-dump/authentik.dump
+
+# Restore Immich
+kubectl -n utilities exec -it immich-postgres-0 -- pg_restore -U immich -d immich --clean /tmp/immich.dump
+
+# Restore Authentik
+kubectl -n authentik exec -it authentik-postgresql-0 -- pg_restore -U authentik -d authentik --clean /tmp/authentik.dump
+```
+
+### Archive families
+
+| Archive prefix | Contents |
+| --- | --- |
+| `sonarr-*` | Sonarr config |
+| `radarr-*` | Radarr config |
+| `prowlarr-*` | Prowlarr config |
+| `bazarr-*` | Bazarr config |
+| `qbittorrent-*` | qBittorrent config |
+| `seerr-*` | Seerr config |
+| `jellyfin-*` | Jellyfin config |
+| `utilities-*` | Immich photos, personal library, Immich DB dump, Authentik DB dump |
+| `home-*` | AdGuard Home data |
+| `observability-mimir-*` | Mimir data |
+| `observability-grafana-*` | Grafana data |
+| `observability-loki-*` | Loki data |

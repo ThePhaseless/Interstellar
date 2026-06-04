@@ -19,7 +19,7 @@ spec:
           containers:
             - name: borgbackup
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/backup-3eo.sh"]
+              command: ["/bin/sh", "/scripts/borg-backup.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
@@ -36,6 +36,13 @@ spec:
                     secretKeyRef:
                       name: borg-secrets
                       key: server-host
+                - name: BORG_BACKUP_TARGETS
+                  value: |
+                    sonarr:/sonarr
+                    radarr:/radarr
+                    prowlarr:/prowlarr
+                - name: BORG_LEGACY_GLOBS
+                  value: "media-3eo-* media-*"
               volumeMounts:
                 - name: sonarr-config
                   mountPath: /sonarr
@@ -77,7 +84,7 @@ spec:
                 defaultMode: 0600
             - name: backup-script
               configMap:
-                name: media-backup-3eo-script
+                name: media-backup-script
                 defaultMode: 0755
             - name: borg-cache
               emptyDir:
@@ -104,7 +111,7 @@ spec:
           containers:
             - name: borgbackup
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/backup-hsi.sh"]
+              command: ["/bin/sh", "/scripts/borg-backup.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
@@ -121,6 +128,13 @@ spec:
                     secretKeyRef:
                       name: borg-secrets
                       key: server-host
+                - name: BORG_BACKUP_TARGETS
+                  value: |
+                    bazarr:/bazarr
+                    qbittorrent:/qbittorrent
+                    seerr:/seerr
+                - name: BORG_LEGACY_GLOBS
+                  value: "media-hsi-* media-*"
               volumeMounts:
                 - name: bazarr-config
                   mountPath: /bazarr
@@ -162,7 +176,7 @@ spec:
                 defaultMode: 0600
             - name: backup-script
               configMap:
-                name: media-backup-hsi-script
+                name: media-backup-script
                 defaultMode: 0755
             - name: borg-cache
               emptyDir:
@@ -189,7 +203,7 @@ spec:
           containers:
             - name: borgbackup
               image: alpine:3.23
-              command: ["/bin/sh", "/scripts/backup-ueo.sh"]
+              command: ["/bin/sh", "/scripts/borg-backup.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
@@ -206,6 +220,11 @@ spec:
                     secretKeyRef:
                       name: borg-secrets
                       key: server-host
+                - name: BORG_BACKUP_TARGETS
+                  value: |
+                    jellyfin:/jellyfin
+                - name: BORG_LEGACY_GLOBS
+                  value: "media-ueo-* media-*"
               volumeMounts:
                 - name: jellyfin-config
                   mountPath: /jellyfin
@@ -235,7 +254,7 @@ spec:
                 defaultMode: 0600
             - name: backup-script
               configMap:
-                name: media-backup-ueo-script
+                name: media-backup-script
                 defaultMode: 0755
             - name: borg-cache
               emptyDir:
