@@ -6,12 +6,14 @@ namespace: media
 resources:
   - cronjob.yaml
   - externalsecret.yaml
+  - rbac.yaml
 
 configMapGenerator:
   - name: media-backup-script
     namespace: media
     files:
       - scripts/borg-backup.sh
+      - scripts/media-backup-orchestrator.sh
     options:
       disableNameSuffixHash: true
 

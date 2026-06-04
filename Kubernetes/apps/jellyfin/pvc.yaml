@@ -3,6 +3,10 @@ kind: PersistentVolumeClaim
 metadata:
   name: jellyfin-config
   namespace: media
+  labels:
+    backup.interstellar/enabled: "true"
+  annotations:
+    backup.interstellar/excludes: /jellyfin/metadata/library
 spec:
   accessModes:
     - ReadWriteOnce
