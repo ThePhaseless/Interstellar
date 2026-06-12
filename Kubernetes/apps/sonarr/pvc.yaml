@@ -5,6 +5,8 @@ metadata:
   namespace: media
   labels:
     backup.interstellar/enabled: "true"
+  annotations:
+    backup.interstellar/excludes: /sonarr/MediaCover /sonarr/Backups
 spec:
   accessModes:
     - ReadWriteOnce

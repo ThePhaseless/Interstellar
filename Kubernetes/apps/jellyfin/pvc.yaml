@@ -6,7 +6,7 @@ metadata:
   labels:
     backup.interstellar/enabled: "true"
   annotations:
-    backup.interstellar/excludes: /jellyfin/metadata/library
+    backup.interstellar/excludes: /jellyfin/metadata/library /jellyfin/data/subtitles
 spec:
   accessModes:
     - ReadWriteOnce

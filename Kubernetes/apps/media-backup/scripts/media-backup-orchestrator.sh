@@ -4,6 +4,7 @@ set -eu
 NAMESPACE="${POD_NAMESPACE:-media}"
 BACKUP_SELECTOR="${BACKUP_SELECTOR:-backup.interstellar/enabled=true}"
 JOB_TIMEOUT_SECONDS="${JOB_TIMEOUT_SECONDS:-7200}"
+BACKUP_IMAGE="${BACKUP_IMAGE:-alpine:3.23}"
 
 info() { printf '\n%s %s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2; }
 
@@ -68,7 +69,7 @@ ${node_line}
       restartPolicy: Never
       containers:
         - name: borgbackup
-          image: alpine:3.23
+          image: ${BACKUP_IMAGE}
           command: ["/bin/sh", "/scripts/borg-backup.sh"]
           env:
             - name: BORG_PASSPHRASE
@@ -168,6 +169,7 @@ EOF
 }
 
 FAILED=0
+PIDS=""
 targets_file=$(mktemp)
 
 printf '%s' "$backup_pvcs" | jq -r '
@@ -184,9 +186,20 @@ printf '%s' "$backup_pvcs" | jq -r '
 ' >"$targets_file"
 
 while IFS="$(printf '\t')" read -r claim prefix mount_path app_selector excludes legacy_globs; do
-    if ! run_job "$claim" "$prefix" "$mount_path" "$app_selector" "$excludes" "$legacy_globs"; then
+    (
+        if ! run_job "$claim" "$prefix" "$mount_path" "$app_selector" "$excludes" "$legacy_globs"; then
+            exit 1
+        fi
+    ) &
+    pid=$!
+    PIDS="$PIDS $pid"
+done <"$targets_file"
+
+FAILED=0
+for pid in $PIDS; do
+    if ! wait "$pid"; then
         FAILED=1
     fi
-done <"$targets_file"
+done
 
 exit "$FAILED"
