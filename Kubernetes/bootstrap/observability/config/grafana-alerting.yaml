@@ -781,7 +781,7 @@ groups:
           summary: Traefik service {{ $labels.service }} p95 latency is above 750ms
         labels:
           severity: warning
-        isPaused: false
+        isPaused: true
 
       # Traefik p95 Latency Critical – service-level p95 response time.
       # Excludes services with inherently slow backend operations – see warning
@@ -845,7 +845,7 @@ groups:
           summary: Traefik service {{ $labels.service }} p95 latency is above 1.5s
         labels:
           severity: critical
-        isPaused: false
+        isPaused: true
 
       # Longhorn Volume Faulted – page on hard data-path failure.
       - uid: longhorn-volume-faulted
