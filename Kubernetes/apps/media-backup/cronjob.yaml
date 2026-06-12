@@ -18,7 +18,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: orchestrator
-              image: alpine:3.23
+              image: alpine:3.24
               command: ["/bin/sh", "/scripts/media-backup-orchestrator.sh"]
               env:
                 - name: POD_NAMESPACE
