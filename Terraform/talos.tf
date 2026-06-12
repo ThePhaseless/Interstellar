@@ -229,6 +229,13 @@ resource "talos_machine_configuration_apply" "controlplane" {
   node                        = local.talos_node_api_endpoints[each.key]
 
   depends_on = [proxmox_virtual_environment_vm.talos]
+
+  lifecycle {
+    replace_triggered_by = [
+      talos_image_factory_schematic.base,
+      talos_image_factory_schematic.gpu,
+    ]
+  }
 }
 
 # Bootstrap the Cluster
