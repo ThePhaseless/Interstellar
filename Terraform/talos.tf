@@ -27,7 +27,7 @@ resource "talos_machine_secrets" "cluster" {}
 # Get the schematic IDs for custom images with node-specific extensions
 data "talos_image_factory_extensions_versions" "base_extensions" {
   talos_version = var.talos_version
-  filters = {
+  exact_filters = {
     names = distinct(var.talos_base_extensions)
   }
 }
@@ -36,7 +36,7 @@ resource "talos_image_factory_schematic" "base" {
   schematic = yamlencode({
     customization = {
       systemExtensions = {
-        officialExtensions = data.talos_image_factory_extensions_versions.base_extensions.extensions_info[*].name
+        officialExtensions = distinct(var.talos_base_extensions)
       }
     }
   })
@@ -50,7 +50,7 @@ data "talos_image_factory_urls" "base_image" {
 
 data "talos_image_factory_extensions_versions" "gpu_extensions" {
   talos_version = var.talos_version
-  filters = {
+  exact_filters = {
     names = distinct(concat(var.talos_base_extensions, var.talos_gpu_extensions))
   }
 }
@@ -60,7 +60,7 @@ resource "talos_image_factory_schematic" "gpu" {
     customization = {
       extraKernelArgs = ["video=efifb:off"]
       systemExtensions = {
-        officialExtensions = data.talos_image_factory_extensions_versions.gpu_extensions.extensions_info[*].name
+        officialExtensions = distinct(concat(var.talos_base_extensions, var.talos_gpu_extensions))
       }
     }
   })
