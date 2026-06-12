@@ -1,19 +1,19 @@
 min_version = "2026.4.28"
 
 [tools]
-python = "3.14.5"
-uv = "0.11.19"
-terraform = "1.15.5"
+python = "3.14.6"
+uv = "0.11.21"
+terraform = "1.15.6"
 kubectl = "1.36.1"
 kustomize = "latest"
 helm = "4.2.0"
 kube-linter = "0.8.3"
 tflint = "0.63.1"
-talosctl = "1.13.3"
+talosctl = "1.13.4"
 bitwarden-secrets-manager = "2.1.0"
 jq = "1.8.1"
 ripgrep = "15.1.0"
-yq = "4.53.2"
+yq = "4.53.3"
 
 [settings]
 python.uv_venv_auto = "create|source"
