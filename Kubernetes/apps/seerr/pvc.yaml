@@ -5,6 +5,8 @@ metadata:
   namespace: media
   labels:
     backup.interstellar/enabled: "true"
+  annotations:
+    backup.interstellar/excludes: /seerr/cache
 spec:
   accessModes:
     - ReadWriteOnce
