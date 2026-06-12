@@ -16,7 +16,7 @@ ripgrep = "15.1.0"
 yq = "4.53.3"
 
 [settings]
-python.uv_venv_auto = "source"
+python.uv_venv_auto = "create|source"
 
 [env]
 _.file = ".env"
