@@ -16,10 +16,14 @@ ripgrep = "15.1.0"
 yq = "4.53.3"
 
 [settings]
-python.uv_venv_auto = "create|source"
+python.uv_venv_auto = "source"
 
 [env]
 _.file = ".env"
+
+[tasks.install]
+description = "Install Python deps into .venv"
+run = "uv sync --frozen"
 
 [tasks.lint]
 description = "Run all repository lint tasks"
