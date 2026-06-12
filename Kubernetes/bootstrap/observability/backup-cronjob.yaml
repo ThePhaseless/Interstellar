@@ -17,7 +17,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: borgbackup
-              image: alpine:3.23
+              image: alpine:3.24
               command: ["/bin/sh", "/scripts/borg-backup.sh"]
               env:
                 - name: BORG_PASSPHRASE
