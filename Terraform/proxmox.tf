@@ -59,7 +59,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
   scsi_hardware = "virtio-scsi-pci"
   boot_order    = ["scsi0", "ide0"]
   started       = true
-  on_boot       = false
+  on_boot       = true
 
   operating_system {
     type = "l26"
