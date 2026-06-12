@@ -2,16 +2,20 @@
 # Manual edits may be lost in future updates.
 
 provider "registry.terraform.io/bitwarden/bitwarden-secrets" {
-  version     = "0.5.4-pre"
-  constraints = "0.5.4-pre"
+  version     = "1.0.0"
+  constraints = "1.0.0"
   hashes = [
-    "h1:HMoyWqwfjb6F/1aPwQzRmjaFmLGXdKHXitzw3KpjOOU=",
-    "zh:107186c3cbaf5334cdd606b78b4c16a95f810a978cb8b2ecd20f6a5b2afe86d9",
-    "zh:16b8c5d1939688eaac622c2eb77b7acdcec5d386a9e52248e4b1fea54a8a3492",
-    "zh:3afddcb4556d5523713763ce8e1f9cb1902c939d11c1842da6ddad7822835c0f",
-    "zh:641ac3674168711892ffad5ef49b29ef600e391c29941f1cdd2bb25bf5cf5240",
-    "zh:b08dde9f716bd80c1041cba1223cd2ca669ef7b4ff5df1e6012818ab24c99a8f",
+    "h1:0/k3qxTpG5JN67f4fK0L7zkFgfr2/PfcoA9Pd2BpelY=",
+    "h1:JwVsAEAbIp1e8H5qHcT9CR+j5oZz7LAgCyJTuwczlrA=",
+    "h1:tm/sPudvPpzaVhv0yJ/XwOvb03cFoTJDK+/DB6M4KSU=",
+    "h1:yEynV9c+s/HCfLStrZQAmZU310sz7Dl4c7P3Azi2j8w=",
+    "h1:ywotNI33DInN2j1wjHUZuu2VGKcfx1KULfWlrBl5274=",
+    "zh:32fb9eb0672fe0b12b136abd932a5531fb163b4cc982cd477feea96d28021701",
+    "zh:3aabe5ab6809fce2ea6386a2164fa75736f6ed75189da91648b6129c72754ab8",
+    "zh:6ca7554c7a35c211ea5678696f246259a54a22b4e7022ab335168124b005f92a",
+    "zh:bb3bdb8bcd77941ade652e6a0df45a54591d1fc9d84306c11bee952c3fbb7b7d",
     "zh:f809ab383cca0a5f83072981c64208cbd7fa67e986a86ee02dd2c82333221e32",
+    "zh:fddfa94fec6107a95151415bc69b8048e64f28b174af4f18f7733e7800f14cd6",
   ]
 }
 
