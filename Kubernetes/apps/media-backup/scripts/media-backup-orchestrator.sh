@@ -4,7 +4,6 @@ set -eu
 NAMESPACE="${POD_NAMESPACE:-media}"
 BACKUP_SELECTOR="${BACKUP_SELECTOR:-backup.interstellar/enabled=true}"
 JOB_TIMEOUT_SECONDS="${JOB_TIMEOUT_SECONDS:-7200}"
-BACKUP_IMAGE="${BACKUP_IMAGE:-alpine:3.23}"
 
 info() { printf '\n%s %s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2; }
 
@@ -69,7 +68,7 @@ ${node_line}
       restartPolicy: Never
       containers:
         - name: borgbackup
-          image: ${BACKUP_IMAGE}
+          image: alpine:3.23
           command: ["/bin/sh", "/scripts/borg-backup.sh"]
           env:
             - name: BORG_PASSPHRASE
