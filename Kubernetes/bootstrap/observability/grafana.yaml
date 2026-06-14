@@ -124,8 +124,6 @@ spec:
               mountPath: /var/lib/grafana/dashboards/geo
             - name: dashboard-access
               mountPath: /var/lib/grafana/dashboards/access
-            - name: dashboard-intel-gpu
-              mountPath: /var/lib/grafana/dashboards/intel-gpu
             - name: dashboard-longhorn
               mountPath: /var/lib/grafana/dashboards/longhorn
           resources:
@@ -183,9 +181,6 @@ spec:
         - name: dashboard-access
           configMap:
             name: grafana-dashboard-access
-        - name: dashboard-intel-gpu
-          configMap:
-            name: grafana-dashboard-intel-gpu
         - name: dashboard-longhorn
           configMap:
             name: grafana-dashboard-longhorn
