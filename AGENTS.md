@@ -111,6 +111,7 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 - **Longhorn volumes with `recurring-job-group.longhorn.io/default: enabled` auto-delete user-created snapshots**: The Longhorn admission webhook re-adds this label if removed, so snapshots created via `kubectl apply` are deleted within seconds. For migrations requiring persistent snapshots, use direct data copy via a temporary Job (mount old PVC read-only, new PVC read-write, `cp -a`) instead of the snapshot/restore flow.
 - **Borg repo path migration (backups/immich → backups/interstellar)**: After merging the backup refactor, manually SSH to the storage box and run `mv backups/immich backups/interstellar` BEFORE running `terraform apply`. The Terraform change updates the Bitwarden secret, so the mv must happen first or backups will fail until the directory exists at the new path. All existing archives move with the directory — borg repos are self-contained.
 - **Intel Arc GPU monitoring cost ~7-8W**: The Xe driver's `disable_display=1` plus PCIe L1.2 gets the GPU to ~9W idle on Talos (DMC firmware is missing, so full D3cold/runtime PM is hard-disabled). Any periodic sysfs reads from `/sys/class/drm/card0/device/tile0/gt*/freq0/cur_freq` or `throttle/reason_*` wake the GT out of G2 — don't add GPU metric exporters or scrapers. The previous `intel-gpu-exporter` DaemonSet was removed for this reason.
+- **Longhorn PV `nodeAffinity` is immutable**: When a workload moves to a node added after the volume was created, `dataLocality: best-effort` alone cannot overcome stale node affinity. The fix is to add a replica on the new node, detach the volume, delete the PV (after setting `reclaimPolicy: Retain`), then use Longhorn's `pvCreate` action to recreate it so the workload can schedule.
 
 ### Terraform App Configuration (`Terraform/apps/`)
 
@@ -182,5 +183,6 @@ terraform import prowlarr_application.radarr <ID>
 ## Workflow
 
 - **Kubernetes changes**: Use `git push` + ArgoCD resync. ArgoCD is the GitOps source of truth.
+- **Temporary cluster fixes are allowed** for debugging or to unblock a workload, but only if you first confirm ArgoCD will not revert them (e.g. the resource is not in Git, auto-sync is paused, or the field is not managed). Final, durable changes must be committed to Git and verified as Synced in ArgoCD before considering the job done.
 - Apply script (`./scripts/apply-kubernetes.sh`) is for bootstrapping only, not routine changes.
 - **Before running `terraform` in `Terraform/apps/`**: Always ensure `./scripts/port-forward-apps.sh` is running first (check with `ss -tlnp | grep -E "8989|7878|9696|8096|3000|9000"`).
