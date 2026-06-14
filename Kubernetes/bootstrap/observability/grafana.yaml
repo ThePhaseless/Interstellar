@@ -18,6 +18,7 @@ spec:
       labels:
         app: grafana
     spec:
+      terminationGracePeriodSeconds: 90
       securityContext:
         fsGroup: 472
         runAsUser: 472
@@ -130,22 +131,26 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 128Mi
+              memory: 256Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 1Gi
           livenessProbe:
             httpGet:
               path: /api/health
               port: http
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /api/health
               port: http
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
 
       volumes:
         - name: data
