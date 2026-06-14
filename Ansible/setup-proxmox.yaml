@@ -139,6 +139,7 @@
           - linux-cpupower
           - powertop
           - hdparm
+          - hd-idle
           - rfkill
         state: present
         update_cache: true
@@ -214,6 +215,19 @@
       tags:
         - power
 
+    - name: Configure hd-idle to spin down idle HDDs
+      ansible.builtin.copy:
+        dest: /etc/default/hd-idle
+        mode: "0644"
+        content: |
+          # defaults file for hd-idle
+          START_HD_IDLE=true
+          # Spin down all spinning disks after 10 minutes of inactivity.
+          HD_IDLE_OPTS="-i 600 -c scsi"
+      notify: Restart hd-idle
+      tags:
+        - power
+
     - name: Enable power management services
       ansible.builtin.systemd:
         name: "{{ item }}"
@@ -223,6 +237,7 @@
         - tlp
         - powertop-auto-tune
         - power-tuning
+        - hd-idle
       tags:
         - power
 
@@ -280,6 +295,13 @@
         name: power-tuning
         state: restarted
         daemon_reload: true
+      tags:
+        - power
+
+    - name: Restart hd-idle
+      ansible.builtin.systemd:
+        name: hd-idle
+        state: restarted
       tags:
         - power
 
