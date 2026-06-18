@@ -222,8 +222,8 @@
         content: |
           # defaults file for hd-idle
           START_HD_IDLE=true
-          # Spin down all spinning disks after 10 minutes of inactivity.
-          HD_IDLE_OPTS="-i 600 -c scsi"
+          # Spin down all SATA disks after 10 minutes of inactivity (use -c ata for SATA, not -c scsi).
+          HD_IDLE_OPTS="-i 600 -c ata"
       notify: Restart hd-idle
       tags:
         - power
