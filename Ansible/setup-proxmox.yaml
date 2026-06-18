@@ -261,6 +261,13 @@
         - power
         - aspm
 
+    - name: Disable atime on Storage pool (stop reads from writing)
+      ansible.builtin.command:
+        cmd: zfs set atime=off Storage
+      changed_when: false # idempotent: zfs set is a no-op if already set
+      tags:
+        - power
+
   handlers:
     - name: Re-export NFS shares
       ansible.builtin.command:
