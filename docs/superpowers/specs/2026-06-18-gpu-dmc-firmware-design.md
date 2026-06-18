@@ -61,39 +61,25 @@ With DMC firmware loaded, `xe` runtime PM engages. When no GPU workload is runni
 7. **File upstream PR** to `siderolabs/extensions` adding `cp -R -p /usr/lib/firmware/i915 ...` to `drm/xe/pkg.yaml` so the custom extension can eventually be retired.
 8. **Update the root `AGENTS.md` GPU gotcha** to reflect that this is a fixable bug, not a permanent condition (after the fix is confirmed in production).
 
-### Test-injection methods (try in order)
+### Firmware injection method (revised during planning)
 
-#### Method A — Talos `machine.files` URL patch (preferred if `/usr/lib/firmware` is writable)
+**Methods A and C below were ruled out during planning.** Method B is simplified: no custom extension build is needed because the **official `siderolabs/i915` extension** already ships the full `i915/` firmware dir (including `bmg_dmc.bin`). Image Factory schematics only support `officialExtensions`, so a truly custom extension would require running a private Image Factory — not worth it when the official i915 extension solves the problem.
 
-Talos machine config supports `machine.files` entries that write files at boot. Check whether a `machine.files` entry with `path: /usr/lib/firmware/i915/bmg_dmc.bin`, `op: append`, and a `content`/URL source works on talos-1. If `/usr/lib/firmware` is part of the writable overlay (not the immutable squashfs), this is the cleanest test path — no image rebuild.
+#### Method A — Talos `machine.files` (RULED OUT)
 
-**Test:**
-```bash
-# Fetch the firmware from intel-gpu/intel-gpu-firmware (verify checksum)
-curl -L -o /tmp/bmg_dmc.bin https://github.com/intel-gpu/intel-gpu-firmware/raw/main/firmware/bmg_dmc.bin
-sha256sum /tmp/bmg_dmc.bin
-# Expected: 76e3ec6ea3a53ce727e43b84f5ea14c55400a2d118dac356d4e12a3cfac06b4d (45964 bytes)
+Investigated during planning: `machine.files.content` is a **literal string** with no base64 decode path (confirmed by generating a sample config with `talosctl gen config --with-examples`). A 45KB binary firmware cannot be expressed as a literal string. Additionally, `/usr/lib/firmware` is on the Talos immutable rootfs, so `machine.files` cannot write there. **Not viable.**
 
-# Patch talos-1 machine config to write the file (test via talosctl patch)
-# Note: op=overwrite for a new file (op=append would append to an existing file)
-# The firmware is ~45KB → base64 is ~60KB inline, feasible in a machine.files content entry.
-talosctl --nodes 100.67.213.79 patch machineconfig --patch='[{"op":"add","path":"/machine/files/-","value":{"path":"/usr/lib/firmware/i915/bmg_dmc.bin","permissions":420,"op":"overwrite","content":"<base64-encoded-firmware>"}}]'
-# Reboot talos-1
-talosctl --nodes 100.67.213.79 reboot
-```
+#### Method B — Official `siderolabs/i915` extension (the path we use)
 
-If `machine.files` `content` must be a string (not base64), encode the 45KB firmware as base64 and inline it. If Talos rejects writes to `/usr/lib/firmware/` (immutable rootfs), fall back to Method B. **Verify `machine.files` schema in Talos v1.13 docs before patching** — the `op` field values and `content` encoding may differ from the example above.
+The `i915` extension (`drm/i915/pkg.yaml` in `siderolabs/extensions`) runs `cp -R -p /usr/lib/firmware/i915 /rootfs/usr/lib/firmware` — exactly the line missing from `drm/xe/pkg.yaml`. Adding `siderolabs/i915` to `talos_gpu_extensions` in `Terraform/variables.tf` makes Image Factory include the i915 extension in the GPU schematic, which ships `bmg_dmc.bin` (and the rest of the `i915/` firmware dir) into talos-1's rootfs.
 
-#### Method B — Custom system extension (if rootfs is immutable)
+**Why this is safe (no driver conflict):** The i915 extension also ships the i915 kernel module, but the B580 (device ID `8086:e20b`) is claimed by the `xe` driver, not `i915`. The `xe` driver binds first (it's in the GPU schematic already), and `i915` does not claim `e20b`. So i915's kernel module loads but does not bind to the GPU; only its firmware files are used (by `xe`, which loads DMC from the `i915/` path regardless of which extension shipped it). Verify post-upgrade that `xe` is still the bound driver (Task 3 Step 5 of the plan).
 
-Build a minimal Talos system extension that ships only `i915/bmg_dmc.bin`:
-- `pkg.yaml` modeled on `drm/xe/pkg.yaml` but copying `i915/bmg_dmc.bin` (and ideally the whole `i915/` DMC subset) into `/usr/lib/firmware/i915/`.
-- Push to a registry the Image Factory can pull (or use the Talos `imager` tool to build a custom installer image directly).
-- Test by applying a new schematic to talos-1 only, reinstalling the node, rebooting.
+This is both the **test** and the **interim codification** — no separate test-injection step needed. The permanent fix is the upstream PR (Task 5 of the plan) to add the `i915/` copy to `drm/xe/pkg.yaml` directly, after which the `i915` extension can be removed from `talos_gpu_extensions`.
 
-This is more work but is the production-grade path and what we'd codify anyway. If Method A works, we still need this for the codified state (Method A's `machine.files` is a test convenience; the durable fix is an extension so it survives upgrades).
+#### Method C — Privileged pod with hostPath (RULED OUT)
 
-#### Method C — Privileged pod with hostPath (last resort, not durable)
+`/usr/lib/firmware` is on the immutable rootfs; a hostPath mount + write would fail or be lost on reboot. **Not viable.**
 
 Run a privileged pod on talos-1 (GPU node) with `hostPath: /usr/lib/firmware` mounted RW, copy the file in, reboot the node. Not codifiable (the file lives on the ephemeral overlay and is lost on upgrade), but confirms the fix works before investing in extension build. Only use if A and B are blocked.
 
@@ -110,13 +96,16 @@ Run a privileged pod on talos-1 (GPU node) with `hostPath: /usr/lib/firmware` mo
 
 ### Codification (only after test passes)
 
-1. **Custom extension** — create a `siderolabs/intel-dmc-firmware` (or local) extension image shipping `i915/bmg_dmc.bin`. Add to `Terraform/variables.tf` `talos_gpu_extensions`:
+1. **Interim: keep `siderolabs/i915` in `Terraform/variables.tf` `talos_gpu_extensions`** (this is the same change as the test — no custom extension build needed). Add a comment explaining it's a temporary workaround:
    ```hcl
    variable "talos_gpu_extensions" {
      default = [
        "siderolabs/mei",
        "siderolabs/xe",
-       "<registry>/intel-dmc-firmware",  # new
+       # Temporary: ships i915/bmg_dmc.bin so xe runtime PM works.
+       # Remove once siderolabs/extensions PR #<N> merges and the xe
+       # extension includes i915/ firmware by default.
+       "siderolabs/i915",
      ]
    }
    ```
