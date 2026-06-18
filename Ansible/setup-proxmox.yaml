@@ -228,6 +228,18 @@
       tags:
         - power
 
+    - name: Disable unused USB devices (RGB controller + serial) for power
+      ansible.builtin.copy:
+        dest: /etc/udev/rules.d/99-power-usb-unbind.rules
+        mode: "0644"
+        content: |
+          # MSI MYSTIC LIGHT RGB controller (no RGB daemon running)
+          ACTION=="add", ATTR{idVendor}=="1462", ATTR{idProduct}=="7c37", RUN+="/bin/sh -c 'echo $kernel > /sys$DEVPATH/driver/unbind'"
+          # CH340 serial converter (no getty, no UPS software)
+          ACTION=="add", ATTR{idVendor}=="1a86", ATTR{idProduct}=="7523", RUN+="/bin/sh -c 'echo $kernel > /sys$DEVPATH/driver/unbind'"
+      tags:
+        - power
+
     - name: Enable power management services
       ansible.builtin.systemd:
         name: "{{ item }}"
