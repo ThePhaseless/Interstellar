@@ -228,6 +228,23 @@
       tags:
         - power
 
+    - name: Stop KVM from spin-polling idle vCPUs
+      ansible.builtin.copy:
+        dest: /etc/modprobe.d/kvm.conf
+        mode: "0644"
+        content: |
+          # Reduce idle power: stop KVM from spin-polling vCPUs when VMs are idle.
+          options kvm halt_poll_ns=0
+      tags:
+        - power
+
+    - name: Apply halt_poll_ns tuning live
+      ansible.builtin.command:
+        cmd: sh -c 'echo 0 > /sys/module/kvm/parameters/halt_poll_ns'
+      changed_when: false
+      tags:
+        - power
+
     - name: Disable unused USB devices (RGB controller + serial) for power
       ansible.builtin.copy:
         dest: /etc/udev/rules.d/99-power-usb-unbind.rules

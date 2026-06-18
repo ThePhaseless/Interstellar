@@ -14,11 +14,12 @@ spec:
       backoffLimit: 2
       template:
         spec:
+          serviceAccountName: home-backup
           restartPolicy: OnFailure
           containers:
             - name: borgbackup
               image: alpine:3.24
-              command: ["/bin/sh", "/scripts/borg-backup.sh"]
+              command: ["/bin/sh", "/scripts/home-backup.sh"]
               env:
                 - name: BORG_PASSPHRASE
                   valueFrom:
@@ -39,36 +40,14 @@ spec:
                   value: |
                     home:/adguard
               volumeMounts:
-                - name: adguard-data
-                  mountPath: /adguard
-                  readOnly: true
-                - name: borg-ssh-key
-                  mountPath: /secrets/ssh
-                  readOnly: true
                 - name: backup-script
                   mountPath: /scripts
                   readOnly: true
-                - name: borg-cache
-                  mountPath: /root/.cache/borg
               resources:
-                requests: { cpu: 100m, memory: 256Mi }
-                limits: { cpu: 1000m, memory: 1Gi }
+                requests: { cpu: 100m, memory: 128Mi }
+                limits: { cpu: 500m, memory: 512Mi }
           volumes:
-            - name: adguard-data
-              persistentVolumeClaim:
-                claimName: adguard-data
-            - name: borg-ssh-key
-              secret:
-                secretName: borg-secrets
-                items:
-                  - key: ssh-private-key
-                    path: id_ed25519
-                    mode: 0600
-                defaultMode: 0600
             - name: backup-script
               configMap:
                 name: home-backup-script
                 defaultMode: 0755
-            - name: borg-cache
-              emptyDir:
-                sizeLimit: 2Gi
