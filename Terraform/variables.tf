@@ -99,7 +99,14 @@ variable "talos_gpu_extensions" {
   type        = list(string)
   default = [
     "siderolabs/mei",
-    "siderolabs/xe"
+    "siderolabs/xe",
+    # Temporary: ships i915/bmg_dmc.bin so xe runtime PM works.
+    # The xe driver loads DMC firmware from i915/bmg_dmc.bin (legacy path),
+    # but the Talos xe extension only ships /usr/lib/firmware/xe/, so runtime
+    # PM was hard-disabled (~9W GPU idle floor). Remove once the upstream PR
+    # to siderolabs/extensions (drm/xe/pkg.yaml) merges and the xe extension
+    # includes i915/ firmware by default.
+    "siderolabs/i915",
   ]
 }
 
