@@ -57,7 +57,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
   machine       = "q35"
   bios          = "ovmf"
   scsi_hardware = "virtio-scsi-pci"
-  boot_order    = ["scsi0", "ide0"]
+  boot_order    = ["scsi0"]
   started       = true
   on_boot       = true
 

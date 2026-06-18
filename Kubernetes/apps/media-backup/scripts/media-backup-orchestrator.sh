@@ -168,7 +168,6 @@ EOF
 }
 
 FAILED=0
-PIDS=""
 targets_file=$(mktemp)
 
 printf '%s' "$backup_pvcs" | jq -r '
@@ -184,21 +183,11 @@ printf '%s' "$backup_pvcs" | jq -r '
   | @tsv
 ' >"$targets_file"
 
+# Run backups sequentially to avoid Borg repository lock contention.
 while IFS="$(printf '\t')" read -r claim prefix mount_path app_selector excludes legacy_globs; do
-    (
-        if ! run_job "$claim" "$prefix" "$mount_path" "$app_selector" "$excludes" "$legacy_globs"; then
-            exit 1
-        fi
-    ) &
-    pid=$!
-    PIDS="$PIDS $pid"
-done <"$targets_file"
-
-FAILED=0
-for pid in $PIDS; do
-    if ! wait "$pid"; then
+    if ! run_job "$claim" "$prefix" "$mount_path" "$app_selector" "$excludes" "$legacy_globs"; then
         FAILED=1
     fi
-done
+done <"$targets_file"
 
 exit "$FAILED"

@@ -6,12 +6,14 @@ namespace: home
 resources:
   - cronjob.yaml
   - externalsecret.yaml
+  - rbac.yaml
 
 configMapGenerator:
   - name: home-backup-script
     namespace: home
     files:
       - scripts/borg-backup.sh
+      - scripts/home-backup.sh
     options:
       disableNameSuffixHash: true
 
