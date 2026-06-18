@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v3.0.0
@@ -275,7 +275,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v3.0.0
