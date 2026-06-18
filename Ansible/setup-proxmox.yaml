@@ -240,6 +240,16 @@
       tags:
         - power
 
+    - name: Power off unused nic0 (1GbE RTL8168, no carrier)
+      ansible.builtin.copy:
+        dest: /etc/udev/rules.d/99-power-nic0.rules
+        mode: "0644"
+        content: |
+          # nic0 is unused (DOWN, no carrier) — unbind r8169 driver to allow PCI runtime PM
+          ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10ec", ATTR{device}=="0x8168", RUN+="/bin/sh -c 'echo $kernel > /sys/bus/pci/drivers/r8169/unbind'"
+      tags:
+        - power
+
     - name: Enable power management services
       ansible.builtin.systemd:
         name: "{{ item }}"
