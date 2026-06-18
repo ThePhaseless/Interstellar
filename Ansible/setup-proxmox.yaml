@@ -290,6 +290,25 @@
       tags:
         - power
 
+    - name: Bump zfs_txg_timeout to 30s for HDD spindown
+      ansible.builtin.blockinfile:
+        path: /etc/modprobe.d/zfs.conf
+        create: true
+        mode: "0644"
+        block: |
+          # Increase txg timeout from 5s default to 30s to allow HDD spindown.
+          # Up to 30s of writes at risk on crash; ZFS is crash-consistent (no corruption).
+          options zfs zfs_txg_timeout=30
+      tags:
+        - power
+
+    - name: Apply zfs_txg_timeout live
+      ansible.builtin.command:
+        cmd: sh -c 'echo 30 > /sys/module/zfs/parameters/zfs_txg_timeout'
+      changed_when: false
+      tags:
+        - power
+
   handlers:
     - name: Re-export NFS shares
       ansible.builtin.command:
