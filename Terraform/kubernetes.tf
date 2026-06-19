@@ -1,5 +1,9 @@
 provider "kubernetes" {
-  host                   = "https://${coalesce(var.kubernetes_api_host, "${local.talos_bootstrap_node_name}.${var.tailscale_magicdns_domain}")}:6443"
+  # Use talos-2 as the default Kubernetes API endpoint because talos-1 (GPU node)
+  # is recreated more often during hardware/GPU experiments and its Tailscale
+  # identity does not survive reinstallation. Override with var.kubernetes_api_host
+  # if the default node is unavailable.
+  host                   = "https://${coalesce(var.kubernetes_api_host, "${local.talos_node_names[1]}.${var.tailscale_magicdns_domain}")}:6443"
   client_certificate     = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.client_certificate)
   client_key             = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.client_key)
   cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.cluster.kubernetes_client_configuration.ca_certificate)
