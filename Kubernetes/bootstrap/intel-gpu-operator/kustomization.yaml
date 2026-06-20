@@ -6,6 +6,7 @@ resources:
   - nfd-namespace.yaml
   - gpu-plugin.yaml
   - gpu-feature-rule.yaml
+  - gpu-pm-fix.yaml
 
 helmCharts:
   - name: node-feature-discovery
