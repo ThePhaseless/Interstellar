@@ -215,28 +215,6 @@
       tags:
         - power
 
-    - name: Create manual fan-control service
-      ansible.builtin.copy:
-        dest: /etc/systemd/system/fan-control.service
-        mode: "0644"
-        content: |
-          [Unit]
-          Description=Manual fan speed control
-          After=multi-user.target
-          Before=power-tuning.service
-
-          [Service]
-          Type=oneshot
-          RemainAfterExit=yes
-          ExecStart=/bin/sh -c "echo 1 > /sys/class/hwmon/hwmon3/pwm1_enable && echo 30 > /sys/class/hwmon/hwmon3/pwm1"
-          ExecStart=/bin/sh -c "echo 1 > /sys/class/hwmon/hwmon3/pwm2_enable && echo 60 > /sys/class/hwmon/hwmon3/pwm2"
-
-          [Install]
-          WantedBy=multi-user.target
-      notify: Reload systemd and restart fan-control
-      tags:
-        - power
-
     - name: Configure hd-idle to spin down idle HDDs
       ansible.builtin.copy:
         dest: /etc/default/hd-idle
@@ -297,7 +275,6 @@
       loop:
         - tlp
         - powertop-auto-tune
-        - fan-control
         - power-tuning
         - hd-idle
       tags:
@@ -373,14 +350,6 @@
     - name: Reload systemd and restart powertop
       ansible.builtin.systemd:
         name: powertop-auto-tune
-        state: restarted
-        daemon_reload: true
-      tags:
-        - power
-
-    - name: Reload systemd and restart fan-control
-      ansible.builtin.systemd:
-        name: fan-control
         state: restarted
         daemon_reload: true
       tags:
