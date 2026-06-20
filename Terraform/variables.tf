@@ -45,6 +45,7 @@ variable "nodes" {
   default = {
     "talos-1" = {
       vmid           = 110
+      vcpus          = 4
       memory         = 10240
       data_disk_size = 120
       gpu            = true
