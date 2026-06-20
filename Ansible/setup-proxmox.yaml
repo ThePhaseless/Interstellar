@@ -215,6 +215,28 @@
       tags:
         - power
 
+    - name: Create manual fan-control service
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/fan-control.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Manual fan speed control
+          After=multi-user.target
+          Before=power-tuning.service
+
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          ExecStart=/bin/sh -c "echo 1 > /sys/class/hwmon/hwmon3/pwm1_enable && echo 30 > /sys/class/hwmon/hwmon3/pwm1"
+          ExecStart=/bin/sh -c "echo 1 > /sys/class/hwmon/hwmon3/pwm2_enable && echo 60 > /sys/class/hwmon/hwmon3/pwm2"
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Reload systemd and restart fan-control
+      tags:
+        - power
+
     - name: Configure hd-idle to spin down idle HDDs
       ansible.builtin.copy:
         dest: /etc/default/hd-idle
@@ -245,15 +267,15 @@
       tags:
         - power
 
-    - name: Disable unused USB devices (RGB controller + serial) for power
+    - name: Disable unused USB devices for power
       ansible.builtin.copy:
         dest: /etc/udev/rules.d/99-power-usb-unbind.rules
         mode: "0644"
         content: |
           # MSI MYSTIC LIGHT RGB controller (no RGB daemon running)
           ACTION=="add", ATTR{idVendor}=="1462", ATTR{idProduct}=="7c37", RUN+="/bin/sh -c 'echo $kernel > /sys$DEVPATH/driver/unbind'"
-          # CH340 serial converter (no getty, no UPS software)
-          ACTION=="add", ATTR{idVendor}=="1a86", ATTR{idProduct}=="7523", RUN+="/bin/sh -c 'echo $kernel > /sys$DEVPATH/driver/unbind'"
+          # NOTE: CH340 (1a86:7523) is intentionally NOT unbound — it is the
+          # Zigbee coordinator passed through to the Home Assistant VM (usb0 mapping=Zigbee).
       tags:
         - power
 
@@ -275,6 +297,7 @@
       loop:
         - tlp
         - powertop-auto-tune
+        - fan-control
         - power-tuning
         - hd-idle
       tags:
@@ -350,6 +373,14 @@
     - name: Reload systemd and restart powertop
       ansible.builtin.systemd:
         name: powertop-auto-tune
+        state: restarted
+        daemon_reload: true
+      tags:
+        - power
+
+    - name: Reload systemd and restart fan-control
+      ansible.builtin.systemd:
+        name: fan-control
         state: restarted
         daemon_reload: true
       tags:

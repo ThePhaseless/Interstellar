@@ -31,7 +31,7 @@ Phase 1 saved ~17 W mean / ~17 W idle floor. Current draw ~143 W (HDDs spinning)
 
 **Unused USB devices (both `runtime_status=active`, no consumer):**
 - `1462:7c37` MSI MYSTIC LIGHT (RGB controller) — no RGB daemon running.
-- `1a86:7523` QinHeng CH340 serial converter — no getty, no UPS software (nut/apcupsd inactive), no `/dev/ttyUSB*` consumer.
+- `1a86:7523` QinHeng CH340 serial converter — **actually used**: it is the Zigbee coordinator passed through to the Home Assistant VM (Proxmox `usb0` mapping `Zigbee`). Do **not** unbind this device.
 
 **Unused NIC:**
 - `nic0` (1GbE) — `state DOWN`, no carrier. `power/control=auto` but never suspends because it's a host NIC with no runtime PM partner.
@@ -106,7 +106,7 @@ Move the shared `downloads-pvc` from NFS `Storage` (spinning HDD) to Longhorn on
 | Device | ID | Method | Why |
 |---|---|---|---|
 | MSI MYSTIC LIGHT (RGB) | `1462:7c37` | udev rule: `ACTION=="add", ATTR{idVendor}=="1462", ATTR{idProduct}=="7c37", RUN+="/bin/sh -c 'echo > /sys$DEVPATH/driver/unbind'"` | No RGB daemon; pure power waste. |
-| CH340 serial | `1a86:7523` | udev rule: same pattern with `1a86`/`7523` | No getty, no UPS, no consumer. |
+| CH340 serial | `1a86:7523` | **Do not unbind** — it is the Zigbee coordinator for HA VM | N/A |
 
 **Test:** Manually unbind each (`echo > /sys/bus/usb/devices/<dev>/driver/unbind`), measure ~10 min each, confirm no service breaks (check `journalctl -u getty@tty*`, `systemctl status nut-server nut-driver apcupsd` all still inactive).
 
