@@ -12,6 +12,7 @@ resources:
   - mimir.yaml
   - mimir-pvc.yaml
   - promtail.yaml
+  - talos-dmesg-shipper.yaml
   - alloy.yaml
   - kube-state-metrics.yaml
   - externalsecret.yaml

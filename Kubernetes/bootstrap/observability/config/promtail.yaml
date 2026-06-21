@@ -77,6 +77,18 @@ scrape_configs:
                 geoip_country_name:
                 client_ip:
 
+      # Talos kernel log shipper. /dev/kmsg lines look like:
+      #   "<level>,<seq>,<timestamp_us>,<flags>;<message>"
+      # We extract only the level (0=emerg .. 7=debug) as a Loki label so
+      # Grafana can filter on {kmsg_level="0|1|2|3"} for emergencies and
+      # {kmsg_level=">=4"} for warnings+info. The raw line is kept as the
+      # log content for full-text search.
+      - match:
+          selector: '{app="talos-kmsg-shipper"}'
+          stages:
+            - regex:
+                expression: '^(?P<kmsg_level>\d+),'
+
       # Generic JSON log level extraction for all pods.
       # Promotes the log level (from `level`, `lvl`, or `severity` fields) as
       # a Loki label so logs can be filtered with {log_level="error"} etc.
