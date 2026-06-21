@@ -12,6 +12,5 @@ resources:
   - reloader/
   - observability/
   - metrics-server/
-  - clamav/
   - authentik/
   - coredns-override/

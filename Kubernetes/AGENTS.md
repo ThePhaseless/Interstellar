@@ -241,6 +241,7 @@ volumes:
 - The repo self-manages `argocd/app-of-apps`, so the custom ArgoCD `Application` health script must special-case that root app and derive health from `.status.resources`; mirroring its own `.status.health` makes the root app stay recursively `Degraded`.
 - Legacy bootstrap resources that predate `application.resourceTrackingMethod: annotation` need a one-time live adoption with `argocd.argoproj.io/tracking-id`; after that, ArgoCD compare also needs to ignore that annotation or the adopted bootstrap resources stay falsely `OutOfSync`.
 - Root app health should also ignore completed hook resources with `requiresPruning=true` such as `argocd-redis-secret-init` RBAC; otherwise `app-of-apps` stays falsely `Degraded` even after the cluster is already reconciled.
+- **ClamAV was removed by design** — there is no `Kubernetes/bootstrap/clamav/` directory, no `clamav-scanner`/`clamav-deep-scan` CronJobs, no `clamav-db` PVC, no `clamav-secrets` ExternalSecret, and no `security` namespace. The `discord-webhook-url` Bitwarden secret is **still in use** by `Kubernetes/bootstrap/observability/externalsecret.yaml` (Promtail/Alloy alerts) and remains managed by `Terraform/secrets.tf`/`Terraform/apps/bitwarden.tf` — do not delete it. `/downloads/quarantine` and `/personal/public/.quarantine` were ClamAV's downstream consumers; if a future malware scanner is added, it must wire to those paths or the workflow needs a redesign — do not silently re-add ClamAV.
 
 ## Lint validation
 
