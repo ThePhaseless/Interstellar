@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: talos-kmsg-shipper
+  namespace: observability
+  labels:
+    app: talos-kmsg-shipper
+spec:
+  selector:
+    matchLabels:
+      app: talos-kmsg-shipper
+  template:
+    metadata:
+      labels:
+        app: talos-kmsg-shipper
+        # Used by the Promtail match stage below to add a kmsg_level label.
+        # The actual Loki label is set by the kubernetes-pods relabeling rules.
+        source: talos-kmsg
+    spec:
+      # Tolerate all taints so the shipper runs on every node, including
+      # control-plane nodes (which have NoSchedule by default).
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+      containers:
+        - name: kmsg
+          # Alpine 3.20 ships busybox cat; image is small (~5 MB).
+          image: alpine:3.20
+          command:
+            - sh
+            - -c
+            - |
+              # /dev/kmsg is the kernel ring buffer as a character device.
+              # cat blocks on read() when the buffer is empty and is woken
+              # on every new kernel log line; output goes to stdout and is
+              # captured by the CRI runtime, which Promtail's
+              # kubernetes-pods job picks up at
+              # /var/log/pods/observability_<pod>_<uid>/kmsg/*.log.
+              #
+              # First read dumps the existing buffer (one-time burst per
+              # pod start), then we tail new lines forever. This is the
+              # same data talosctl dmesg reads from the host.
+              exec cat /dev/kmsg
+          securityContext:
+            # /dev/kmsg is owned root:kmem mode 0440 on Talos; reading
+            # requires root (or kmem group) + CAP_SYSLOG. We drop ALL
+            # capabilities except SYSLOG to avoid kube-linter privileged
+            # warnings and stay close to least-privilege.
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - SYSLOG
+          resources:
+            requests:
+              # Idle CPU is near 0; small burst on each new kernel line.
+              cpu: 5m
+              # 16 MiB is enough to buffer a few seconds of dmesg burst
+              # (e.g. boot or a crash dump). The Prometheus sidecar is
+              # the dominant memory consumer on this node, not us.
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          volumeMounts:
+            - name: kmsg
+              mountPath: /dev/kmsg
+              readOnly: true
+      volumes:
+        - name: kmsg
+          hostPath:
+            # /dev/kmsg is a character device; Talos always exposes it.
+            path: /dev/kmsg
+            type: CharDevice
