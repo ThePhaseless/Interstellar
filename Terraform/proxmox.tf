@@ -141,6 +141,14 @@ resource "proxmox_virtual_environment_vm" "talos" {
     type    = "virtio"
   }
 
+  # Serial console for GPU node to capture kernel logs during crashes
+  dynamic "serial_device" {
+    for_each = each.value.gpu ? [1] : []
+    content {
+      device = "socket"
+    }
+  }
+
   lifecycle {
     ignore_changes = [
       cdrom,
