@@ -27,7 +27,7 @@ spec:
       containers:
         - name: kmsg
           # Alpine 3.20 ships busybox cat; image is small (~5 MB).
-          image: alpine:3.20
+          image: alpine:3.24
           command:
             - sh
             - -c
