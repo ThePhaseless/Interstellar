@@ -216,18 +216,6 @@ data "talos_machine_configuration" "controlplane" {
         "TS_AUTH_ONCE=true",
       ]
     }),
-
-    # Disable D3cold on GPU node (Intel Arc B580 on QEMU PCIe bridge)
-    # Prevents D3cold→D0 resume failures that wedge the GPU.
-    # Keeps D3hot runtime PM active (~1-2W idle savings).
-    # GPU is always at 0000:01:00.0 (fixed VFIO passthrough topology).
-    each.value.gpu ? yamlencode({
-      machine = {
-        sysfs = {
-          "bus/pci/devices/0000:01:00.0/d3cold_allowed" : "0"
-        }
-      }
-    }) : null,
   ])
 }
 
