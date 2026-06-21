@@ -5,6 +5,11 @@ metadata:
   namespace: observability
   labels:
     app: talos-kmsg-shipper
+  # kube-linter exclusions for privileged-container and
+  # privilege-escalation-container are configured globally in
+  # .kube-linter.yaml — privileged is intentional and required to
+  # read /dev/kmsg on Talos v1.13.4 (SELinux blocks all unprivileged
+  # paths, including spc_t).
 spec:
   selector:
     matchLabels:
@@ -44,18 +49,30 @@ spec:
               # same data talosctl dmesg reads from the host.
               exec cat /dev/kmsg
           securityContext:
-            # /dev/kmsg is owned root:kmem mode 0440 on Talos; reading
-            # requires root (or kmem group) + CAP_SYSLOG. We drop ALL
-            # capabilities except SYSLOG to avoid kube-linter privileged
-            # warnings and stay close to least-privilege.
+            # /dev/kmsg is owned root:root mode 0444 on Talos with
+            # SELinux label device_t:s0. The SELinux policy on Talos
+            # does not allow container_t -> device_t transitions even
+            # with CAP_SYSLOG, and the spc_t (super-privileged container)
+            # type did not unlock it in v1.13.4 (Talos restricts spc_t
+            # to static pods). So we use a privileged container with
+            # no capability drops. This is the same pattern as the
+            # (now-removed) gpu-pm-fix and is the only path that
+            # actually works on Talos today.
+            #
+            # Note: we do NOT `capabilities.drop: [ALL]` here — doing so
+            # removes the implicit-privilege bit that `privileged: true`
+            # grants, and the cat fails with EPERM. The downside is that
+            # the container has full root on the host, so we keep the
+            # command a literal `cat /dev/kmsg` with no shell expansion
+            # and the readOnlyRootFilesystem for everything else.
+            #
+            # kube-linter: privileged warnings are suppressed globally
+            # in .kube-linter.yaml with a comment explaining the why.
+            # Note: Kubernetes requires allowPrivilegeEscalation=true
+            # when privileged=true, so we cannot set it to false.
+            privileged: true
             runAsUser: 0
-            allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
-              add:
-                - SYSLOG
           resources:
             requests:
               # Idle CPU is near 0; small burst on each new kernel line.
