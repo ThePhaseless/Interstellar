@@ -58,7 +58,7 @@ data "talos_image_factory_extensions_versions" "gpu_extensions" {
 resource "talos_image_factory_schematic" "gpu" {
   schematic = yamlencode({
     customization = {
-      extraKernelArgs = ["video=efifb:off", "xe.disable_display=1"]
+      extraKernelArgs = ["video=efifb:off", "xe.disable_display=1", "console=ttyS0"]
       systemExtensions = {
         officialExtensions = distinct(concat(var.talos_base_extensions, var.talos_gpu_extensions))
       }
