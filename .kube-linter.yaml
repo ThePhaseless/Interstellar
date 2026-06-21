@@ -11,6 +11,13 @@ checks:
     - "job-ttl-seconds-after-finished"
     # ServiceAccount in common/ kustomize base - linter can't resolve cross-references
     - "non-existent-service-account"
+    # talos-kmsg-shipper is privileged by design: /dev/kmsg on Talos has
+    # SELinux label device_t:s0, and the SELinux policy blocks every
+    # non-privileged path we tried (CAP_SYSLOG alone, spc_t type). The
+    # DaemonSet documents the why in its securityContext comment; if you
+    # add another privileged pod, document it there too.
+    - "privileged-container"
+    - "privilege-escalation-container"
 
   include:
     - "dangling-ingress"
