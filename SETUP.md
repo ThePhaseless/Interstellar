@@ -132,7 +132,6 @@ kubectl -n external-secrets wait --for=condition=ready pod -l app.kubernetes.io/
 ../scripts/apply-kubernetes.sh bootstrap/intel-gpu-operator
 ../scripts/apply-kubernetes.sh bootstrap/observability
 ../scripts/apply-kubernetes.sh bootstrap/metrics-server
-../scripts/apply-kubernetes.sh bootstrap/clamav
 ../scripts/apply-kubernetes.sh bootstrap/authentik
 ../scripts/apply-kubernetes.sh bootstrap/coredns-override
 ```

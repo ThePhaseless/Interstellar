@@ -56,7 +56,7 @@ flowchart TB
 | **Ingress**       | Traefik v3.3 with PROXY protocol + CrowdSec plugin     |
 | **Storage**       | LongHorn CSI → iSCSI → ZFS zvol                        |
 | **Secrets**       | Bitwarden Secrets Manager + External Secrets Operator  |
-| **Security**      | CrowdSec WAF (Traefik plugin), ClamAV malware scanning |
+| **Security**      | CrowdSec WAF (Traefik plugin) |
 | **Observability** | Grafana, Loki, Mimir, Promtail, Alloy                  |
 | **IaC**           | Terraform, Ansible, GitHub Actions                     |
 
@@ -127,7 +127,6 @@ flowchart TB
 | External Secrets   | Bitwarden integration          |
 | Tailscale Operator | Service mesh + auth            |
 | Reloader           | Auto-reload on config changes  |
-| ClamAV             | Malware scanning for downloads |
 
 ## 📂 Repository Structure
 
@@ -151,7 +150,6 @@ Interstellar/
 │   │   ├── external-secrets/
 │   │   ├── tailscale-operator/
 │   │   ├── observability/
-│   │   └── clamav/
 │   └── apps/                # Application manifests
 ├── scripts/
 │   └── lint-kubernetes.sh   # Local linting script
@@ -187,7 +185,6 @@ Top-level Kustomize replacements apply these values to both the static media PV 
 - **Zero Trust**: All inter-service communication via Tailscale
 - **Public Access**: Only through Oracle VPS → Tailscale → Traefik
 - **Private Services**: Require Tailscale authentication
-- **Malware Scanning**: ClamAV scans all downloaded files
 - **WAF Protection**: CrowdSec with community threat feeds
 
 ## 📝 License
