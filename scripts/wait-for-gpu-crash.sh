@@ -105,12 +105,12 @@ dump_diagnostics() {
     echo
 
     echo "## Flannel pod state on $NODE:"
-    kubectl -n "$NAMESPACE" get pod -l app=flannel \
+    kubectl -n "$NAMESPACE" get pod -l k8s-app=flannel \
       --field-selector "spec.nodeName=$NODE" -o wide 2>&1 || true
     echo
 
     local flannel_pod
-    flannel_pod=$(kubectl -n "$NAMESPACE" get pod -l app=flannel \
+    flannel_pod=$(kubectl -n "$NAMESPACE" get pod -l k8s-app=flannel \
       --field-selector "spec.nodeName=$NODE" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
     if [[ -n "$flannel_pod" ]]; then
       echo "## Flannel pod recent events ($flannel_pod):"
@@ -179,7 +179,10 @@ log "  discord=${DISCORD_WEBHOOK_URL:+set}${DISCORD_WEBHOOK_URL:-off}"
 log "Press Ctrl-C to abort."
 
 # Establish baselines
-flannel_restarts=$(kubectl -n "$NAMESPACE" get pod -l app=flannel \
+# NOTE: Sidero Labs' Flannel DaemonSet uses the label `k8s-app=flannel`
+# (not `app=flannel`). Both selectors work on the same pod; we use the
+# one the DaemonSet actually applies.
+flannel_restarts=$(kubectl -n "$NAMESPACE" get pod -l k8s-app=flannel \
   --field-selector "spec.nodeName=$NODE" \
   -o jsonpath='{.items[0].status.containerStatuses[0].restartCount}' 2>/dev/null || echo 0)
 uadm_count=$(kubectl get events -A --field-selector reason=UnexpectedAdmissionError \
@@ -202,7 +205,7 @@ while true; do
   fi
 
   # 1. Flannel restart count
-  flannel_now=$(kubectl -n "$NAMESPACE" get pod -l app=flannel \
+  flannel_now=$(kubectl -n "$NAMESPACE" get pod -l k8s-app=flannel \
     --field-selector "spec.nodeName=$NODE" \
     -o jsonpath='{.items[0].status.containerStatuses[0].restartCount}' 2>/dev/null || echo "$flannel_restarts")
   if [[ "$flannel_now" -gt "$flannel_restarts" ]]; then
