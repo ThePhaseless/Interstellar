@@ -69,8 +69,10 @@ resource "proxmox_virtual_environment_vm" "talos" {
   }
 
   efi_disk {
-    datastore_id = var.vm_os_datastore_id
-    file_format  = "raw"
+    datastore_id      = var.vm_os_datastore_id
+    file_format       = "raw"
+    type              = "4m"
+    pre_enrolled_keys = false
   }
 
   # Talos OS boot disk
@@ -142,6 +144,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
   lifecycle {
     ignore_changes = [
       cdrom,
+      efi_disk,
       initialization,
       tags,
     ]
