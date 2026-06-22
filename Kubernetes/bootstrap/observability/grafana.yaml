@@ -191,7 +191,6 @@ metadata:
   name: grafana
   namespace: observability
 spec:
-  type: ClusterIP
   ports:
     - name: http
       port: 3000

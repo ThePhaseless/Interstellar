@@ -50,12 +50,9 @@ resource "proxmox_virtual_environment_vm" "talos" {
   vm_id       = each.value.vmid
   description = "TalosOS ${each.value.gpu ? "GPU " : ""}node for Kubernetes cluster"
 
-  machine       = "q35"
-  bios          = "ovmf"
-  scsi_hardware = "virtio-scsi-pci"
-  boot_order    = ["scsi0"]
-  started       = true
-  on_boot       = true
+  machine    = "q35"
+  bios       = "ovmf"
+  boot_order = ["scsi0"]
 
   operating_system {
     type = "l26"
@@ -65,7 +62,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   cpu {
     cores = each.value.vcpus
-    type  = "host"
   }
 
   memory {
@@ -73,10 +69,8 @@ resource "proxmox_virtual_environment_vm" "talos" {
   }
 
   efi_disk {
-    datastore_id      = var.vm_os_datastore_id
-    file_format       = "raw"
-    type              = "4m"
-    pre_enrolled_keys = false
+    datastore_id = var.vm_os_datastore_id
+    file_format  = "raw"
   }
 
   # Talos OS boot disk
@@ -102,14 +96,12 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   # Boot from ISO for initial install
   cdrom {
-    file_id   = each.value.gpu ? proxmox_download_file.talos_iso_gpu[0].id : proxmox_download_file.talos_iso_base.id
-    interface = "ide0"
+    file_id = each.value.gpu ? proxmox_download_file.talos_iso_gpu[0].id : proxmox_download_file.talos_iso_base.id
   }
 
   # Network interface bridged directly to the home LAN
   network_device {
     bridge = var.proxmox_cluster_bridge_name
-    model  = "virtio"
   }
 
   # Cloud-init network with static IP
@@ -136,9 +128,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
   }
 
   agent {
-    enabled = true
     timeout = "60s"
-    type    = "virtio"
   }
 
   # Serial console for GPU node to capture kernel logs during crashes

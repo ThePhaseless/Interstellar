@@ -4,7 +4,6 @@ metadata:
   name: prowlarr
   namespace: media
 spec:
-  type: ClusterIP
   ports:
     - name: http
       port: 9696

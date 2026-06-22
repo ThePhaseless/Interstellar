@@ -235,6 +235,7 @@ volumes:
 
 ## Key Gotchas
 
+- **GPU node serial console**: Kernel logs from talos-1 (GPU node) are captured to `/var/log/vm-110-serial.log` on the Proxmox host via `vm-110-serial-logger.service`. Use `ssh root@carbon 'tail -100 /var/log/vm-110-serial.log'` to view crash logs. The service uses `socat` to connect to the Proxmox serial socket and appends output to the log file. Logrotate rotates weekly.
 - Talos static control-plane pod logs under `/var/log/pods/kube-system_kube-{apiserver,controller-manager,scheduler}-*/*/*.log` are not reliably picked up by the generic Promtail `kubernetes_sd` pod scrape here; add explicit file globs if you need those logs in Loki or alerting.
 - One-shot or TTL-cleaned `Job` resources should not stay in ArgoCD steady-state `resources:` lists here; once Kubernetes garbage-collects them, Argo will keep the app `OutOfSync` trying to recreate the missing Job.
 - Helm hook resources that should not persist after a successful sync need `helm.sh/hook-delete-policy` to include `hook-succeeded`; otherwise leftover hook RBAC or ServiceAccounts can keep `app-of-apps` falsely unhealthy even though the actual hook already finished.

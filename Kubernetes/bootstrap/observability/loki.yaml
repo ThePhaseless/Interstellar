@@ -68,7 +68,6 @@ metadata:
   name: loki
   namespace: observability
 spec:
-  type: ClusterIP
   ports:
     - name: http
       port: 3100

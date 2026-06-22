@@ -40,26 +40,28 @@
 
     - name: Normalize media directory ownership and setgid permissions
       ansible.builtin.shell: |
-        set -euo pipefail
+        MARKER="/var/cache/ansible-media-normalized"
 
-        owner_mismatch="$(find "{{ item }}" -xdev -type d \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} \) | wc -l)"
-        mode_mismatch="$(find "{{ item }}" -xdev -type d ! -perm -2775 | wc -l)"
-
-        if [[ "${owner_mismatch}" -gt 0 ]]; then
+        if [ -f "$MARKER" ]; then
+          # Fast path: only scan directories modified since last normalization
+          find "{{ item }}" -xdev -type d -newer "$MARKER" \
+            \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} -o ! -perm -2775 \) \
+            -print0 | xargs -0 -r -n 100 chown {{ media_runtime_uid }}:{{ media_runtime_gid }}
+          find "{{ item }}" -xdev -type d -newer "$MARKER" ! -perm -2775 \
+            -print0 | xargs -0 -r -n 100 chmod 2775
+        else
+          # First run: full scan
           find "{{ item }}" -xdev -type d \
-            \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} \) \
-            -print0 | xargs -0 -r chown {{ media_runtime_uid }}:{{ media_runtime_gid }}
+            \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} -o ! -perm -2775 \) \
+            -print0 | xargs -0 -r -n 100 chown {{ media_runtime_uid }}:{{ media_runtime_gid }}
+          find "{{ item }}" -xdev -type d ! -perm -2775 \
+            -print0 | xargs -0 -r -n 100 chmod 2775
         fi
 
-        if [[ "${mode_mismatch}" -gt 0 ]]; then
-          find "{{ item }}" -xdev -type d ! -perm -2775 -print0 | xargs -0 -r chmod 2775
-        fi
-
-        echo "owner_mismatch=${owner_mismatch} mode_mismatch=${mode_mismatch}"
+        touch "$MARKER"
       args:
         executable: /bin/bash
-      register: media_dir_permissions
-      changed_when: media_dir_permissions.stdout | trim != "owner_mismatch=0 mode_mismatch=0"
+      changed_when: false # idempotent: chown/chmod are no-ops on already-correct files
       loop: "{{ media_managed_paths }}"
 
     - name: Configure NFS exports
@@ -151,15 +153,11 @@
         dest: /etc/tlp.d/99-server.conf
         mode: "0644"
         content: |
-          CPU_SCALING_GOVERNOR_ON_AC=powersave
           CPU_ENERGY_PERF_POLICY_ON_AC=balance_power
           CPU_ENERGY_PERF_POLICY_ON_BAT=balance_power
-          CPU_BOOST_ON_AC=1
-          CPU_HWP_DYN_BOOST_ON_AC=1
           SATA_LINKPWR_ON_AC=min_power
           AHCI_RUNTIME_PM_ON_AC=auto
           AHCI_RUNTIME_PM_TIMEOUT=15
-          PCIE_ASPM_ON_AC=auto
           WIFI_PWR_OFF_ON_AC=1
           RUNTIME_PM_ON_AC=auto
           USB_AUTOSUSPEND=1
@@ -184,34 +182,6 @@
           [Install]
           WantedBy=multi-user.target
       notify: Reload systemd and restart powertop
-      tags:
-        - power
-
-    - name: Create power-tuning service
-      ansible.builtin.copy:
-        dest: /etc/systemd/system/power-tuning.service
-        mode: "0644"
-        content: |
-          [Unit]
-          Description=Apply power tuning settings
-          After=multi-user.target tlp.service
-          Requires=tlp.service
-
-          [Service]
-          Type=oneshot
-          RemainAfterExit=yes
-          ExecStartPre=/bin/sleep 2
-          ExecStart=/usr/sbin/rfkill block wifi
-          ExecStart=/bin/sh -c 'for h in /sys/class/scsi_host/host*/link_power_management_policy; do echo min_power > $h 2>/dev/null || true; done'
-          ExecStart=/usr/sbin/hdparm -S 120 /dev/sda
-          ExecStart=/usr/sbin/hdparm -S 120 /dev/sdb
-          ExecStart=/usr/sbin/hdparm -S 120 /dev/sdc
-          ExecStart=/usr/sbin/hdparm -S 120 /dev/sdd
-          ExecStart=/usr/sbin/hdparm -S 120 /dev/sde
-
-          [Install]
-          WantedBy=multi-user.target
-      notify: Reload systemd and restart power-tuning
       tags:
         - power
 
@@ -275,7 +245,6 @@
       loop:
         - tlp
         - powertop-auto-tune
-        - power-tuning
         - hd-idle
       tags:
         - power
@@ -350,14 +319,6 @@
     - name: Reload systemd and restart powertop
       ansible.builtin.systemd:
         name: powertop-auto-tune
-        state: restarted
-        daemon_reload: true
-      tags:
-        - power
-
-    - name: Reload systemd and restart power-tuning
-      ansible.builtin.systemd:
-        name: power-tuning
         state: restarted
         daemon_reload: true
       tags:

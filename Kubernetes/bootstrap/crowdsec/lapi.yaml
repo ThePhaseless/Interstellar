@@ -76,7 +76,6 @@ metadata:
   name: crowdsec-lapi
   namespace: crowdsec
 spec:
-  type: ClusterIP
   ports:
     - name: lapi
       port: 8080

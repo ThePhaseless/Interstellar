@@ -1,5 +1,4 @@
 - name: Update all packages on the system
-  become: true
   ansible.builtin.apt:
     name: "*"
     state: latest
@@ -11,6 +10,5 @@
   register: reboot_required
 
 - name: Reboot the system if needed
-  become: true
   ansible.builtin.reboot:
   when: reboot_required.stat.exists

@@ -27,8 +27,6 @@ resource "kubernetes_namespace_v1" "external_secrets" {
 # This Kubernetes secret is populated from the Bitwarden secret
 # "bitwarden-access-token-kubernetes".
 resource "kubernetes_secret_v1" "bitwarden_access_token_kubernetes" {
-  depends_on = [kubernetes_namespace_v1.external_secrets]
-
   metadata {
     name      = "bitwarden-access-token-kubernetes"
     namespace = kubernetes_namespace_v1.external_secrets.metadata[0].name
