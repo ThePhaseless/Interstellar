@@ -157,7 +157,6 @@ metadata:
   name: kube-state-metrics
   namespace: observability
 spec:
-  type: ClusterIP
   ports:
     - name: http-metrics
       port: 8080

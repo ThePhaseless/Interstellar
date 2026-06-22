@@ -6,8 +6,10 @@ locals {
     for node_name in local.talos_node_names : node_name => "${node_name}.${var.tailscale_magicdns_domain}"
   }
   talos_tailscale_ips = {
-    for device in data.tailscale_devices.cluster.devices : device.hostname => device.addresses[0]
-    if contains(local.talos_node_names, device.hostname) && length(device.addresses) > 0
+    for hostname, addresses in {
+      for device in data.tailscale_devices.cluster.devices : device.hostname => device.addresses[0]...
+      if contains(local.talos_node_names, device.hostname) && length(device.addresses) > 0
+    } : hostname => addresses[0]
   }
   talos_node_api_endpoints = {
     for node_name in local.talos_node_names : node_name => lookup(var.talos_api_endpoints, node_name, lookup(local.talos_tailscale_ips, node_name, local.talos_node_ips[node_name]))
@@ -105,6 +107,14 @@ data "talos_machine_configuration" "controlplane" {
   kubernetes_version = var.kubernetes_version
 
   config_patches = compact([
+    # Use predictable hostname instead of machine-ID-derived random name
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "HostnameConfig"
+      hostname   = each.key
+      auto       = "off"
+    }),
+
     # Minimal machine configuration for Proxmox Talos nodes
     yamlencode({
       machine = {

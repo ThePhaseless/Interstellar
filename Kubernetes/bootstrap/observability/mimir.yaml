@@ -68,7 +68,6 @@ metadata:
   name: mimir
   namespace: observability
 spec:
-  type: ClusterIP
   ports:
     - name: http
       port: 9009

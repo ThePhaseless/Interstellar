@@ -178,12 +178,6 @@ variable "hetzner_storagebox_type" {
   default     = "bx11"
 }
 
-# Secret Configuration
-variable "bws_access_token" {
-  description = "Bitwarden Secrets Manager access token for ESO bootstrap. Sourced from BWS_ACCESS_TOKEN env var."
-  type        = string
-  sensitive   = true
-}
 variable "github_repository" {
   description = "GitHub repository name (owner/repo)"
   type        = string

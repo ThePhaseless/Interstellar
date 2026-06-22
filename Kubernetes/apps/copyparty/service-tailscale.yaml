@@ -7,7 +7,6 @@ metadata:
     tailscale.com/expose: "true"
     tailscale.com/hostname: "files"
 spec:
-  type: ClusterIP
   ports:
     - name: http
       port: 80

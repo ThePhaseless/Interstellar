@@ -171,7 +171,6 @@ metadata:
   name: immich-secrets
   namespace: utilities
 spec:
-  refreshInterval: 1h
   secretStoreRef:
     name: bitwarden-store-generated
     kind: ClusterSecretStore

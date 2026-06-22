@@ -4,7 +4,6 @@ metadata:
   name: mcpjungle
   namespace: utilities
 spec:
-  type: ClusterIP
   ports:
     - name: http
       port: 8080

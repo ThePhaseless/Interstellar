@@ -126,7 +126,7 @@ locals {
 # public DNS while clients are connected through Tailscale.
 resource "tailscale_dns_configuration" "cluster" {
   magic_dns          = true
-  override_local_dns = true
+  override_local_dns = length(local.adguard_devices) == 1
 
   dynamic "nameservers" {
     for_each = local.tailscale_adguard_ip != "" ? [local.tailscale_adguard_ip] : []
@@ -150,8 +150,8 @@ resource "tailscale_dns_configuration" "cluster" {
 
   lifecycle {
     precondition {
-      condition     = length(local.adguard_devices) == 1 && local.tailscale_adguard_ip != ""
-      error_message = "Expected exactly one Tailscale device named ${local.adguard_tailscale_name}; found ${length(local.adguard_devices)}. Refusing to publish tailnet DNS without an unambiguous split-horizon resolver."
+      condition     = length(local.adguard_devices) <= 1
+      error_message = "Expected at most one Tailscale device named ${local.adguard_tailscale_name}; found ${length(local.adguard_devices)}."
     }
   }
 }
