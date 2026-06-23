@@ -115,18 +115,6 @@ variable "bitwarden_jellyfin_admin_password_name" {
   default     = "jellyfin-admin-password"
 }
 
-variable "bitwarden_jellyfin_oidc_client_id_name" {
-  type        = string
-  description = "Bitwarden secret key name for the Jellyfin OIDC client ID"
-  default     = "authentik-jellyfin-client-id"
-}
-
-variable "bitwarden_jellyfin_oidc_client_secret_name" {
-  type        = string
-  description = "Bitwarden secret key name for the Jellyfin OIDC client secret"
-  default     = "authentik-jellyfin-client-secret"
-}
-
 # --- Authentik ---
 variable "authentik_provider_url" {
   type        = string

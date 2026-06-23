@@ -227,8 +227,9 @@ resource "authentik_provider_oauth2" "grafana" {
   )
   allowed_redirect_uris = [
     {
-      matching_mode = "strict"
-      url           = "https://grafana.${var.authentik_domain}/login/generic_oauth"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://grafana.${var.authentik_domain}/login/generic_oauth"
     }
   ]
 }
@@ -274,16 +275,19 @@ resource "authentik_provider_oauth2" "immich" {
   property_mappings  = data.authentik_property_mapping_provider_scope.oauth2.ids
   allowed_redirect_uris = [
     {
-      matching_mode = "strict"
-      url           = "https://photos.${var.authentik_domain}/auth/login"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://photos.${var.authentik_domain}/auth/login"
     },
     {
-      matching_mode = "strict"
-      url           = "https://photos.${var.authentik_domain}/user-settings"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://photos.${var.authentik_domain}/user-settings"
     },
     {
-      matching_mode = "strict"
-      url           = "app.immich:///oauth-callback"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "app.immich:///oauth-callback"
     }
   ]
 }
@@ -363,13 +367,15 @@ resource "authentik_provider_oauth2" "jellyfin" {
   )
   allowed_redirect_uris = [
     {
-      matching_mode = "strict"
-      url           = "https://watch.${var.authentik_domain}/sso/OID/redirect/authentik"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://watch.${var.authentik_domain}/sso/OID/redirect/authentik"
     },
     {
       # Traefik terminates TLS, so the SSO plugin sees http:// and uses it as redirect_uri
-      matching_mode = "strict"
-      url           = "http://watch.${var.authentik_domain}/sso/OID/redirect/authentik"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "http://watch.${var.authentik_domain}/sso/OID/redirect/authentik"
     }
   ]
 }
@@ -440,8 +446,9 @@ resource "authentik_provider_oauth2" "argocd" {
   )
   allowed_redirect_uris = [
     {
-      matching_mode = "strict"
-      url           = "https://argocd.${var.authentik_domain}/auth/callback"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://argocd.${var.authentik_domain}/auth/callback"
     }
   ]
 }

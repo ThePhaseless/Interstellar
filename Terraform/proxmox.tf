@@ -62,6 +62,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   cpu {
     cores = each.value.vcpus
+    type  = "host"
   }
 
   memory {
@@ -82,6 +83,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
     size         = each.value.os_disk_size
     file_format  = "raw"
     discard      = "on"
+    cache        = "writethrough"
   }
 
   dynamic "disk" {
@@ -92,18 +94,21 @@ resource "proxmox_virtual_environment_vm" "talos" {
       size         = each.value.data_disk_size
       file_format  = "raw"
       discard      = "on"
+      cache        = "writethrough"
       serial       = local.talos_node_data_disk_serial[each.key]
     }
   }
 
   # Boot from ISO for initial install
   cdrom {
-    file_id = each.value.gpu ? proxmox_download_file.talos_iso_gpu[0].id : proxmox_download_file.talos_iso_base.id
+    file_id   = each.value.gpu ? proxmox_download_file.talos_iso_gpu[0].id : proxmox_download_file.talos_iso_base.id
+    interface = "ide0"
   }
 
   # Network interface bridged directly to the home LAN
   network_device {
     bridge = var.proxmox_cluster_bridge_name
+    model  = "virtio"
   }
 
   # Cloud-init network with static IP
@@ -130,15 +135,14 @@ resource "proxmox_virtual_environment_vm" "talos" {
   }
 
   agent {
+    enabled = true
     timeout = "60s"
+    type    = "virtio"
   }
 
-  # Serial console for GPU node to capture kernel logs during crashes
-  dynamic "serial_device" {
-    for_each = each.value.gpu ? [1] : []
-    content {
-      device = "socket"
-    }
+  # Serial console for live debugging via qm terminal (all nodes)
+  serial_device {
+    device = "socket"
   }
 
   lifecycle {

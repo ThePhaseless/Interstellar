@@ -15,6 +15,7 @@ provider "prowlarr" {
 
 provider "adguard" {
   host     = var.adguard_provider_url
+  scheme   = "http"
   username = "admin"
   password = "admin123"
 }

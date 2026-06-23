@@ -8,11 +8,8 @@ data "bitwarden-secrets_list_secrets" "all" {}
 data "bitwarden-secrets_projects" "all" {}
 
 locals {
-  secret_key_to_id = { for s in data.bitwarden-secrets_list_secrets.all.secrets : s.key => s.id }
-  bitwarden_generated_project_id = try(
-    [for p in data.bitwarden-secrets_projects.all.projects : p.id if p.name == "interstellar-generated"][0],
-    null
-  )
+  secret_key_to_id               = { for s in data.bitwarden-secrets_list_secrets.all.secrets : s.key => s.id }
+  bitwarden_generated_project_id = try(one([for p in data.bitwarden-secrets_projects.all.projects : p.id if p.name == "interstellar-generated"]), null)
 
   # Common placeholder values that indicate a secret has not been properly set
   _placeholder_values = toset(["changeme", "change_me", "placeholder", "your-api-key", "default", "secret", "password", "username", "admin"])
@@ -58,28 +55,6 @@ data "bitwarden-secrets_secret" "jellyfin_admin_password" {
     postcondition {
       condition     = length(self.value) > 0 && !contains(local._placeholder_values, lower(self.value))
       error_message = "Jellyfin admin password '${var.bitwarden_jellyfin_admin_password_name}' is empty or still set to a placeholder value."
-    }
-  }
-}
-
-data "bitwarden-secrets_secret" "jellyfin_oidc_client_id" {
-  id = local.secret_key_to_id[var.bitwarden_jellyfin_oidc_client_id_name]
-
-  lifecycle {
-    postcondition {
-      condition     = length(self.value) > 0 && !contains(local._placeholder_values, lower(self.value))
-      error_message = "Jellyfin OIDC client ID '${var.bitwarden_jellyfin_oidc_client_id_name}' is empty or still set to a placeholder value."
-    }
-  }
-}
-
-data "bitwarden-secrets_secret" "jellyfin_oidc_client_secret" {
-  id = local.secret_key_to_id[var.bitwarden_jellyfin_oidc_client_secret_name]
-
-  lifecycle {
-    postcondition {
-      condition     = length(self.value) > 0 && !contains(local._placeholder_values, lower(self.value))
-      error_message = "Jellyfin OIDC client secret '${var.bitwarden_jellyfin_oidc_client_secret_name}' is empty or still set to a placeholder value."
     }
   }
 }

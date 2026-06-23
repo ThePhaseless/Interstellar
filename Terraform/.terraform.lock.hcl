@@ -310,7 +310,7 @@ provider "registry.terraform.io/oracle/oci" {
 
 provider "registry.terraform.io/siderolabs/talos" {
   version     = "0.11.0"
-  constraints = ">= 0.7.0"
+  constraints = ">= 0.10.0"
   hashes = [
     "h1:+GV1DE/FFtHa6McattWMjn0SimQoan/mignkB+xUfm4=",
     "h1:1NC84ojUrL+G3aSLMl4Khh83HnJYuxsYNKK7zg2C/dI=",
