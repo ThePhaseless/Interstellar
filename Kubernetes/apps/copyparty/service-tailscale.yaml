@@ -6,6 +6,7 @@ metadata:
   annotations:
     tailscale.com/expose: "true"
     tailscale.com/hostname: "files"
+    tailscale.com/ephemeral: "true"
 spec:
   ports:
     - name: http

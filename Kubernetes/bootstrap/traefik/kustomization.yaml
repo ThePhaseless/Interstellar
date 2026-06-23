@@ -110,6 +110,7 @@ helmCharts:
         annotations:
           tailscale.com/expose: "true"
           tailscale.com/hostname: "traefik"
+          tailscale.com/ephemeral: "true"
 
       # Providers
       providers:

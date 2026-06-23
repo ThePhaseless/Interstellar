@@ -1,6 +1,7 @@
 terraform {
-  backend "kubernetes" {
-    namespace     = "default"
-    secret_suffix = "servarr"
+  backend "oci" {
+    bucket    = "tf-state"
+    namespace = "frhsbtxnilh6"
+    key       = "interstellar/servarr.tfstate"
   }
 }

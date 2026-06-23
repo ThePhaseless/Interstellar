@@ -112,12 +112,14 @@ locals {
   tailscale_magicdns_domain = trimsuffix(var.tailscale_magicdns_domain, ".")
   adguard_tailscale_name    = "adguard.${local.tailscale_magicdns_domain}"
 
-  # Find exactly one AdGuard DNS device in this tailnet.
+  # Find the AdGuard DNS device in this tailnet.
+  # Match by hostname only — device name may have uniqueness suffixes.
   adguard_devices = [
     for d in data.tailscale_devices.cluster.devices : d
-    if d.hostname == "adguard" && trimsuffix(d.name, ".") == local.adguard_tailscale_name
+    if d.hostname == "adguard"
   ]
-  tailscale_adguard_ip = length(local.adguard_devices) == 1 ? local.adguard_devices[0].addresses[0] : ""
+  tailscale_adguard_ip = try(local.adguard_devices[0].addresses[0], "1.1.1.1")
+  adguard_exists       = length(local.adguard_devices) >= 1
 }
 
 # Tailscale DNS Configuration
@@ -126,18 +128,15 @@ locals {
 # public DNS while clients are connected through Tailscale.
 resource "tailscale_dns_configuration" "cluster" {
   magic_dns          = true
-  override_local_dns = length(local.adguard_devices) == 1
+  override_local_dns = true
 
-  dynamic "nameservers" {
-    for_each = local.tailscale_adguard_ip != "" ? [local.tailscale_adguard_ip] : []
-    content {
-      address            = nameservers.value
-      use_with_exit_node = true
-    }
+  nameservers {
+    address            = local.tailscale_adguard_ip
+    use_with_exit_node = true
   }
 
   dynamic "split_dns" {
-    for_each = local.tailscale_adguard_ip != "" ? [local.tailscale_adguard_ip] : []
+    for_each = local.adguard_exists ? [local.tailscale_adguard_ip] : []
     content {
       domain = var.cluster_domain
 
@@ -145,13 +144,6 @@ resource "tailscale_dns_configuration" "cluster" {
         address            = split_dns.value
         use_with_exit_node = true
       }
-    }
-  }
-
-  lifecycle {
-    precondition {
-      condition     = length(local.adguard_devices) <= 1
-      error_message = "Expected at most one Tailscale device named ${local.adguard_tailscale_name}; found ${length(local.adguard_devices)}."
     }
   }
 }
