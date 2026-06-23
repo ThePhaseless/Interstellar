@@ -46,7 +46,7 @@ variable "nodes" {
     "talos-1" = {
       vmid           = 110
       vcpus          = 4
-      memory         = 10240
+      memory         = 16384
       data_disk_size = 120
       gpu            = true
       gpu_device     = "gpu" # Intel Arc B580
@@ -54,13 +54,13 @@ variable "nodes" {
     "talos-2" = {
       vmid           = 111
       vcpus          = 6
-      memory         = 12288
+      memory         = 8192
       data_disk_size = 120
     }
     "talos-3" = {
       vmid           = 112
       vcpus          = 6
-      memory         = 12288
+      memory         = 8192
       data_disk_size = 120
     }
   }
