@@ -51,11 +51,6 @@ spec:
             requests:
               cpu: 500m
               memory: 2Gi
-              # Intel GPU resource
-              gpu.intel.com/xe: "1"
-            limits:
-              cpu: 4000m
-              memory: 8Gi
               gpu.intel.com/xe: "1"
           livenessProbe:
             httpGet:
