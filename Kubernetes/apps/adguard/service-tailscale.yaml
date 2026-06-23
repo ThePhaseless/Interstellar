@@ -9,7 +9,6 @@ metadata:
     # Expose as shareable Tailscale node
     tailscale.com/expose: "true"
     tailscale.com/hostname: "adguard"
-    tailscale.com/ephemeral: "true"
 spec:
   type: LoadBalancer
   loadBalancerClass: tailscale
