@@ -14,3 +14,4 @@ resources:
   - metrics-server/
   - authentik/
   - coredns-override/
+  - argocd/
