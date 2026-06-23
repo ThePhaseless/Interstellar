@@ -40,6 +40,9 @@ jobs:
           secrets: |
             ${{ vars.BWS_ID_TS_CI_OAUTH_CLIENT_ID }} > TS_CI_OAUTH_CLIENT_ID
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
+            ${{ vars.BWS_ID_OCI_CONFIG }} > OCI_CONFIG
+            ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
+            ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
 
       - name: Install BWS CLI
         run: |
@@ -172,6 +175,23 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         continue-on-error: true
 
+      - name: Write OCI config
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.oci"
+
+          printf "%s" "$OCI_CONFIG" > "$HOME/.oci/config"
+          [ -n "$(tail -c1 "$HOME/.oci/config")" ] && echo "" >> "$HOME/.oci/config"
+
+          printf "%s" "$OCI_PRIVATE_KEY" > "$HOME/.oci/oci_api_key.pem"
+          chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
+
+          if grep -q '^key_file=' "$HOME/.oci/config"; then
+            sed -i "s|^key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|" "$HOME/.oci/config"
+          else
+            echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
+          fi
+
       - name: Terraform Init
         id: init
         run: terraform init -input=false
@@ -257,7 +277,8 @@ jobs:
     name: Apply
     runs-on: ubuntu-latest
     needs: plan
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' &&
+    if:
+      github.ref == 'refs/heads/main' && github.event_name != 'pull_request' &&
       needs.plan.outputs.has_changes == 'true'
     permissions:
       contents: read
@@ -273,6 +294,9 @@ jobs:
           secrets: |
             ${{ vars.BWS_ID_TS_CI_OAUTH_CLIENT_ID }} > TS_CI_OAUTH_CLIENT_ID
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
+            ${{ vars.BWS_ID_OCI_CONFIG }} > OCI_CONFIG
+            ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
+            ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
 
       - name: Install BWS CLI
         run: |
@@ -412,6 +436,23 @@ jobs:
         run: |
           gpg --decrypt --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan.gpg > tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Write OCI config
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.oci"
+
+          printf "%s" "$OCI_CONFIG" > "$HOME/.oci/config"
+          [ -n "$(tail -c1 "$HOME/.oci/config")" ] && echo "" >> "$HOME/.oci/config"
+
+          printf "%s" "$OCI_PRIVATE_KEY" > "$HOME/.oci/oci_api_key.pem"
+          chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
+
+          if grep -q '^key_file=' "$HOME/.oci/config"; then
+            sed -i "s|^key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|" "$HOME/.oci/config"
+          else
+            echo "key_file=$HOME/.oci/oci_api_key.pem" >> "$HOME/.oci/config"
+          fi
 
       - name: Terraform Init
         run: terraform init -input=false
