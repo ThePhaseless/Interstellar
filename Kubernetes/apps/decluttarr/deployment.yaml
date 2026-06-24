@@ -37,6 +37,8 @@ spec:
               mountPath: /app/config/config.yaml
               subPath: config.yaml
               readOnly: true
+            - name: media
+              mountPath: /media
           resources:
             requests:
               cpu: 10m
@@ -49,3 +51,6 @@ spec:
         - name: config
           configMap:
             name: decluttarr-config
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
