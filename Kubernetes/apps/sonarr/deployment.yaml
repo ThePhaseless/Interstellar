@@ -45,7 +45,7 @@ spec:
 
       containers:
         - name: sonarr
-          image: linuxserver/sonarr:4.0.17
+          image: linuxserver/sonarr:4.0.18
           envFrom:
             - configMapRef:
                 name: media-runtime-config
