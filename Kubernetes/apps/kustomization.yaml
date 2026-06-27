@@ -32,6 +32,9 @@ resources:
   - homepage/
   - whoami/
 
+  # System tools
+  - descheduler/
+
   # Backup
   - borgbackup/
   - media-backup/
