@@ -7,6 +7,8 @@ data:
   policy.yaml: |
     apiVersion: "descheduler/v1alpha2"
     kind: "DeschedulerPolicy"
+    metricsProviders:
+      - source: KubernetesMetrics
     profiles:
       - name: LowNodeUtilization
         pluginConfig:
@@ -14,13 +16,15 @@ data:
         - name: "LowNodeUtilization"
           args:
             thresholds:
-              "cpu" : 20
-              "memory": 20
-              "pods": 20
+              cpu: 50
+              memory: 50
+              pods: 50
             targetThresholds:
-              "cpu" : 50
-              "memory": 50
-              "pods": 50
+              cpu: 80
+              memory: 80
+              pods: 80
+            metricsUtilization:
+              source: KubernetesMetrics
         plugins:
           balance:
             enabled:
