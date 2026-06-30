@@ -13,7 +13,7 @@ resources:
 helmCharts:
   - name: traefik
     repo: https://helm.traefik.io/traefik
-    version: 40.3.0
+    version: 41.0.1
     releaseName: traefik
     namespace: traefik
     includeCRDs: true
@@ -120,12 +120,11 @@ helmCharts:
           allowExternalNameServices: true
 
       # Logging
-      logs:
-        general:
-          format: json
-        access:
-          enabled: true
-          format: json
+      log:
+        format: json
+      accessLog:
+        enabled: true
+        format: json
 
       # Metrics (Prometheus)
       metrics:
