@@ -120,12 +120,11 @@ helmCharts:
           allowExternalNameServices: true
 
       # Logging
-      logs:
-        general:
-          format: json
-        access:
-          enabled: true
-          format: json
+      log:
+        format: json
+      accessLog:
+        enabled: true
+        format: json
 
       # Metrics (Prometheus)
       metrics:
