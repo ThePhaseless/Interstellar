@@ -6,6 +6,8 @@
   lockFileMaintenance: {
     enabled: true,
     automerge: true,
+    automergeType: 'squash',
+    ignoreTests: true,
   },
   kubernetes: {
     managerFilePatterns: [
