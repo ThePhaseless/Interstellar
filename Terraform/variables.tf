@@ -54,7 +54,7 @@ variable "nodes" {
     "talos-2" = {
       vmid           = 111
       vcpus          = 6
-      memory         = 8192
+      memory         = 12288
       data_disk_size = 120
     }
     "talos-3" = {
