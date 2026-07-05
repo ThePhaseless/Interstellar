@@ -18,6 +18,10 @@ concurrency:
   group: kubernetes-lint-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  KUSTOMIZE_VERSION: "v5.8.1"
+  KUBE_LINTER_VERSION: "v0.8.3"
+
 jobs:
   lint:
     name: Lint Kubernetes Manifests
@@ -31,15 +35,25 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: stable
+          cache: false
+
+      - name: Cache Go binaries
+        id: go-bin
+        uses: actions/cache@v6
+        with:
+          path: ~/go/bin
+          key: ${{ runner.os }}-go-bin-kustomize-${{ env.KUSTOMIZE_VERSION }}-kube-linter-${{ env.KUBE_LINTER_VERSION }}
 
       - name: Install latest kustomize
+        if: steps.go-bin.outputs.cache-hit != 'true'
         run: |
-          go install sigs.k8s.io/kustomize/kustomize/v5@latest
+          go install sigs.k8s.io/kustomize/kustomize/v5@${{ env.KUSTOMIZE_VERSION }}
           kustomize version
 
       - name: Install latest kube-linter
+        if: steps.go-bin.outputs.cache-hit != 'true'
         run: |
-          go install golang.stackrox.io/kube-linter/cmd/kube-linter@latest
+          go install golang.stackrox.io/kube-linter/cmd/kube-linter@${{ env.KUBE_LINTER_VERSION }}
           kube-linter version
 
       - name: Run repository lint script
