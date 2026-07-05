@@ -17,7 +17,7 @@ spec:
       shareProcessNamespace: true
       containers:
         - name: byparr
-          image: ghcr.io/thephaseless/byparr:2.1.0
+          image: ghcr.io/thephaseless/byparr:main
           ports:
             - name: http
               containerPort: 8191
