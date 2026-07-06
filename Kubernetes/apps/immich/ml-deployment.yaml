@@ -29,6 +29,14 @@ spec:
               value: "UTC"
             - name: MACHINE_LEARNING_CACHE_FOLDER
               value: "/cache"
+            - name: MACHINE_LEARNING_REQUEST_THREADS
+              value: "1"
+            - name: MACHINE_LEARNING_MODEL_INTRA_OP_THREADS
+              value: "1"
+            - name: MACHINE_LEARNING_MODEL_INTER_OP_THREADS
+              value: "1"
+            - name: MACHINE_LEARNING_MAX_BATCH_SIZE__FACIAL_RECOGNITION
+              value: "4"
           ports:
             - name: http
               containerPort: 3003
