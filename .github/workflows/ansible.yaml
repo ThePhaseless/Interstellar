@@ -61,7 +61,7 @@ jobs:
           ssh-private-key: ${{ env.ORACLE_SSH_KEY }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.3.0
+        uses: astral-sh/setup-uv@v8.3.1
 
       - name: Install Ansible
         run: uv tool install ansible-core
