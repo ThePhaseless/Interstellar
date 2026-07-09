@@ -23,7 +23,7 @@ spec:
 
       containers:
         - name: immich-ml
-          image: ghcr.io/immich-app/immich-machine-learning:v3.0.1-openvino
+          image: ghcr.io/immich-app/immich-machine-learning:v3.0.2-openvino
           env:
             - name: TZ
               value: "UTC"

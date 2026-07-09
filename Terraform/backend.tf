@@ -52,7 +52,7 @@ terraform {
     # Bitwarden Secrets Manager
     bitwarden-secrets = {
       source  = "bitwarden/bitwarden-secrets"
-      version = "1.0.0"
+      version = "1.0.1"
     }
 
     # Kubernetes for bootstrap secrets (bitwarden access token)

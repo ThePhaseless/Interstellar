@@ -2,20 +2,20 @@
 # Manual edits may be lost in future updates.
 
 provider "registry.terraform.io/bitwarden/bitwarden-secrets" {
-  version     = "1.0.0"
-  constraints = "1.0.0"
+  version     = "1.0.1"
+  constraints = "1.0.1"
   hashes = [
-    "h1:0/k3qxTpG5JN67f4fK0L7zkFgfr2/PfcoA9Pd2BpelY=",
-    "h1:JwVsAEAbIp1e8H5qHcT9CR+j5oZz7LAgCyJTuwczlrA=",
-    "h1:tm/sPudvPpzaVhv0yJ/XwOvb03cFoTJDK+/DB6M4KSU=",
-    "h1:yEynV9c+s/HCfLStrZQAmZU310sz7Dl4c7P3Azi2j8w=",
-    "h1:ywotNI33DInN2j1wjHUZuu2VGKcfx1KULfWlrBl5274=",
-    "zh:32fb9eb0672fe0b12b136abd932a5531fb163b4cc982cd477feea96d28021701",
-    "zh:3aabe5ab6809fce2ea6386a2164fa75736f6ed75189da91648b6129c72754ab8",
-    "zh:6ca7554c7a35c211ea5678696f246259a54a22b4e7022ab335168124b005f92a",
-    "zh:bb3bdb8bcd77941ade652e6a0df45a54591d1fc9d84306c11bee952c3fbb7b7d",
+    "h1:/2qxquBa1RABeQv0v6ULfHzW2aII3IhWdk73nXXxjiM=",
+    "h1:NrXBSc6wuNbppg3PkCHfhYM5MczPH+OBuLbBpGlMCI4=",
+    "h1:axWCxPqK9zGFPy5E57mHefrLfJvTgMuy+/ntTAlQTNM=",
+    "h1:mu4rMvYhGddYD/uDfx6jlhaMs++o0D1g0A8KwwYLkJM=",
+    "h1:zv4Eai3Tzsfyv/HDeTyRijmREZZCvG3Qmy+0k+PJoJA=",
+    "zh:0f442ba013c11d7a6de958b8a950353c795d4c0963c397959a239b6fd2a8c876",
+    "zh:22bacf5df4c758d4a9bef2533152d3de7179efb7088a7152a850c2d18b03af11",
+    "zh:3eaa72e5e0f74a8e6eb8fbf5aa4225ea656e15f918d2009682c6e972796fe8f7",
+    "zh:4d9ed40e06a1dc19956f10cfcb0d6820e32f2967bfdd292eff9e6d610b7e0964",
+    "zh:84f426449d62e5883061d6ad9cb1344c334a05664c90f2ec560d35bd57f10f6b",
     "zh:f809ab383cca0a5f83072981c64208cbd7fa67e986a86ee02dd2c82333221e32",
-    "zh:fddfa94fec6107a95151415bc69b8048e64f28b174af4f18f7733e7800f14cd6",
   ]
 }
 
