@@ -1,0 +1,40 @@
+# Disable kube-rbac-proxy — Alloy scrapes via pod annotation, not a ServiceMonitor
+kubeRBACProxy:
+  enabled: false
+
+# The chart sets prometheus.io/scrape: "true" and prometheus.io/port: "9100"
+# by default, so Alloy's existing pod-scrape job picks it up automatically.
+
+# Disable Service — Alloy discovers pods directly via pod annotations,
+# no Service needed
+service:
+  enabled: false
+
+# Tolerate all taints — must run on control-plane nodes (same as promtail/alloy)
+tolerations:
+  - effect: NoSchedule
+    operator: Exists
+  - effect: NoExecute
+    operator: Exists
+
+# Pod annotations so Alloy's existing pod-scrape job discovers node-exporter
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9100"
+
+# Minimal resources — node-exporter is lightweight
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+# Disable collectors that don't exist on Talos VMs
+extraArgs:
+  - --no-collector.wifi
+  - --no-collector.btrfs
+  - --no-collector.infiniband
+  - --no-collector.ipvs
+  - --no-collector.dmi
