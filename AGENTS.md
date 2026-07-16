@@ -94,6 +94,7 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 
 ## Key Gotchas
 
+- **Grafana's alerting provisioning file must be valid plain YAML**: Go-template expressions like `{{ printf "%.1f" $values.C }}` contain a colon (`:`) that YAML interprets as a key separator if the `summary` value is unquoted, causing Grafana to fail on startup with `mapping values are not allowed in this context`. Always quote `summary` lines that contain `printf` templates.
 - **TLS terminates at Traefik**, not at the app or HAProxy. Apps serve plain HTTP internally. ArgoCD runs with `--insecure`.
 - **Tailscale DNS split-horizon**: Public DNS (Cloudflare) only has Oracle VPS IP. Tailscale clients use AdGuard as their DNS (configured in `tailscale.tf`), which rewrites `*.nerine.dev` to Traefik's Tailscale IP via client-based rules in `adguard.tf`.
 - **Kubernetes pods do not automatically get the same split-horizon behavior as Tailscale clients**: In-cluster server-side calls to `*.nerine.dev` still follow normal cluster DNS unless CoreDNS is explicitly taught otherwise, so OIDC discovery from pods can hit the public Oracle IP and fail even when browser-based access works.
