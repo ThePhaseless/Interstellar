@@ -391,49 +391,49 @@ checksum = "sha256:2ff41d2129afb1982733c132c61a8d6ef038f879f3aeede7fc28b8b8b24ac
 url = "https://releases.hashicorp.com/terraform/1.15.8/terraform_1.15.8_windows_amd64.zip"
 
 [[tools.tflint]]
-version = "0.63.1"
+version = "0.64.0"
 backend = "aqua:terraform-linters/tflint"
 
 [tools.tflint."platforms.linux-arm64"]
-checksum = "sha256:6d858ca7f11858c3fe3c5e29cc746823abccb55e2d2e2da130fa7ad7ea4eecb8"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_linux_arm64.zip"
-url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/437446187"
+checksum = "sha256:560da89aacf59389d4eb029730dd5b109b7288096c32f2726a0d9e783a5ea8eb"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_linux_arm64.zip"
+url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/480528325"
 provenance = "github-attestations"
 
 [tools.tflint."platforms.linux-arm64-musl"]
-checksum = "sha256:6d858ca7f11858c3fe3c5e29cc746823abccb55e2d2e2da130fa7ad7ea4eecb8"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_linux_arm64.zip"
-url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/437446187"
+checksum = "sha256:560da89aacf59389d4eb029730dd5b109b7288096c32f2726a0d9e783a5ea8eb"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_linux_arm64.zip"
+url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/480528325"
 provenance = "github-attestations"
 
 [tools.tflint."platforms.linux-x64"]
-checksum = "sha256:8441a7d97df20431f19c9b9d27ff4c63e308c964e86660bc7cc0cf7bbe0725e8"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_linux_amd64.zip"
-url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/437446150"
+checksum = "sha256:cca9d13e2e1d7a2c627af60ff899a3c9b74212899416aeb96ec764d2ef954537"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_linux_amd64.zip"
+url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/480528344"
 provenance = "github-attestations"
 
 [tools.tflint."platforms.linux-x64-musl"]
-checksum = "sha256:8441a7d97df20431f19c9b9d27ff4c63e308c964e86660bc7cc0cf7bbe0725e8"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_linux_amd64.zip"
-url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/437446150"
+checksum = "sha256:cca9d13e2e1d7a2c627af60ff899a3c9b74212899416aeb96ec764d2ef954537"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_linux_amd64.zip"
+url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/480528344"
 provenance = "github-attestations"
 
 [tools.tflint."platforms.macos-arm64"]
-checksum = "sha256:6aab157b22367dcab1635b370e98d6e791d9b40b021d4f9baef010d88f53e16b"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_darwin_arm64.zip"
-url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/437446148"
+checksum = "sha256:2496e9cb3d24992d553b45e7c87a0fdc9449ca975233876247a9bfeda857e6c0"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_darwin_arm64.zip"
+url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/480528349"
 provenance = "github-attestations"
 
 [tools.tflint."platforms.macos-x64"]
-checksum = "sha256:1a22782473e4a01f0dd23edc649bed4420655a9e3459ffc06951e698eed7ad01"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_darwin_amd64.zip"
-url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/437446152"
+checksum = "sha256:0f3a9fd17526014646a2dfc3f9122f7b4161abe3d6b0f0f03f9014483ddf4d19"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_darwin_amd64.zip"
+url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/480528324"
 provenance = "github-attestations"
 
 [tools.tflint."platforms.windows-x64"]
-checksum = "sha256:5fbfb643b83c4ad489bde15a0e0d46e53dc9aa8dfa76d25da3c4bd2698a41a19"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_windows_amd64.zip"
-url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/437446181"
+checksum = "sha256:fb42fb859d844b156a8ea9d3363078c4d8b85ca78782e60876b08c9b8e59f303"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_windows_amd64.zip"
+url_api = "https://api.github.com/repos/terraform-linters/tflint/releases/assets/480528323"
 provenance = "github-attestations"
 
 [[tools.uv]]
