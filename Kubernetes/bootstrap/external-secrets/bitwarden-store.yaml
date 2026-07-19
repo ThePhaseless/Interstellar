@@ -13,9 +13,9 @@ spec:
         name: bitwarden-tls-certs
         namespace: external-secrets
         key: ca.crt
-      organizationID: 99703038-ae55-494e-aa57-b21b01480339
+      organizationID: e26bc154-3f78-46d9-8e3a-b48b01745df7
       # "Interstellar" project — manually managed secrets (cloudflare, google-oauth, etc.)
-      projectID: f57582a5-679a-4deb-9e5f-b3b3017d2b13
+      projectID: 4757db61-9cc2-4f76-a60d-b48b0176caae
       auth:
         secretRef:
           credentials:

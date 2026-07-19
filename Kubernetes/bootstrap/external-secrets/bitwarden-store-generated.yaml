@@ -14,8 +14,8 @@ spec:
         name: bitwarden-tls-certs
         namespace: external-secrets
         key: ca.crt
-      organizationID: 99703038-ae55-494e-aa57-b21b01480339
-      projectID: 319c67ff-a4e2-44e1-aeb2-b3fb01394e16
+      organizationID: e26bc154-3f78-46d9-8e3a-b48b01745df7
+      projectID: 71ccd9ca-3971-42c3-a074-b48b0176ebc6
       auth:
         secretRef:
           credentials:
