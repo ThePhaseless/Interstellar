@@ -154,6 +154,7 @@
         mode: "0644"
         content: |
           CPU_ENERGY_PERF_POLICY_ON_AC=balance_power
+          CPU_BOOST_ON_AC=0
           CPU_ENERGY_PERF_POLICY_ON_BAT=balance_power
           SATA_LINKPWR_ON_AC=min_power
           AHCI_RUNTIME_PM_ON_AC=auto
@@ -276,21 +277,30 @@
       tags:
         - power
 
-    - name: Bump zfs_txg_timeout to 30s for HDD spindown
-      ansible.builtin.blockinfile:
-        path: /etc/modprobe.d/zfs.conf
-        create: true
+    - name: Configure ZFS module parameters for power and memory
+      ansible.builtin.copy:
+        dest: /etc/modprobe.d/zfs.conf
         mode: "0644"
-        block: |
+        content: |
           # Increase txg timeout from 5s default to 30s to allow HDD spindown.
           # Up to 30s of writes at risk on crash; ZFS is crash-consistent (no corruption).
           options zfs zfs_txg_timeout=30
+          # Limit ARC to 4 GiB to reduce host memory pressure and metadata churn.
+          options zfs zfs_arc_max=4294967296
+      notify: Update initramfs and refresh Proxmox boot
       tags:
         - power
 
     - name: Apply zfs_txg_timeout live
       ansible.builtin.command:
         cmd: sh -c 'echo 30 > /sys/module/zfs/parameters/zfs_txg_timeout'
+      changed_when: false
+      tags:
+        - power
+
+    - name: Apply zfs_arc_max live
+      ansible.builtin.command:
+        cmd: sh -c 'echo 4294967296 > /sys/module/zfs/parameters/zfs_arc_max'
       changed_when: false
       tags:
         - power
@@ -338,3 +348,10 @@
       tags:
         - power
         - aspm
+
+    - name: Update initramfs and refresh Proxmox boot
+      ansible.builtin.command:
+        cmd: sh -c 'update-initramfs -u && proxmox-boot-tool refresh'
+      changed_when: true
+      tags:
+        - power
