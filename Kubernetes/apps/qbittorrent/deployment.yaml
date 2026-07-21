@@ -57,23 +57,33 @@ spec:
               # Reduce idle disk reads on the Storage pool by limiting active
               # seeding/checking torrents and stopping them after import.
               # Queueing must be enabled for MaxActive* limits to take effect.
-              ensure_bittorrent_key() {
-                local key="$1"
-                local value="$2"
-                if ! grep -q "^Session\\${key}=" "${CONFIG_FILE}"; then
-                  sed -i "/^\[BitTorrent\]/a Session\\${key}=${value}" "${CONFIG_FILE}"
-                else
-                  sed -i "s|^Session\\${key}=.*|Session\\${key}=${value}|" "${CONFIG_FILE}"
-                fi
+              python3 - <<'PY'
+              import configparser, os
+              f = '/config/qBittorrent/qBittorrent.conf'
+              cp = configparser.ConfigParser()
+              cp.optionxform = str
+              cp.read(f)
+              if not cp.has_section('BitTorrent'):
+                  cp.add_section('BitTorrent')
+              updates = {
+                  'Session\\QueueingSystemEnabled': 'true',
+                  'Session\\MaxActiveDownloads': '3',
+                  'Session\\MaxActiveUploads': '1',
+                  'Session\\MaxActiveTorrents': '3',
+                  'Session\\MaxActiveCheckingTorrents': '1',
+                  'Session\\GlobalMaxRatio': '3',
+                  'Session\\GlobalMaxSeedingMinutes': '60',
+                  'Session\\ShareLimitAction': 'Remove',
               }
-              ensure_bittorrent_key "QueueingSystemEnabled" "true"
-              ensure_bittorrent_key "MaxActiveDownloads" "3"
-              ensure_bittorrent_key "MaxActiveUploads" "1"
-              ensure_bittorrent_key "MaxActiveTorrents" "3"
-              ensure_bittorrent_key "MaxActiveCheckingTorrents" "1"
-              ensure_bittorrent_key "GlobalMaxRatio" "3"
-              ensure_bittorrent_key "GlobalMaxSeedingMinutes" "60"
-              ensure_bittorrent_key "ShareLimitAction" "Remove"
+              changed = False
+              for k, v in updates.items():
+                  if cp.get('BitTorrent', k, fallback=None) != v:
+                      cp.set('BitTorrent', k, v)
+                      changed = True
+              if changed:
+                  with open(f, 'w') as fh:
+                      cp.write(fh)
+              PY
           volumeMounts:
             - name: config
               mountPath: /config
