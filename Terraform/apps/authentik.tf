@@ -350,7 +350,7 @@ resource "authentik_property_mapping_provider_scope" "groups" {
   name        = "Group Membership"
   scope_name  = "groups"
   description = "Maps user group memberships for RBAC"
-  expression  = "return [group.name for group in user.ak_groups.all()]"
+  expression  = "return {\"groups\": [group.name for group in user.groups.all()]}"
 }
 
 # Jellyfin OIDC Provider — SSO with automatic account creation

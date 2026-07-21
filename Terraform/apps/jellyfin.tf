@@ -63,7 +63,7 @@ resource "jellyfin_plugin_configuration" "sso_auth" {
         RoleClaim                  = "groups"
         OidScopes                  = ["groups"]
         DefaultProvider            = ""
-        SchemeOverride             = ""
+        SchemeOverride             = "https"
         NewPath                    = true
         CanonicalLinks             = {}
         DefaultUsernameClaim       = ""
@@ -75,6 +75,34 @@ resource "jellyfin_plugin_configuration" "sso_auth" {
         DoNotLoadProfile           = false
       }
     }
+  })
+}
+
+resource "jellyfin_networking_configuration" "this" {
+  configuration_json = jsonencode({
+    BaseUrl                         = ""
+    EnableHttps                     = false
+    RequireHttps                    = false
+    CertificatePath                 = ""
+    CertificatePassword             = ""
+    InternalHttpPort                = 8096
+    InternalHttpsPort               = 8920
+    PublicHttpPort                  = 8096
+    PublicHttpsPort                 = 8920
+    AutoDiscovery                   = true
+    EnableUPnP                      = false
+    EnableIPv4                      = true
+    EnableIPv6                      = false
+    EnableRemoteAccess              = true
+    LocalNetworkSubnets             = []
+    LocalNetworkAddresses           = []
+    KnownProxies                    = ["10.244.0.0/16"]
+    IgnoreVirtualInterfaces         = true
+    VirtualInterfaceNames           = ["veth"]
+    EnablePublishedServerUriByRequest = true
+    PublishedServerUriBySubnet      = ["all=https://watch.${var.authentik_domain}"]
+    RemoteIPFilter                  = []
+    IsRemoteIPFilterBlacklist       = false
   })
 }
 
