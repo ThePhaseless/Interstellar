@@ -53,6 +53,27 @@ spec:
               else
                 sed -i 's|Session\\DefaultSavePath=.*|Session\\DefaultSavePath=/downloads|' "${CONFIG_FILE}"
               fi
+
+              # Reduce idle disk reads on the Storage pool by limiting active
+              # seeding/checking torrents and stopping them after import.
+              # Queueing must be enabled for MaxActive* limits to take effect.
+              ensure_bittorrent_key() {
+                local key="$1"
+                local value="$2"
+                if ! grep -q "^Session\\${key}=" "${CONFIG_FILE}"; then
+                  sed -i "/^\[BitTorrent\]/a Session\\${key}=${value}" "${CONFIG_FILE}"
+                else
+                  sed -i "s|^Session\\${key}=.*|Session\\${key}=${value}|" "${CONFIG_FILE}"
+                fi
+              }
+              ensure_bittorrent_key "QueueingSystemEnabled" "true"
+              ensure_bittorrent_key "MaxActiveDownloads" "3"
+              ensure_bittorrent_key "MaxActiveUploads" "1"
+              ensure_bittorrent_key "MaxActiveTorrents" "3"
+              ensure_bittorrent_key "MaxActiveCheckingTorrents" "1"
+              ensure_bittorrent_key "GlobalMaxRatio" "3"
+              ensure_bittorrent_key "GlobalMaxSeedingMinutes" "60"
+              ensure_bittorrent_key "ShareLimitAction" "Remove"
           volumeMounts:
             - name: config
               mountPath: /config
