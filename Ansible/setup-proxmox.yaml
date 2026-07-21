@@ -259,6 +259,16 @@
       tags:
         - power
 
+    - name: Disable smartmontools daemon for Storage HDDs
+      ansible.builtin.systemd:
+        name: smartmontools
+        enabled: false
+        state: stopped
+      failed_when: false
+      tags:
+        - power
+        - disks
+
     - name: Configure kernel cmdline for ASPM
       ansible.builtin.copy:
         dest: /etc/kernel/cmdline
