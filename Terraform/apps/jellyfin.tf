@@ -31,12 +31,52 @@ resource "jellyfin_plugin_repository" "sso_auth" {
   url     = local.jellyfin_sso_plugin_repository_url
 }
 
-# jellyfin_plugin "sso_auth" and jellyfin_plugin_configuration are NOT managed
-# by Terraform: the thephaseless/jellyfin provider v0.1.0 Read function can't
-# find installed plugins, so import fails silently and create hits 404 because
-# the plugin is already there. The plugin and its configuration are restored
-# from Borg backups and applied manually. See AGENTS.md Key Gotchas.
+resource "jellyfin_plugin" "sso_auth" {
+  name           = "SSO-Auth"
+  version        = "4.0.0.4"
+  repository_url = local.jellyfin_sso_plugin_repository_url
+}
 
+resource "jellyfin_plugin_configuration" "sso_auth" {
+  plugin_id = jellyfin_plugin.sso_auth.id
+
+  configuration_json = jsonencode({
+    SamlConfigs = {}
+    OidConfigs = {
+      authentik = {
+        OidEndpoint                = "https://auth.${var.authentik_domain}/application/o/jellyfin"
+        OidClientId                = data.bitwarden-secrets_secret.jellyfin_oauth_client_id.value
+        OidSecret                  = data.bitwarden-secrets_secret.jellyfin_oauth_client_secret.value
+        Enabled                    = true
+        EnableAuthorization        = true
+        EnableAllFolders           = true
+        EnabledFolders             = []
+        AdminRoles                 = ["admins"]
+        Roles                      = ["watchers", "admins"]
+        EnableFolderRoles          = false
+        EnableLiveTvRoles          = false
+        EnableLiveTv               = false
+        EnableLiveTvManagement     = false
+        LiveTvRoles                = []
+        LiveTvManagementRoles      = []
+        FolderRoleMapping          = []
+        RoleClaim                  = "groups"
+        OidScopes                  = ["groups"]
+        DefaultProvider            = ""
+        SchemeOverride             = ""
+        NewPath                    = true
+        CanonicalLinks             = {}
+        DefaultUsernameClaim       = ""
+        AvatarUrlFormat            = ""
+        DisableHttps               = false
+        DisablePushedAuthorization = false
+        DoNotValidateEndpoints     = false
+        DoNotValidateIssuerName    = false
+        DoNotLoadProfile           = false
+      }
+    }
+  })
+}
 
 resource "jellyfin_branding_configuration" "this" {
   configuration_json = jsonencode({
