@@ -59,6 +59,14 @@ data "bitwarden-secrets_secret" "jellyfin_admin_password" {
   }
 }
 
+data "bitwarden-secrets_secret" "jellyfin_oauth_client_id" {
+  id = local.secret_key_to_id["authentik-jellyfin-client-id"]
+}
+
+data "bitwarden-secrets_secret" "jellyfin_oauth_client_secret" {
+  id = local.secret_key_to_id["authentik-jellyfin-client-secret"]
+}
+
 data "bitwarden-secrets_secret" "authentik_bootstrap_token" {
   id = local.secret_key_to_id["authentik-bootstrap-token"]
 }
