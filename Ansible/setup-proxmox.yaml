@@ -259,11 +259,11 @@
       tags:
         - power
 
-    - name: Disable smartmontools daemon for Storage HDDs
+    - name: Ensure smartmontools daemon is running for boot drives
       ansible.builtin.systemd:
         name: smartmontools
-        enabled: false
-        state: stopped
+        enabled: true
+        state: started
       failed_when: false
       tags:
         - power
