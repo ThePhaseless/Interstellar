@@ -67,13 +67,9 @@ spec:
                   cp.add_section('BitTorrent')
               updates = {
                   'Session\\QueueingSystemEnabled': 'true',
-                  'Session\\MaxActiveDownloads': '3',
-                  'Session\\MaxActiveUploads': '1',
-                  'Session\\MaxActiveTorrents': '3',
-                  'Session\\MaxActiveCheckingTorrents': '1',
-                  'Session\\GlobalMaxRatio': '3',
-                  'Session\\GlobalMaxSeedingMinutes': '60',
-                  'Session\\ShareLimitAction': 'Remove',
+                  'Session\\GlobalMaxRatio': '2',
+                  'Session\\GlobalMaxSeedingMinutes': '10080',
+                  'Session\\ShareLimitAction': 'Stop',
               }
               changed = False
               for k, v in updates.items():
