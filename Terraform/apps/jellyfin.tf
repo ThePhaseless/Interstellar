@@ -63,10 +63,12 @@ resource "jellyfin_plugin_configuration" "sso_auth" {
         RoleClaim                  = "groups"
         OidScopes                  = ["groups"]
         DefaultProvider            = ""
+        DefaultUsernameClaim       = "preferred_username"
         SchemeOverride             = "https"
         NewPath                    = true
-        CanonicalLinks             = {}
-        DefaultUsernameClaim       = ""
+        CanonicalLinks             = {
+          "ThePhaseless" = "bc2a3d075f7b42bc82521b32e7ba18a1"
+        }
         AvatarUrlFormat            = ""
         DisableHttps               = false
         DisablePushedAuthorization = false
