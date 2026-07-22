@@ -108,7 +108,7 @@ spec:
 
         # PostgreSQL Sidecar
         - name: postgres
-          image: ghcr.io/immich-app/postgres:16-vectorchord0.3.0-pgvectors0.3.0
+          image: ghcr.io/immich-app/postgres:17-vectorchord0.3.0-pgvectors0.3.0
           env:
             - name: POSTGRES_DB
               value: "immich"
