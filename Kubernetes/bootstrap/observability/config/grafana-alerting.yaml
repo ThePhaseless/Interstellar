@@ -1166,7 +1166,7 @@ templates:
       > {{ index $a.Annotations "summary" }}
       {{- end }}
       {{ $d := $a.EndsAt.Sub $a.StartsAt -}}
-      -# fired for {{ humanizeDuration $d.Seconds }} · ended {{ $a.EndsAt.Format "15:04 02 Jan" }} UTC
+      -# fired for {{ printf "%.0fs" $d.Seconds }} · ended {{ $a.EndsAt.Format "15:04 02 Jan" }} UTC
 
       {{ end -}}
       {{- end -}}
