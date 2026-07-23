@@ -14,51 +14,15 @@ GitOps homelab: TalosOS Kubernetes on Proxmox, public access via Oracle HAProxy 
 | Server setup         | Ansible                                  | `Ansible/`                                                       |
 | Secrets              | Bitwarden SM + External Secrets Operator | `Terraform/secrets.tf`, `Kubernetes/bootstrap/external-secrets/` |
 
-## Kubernetes Conventions
+## Conventions
 
-### App structure
+Detailed conventions and gotchas live in `Kubernetes/AGENTS.md` and `Terraform/AGENTS.md`. Key cross-cutting rules:
 
-Each app lives in `Kubernetes/apps/<name>/` with `kustomization.yaml`, `deployment.yaml`, `service.yaml`, and optionally `ingress.yaml`, `pvc.yaml`, `externalsecret.yaml`.
-
+- **Ingress**: Use Traefik `IngressRoute` CRD (`traefik.io/v1alpha1`), never standard `networking.k8s.io/v1 Ingress`
 - **Namespaces**: `media`, `utilities`, `home` — declared in `Kubernetes/apps/namespaces.yaml`
-- **Labels**: Always include `app: <name>` via kustomization `labels` block
-- **ConfigMaps**: Use `configMapGenerator` with `disableNameSuffixHash: true`
-- **New apps**: Add the directory to `Kubernetes/apps/kustomization.yaml` resources list; ArgoCD auto-syncs
-
-### Ingress
-
-Uses Traefik `IngressRoute` CRD (`traefik.io/v1alpha1`), not standard `Ingress`. Pattern:
-
-- Entrypoint: `websecure`, certResolver: `letsencrypt`
-- Domain: `*.nerine.dev`
-- Middleware chain: reference `public-chain@kubernetescrd` from `traefik` namespace for public routes
-- Global middlewares live in `traefik` namespace; app-specific ones in the app's namespace
-
-### Secrets
-
-- `ClusterSecretStore` names: `bitwarden-store` (manual) or `bitwarden-store-generated` (Terraform-created)
-- 1-hour refresh interval on ExternalSecrets
-- API key extraction: sidecar containers read app config → update Bitwarden → Terraform reads back
-
-### Storage
-
-- NFS v4.2 PersistentVolumes defined in `Kubernetes/apps/common/media-pv.yaml`
-- Mount options: `nfsvers=4.2,noatime`, reclaim policy: `Retain`, access mode: `ReadWriteMany`
-- Longhorn CSI for non-NFS persistent storage
-
-### Deployments
-
-- `Recreate` strategy for stateful/GPU apps (Jellyfin, Immich, AdGuard)
-- Annotation `reloader.stakater.com/auto: "true"` for config-change restarts
-- GPU resources: `gpu.intel.com/xe: "1"` (Intel Arc, only on GPU-labeled node)
-
-## Terraform Conventions
-
-- **Naming**: Resources use `kebab-case`, locals use `snake_case`
-- **Secrets**: `random_password` → `bitwarden-secrets_secret` with `lifecycle { ignore_changes = [value] }`
-- **User secrets**: Validated with `postcondition` (fail if empty placeholder)
-- **State**: Main → OCI Object Storage; Apps → Kubernetes secret backend
-- **Variables**: Cluster config in `variables.tf`, app endpoints in `Terraform/apps/variables.tf`
+- **Secrets**: Bitwarden SM + External Secrets Operator; stores are `bitwarden-store` (manual) / `bitwarden-store-generated` (Terraform-created)
+- **Storage**: NFS v4.2 for shared media (`media-pvc`, `downloads-pvc`, `personal-pvc`), Longhorn CSI for app config/databases
+- **Terraform naming**: Resources `kebab-case`, locals `snake_case`; secrets use `random_password` → `bitwarden-secrets_secret` with `lifecycle { ignore_changes = [value] }`
 
 ## Build & Test
 
@@ -101,8 +65,7 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 - **For a single workload that must call a public `*.nerine.dev` hostname from inside the cluster, prefer pod-level `hostAliases` to Traefik's declarative MetalLB IP over a cluster-wide CoreDNS override**: this fixes split-horizon only where needed and keeps global DNS untouched.
 - **Tailscale exit nodes on Proxmox need kernel forwarding enabled**: Advertising `0.0.0.0/0` and `::/0` is not enough; `net.ipv4.ip_forward=1` and `net.ipv6.conf.all.forwarding=1` must be set or clients lose internet when selecting the exit node.
 - **Sonarr/Radarr external auth**: Init containers write `config.xml` with `<AuthenticationMethod>External</AuthenticationMethod>` — Traefik forward-auth injects `Remote-User`.
-- **Longhorn can keep a volume `attached`/`healthy` while the node mount is effectively read-only**: If apps start reporting `Read-only file system`, check the node's `/proc/mounts` for `emergency_ro` on the PVC before adding scheduling workarounds; this needs volume/filesystem repair or remount, not pod rescheduling.
-- **For Longhorn `emergency_ro` incidents, snapshot first and try a clean detach/reattach before fsck or manifest changes**: Creating manual Longhorn snapshots, scaling the owning workload to `0` until the volume detaches, then scaling it back up restored the mounts to `rw` in this cluster without recreating any resources or rolling data back.
+- **Longhorn `emergency_ro` recovery**: If apps report `Read-only file system`, check `/proc/mounts` for `emergency_ro`. Full recovery procedure in `Kubernetes/AGENTS.md` → Emergency Recovery.
 - **Talos control-plane etcd lives under `/var/lib/etcd` inside `EPHEMERAL` on these nodes, not a dedicated `ETCD` partition**: `talosctl reset --system-labels-to-wipe ETCD` fails here; rebuilding a removed etcd member needs a broader maintenance plan than a partition-only wipe.
 - **NFS server IP**: Injected via ConfigMap replacement in root `Kubernetes/kustomization.yaml`, not hardcoded.
 - **Middleware namespaces matter**: When referencing a middleware from another namespace, include `namespace: <ns>` in the IngressRoute.
@@ -110,7 +73,6 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 - **Mise only auto-loads static repo env**: `.env` and the uv-managed `.venv` come from `.mise.toml`, but Bitwarden/Tailscale exports still require `source scripts/setup-env.sh` in the shell that will run Terraform or Ansible commands.
 - **Main Terraform CI uses a GitHub App token for API access**: `terraform.yaml` uses `actions/create-github-app-token@v3` to generate a token with `repo` scope for Terraform's `github_actions_variable`/`github_actions_secret` data sources. The default `GITHUB_TOKEN` with `permissions: write-all` is **insufficient** for reading repository variables and secrets via the API. The GH App ID and private key are stored in Bitwarden as `GH_APP_ID` and `GH_APP_PRIVATE_KEY`.
 - **Longhorn volumes with `recurring-job-group.longhorn.io/default: enabled` auto-delete user-created snapshots**: The Longhorn admission webhook re-adds this label if removed, so snapshots created via `kubectl apply` are deleted within seconds. For migrations requiring persistent snapshots, use direct data copy via a temporary Job (mount old PVC read-only, new PVC read-write, `cp -a`) instead of the snapshot/restore flow.
-- **Borg repo path migration (backups/immich → backups/interstellar)**: After merging the backup refactor, manually SSH to the storage box and run `mv backups/immich backups/interstellar` BEFORE running `terraform apply`. The Terraform change updates the Bitwarden secret, so the mv must happen first or backups will fail until the directory exists at the new path. All existing archives move with the directory — borg repos are self-contained.
 - **Intel Arc GPU runtime PM requires DMC firmware**: The Talos `xe` extension historically omitted `i915/bmg_dmc.bin`, so `xe` hard-disabled runtime PM and the GPU sat at ~9W idle forever. This is a fixable extension bug, not a hardware limit. Fix: `siderolabs/i915` extension is added to GPU nodes (ships `i915/` firmware) — pending upstream PR to `siderolabs/extensions drm/xe/pkg.yaml`. Do **not** re-add GPU metric exporters even with the fix — periodic sysfs reads from `/sys/class/drm/card0/device/tile0/gt*/freq0/cur_freq` or `throttle/reason_*` still wake the GT out of G2 and cost ~7-8W.
 - **Longhorn PV `nodeAffinity` is immutable**: When a workload moves to a node added after the volume was created, `dataLocality: best-effort` alone cannot overcome stale node affinity. The fix is to add a replica on the new node, detach the volume, delete the PV (after setting `reclaimPolicy: Retain`), then use Longhorn's `pvCreate` action to recreate it so the workload can schedule.
 - **`hd-idle -c scsi` never spins down SATA drives** — must use `-c ata` for SATA, `-c scsi` for SAS. The original Phase 1 config used `-c scsi` on SATA HDDs, so disks sat at `IDLE_A/B` (heads parked, platters spinning) forever, never reaching `STANDBY`.
@@ -119,48 +81,13 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 - **The `1a86:7523` CH340 serial converter is the Home Assistant Zigbee coordinator** — it is passed through to the HA VM via the Proxmox `Zigbee` USB mapping (`usb0`). Do **not** unbind it in a power-optimization udev rule; doing so breaks Zigbee and requires cycling USB bus 1 (or rebooting `carbon`) to recover.
 - **Talos `exec format error` with a 0-byte binary is usually corrupted containerd overlay snapshots, not wrong CPU arch**: On a fresh node, CRI can mount `/jellyfin/jellyfin` at size 0 while `talosctl debug` (inmem namespace) shows the correct binary. `talosctl image remove` + re-pull may not fix it if the overlay snapshot metadata is stuck. A targeted `talosctl reset` often leaves the disk in a half-wiped state; the reliable recovery was to stop the VM, destroy and recreate the system-disk ZVOL, boot the Talos GPU ISO, and `apply-config --insecure` again. Do not delete `io.containerd.snapshotter.v1.overlayfs` while kubelet is running — that breaks etcd/kubelet too.
 - **NFS server must start before VMs and stop after them**: VMs mount NFS shares, so NFS must be available before `pve-guests.service` starts. Configured via systemd override at `/etc/systemd/system/nfs-server.service.d/override.conf` with `Before=pve-guests.service`. Systemd automatically handles reverse ordering for shutdown (VMs stop first, then NFS). Without this, VMs fail to mount NFS on boot or lose storage during shutdown.
-- **Flannel CNI restart on the GPU node causes a 30-60s "Not Ready" window on every GPU pod**: `kube-flannel-jsm47` (Sidero's hardened Flannel `v0.28.5`) on `talos-9jv-bx9` restarted 42 times in 2d2h (~one per 73 min). Each restart kills CNI on the node for ~30-60s, which (a) fails the kubelet's HTTP liveness/readiness probes (they go through CNI), (b) gets pods evicted, (c) the device plugin also restarts and may throw `UnexpectedAdmissionError` mid-recovery, (d) ArgoCD `selfHeal` then creates new pods in a tight loop, (e) 15+ stuck `Unknown` pods accumulate. The "every hour" cadence in the `pod-not-ready` alert matches the Bitwarden SDK refresh storm at the top of every hour, which transient memory-pressures the node (talos-1 has only 4 vCPU / 10 GiB and 2 GPU pods already request 6 GiB). Workarounds: (a) keep `talos-1` ≥16 GiB RAM so the burst doesn't OOM-kill Flannel, (b) pin *arr apps off the GPU node, (c) stagger `ExternalSecret.refreshInterval` with 0-15 min jitter across the 19 secrets. **Always read kernel log via Loki (`{app="talos-kmsg-shipper"}`)** before guessing at the next root cause — the cluster runs `talos-kmsg-shipper` as a DaemonSet to ship `/dev/kmsg` to Loki. To wait for the next occurrence (Flannel restarts ~every 73 min), run `./scripts/wait-for-gpu-crash.sh` in a tmux/screen session — it polls every 30s, exits 0 with a full diagnostic dump (Flannel events, GPU pod state, kmsg from Loki, dmesg tail) on detection, and optionally posts to a Discord webhook via `DISCORD_WEBHOOK_URL=...`.
-
+- **Always read kernel logs via Loki (`{app="talos-kmsg-shipper"}`) before guessing at cluster root causes**: the cluster ships `/dev/kmsg` to Loki via a DaemonSet. `scripts/wait-for-gpu-crash.sh` polls for and captures the next Flannel-restart/GPU-pod-NotReady occurrence with full diagnostics. The GPU node (talos-1) is memory-constrained; Bitwarden SDK refresh storms at the top of every hour can OOM-kill Flannel and cascade into pod evictions. Workarounds: keep talos-1 ≥16 GiB RAM, pin *arr apps off the GPU node, stagger `ExternalSecret.refreshInterval` with jitter.
 - **`/etc/modprobe.d/zfs.conf` changes on Proxmox require `update-initramfs -u` to survive reboot**: The ZFS module is loaded from the initramfs, and its modprobe configuration is copied into the initramfs at build time. A stale initramfs will load the old `zfs_arc_max`/`zfs_txg_timeout` values even when `/etc/modprobe.d/zfs.conf` on disk is correct. Follow any ZFS module-option change with `update-initramfs -u` (and `proxmox-boot-tool refresh`) before rebooting.
 - **Grafana notification templates use a fork of alertmanager with reduced DefaultFuncs**: The fork (grafana/prometheus-alertmanager v0.25.1-based, pinned by github.com/grafana/alerting) removed humanizeDuration, humanize, since, toJson, dict, list, safeUrl, urlUnescape from upstream's DefaultFuncs. Available notification-template funcs: date, join, match, reReplaceAll, safeHtml, stringSlice, title, toLower, toUpper, trimSpace, tz (plus Go builtins like printf, len, eq, index, range). Using a missing func crashes Grafana on startup with "text templates: [alerting.notifications.templates.invalidFormat]" and the inner parse error is swallowed.
 
 ### Terraform App Configuration (`Terraform/apps/`)
 
-This sub-project uses **Terraform** to configure Sonarr, Radarr, Prowlarr, and AdGuard Home via their Terraform providers. State is stored in a Kubernetes secret (backend `kubernetes`, secret suffix `servarr`).
-
-**Prerequisites:**
-
-- Terraform (`terraform`) installed (>= 1.14.4)
-- `KUBE_CONFIG_PATH` set (e.g. `~/.kube/config`) — required for the kubernetes backend
-- Repo trusted and toolchain installed: `mise trust && mise install && mise run install`
-- Bitwarden-backed environment sourced in the current shell: `source scripts/setup-env.sh`
-
-**Running locally** (services are accessed via `kubectl port-forward`):
-
-```bash
-# 1. Export kubeconfig path for the kubernetes backend
-export KUBE_CONFIG_PATH=~/.kube/config
-
-# 2. Start port-forwards (runs in background with auto-reconnect)
-./scripts/port-forward-apps.sh &
-
-# 3. Init, plan, and apply (defaults point to localhost)
-cd Terraform/apps
-terraform init
-terraform plan
-terraform apply
-```
-
-Provider URL defaults use `localhost` (matching the port-forward script). In CI, override with `TF_VAR_*` env vars pointing to Tailscale MagicDNS names.
-
-**Importing existing resources** (to avoid duplicates on first run):
-
-```bash
-terraform import sonarr_download_client.qbittorrent 1
-terraform import radarr_download_client.qbittorrent 1
-terraform import prowlarr_application.sonarr <ID>
-terraform import prowlarr_application.radarr <ID>
-```
+See `Terraform/AGENTS.md` for directory structure, secrets management patterns, provider authentication, running instructions, and gotchas for this sub-project (Sonarr, Radarr, Prowlarr, AdGuard, Authentik, Jellyfin providers; state in Kubernetes secret backend).
 
 ## CI/CD Workflows
 
