@@ -64,7 +64,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: "CPU usage on {{ $labels.instance }} is at {{ printf \"%.1f\" $values.C }}% (threshold: 80%)"
+          summary: "CPU usage on {{ with $labels.instance }}{{ reReplaceAll \":[0-9]+$\" \"\" . }}{{ end }} is at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% (threshold: 80%)"
         labels:
           severity: critical
         isPaused: false
@@ -126,7 +126,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: "Memory usage on {{ $labels.instance }} is at {{ printf \"%.1f\" $values.C }}% (threshold: 85%)"
+          summary: "Memory usage on {{ with $labels.instance }}{{ reReplaceAll \":[0-9]+$\" \"\" . }}{{ end }} is at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% (threshold: 85%)"
         labels:
           severity: critical
         isPaused: false
@@ -189,7 +189,7 @@ groups:
         execErrState: Error
         for: 0s
         annotations:
-          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} restarted {{ printf \"%.0f\" $values.C }} times in 10m"
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} restarted {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.0f\" .Value }}{{ end }}{{ end }} times in 10m"
         labels:
           severity: critical
         isPaused: false
@@ -323,7 +323,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is at {{ printf \"%.1f\" $values.C }}% capacity (threshold: 85%)"
+          summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% capacity (threshold: 85%)"
         labels:
           severity: warning
         isPaused: false
@@ -403,7 +403,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: (certmanager_certificate_expiration_timestamp_seconds - time()) < 1209600
+              expr: (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 14
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
@@ -449,7 +449,7 @@ groups:
         execErrState: Error
         for: 1h
         annotations:
-          summary: Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in less than 14 days
+          summary: "Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }} days"
         labels:
           severity: warning
         isPaused: false
@@ -581,7 +581,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: Longhorn volume {{ $labels.pvc }} in {{ $labels.pvc_namespace }} is degraded
+          summary: Longhorn volume {{ $labels.pvc }} in {{ $labels.pvc_namespace }} is {{ $labels.state }}
         labels:
           severity: warning
         isPaused: false
@@ -598,7 +598,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: (longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes) > 0.80
+              expr: (longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes) * 100 > 80
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
@@ -644,7 +644,7 @@ groups:
         execErrState: Error
         for: 10m
         annotations:
-          summary: "Longhorn node {{ $labels.node }} storage at {{ printf \"%.1f\" (mul $values.C 100) }}% (threshold: 80%)"
+          summary: "Longhorn node {{ $labels.node }} storage at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% (threshold: 80%)"
         labels:
           severity: critical
         isPaused: false
@@ -711,7 +711,7 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: "Traefik service {{ $labels.service }} 5xx rate at {{ printf \"%.1f\" $values.C }}% (threshold: 5%)"
+          summary: "Traefik service {{ with $labels.service }}{{ reReplaceAll \"-[0-9a-f]+@kubernetescrd$\" \"\" . }}{{ end }} 5xx rate at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% (threshold: 5%)"
         labels:
           severity: critical
         isPaused: false
@@ -734,7 +734,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*|.*bazarr.*|.*sonarr.*|.*radarr.*|.*prowlarr.*|.*seerr.*|.*authentik.*|.*qbittorrent.*"}[5m]))) > 0.75
+              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*|.*bazarr.*|.*sonarr.*|.*radarr.*|.*prowlarr.*|.*seerr.*|.*authentik.*|.*qbittorrent.*"}[5m]))) * 1000 > 750
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
@@ -780,7 +780,7 @@ groups:
         execErrState: Error
         for: 10m
         annotations:
-          summary: "Traefik service {{ $labels.service }} p95 latency at {{ printf \"%.0f\" (mul $values.C 1000) }}ms (threshold: 750ms)"
+          summary: "Traefik service {{ with $labels.service }}{{ reReplaceAll \"-[0-9a-f]+@kubernetescrd$\" \"\" . }}{{ end }} p95 latency at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.0f\" .Value }}{{ end }}{{ end }}ms (threshold: 750ms)"
         labels:
           severity: warning
         isPaused: true
@@ -798,7 +798,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*|.*bazarr.*|.*sonarr.*|.*radarr.*|.*prowlarr.*|.*seerr.*|.*authentik.*|.*qbittorrent.*"}[5m]))) > 1.5
+              expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*|.*bazarr.*|.*sonarr.*|.*radarr.*|.*prowlarr.*|.*seerr.*|.*authentik.*|.*qbittorrent.*"}[5m]))) * 1000 > 1500
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
@@ -844,7 +844,7 @@ groups:
         execErrState: Error
         for: 10m
         annotations:
-          summary: "Traefik service {{ $labels.service }} p95 latency at {{ printf \"%.0f\" (mul $values.C 1000) }}ms (threshold: 1500ms)"
+          summary: "Traefik service {{ with $labels.service }}{{ reReplaceAll \"-[0-9a-f]+@kubernetescrd$\" \"\" . }}{{ end }} p95 latency at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.0f\" .Value }}{{ end }}{{ end }}ms (threshold: 1500ms)"
         labels:
           severity: critical
         isPaused: true
@@ -1037,7 +1037,7 @@ groups:
         execErrState: Error
         for: 1m
         annotations:
-          summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} is logging repeated storage I/O errors
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} logged {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.0f\" .Value }}{{ end }}{{ end }} storage I/O error lines in 5m"
         labels:
           severity: critical
         isPaused: false
@@ -1138,20 +1138,40 @@ templates:
     template: |
       {{ define "discord_compact" -}}
       {{- if .Alerts.Firing -}}
-      ## 🚨 {{ len .Alerts.Firing }} Alert(s) Firing
-      {{ range .Alerts.Firing -}}
-      ### 🔴 {{ index .Labels "alertname" }}
-      > **Severity:** `{{ index .Labels "severity" | title }}`
-      > **Summary:** {{ index .Annotations "summary" }}
-      ---
+      ## 🚨 {{ len .Alerts.Firing }} firing
+      {{ range $i, $a := .Alerts.Firing -}}
+      {{- if lt $i 10 }}
+      {{- if eq (index $a.Labels "severity") "critical" }}🔴{{ else }}🟡{{ end }} **{{ index $a.Labels "alertname" }}**
+      {{- if index $a.Annotations "Error" }}
+      > ⚠️ Datasource query failed — check Mimir/Loki health
+      {{- else }}
+      > {{ index $a.Annotations "summary" }}
+      {{- end }}
+      -# {{ index $a.Labels "severity" }} · since {{ $a.StartsAt.Format "15:04 02 Jan" }} UTC{{ if $a.GeneratorURL }} · [Grafana]({{ $a.GeneratorURL }}){{ end }}{{ if $a.SilenceURL }} · [Silence]({{ $a.SilenceURL }}){{ end }}
+
+      {{ end -}}
+      {{- end -}}
+      {{- if gt (len .Alerts.Firing) 10 -}}
+      -# …showing 10 of {{ len .Alerts.Firing }} — see Grafana for the rest
       {{ end -}}
       {{- end -}}
       {{- if .Alerts.Resolved -}}
-      ## ✅ {{ len .Alerts.Resolved }} Alert(s) Resolved
-      {{ range .Alerts.Resolved -}}
-      ### 🟢 {{ index .Labels "alertname" }}
-      > **Severity:** `{{ index .Labels "severity" | title }}`
-      ---
+      ## ✅ {{ len .Alerts.Resolved }} resolved
+      {{ range $i, $a := .Alerts.Resolved -}}
+      {{- if lt $i 10 -}}
+      🟢 **{{ index $a.Labels "alertname" }}**
+      {{- if index $a.Annotations "Error" }}
+      > Datasource error cleared
+      {{- else }}
+      > {{ index $a.Annotations "summary" }}
+      {{- end }}
+      {{ $d := $a.EndsAt.Sub $a.StartsAt -}}
+      -# fired for {{ humanizeDuration $d.Seconds }} · ended {{ $a.EndsAt.Format "15:04 02 Jan" }} UTC
+
+      {{ end -}}
+      {{- end -}}
+      {{- if gt (len .Alerts.Resolved) 10 -}}
+      -# …showing 10 of {{ len .Alerts.Resolved }} — see Grafana for the rest
       {{ end -}}
       {{- end -}}
       {{- end }}
