@@ -1,0 +1,91 @@
+# CrowdSec Helm Chart Values
+# Deploys LAPI (Deployment) + Agent (DaemonSet) with native containerd log tailing.
+# Agent tails Traefik and Jellyfin pod logs, runs scenarios, pushes decisions to LAPI.
+# Bouncer key injected via existing ExternalSecret (crowdsec-secrets).
+
+container_runtime: containerd
+
+# --- LAPI (Local API Server) ---
+lapi:
+  enabled: true
+  replicas: 1
+  strategy:
+    type: Recreate
+
+  # Bouncer key from existing ExternalSecret (crowdsec-secrets, key: bouncer-key)
+  # The chart's docker_start.sh reads BOUNCER_KEY_* env vars and registers bouncers.
+  envFrom:
+    - secretRef:
+        name: crowdsec-secrets
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "6060"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  persistentVolume:
+    # Fresh PVC for SQLite DB + data (old crowdsec-data PVC pruned by ArgoCD;
+    # old data was empty — 0 alerts, 0 decisions — not worth preserving)
+    data:
+      enabled: true
+      storageClassName: longhorn
+      size: 2Gi
+    # PVC for /etc/crowdsec config persistence (hub items, credentials)
+    config:
+      enabled: true
+      storageClassName: longhorn
+      size: 100Mi
+
+  metrics:
+    enabled: true
+
+# --- Agent (DaemonSet) ---
+# Tails pod logs via containerd runtime, runs parsers/scenarios, pushes to LAPI.
+agent:
+  enabled: true
+
+  acquisition:
+    # Traefik access logs — main ingress, public attack surface
+    - namespace: traefik
+      podName: "traefik-*"
+      program: traefik
+    # Jellyfin logs — brute-force detection (LePresidente/jellyfin collection)
+    - namespace: media
+      podName: "jellyfin-*"
+      program: jellyfin
+
+  env:
+    - name: COLLECTIONS
+      value: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux LePresidente/jellyfin"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  metrics:
+    enabled: true
+
+# --- General Config ---
+config:
+  config.yaml.local: |
+    api:
+      server:
+        auto_registration:
+          enabled: true
+          token: "${REGISTRATION_TOKEN}"
+          allowed_ranges:
+            - "127.0.0.1/32"
+            - "192.168.0.0/16"
+            - "10.0.0.0/8"
+            - "172.16.0.0/12"

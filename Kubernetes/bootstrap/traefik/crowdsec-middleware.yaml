@@ -17,7 +17,7 @@ spec:
       # Decisions are updated every 60 sec, requests hit local cache
       crowdsecMode: stream
       crowdsecLapiScheme: http
-      crowdsecLapiHost: crowdsec-lapi.crowdsec.svc.cluster.local:8080
+      crowdsecLapiHost: crowdsec-service.crowdsec.svc.cluster.local:8080
       # API key loaded from external secret via environment
       crowdsecLapiKeyFile: /secrets/crowdsec/crowdsecLapiKey
       # Trust Tailscale IPs (don't block internal traffic)
