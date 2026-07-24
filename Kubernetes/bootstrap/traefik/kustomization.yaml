@@ -9,6 +9,7 @@ resources:
   - crowdsec-middleware.yaml
   - crowdsec-externalsecret.yaml
   - ingress.yaml
+  - tls-options.yaml
 
 helmCharts:
   - name: traefik
@@ -98,6 +99,7 @@ helmCharts:
             tls:
               enabled: true
               certResolver: letsencrypt
+              options: "nerine-tls@kubernetescrd"
               domains:
                 - main: "nerine.dev"
                   sans:
