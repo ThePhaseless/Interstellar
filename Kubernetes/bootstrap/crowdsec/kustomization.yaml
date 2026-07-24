@@ -5,6 +5,13 @@ namespace: crowdsec
 
 resources:
   - namespace.yaml
-  - lapi.yaml
-  - pvc.yaml
   - externalsecret.yaml
+
+helmCharts:
+  - name: crowdsec
+    repo: https://crowdsecurity.github.io/helm-charts
+    version: 0.24.0
+    releaseName: crowdsec
+    namespace: crowdsec
+    includeCRDs: true
+    valuesFile: values.yaml
