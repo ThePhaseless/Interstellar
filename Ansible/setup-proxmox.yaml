@@ -315,12 +315,35 @@
       tags:
         - power
 
+    # -- SSH hardening --
+    - name: Harden SSH configuration
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/99-hardening.conf
+        mode: "0644"
+        content: |
+          PermitRootLogin prohibit-password
+          MaxAuthTries 3
+          PasswordAuthentication no
+          AllowTcpForwarding no
+          X11Forwarding no
+          ClientAliveCountMax 2
+          LogLevel VERBOSE
+      notify: Restart SSH
+      tags:
+        - ssh
+
   handlers:
     - name: Re-export NFS shares
       ansible.builtin.command:
         cmd: exportfs -ra
       changed_when: true
 
+    - name: Restart SSH
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted
+      tags:
+        - ssh
     - name: Reload sysctl
       ansible.builtin.command:
         cmd: sysctl --system
