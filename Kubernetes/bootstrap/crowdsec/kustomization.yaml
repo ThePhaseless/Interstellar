@@ -15,3 +15,43 @@ helmCharts:
     namespace: crowdsec
     includeCRDs: true
     valuesFile: values.yaml
+
+# CrowdSec chart omits metadata.namespace — kustomize namespace transformer
+# doesn't apply to Helm output in v5.8.1, so add namespace via patches.
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+  - target:
+      kind: DaemonSet
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+  - target:
+      kind: Service
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+  - target:
+      kind: PersistentVolumeClaim
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+  - target:
+      kind: ConfigMap
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+  - target:
+      kind: Secret
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
