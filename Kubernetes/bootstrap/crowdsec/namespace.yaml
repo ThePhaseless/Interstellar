@@ -4,3 +4,4 @@ metadata:
   name: crowdsec
   labels:
     name: crowdsec
+    pod-security.kubernetes.io/enforce: privileged
