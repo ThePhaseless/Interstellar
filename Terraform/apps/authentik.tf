@@ -369,13 +369,13 @@ resource "authentik_provider_oauth2" "jellyfin" {
     {
       matching_mode     = "strict"
       redirect_uri_type = "authorization"
-      url               = "https://watch.${var.authentik_domain}/sso/OID/redirect/authentik"
+      url               = "https://watch.${var.authentik_domain}/TwoFactorAuth/Oidc/Callback/authentik"
     },
     {
-      # Traefik terminates TLS, so the SSO plugin sees http:// and uses it as redirect_uri
+      # Traefik terminates TLS, so the plugin sees http:// and uses it as redirect_uri
       matching_mode     = "strict"
       redirect_uri_type = "authorization"
-      url               = "http://watch.${var.authentik_domain}/sso/OID/redirect/authentik"
+      url               = "http://watch.${var.authentik_domain}/TwoFactorAuth/Oidc/Callback/authentik"
     }
   ]
 }

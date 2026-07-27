@@ -60,7 +60,7 @@ The Jellyfin provider is published on Terraform Registry as `ThePhaseless/jellyf
 so `terraform init` now uses the standard registry installation flow.
 
 The repo now manages Jellyfin bootstrap state directly in `Terraform/apps/jellyfin.tf`:
-libraries, the SSO plugin repository/package, SSO plugin configuration, and login branding.
+libraries, the Jellyfin Security plugin repository/package, plugin configuration, and login branding.
 The Kubernetes setup sidecar is no longer the source of truth for those settings.
 
 ## Importing Existing Resources
