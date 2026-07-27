@@ -29,3 +29,4 @@ spec:
       forwardedHeadersCustomName: X-Forwarded-For
       forwardedHeadersTrustedIPs:
         - "100.64.0.0/10" # Tailscale (Oracle HAProxy)
+        - "10.244.0.0/16" # Pod CIDR (ts-traefik proxy forwards real client IP)
