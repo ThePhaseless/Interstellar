@@ -132,7 +132,7 @@ config:
         description: "Whitelist Tailscale direct traffic (appears as ts-traefik pod IP due to L3 DNAT)"
         whitelist:
           reason: "Tailscale direct access via k8s-operator L3 proxy (DNAT)"
-          ip:
+          cidr:
             - "10.244.0.0/16"
             - "100.64.0.0/10"
             - "192.168.1.0/24"
