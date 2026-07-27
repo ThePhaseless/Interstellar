@@ -24,7 +24,6 @@ spec:
       clientTrustedIPs:
         - "100.64.0.0/10" # Tailscale CGNAT
         - "192.168.1.0/24" # Home LAN
-        - "10.244.0.0/16" # Pod CIDR
       # Forward headers from HAProxy PROXY protocol
       forwardedHeadersCustomName: X-Forwarded-For
       forwardedHeadersTrustedIPs:
