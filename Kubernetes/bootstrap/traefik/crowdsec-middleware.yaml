@@ -20,10 +20,17 @@ spec:
       crowdsecLapiHost: crowdsec-service.crowdsec.svc.cluster.local:8080
       # API key loaded from external secret via environment
       crowdsecLapiKeyFile: /secrets/crowdsec/crowdsecLapiKey
-      # Trust Tailscale IPs (don't block internal traffic)
+      # Trusted networks — bypass ALL checks (bans, rate limiting, AppSec WAF).
+      # Tailscale operator uses L3 DNAT (does NOT forward real client IP — see
+      # tailscale/tailscale#11024), so all Tailscale direct traffic appears as
+      # the ts-traefik pod IP. The pod CIDR here is what actually matches that
+      # traffic; 100.64.0.0/10 is kept for forward-compat if Tailscale ever
+      # adds PROXY protocol support. Public traffic gets its real IP via
+      # PROXY protocol from HAProxy, so it is NOT bypassed.
       clientTrustedIPs:
-        - "100.64.0.0/10" # Tailscale CGNAT
-        - "192.168.1.0/24" # Home LAN
+        - "100.64.0.0/10" # Tailscale CGNAT (forward-compat; not seen today due to DNAT)
+        - "192.168.1.0/24" # Home LAN (direct access, bypasses Tailscale)
+        - "10.244.0.0/16" # Pod CIDR — matches ts-traefik DNAT'd Tailscale traffic
       # Forward headers from HAProxy PROXY protocol
       forwardedHeadersCustomName: X-Forwarded-For
       forwardedHeadersTrustedIPs:

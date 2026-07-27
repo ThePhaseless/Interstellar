@@ -117,6 +117,25 @@ appsec:
 
 # --- General Config ---
 config:
+  # Agent whitelist — prevents scenarios (http-dos, brute-force, etc.) from
+  # triggering for Tailscale direct traffic. The Tailscale operator uses L3
+  # DNAT (tailscale/tailscale#11024), so all Tailscale traffic appears as the
+  # ts-traefik pod IP. Without this whitelist, a burst of Tailscale requests
+  # would trigger http-dos and ban the pod IP, blocking ALL Tailscale users.
+  # The bouncer's clientTrustedIPs already bypasses these requests, but this
+  # whitelist prevents noise in alerts/metrics and defends against any future
+  # bouncer that doesn't trust the pod CIDR.
+  postoverflows:
+    s01-whitelist:
+      tailscale-dnat-whitelist.yaml: |
+        name: tailscale/dnat-pod-cidr
+        description: "Whitelist Tailscale direct traffic (appears as ts-traefik pod IP due to L3 DNAT)"
+        whitelist:
+          reason: "Tailscale direct access via k8s-operator L3 proxy (DNAT)"
+          ip:
+            - "10.244.0.0/16"
+            - "100.64.0.0/10"
+            - "192.168.1.0/24"
   config.yaml.local: |
     api:
       server:
@@ -128,7 +147,7 @@ config:
             - "192.168.0.0/16"
             - "10.0.0.0/8"
             - "172.16.0.0/12"
-    db_config:
+    dbconfig:
       flush:
         bouncers_autodelete:
           api_key: 1h
