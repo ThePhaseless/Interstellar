@@ -30,3 +30,9 @@ spec:
       forwardedHeadersTrustedIPs:
         - "100.64.0.0/10" # Tailscale (Oracle HAProxy)
         - "10.244.0.0/16" # Pod CIDR (ts-traefik proxy forwards real client IP)
+      # AppSec WAF (virtual patching) — real-time request inspection
+      # Blocks SQL injection, XSS, path traversal, RCE, known CVE exploits
+      crowdsecAppsecEnabled: true
+      crowdsecAppsecHost: crowdsec-appsec-service.crowdsec.svc.cluster.local:7422
+      crowdsecAppsecFailureBlock: true
+      crowdsecAppsecUnreachableBlock: true
