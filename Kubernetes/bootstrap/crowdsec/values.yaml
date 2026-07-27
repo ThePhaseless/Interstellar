@@ -1,6 +1,7 @@
 # CrowdSec Helm Chart Values
-# Deploys LAPI (Deployment) + Agent (DaemonSet) with native containerd log tailing.
+# Deploys LAPI (Deployment) + Agent (DaemonSet) + AppSec (Deployment) with native containerd log tailing.
 # Agent tails Traefik and Jellyfin pod logs, runs scenarios, pushes decisions to LAPI.
+# AppSec provides real-time WAF protection (virtual patching) at the Traefik ingress.
 # Bouncer key injected via existing ExternalSecret (crowdsec-secrets).
 
 container_runtime: containerd
@@ -12,7 +13,7 @@ lapi:
   strategy:
     type: Recreate
 
-  # Bouncer key from existing ExternalSecret (crowdsec-secrets, key: bouncer-key)
+  # Bouncer key from existing ExternalSecret (crowdsec-secrets, key: BOUNCER_KEY_traefik)
   # The chart's docker_start.sh reads BOUNCER_KEY_* env vars and registers bouncers.
   envFrom:
     - secretRef:
@@ -63,7 +64,45 @@ agent:
 
   env:
     - name: COLLECTIONS
-      value: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux LePresidente/jellyfin"
+      value: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux LePresidente/jellyfin crowdsecurity/http-dos"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  metrics:
+    enabled: true
+
+# --- AppSec (WAF / Virtual Patching) ---
+# Real-time WAF protection at the Traefik ingress — blocks SQL injection, XSS,
+# path traversal, RCE, and known CVE exploits BEFORE they reach your apps.
+# Runs as a separate Deployment (not DaemonSet), low resource cost.
+appsec:
+  enabled: true
+  replicas: 1
+  strategy:
+    type: Recreate
+
+  acquisitions:
+    - appsec_configs:
+        - crowdsecurity/appsec-default
+      labels:
+        type: appsec
+      listen_addr: "0.0.0.0:7422"
+      path: /
+      source: appsec
+
+  env:
+    - name: COLLECTIONS
+      value: "crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "6060"
 
   resources:
     requests:
@@ -89,3 +128,10 @@ config:
             - "192.168.0.0/16"
             - "10.0.0.0/8"
             - "172.16.0.0/12"
+    db_config:
+      flush:
+        bouncers_autodelete:
+          api_key: 1h
+        agents_autodelete:
+          login_password: 6h
+          cert: 6h

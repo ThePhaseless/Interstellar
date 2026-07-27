@@ -77,6 +77,13 @@ configMapGenerator:
       disableNameSuffixHash: true
       labels:
         grafana-dashboard: "true"
+  - name: grafana-dashboard-crowdsec
+    files:
+      - dashboards/crowdsec.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "true"
   - name: loki-config
     files:
       - config/loki.yaml
