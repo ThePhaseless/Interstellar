@@ -147,7 +147,7 @@ config:
             - "192.168.0.0/16"
             - "10.0.0.0/8"
             - "172.16.0.0/12"
-    dbconfig:
+    db_config:
       flush:
         bouncers_autodelete:
           api_key: 1h
