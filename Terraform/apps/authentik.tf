@@ -376,6 +376,16 @@ resource "authentik_provider_oauth2" "jellyfin" {
       matching_mode     = "strict"
       redirect_uri_type = "authorization"
       url               = "http://watch.${var.authentik_domain}/TwoFactorAuth/Oidc/Callback/authentik"
+    },
+    {
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://localhost:8096/TwoFactorAuth/Oidc/Callback/authentik"
+    },
+    {
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "http://localhost:8096/TwoFactorAuth/Oidc/Callback/authentik"
     }
   ]
 }

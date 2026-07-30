@@ -39,9 +39,11 @@ resource "jellyfin_plugin" "jellyfin_security" {
 resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
   plugin_id = jellyfin_plugin.jellyfin_security.id
 
-  block_empty_password_login = true
-  trust_forwarded_for        = true
-  trusted_proxy_cidrs        = ["10.244.0.0/16"]
+  block_empty_password_login     = true
+  hide_builtin_two_factor_button = true
+  hide_builtin_passkey_button    = true
+  trust_forwarded_for            = true
+  trusted_proxy_cidrs            = ["10.244.0.0/16"]
 
   oidc_providers = [
     {
@@ -57,6 +59,9 @@ resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
       allow_admin_group_elevation = true
       auto_create_users           = true
       omit_prompt_login           = true
+      force_https                 = false
+      allow_private_networks      = true
+      additional_allowed_cidrs    = ["192.168.0.0/16"]
     }
   ]
 }
