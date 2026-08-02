@@ -222,7 +222,12 @@
         mode: "0644"
         content: |
           # MSI MYSTIC LIGHT RGB controller (no RGB daemon running)
-          ACTION=="add", ATTR{idVendor}=="1462", ATTR{idProduct}=="7c37", RUN+="/bin/sh -c 'echo $kernel > /sys$DEVPATH/driver/unbind'"
+          # NOTE: udev RUN substitution must be $devpath (lowercase) — $DEVPATH is invalid and silently ignored.
+          ACTION=="add", ATTR{idVendor}=="1462", ATTR{idProduct}=="7c37", RUN+="/bin/sh -c 'echo $kernel > /sys$devpath/driver/unbind'"
+          # Intel AC 3168 Bluetooth radio (combo card with the WiFi; no BT users on the server)
+          # ATTRS matches the parent USB device (interfaces have no idVendor attr); btusb binds at interface level.
+          ACTION=="add", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_interface", \
+            ATTRS{idVendor}=="8087", ATTRS{idProduct}=="0aa7", RUN+="/bin/sh -c 'echo $kernel > /sys$devpath/driver/unbind'"
           # NOTE: CH340 (1a86:7523) is intentionally NOT unbound — it is the
           # Zigbee coordinator passed through to the Home Assistant VM (usb0 mapping=Zigbee).
       tags:
@@ -235,6 +240,19 @@
         content: |
           # nic0 is unused (DOWN, no carrier) — unbind r8169 driver to allow PCI runtime PM
           ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10ec", ATTR{device}=="0x8168", RUN+="/bin/sh -c 'echo $kernel > /sys/bus/pci/drivers/r8169/unbind'"
+      tags:
+        - power
+
+    - name: Power off unused WiFi card (Intel AC 3168, rfkill-blocked but at D0)
+      ansible.builtin.copy:
+        dest: /etc/udev/rules.d/99-power-wifi-unbind.rules
+        mode: "0644"
+        content: |
+          # WiFi is unused (rfkill soft-blocked, no config) — unbind iwlwifi to allow PCIe runtime PM (D3).
+          # rfkill soft-block alone does NOT persist across reboots (systemd-rfkill is inactive), so
+          # unbinding is the durable fix. Rebind with: echo 0000:25:00.0 > /sys/bus/pci/drivers/iwlwifi/bind
+          ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0x24fb", \
+            RUN+="/bin/sh -c 'echo $kernel > /sys/bus/pci/drivers/iwlwifi/unbind'"
       tags:
         - power
 
