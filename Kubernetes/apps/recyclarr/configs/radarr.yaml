@@ -40,8 +40,11 @@ radarr:
           - name: WEBDL-480p
           - name: DVD
           - name: SDTV
-        # 0 = prefer better, never reject (TRaSH recommended)
-        min_format_score: 0
+        # Large negative: never reject on CF score. Negative-scored "unwanted"
+        # CFs (LQ, x265-HD, BR-DISK, 3D, Extras, AV1) only rank releases lower;
+        # they don't filter them out, so old/niche movies are never left
+        # without a grab. TRaSH's default (0) still rejects any negative total.
+        min_format_score: -1000000
         reset_unmatched_scores:
           enabled: true
         upgrade:

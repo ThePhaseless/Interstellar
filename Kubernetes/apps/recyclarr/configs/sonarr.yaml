@@ -25,7 +25,7 @@ sonarr:
           enabled: true
         # Best-first preference; lower qualities stay allowed as fallbacks so
         # old/niche shows with limited availability still get grabbed.
-        min_format_score: 0
+        min_format_score: -1000000
         qualities:
           - name: Bluray-2160p Remux
           - name: Bluray-2160p
@@ -52,9 +52,9 @@ sonarr:
       - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
         reset_unmatched_scores:
           enabled: true
-        # Override guide's min_format_score of 100: never filter out
-        # niche/old anime with limited release quality.
-        min_format_score: 0
+        # Large negative (override guide's 100): never filter out niche/old
+        # anime with limited release quality; negative CFs only rank lower.
+        min_format_score: -1000000
         # Full guide quality set (guide allows down to SDTV because anime
         # availability is limited), best-first.
         qualities:
