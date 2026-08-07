@@ -17,6 +17,8 @@ radarr:
 
     quality_profiles:
       - trash_id: d1d310673359205736b4b84acd5ea8c8 # Remux 2160p (Combined)
+        # Best-first preference; lower qualities stay allowed as fallbacks so
+        # old/niche movies with limited availability still get grabbed.
         qualities:
           - name: Remux-2160p
           - name: Bluray-2160p
@@ -28,6 +30,18 @@ radarr:
           - name: WEBDL-1080p
           - name: HDTV-1080p
           - name: HDTV-2160p
+          - name: Bluray-720p
+          - name: WEBRip-720p
+          - name: WEBDL-720p
+          - name: HDTV-720p
+          - name: Bluray-576p
+          - name: Bluray-480p
+          - name: WEBRip-480p
+          - name: WEBDL-480p
+          - name: DVD
+          - name: SDTV
+        # 0 = prefer better, never reject (TRaSH recommended)
+        min_format_score: 0
         reset_unmatched_scores:
           enabled: true
         upgrade:
