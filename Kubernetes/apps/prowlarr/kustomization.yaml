@@ -9,6 +9,14 @@ resources:
   - ingress.yaml
   - pvc.yaml
 
+configMapGenerator:
+  - name: prowlarr-custom-definitions
+    files:
+      - definitions/1337x-byparr.yml
+      - definitions/eztv-byparr.yml
+    options:
+      disableNameSuffixHash: true
+
 labels:
   - pairs:
       app: prowlarr

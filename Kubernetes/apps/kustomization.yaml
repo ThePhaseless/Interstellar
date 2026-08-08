@@ -22,6 +22,7 @@ resources:
   - decluttarr/
   - recyclarr/
   - byparr/
+  - byparr-proxy/
 
   # Utilities
   - postfix/
