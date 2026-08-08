@@ -58,6 +58,9 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
+            - name: custom-definitions
+              mountPath: /config/Definitions/Custom
+              readOnly: true
           resources:
             requests:
               cpu: 50m
@@ -138,3 +141,6 @@ spec:
           configMap:
             name: arr-scripts
             defaultMode: 0755
+        - name: custom-definitions
+          configMap:
+            name: prowlarr-custom-definitions

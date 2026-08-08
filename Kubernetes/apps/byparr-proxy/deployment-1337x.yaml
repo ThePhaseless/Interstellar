@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: byparr-proxy
+  namespace: media
+  labels:
+    app: byparr-proxy
+spec:
+  selector:
+    matchLabels:
+      app: byparr-proxy
+  template:
+    metadata:
+      labels:
+        app: byparr-proxy
+    spec:
+      containers:
+        - name: byparr-proxy
+          image: python:3.12-slim
+          command: ["python", "-u", "/app/byparr-proxy.py"]
+          ports:
+            - name: http
+              containerPort: 8888
+          env:
+            - name: UPSTREAM
+              value: https://1337x.to
+            - name: BYPARR
+              value: http://byparr:8191/v1
+            - name: TIMEOUT_MS
+              value: "120000"
+            - name: PORT
+              value: "8888"
+          volumeMounts:
+            - name: script
+              mountPath: /app/byparr-proxy.py
+              subPath: byparr-proxy.py
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: script
+          configMap:
+            name: byparr-proxy-script
