@@ -47,6 +47,39 @@ resource "bitwarden-secrets_secret" "crowdsec_api_key" {
   note       = "CrowdSec bouncer API key for Traefik plugin. Managed by Terraform."
 }
 
+resource "random_password" "crowdsec_lapi_secret" {
+  length  = 48
+  special = true
+}
+
+resource "random_password" "crowdsec_lapi_registration_token" {
+  length  = 48
+  special = false
+}
+
+# Adopted via `terraform import` from pre-seeded Bitwarden secrets (current live
+# values), so the running LAPI/agents keep working. ignore_changes preserves the
+# seeded value; Terraform only manages existence, not rotation.
+resource "bitwarden-secrets_secret" "crowdsec_lapi_secret" {
+  key        = "crowdsec-lapi-secret"
+  value      = random_password.crowdsec_lapi_secret.result
+  project_id = local.bitwarden_generated_project_id
+  note       = "CrowdSec LAPI secret (csLapiSecret). Seeded via import; ignore_changes preserves value. Managed by Terraform."
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+resource "bitwarden-secrets_secret" "crowdsec_lapi_registration_token" {
+  key        = "crowdsec-lapi-registration-token"
+  value      = random_password.crowdsec_lapi_registration_token.result
+  project_id = local.bitwarden_generated_project_id
+  note       = "CrowdSec LAPI agent registration token. Seeded via import; ignore_changes preserves value. Managed by Terraform."
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
 # Bitwarden Secrets — Grafana
 
 resource "bitwarden-secrets_secret" "grafana_admin_password" {
