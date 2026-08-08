@@ -67,6 +67,8 @@ spec:
             - name: BORG_BACKUP_TARGETS
               value: |
                 home:/adguard
+            - name: BORG_EXCLUDES
+              value: "/adguard/work/data/querylog.json*"
           volumeMounts:
             - name: adguard-data
               mountPath: /adguard

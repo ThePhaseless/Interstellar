@@ -6,7 +6,7 @@ metadata:
   labels:
     backup.interstellar/enabled: "true"
   annotations:
-    backup.interstellar/excludes: /sonarr/MediaCover /sonarr/Backups
+    backup.interstellar/excludes: /sonarr/MediaCover /sonarr/Backups /sonarr/logs /sonarr/logs.db
 spec:
   accessModes:
     - ReadWriteOnce

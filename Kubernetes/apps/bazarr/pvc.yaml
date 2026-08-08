@@ -6,7 +6,7 @@ metadata:
   labels:
     backup.interstellar/enabled: "true"
   annotations:
-    backup.interstellar/excludes: /bazarr/cache
+    backup.interstellar/excludes: /bazarr/cache /bazarr/backup
 spec:
   accessModes:
     - ReadWriteOnce
