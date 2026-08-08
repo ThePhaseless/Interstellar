@@ -15,6 +15,10 @@ spec:
         app: byparr
     spec:
       shareProcessNamespace: true
+      volumes:
+        - name: dshm
+          emptyDir:
+            sizeLimit: 1Gi
       containers:
         - name: byparr
           image: ghcr.io/thephaseless/byparr:3.0.0
@@ -40,10 +44,15 @@ spec:
                   name: byparr-proxy
                   key: proxy-password
                   optional: true
+          # camoufox (Firefox) needs shared memory: README requires shm_size
+          # 512mb-1g and 2Gi memory for challenge solving in containers.
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
           resources:
             requests:
               cpu: 100m
               memory: 512Mi
             limits:
               cpu: "1"
-              memory: 1Gi
+              memory: 2Gi
