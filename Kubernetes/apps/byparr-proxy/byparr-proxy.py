@@ -88,11 +88,38 @@ def _build_stub_body():
             f'<td class="coll-5 user">byparr-proxy</td>'
             f'</tr>'
         )
+    # EZTV-compatible table as well: its Cardigann definition parses
+    # table.forum_header_border rows with magnets (td:nth-child(2..6)), so the
+    # 1337x-style rows above match nothing there. These rows carry magnets and
+    # the same sentinel titles/0 seeders, keeping EZTV health checks green.
+    eztv_rows = []
+    for cat_id, label in _STUB_CATEGORIES:
+        eztv_rows.append(
+            f'<tr name="hover" class="forum_header_border">'
+            f'<td>1</td>'
+            f'<td><a title="byparr-proxy stub - {label} healthy" '
+            f'href="/torrent/{cat_id}/byparr-proxy-stub-{cat_id}/">'
+            f'byparr-proxy stub - {label} healthy</a></td>'
+            f'<td><a class="magnet" href="magnet:?xt=urn:btih:'
+            f'byparrproxystub{cat_id}">magnet</a></td>'
+            f'<td>1 GB</td>'
+            f'<td>2026-01-01</td>'
+            f'<td>0</td>'
+            f'<td>0</td>'
+            f'</tr>'
+        )
     html = (
         '<!DOCTYPE html><html><head><title>byparr-proxy stub</title></head>'
-        '<body><table class="table-list"><tbody>'
+        '<body>'
+        '<table class="table-list"><tbody>'
         + ''.join(rows) +
-        '</tbody></table></body></html>'
+        '</tbody></table>'
+        '<table class="forum_header_border"><tr class="forum_header_border">'
+        '<th>Latest</th><th></th><th></th><th></th><th></th><th></th><th></th>'
+        '</tr>'
+        + ''.join(eztv_rows) +
+        '</table>'
+        '</body></html>'
     )
     return html.encode("utf-8")
 
