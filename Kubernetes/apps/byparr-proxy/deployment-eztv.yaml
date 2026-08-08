@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: byparr-proxy-eztv
+      annotations:
+        reloader.stakater.com/auto: "true"
     spec:
       containers:
         - name: byparr-proxy
