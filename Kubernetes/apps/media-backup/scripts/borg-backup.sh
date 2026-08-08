@@ -19,6 +19,13 @@
 #                           split away). Example: "immich-*"
 #   BORG_EXCLUDES         — space-separated extra borg exclude patterns applied
 #                           to every target in this CronJob.
+#   BORG_PATTERNS         — space-separated borg patterns passed via
+#                           --patterns-from (sh: style, first match wins).
+#                           Unlike BORG_EXCLUDES this supports `+` include
+#                           prefixes, e.g. "back up only X/safe under X":
+#                           "+ X/safe + X/safe/** - X/**". Patterns must match
+#                           the archived paths (no leading slash, e.g. the
+#                           target /photos is archived as "photos/...").
 #
 # Pod layout expected:
 #   /secrets/ssh/id_ed25519  (mode 0600)   — SSH private key
@@ -80,6 +87,15 @@ for exclude in ${BORG_EXCLUDES:-}; do
     printf '%s\n' "$exclude" >>"$EXCLUDE_FILE"
 done
 
+PATTERNS_ARGS=""
+if [ -n "${BORG_PATTERNS:-}" ]; then
+    PATTERNS_FILE=$(mktemp)
+    for pattern in ${BORG_PATTERNS}; do
+        printf '%s\n' "$pattern" >>"$PATTERNS_FILE"
+    done
+    PATTERNS_ARGS="--patterns-from $PATTERNS_FILE"
+fi
+
 # Heredoc loop keeps variable updates in the current shell (no subshell).
 while IFS= read -r target; do
     case "$target" in
@@ -105,6 +121,7 @@ while IFS= read -r target; do
         --exclude '*.tmp' \
         --exclude '*.log' \
         --exclude-from "$EXCLUDE_FILE" \
+        $PATTERNS_ARGS \
         \
         ::"${prefix}-{now:%Y-%m-%dT%H:%M:%S}" \
         $paths; then

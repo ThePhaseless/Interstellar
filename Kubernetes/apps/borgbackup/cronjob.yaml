@@ -91,6 +91,17 @@ spec:
                 - name: BORG_BACKUP_TARGETS
                   value: |
                     utilities:/photos /external /db-dump /authentik-dump
+                - name: BORG_EXCLUDES
+                  value: |
+                    /photos/thumbs /photos/encoded-video /photos/backups
+                    /external/upload /external/encoded-video /external/backups
+                    /external/immich.dump /external/authentik.dump /external/db-dump
+                    /external/library /external/.hist
+                - name: BORG_PATTERNS
+                  value: |
+                    + external/public/safe
+                    + external/public/safe/**
+                    - external/public/**
                 - name: BORG_LEGACY_GLOBS
                   value: "immich-*"
               volumeMounts:

@@ -5,6 +5,8 @@ metadata:
   namespace: media
   labels:
     backup.interstellar/enabled: "true"
+  annotations:
+    backup.interstellar/excludes: /prowlarr/logs /prowlarr/logs.db /prowlarr/Backups
 spec:
   accessModes:
     - ReadWriteOnce
