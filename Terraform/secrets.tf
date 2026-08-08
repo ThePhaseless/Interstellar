@@ -47,8 +47,10 @@ resource "bitwarden-secrets_secret" "crowdsec_api_key" {
   note       = "CrowdSec bouncer API key for Traefik plugin. Managed by Terraform."
 }
 
+# CrowdSec requires CS_LAPI_SECRET >= 64 chars (JWT secret, see
+# pkg/apiserver/middlewares/v1/jwt.go: l < 64 -> "not strong enough")
 resource "random_password" "crowdsec_lapi_secret" {
-  length  = 48
+  length  = 64
   special = true
 }
 
