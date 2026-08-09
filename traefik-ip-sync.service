@@ -1,8 +1,0 @@
-[Unit]
-Description=Sync traefik tailnet IP into /etc/hosts for HAProxy
-After=network-online.target tailscaled.service
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/opt/haproxy/sync-traefik-ip.sh

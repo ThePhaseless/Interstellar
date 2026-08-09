@@ -44,6 +44,32 @@
 - name: Deploy HAProxy on Proxy VPS
   hosts: oracle_proxy
   become: true
+  pre_tasks:
+    - name: Resolve Traefik tailnet IP from the control node
+      delegate_to: localhost
+      become: false
+      ansible.builtin.shell: |
+        tailscale status --json | jq -r '
+          [.Peer[] | select(.HostName == "traefik")
+           | .TailscaleIPs[] | select(contains("."))][0] // ""'
+      register: traefik_ip_lookup
+      failed_when: false
+      changed_when: false
+
+    - name: Fail if Traefik tailnet IP is unknown
+      delegate_to: localhost
+      become: false
+      ansible.builtin.fail:
+        msg: >-
+          Could not find the 'traefik' peer in 'tailscale status --json' on the
+          Ansible control node (CI connects via tailscale/github-action before
+          this playbook; local runs need tailscale up). Refusing to deploy a
+          broken haproxy.cfg.
+      when: traefik_ip_lookup.stdout | trim | length == 0
+
+    - name: Set Traefik backend IP fact
+      ansible.builtin.set_fact:
+        traefik_tailscale_ip: "{{ traefik_ip_lookup.stdout | trim }}"
   roles:
     - geerlingguy.docker
   tasks:
@@ -59,11 +85,12 @@
         dest: /opt/haproxy/compose.yaml
         mode: "0644"
 
-    - name: Copy HAProxy config
-      ansible.builtin.copy:
-        src: ../haproxy.cfg
+    - name: Template HAProxy config with deploy-time Traefik IP
+      ansible.builtin.template:
+        src: ../haproxy.cfg.j2
         dest: /opt/haproxy/haproxy.cfg
         mode: "0644"
+        validate: 'docker run --rm -v %s:/tmp/haproxy.cfg:ro haproxy:latest haproxy -c -f /tmp/haproxy.cfg'
       notify: Restart HAProxy
 
     - name: Start HAProxy stack
@@ -72,33 +99,33 @@
         state: present
         pull: always
 
-    - name: Install Traefik IP sync script
-      ansible.builtin.copy:
-        src: ../sync-traefik-ip.sh
-        dest: /opt/haproxy/sync-traefik-ip.sh
-        mode: "0755"
+    - name: Check for legacy Traefik IP sync timer
+      ansible.builtin.stat:
+        path: /etc/systemd/system/traefik-ip-sync.timer
+      register: legacy_sync_timer
 
-    - name: Install Traefik IP sync systemd unit and timer
-      ansible.builtin.copy:
-        src: "../{{ item }}"
-        dest: "/etc/systemd/system/{{ item }}"
-        mode: "0644"
-      loop:
-        - traefik-ip-sync.service
-        - traefik-ip-sync.timer
-
-    - name: Enable and start Traefik IP sync timer
+    - name: Disable legacy Traefik IP sync timer
       ansible.builtin.systemd:
         name: traefik-ip-sync.timer
-        enabled: true
-        state: started
+        state: stopped
+        enabled: false
         daemon_reload: true
+      when: legacy_sync_timer.stat.exists
 
-    - name: Run Traefik IP sync once now
-      ansible.builtin.command: /opt/haproxy/sync-traefik-ip.sh
-      register: sync_result
-      changed_when: sync_result.stdout | length > 0
-      failed_when: sync_result.rc != 0
+    - name: Remove legacy Traefik IP sync files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/traefik-ip-sync.timer
+        - /etc/systemd/system/traefik-ip-sync.service
+        - /opt/haproxy/sync-traefik-ip.sh
+
+    - name: Remove legacy /etc/hosts entry
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '\s+traefik\.fold-hen\.ts\.net$'
+        state: absent
 
   handlers:
     - name: Restart HAProxy
