@@ -72,6 +72,34 @@
         state: present
         pull: always
 
+    - name: Install Traefik IP sync script
+      ansible.builtin.copy:
+        src: ../sync-traefik-ip.sh
+        dest: /opt/haproxy/sync-traefik-ip.sh
+        mode: "0755"
+
+    - name: Install Traefik IP sync systemd unit and timer
+      ansible.builtin.copy:
+        src: "../{{ item }}"
+        dest: "/etc/systemd/system/{{ item }}"
+        mode: "0644"
+      loop:
+        - traefik-ip-sync.service
+        - traefik-ip-sync.timer
+
+    - name: Enable and start Traefik IP sync timer
+      ansible.builtin.systemd:
+        name: traefik-ip-sync.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Run Traefik IP sync once now
+      ansible.builtin.command: /opt/haproxy/sync-traefik-ip.sh
+      register: sync_result
+      changed_when: sync_result.stdout | length > 0
+      failed_when: sync_result.rc != 0
+
   handlers:
     - name: Restart HAProxy
       community.docker.docker_compose_v2:
