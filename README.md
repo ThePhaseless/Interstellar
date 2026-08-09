@@ -162,7 +162,7 @@ Interstellar/
 │   ├── tailscale.tf         # Auth keys
 │   ├── oracle.tf            # VPS infrastructure
 │   └── bitwarden.tf         # Secret references
-├── haproxy.cfg              # Oracle HAProxy config
+├── haproxy.cfg.j2           # Oracle HAProxy config (templated; traefik tailnet IP baked at deploy time)
 └── compose.proxy.yaml       # HAProxy Docker Compose
 ```
 

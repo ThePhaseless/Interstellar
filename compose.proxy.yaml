@@ -6,7 +6,7 @@ services:
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     restart: unless-stopped
-    network_mode: host # Use host networking for Tailscale MagicDNS/backends.
+    network_mode: host # Host networking so HAProxy reaches the traefik tailnet IP directly.
 
   watchtower:
     container_name: watchtower
