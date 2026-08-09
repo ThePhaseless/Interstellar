@@ -112,6 +112,10 @@ helmCharts:
         annotations:
           tailscale.com/expose: "true"
           tailscale.com/hostname: "traefik"
+          # Pinned tailnet IP — haproxy.cfg on the Oracle VPS hardcodes this
+          # address (VPS runs --accept-dns=false, so MagicDNS names are
+          # unresolvable there). Keep in sync with haproxy.cfg.
+          tailscale.com/tailnet-ip: "100.72.236.33"
 
       # Providers
       providers:
