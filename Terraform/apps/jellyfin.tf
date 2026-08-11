@@ -40,8 +40,8 @@ resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
   plugin_id = jellyfin_plugin.jellyfin_security.id
 
   block_empty_password_login     = true
-  disable_password_login         = true
-  allow_admin_password_login     = false
+  disable_password_login         = false
+  allow_admin_password_login     = true
   hide_builtin_two_factor_button = true
   hide_builtin_passkey_button    = true
   trust_forwarded_for            = true
