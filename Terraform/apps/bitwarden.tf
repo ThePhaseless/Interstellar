@@ -59,6 +59,17 @@ data "bitwarden-secrets_secret" "jellyfin_admin_password" {
   }
 }
 
+data "bitwarden-secrets_secret" "jellyfin_api_key" {
+  id = local.secret_key_to_id["jellyfin-api-key"]
+
+  lifecycle {
+    postcondition {
+      condition     = length(self.value) > 0 && !contains(local._placeholder_values, lower(self.value))
+      error_message = "Jellyfin API key 'jellyfin-api-key' is empty or still set to a placeholder value."
+    }
+  }
+}
+
 data "bitwarden-secrets_secret" "jellyfin_oauth_client_id" {
   id = local.secret_key_to_id["authentik-jellyfin-client-id"]
 }
