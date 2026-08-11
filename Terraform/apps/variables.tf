@@ -79,12 +79,6 @@ variable "jellyfin_provider_url" {
   default     = "http://localhost:8096"
 }
 
-variable "jellyfin_admin_username" {
-  type        = string
-  description = "Jellyfin admin username used for bootstrap/provider authentication"
-  default     = "admin"
-}
-
 variable "adguard_traefik_local_ip" {
   type        = string
   description = "Traefik MetalLB IP for DNS rewrites (*.nerine.dev) - used by local network clients"
@@ -107,12 +101,6 @@ variable "bitwarden_prowlarr_api_key_name" {
   type        = string
   description = "Bitwarden secret key name for Prowlarr API key"
   default     = "prowlarr-api-key"
-}
-
-variable "bitwarden_jellyfin_admin_password_name" {
-  type        = string
-  description = "Bitwarden secret key name for the Jellyfin admin password"
-  default     = "jellyfin-admin-password"
 }
 
 # --- Authentik ---

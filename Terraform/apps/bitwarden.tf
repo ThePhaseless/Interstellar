@@ -48,17 +48,6 @@ data "bitwarden-secrets_secret" "prowlarr_api_key" {
   }
 }
 
-data "bitwarden-secrets_secret" "jellyfin_admin_password" {
-  id = local.secret_key_to_id[var.bitwarden_jellyfin_admin_password_name]
-
-  lifecycle {
-    postcondition {
-      condition     = length(self.value) > 0 && !contains(local._placeholder_values, lower(self.value))
-      error_message = "Jellyfin admin password '${var.bitwarden_jellyfin_admin_password_name}' is empty or still set to a placeholder value."
-    }
-  }
-}
-
 data "bitwarden-secrets_secret" "jellyfin_api_key" {
   id = local.secret_key_to_id["jellyfin-api-key"]
 
