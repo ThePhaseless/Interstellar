@@ -1,7 +1,7 @@
 services:
   haproxy:
     container_name: haproxy
-    image: haproxy:latest
+    image: haproxy:latest@sha256:135f3e6d5a12fb70044e8e1c407b75e1447b1cffa645747da4d38375c3bbbc3e
     user: "0:0"
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
@@ -10,7 +10,7 @@ services:
 
   watchtower:
     container_name: watchtower
-    image: nickfedor/watchtower:latest
+    image: nickfedor/watchtower:latest@sha256:bee77696862e09521c49e5ab4904a4179accece6d561a2ef334c7589b84a2438
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped

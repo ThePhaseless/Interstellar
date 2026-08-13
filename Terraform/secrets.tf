@@ -8,11 +8,6 @@ resource "random_password" "grafana_admin_password" {
   special = true
 }
 
-resource "random_password" "qbittorrent_password" {
-  length  = 24
-  special = true
-}
-
 resource "random_password" "immich_db_password" {
   length  = 32
   special = false
@@ -35,6 +30,11 @@ resource "random_password" "authentik_bootstrap_token" {
 
 resource "random_password" "jellyfin_admin_password" {
   length  = 32
+  special = false
+}
+
+resource "random_password" "adguard_admin_password" {
+  length  = 24
   special = false
 }
 
@@ -101,6 +101,15 @@ resource "bitwarden-secrets_secret" "jellyfin_admin_password" {
   note       = "Jellyfin admin password for automated setup wizard. Managed by Terraform."
 }
 
+# Bitwarden Secrets — AdGuard Home
+
+resource "bitwarden-secrets_secret" "adguard_admin_password" {
+  key        = "adguard-admin-password"
+  value      = random_password.adguard_admin_password.result
+  project_id = local.bitwarden_generated_project_id
+  note       = "AdGuard Home admin password, stamped into AdGuardHome.yaml by the adguard init container. Owned by Terraform; rotate by tainting random_password.adguard_admin_password and re-applying."
+}
+
 # Bitwarden Secrets — Discord (placeholder, user fills in later)
 
 resource "bitwarden-secrets_secret" "discord_webhook_url" {
@@ -147,22 +156,6 @@ resource "bitwarden-secrets_secret" "prowlarr_api_key" {
   lifecycle {
     ignore_changes = [value]
   }
-}
-
-# Bitwarden Secrets — qBittorrent
-
-resource "bitwarden-secrets_secret" "qbittorrent_username" {
-  key        = "qbittorrent-username"
-  value      = "admin"
-  project_id = local.bitwarden_generated_project_id
-  note       = "qBittorrent WebUI username (always 'admin'). Managed by Terraform."
-}
-
-resource "bitwarden-secrets_secret" "qbittorrent_password" {
-  key        = "qbittorrent-password"
-  value      = random_password.qbittorrent_password.result
-  project_id = local.bitwarden_generated_project_id
-  note       = "qBittorrent WebUI password. Managed by Terraform."
 }
 
 # Bitwarden Secrets — Immich

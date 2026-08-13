@@ -14,6 +14,9 @@ on:
       - ".kube-linter.yaml"
       - ".github/workflows/kubernetes-lint.yaml"
 
+permissions:
+  contents: read
+
 concurrency:
   group: kubernetes-lint-${{ github.ref }}
   cancel-in-progress: true

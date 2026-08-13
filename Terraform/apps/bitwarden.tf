@@ -59,6 +59,10 @@ data "bitwarden-secrets_secret" "jellyfin_api_key" {
   }
 }
 
+data "bitwarden-secrets_secret" "adguard_admin_password" {
+  id = local.secret_key_to_id["adguard-admin-password"]
+}
+
 data "bitwarden-secrets_secret" "jellyfin_oauth_client_id" {
   id = local.secret_key_to_id["authentik-jellyfin-client-id"]
 }

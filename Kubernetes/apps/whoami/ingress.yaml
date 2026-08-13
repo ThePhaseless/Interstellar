@@ -13,7 +13,7 @@ spec:
         - name: whoami
           port: 80
       middlewares:
-        - name: security-headers
+        - name: private-chain
           namespace: traefik
   tls:
     certResolver: letsencrypt

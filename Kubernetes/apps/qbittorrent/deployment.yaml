@@ -40,9 +40,10 @@ spec:
               EOF
                 chmod 600 "${CONFIG_FILE}"
               fi
-              # Idempotently ensure auth is bypassed for all IPs (auth handled by Traefik)
+              # Idempotently ensure auth is bypassed for all IPs (auth handled by Traefik).
+              # Spaces around "=" must match: configparser below rewrites with " = ".
               for KEY in CSRFProtection HostHeaderValidation LocalHostAuth AuthSubnetWhitelistEnabled AuthSubnetWhitelist; do
-                sed -i "/^WebUI\\\\${KEY}=/d" "${CONFIG_FILE}"
+                sed -i "/^WebUI\\\\${KEY}[[:space:]]*=/d" "${CONFIG_FILE}"
               done
               sed -i '/^\[Preferences\]/a WebUI\\LocalHostAuth=false\nWebUI\\HostHeaderValidation=false\nWebUI\\CSRFProtection=false\nWebUI\\AuthSubnetWhitelistEnabled=true\nWebUI\\AuthSubnetWhitelist=0.0.0.0\/0' "${CONFIG_FILE}"
               # Set download path to shared volume
@@ -93,7 +94,7 @@ spec:
             - name: TZ
               value: "UTC"
             - name: DOCKER_MODS
-              value: ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
+              value: ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest@sha256:7cf3996f8c405a42d37c34c37d8eed7cbb01ef7c698c7a8ec243f53bd4b480cc
           ports:
             - name: http
               containerPort: 8080

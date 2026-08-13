@@ -90,7 +90,7 @@
         src: ../haproxy.cfg.j2
         dest: /opt/haproxy/haproxy.cfg
         mode: "0644"
-        validate: 'docker run --rm -v %s:/tmp/haproxy.cfg:ro haproxy:latest haproxy -c -f /tmp/haproxy.cfg'
+        validate: 'docker run --rm -v %s:/tmp/haproxy.cfg:ro haproxy:latest@sha256:135f3e6d5a12fb70044e8e1c407b75e1447b1cffa645747da4d38375c3bbbc3e haproxy -c -f /tmp/haproxy.cfg'
       notify: Restart HAProxy
 
     - name: Start HAProxy stack

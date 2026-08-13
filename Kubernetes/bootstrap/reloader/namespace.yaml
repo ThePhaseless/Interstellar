@@ -4,3 +4,6 @@ metadata:
   name: reloader
   labels:
     name: reloader
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted

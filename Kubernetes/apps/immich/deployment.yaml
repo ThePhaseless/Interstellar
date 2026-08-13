@@ -41,6 +41,7 @@ spec:
                 printf '{"oauth":{"enabled":false},%s,%s}' "$SMTP" "$ML" > /immich-config/immich.config.json
                 echo "Warning: OAuth secrets not found, OAuth disabled (SMTP and ML enabled)"
               fi
+              chmod 600 /immich-config/immich.config.json
           volumeMounts:
             - name: oauth-secrets
               mountPath: /secrets
@@ -161,8 +162,12 @@ spec:
         - name: oauth-secrets
           secret:
             secretName: immich-oauth-secrets
+            defaultMode: 0400
         - name: immich-config
-          emptyDir: {}
+          # tmpfs — the rendered config carries the OAuth clientSecret.
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Mi
 ---
 # ExternalSecret for Immich database password
 apiVersion: external-secrets.io/v1

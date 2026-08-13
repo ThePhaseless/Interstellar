@@ -17,7 +17,7 @@ provider "adguard" {
   host     = var.adguard_provider_url
   scheme   = "http"
   username = "admin"
-  password = "admin123"
+  password = data.bitwarden-secrets_secret.adguard_admin_password.value
 }
 
 provider "authentik" {
