@@ -44,6 +44,12 @@ jobs:
             ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
             ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
 
+      - name: Mask Bitwarden-fetched values
+        run: |
+          for v in TS_CI_OAUTH_CLIENT_ID TS_CI_OAUTH_SECRET OCI_CONFIG OCI_PRIVATE_KEY OCI_NAMESPACE; do
+            [ -n "${!v:-}" ] && echo "::add-mask::${!v}"
+          done
+
       - name: Install BWS CLI
         run: |
           curl -sSL https://github.com/bitwarden/sdk/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip -o bws.zip
@@ -253,8 +259,10 @@ jobs:
 
       - name: Encrypt Plan
         if: steps.plan.outputs.has_changes == 'true'
+        env:
+          PLAN_KEY: ${{ secrets.BW_ACCESS_TOKEN }}
         run: |
-          gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
+          gpg --symmetric --batch --passphrase "$PLAN_KEY" tfplan
           rm -f tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
 
@@ -297,6 +305,12 @@ jobs:
             ${{ vars.BWS_ID_OCI_CONFIG }} > OCI_CONFIG
             ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
             ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
+
+      - name: Mask Bitwarden-fetched values
+        run: |
+          for v in TS_CI_OAUTH_CLIENT_ID TS_CI_OAUTH_SECRET OCI_CONFIG OCI_PRIVATE_KEY OCI_NAMESPACE; do
+            [ -n "${!v:-}" ] && echo "::add-mask::${!v}"
+          done
 
       - name: Install BWS CLI
         run: |
@@ -433,8 +447,10 @@ jobs:
           path: ${{ env.TF_WORKING_DIR }}
 
       - name: Decrypt Terraform Plan
+        env:
+          PLAN_KEY: ${{ secrets.BW_ACCESS_TOKEN }}
         run: |
-          gpg --decrypt --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan.gpg > tfplan
+          gpg --decrypt --batch --passphrase "$PLAN_KEY" tfplan.gpg > tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
 
       - name: Write OCI config

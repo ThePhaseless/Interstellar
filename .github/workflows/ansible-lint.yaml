@@ -13,6 +13,9 @@ on:
       - ".github/workflows/ansible-lint.yaml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ansible-lint-${{ github.ref }}
   cancel-in-progress: true

@@ -137,14 +137,18 @@ resource "authentik_provider_proxy" "private" {
   refresh_token_validity = "days=30"
 }
 
-# Public: Any Google account
+# Public: Any Google account — copyparty only.
+# MUST stay forward_single: two forward_domain providers sharing an external_host
+# can't be multiplexed by the outpost, so this zero-policy provider won every host
+# and admins_only never fired.
 resource "authentik_provider_proxy" "public" {
   name               = "public-proxy"
-  mode               = "forward_domain"
+  mode               = "forward_single"
   authorization_flow = data.authentik_flow.default-authorization-flow.id
   invalidation_flow  = data.authentik_flow.default-invalidation-flow.id
-  external_host      = "https://auth.${var.authentik_domain}"
-  cookie_domain      = var.authentik_domain
+  external_host      = "https://files.${var.authentik_domain}"
+  # Authentik's API refuses to clear this; inert in forward_single mode.
+  cookie_domain = var.authentik_domain
 
   access_token_validity  = "hours=24"
   refresh_token_validity = "days=30"

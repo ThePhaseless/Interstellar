@@ -43,15 +43,18 @@ jobs:
             ${{ vars.BWS_ID_OCI_CONFIG }} > OCI_CONFIG
             ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
             ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
-            ${{ vars.BWS_ID_TS_OAUTH_CLIENT_ID }} > TS_OAUTH_CLIENT_ID
-            ${{ vars.BWS_ID_TS_OAUTH_SECRET }} > TS_OAUTH_SECRET
             ${{ vars.BWS_ID_TS_CI_OAUTH_CLIENT_ID }} > TS_CI_OAUTH_CLIENT_ID
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
-            ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
             ${{ vars.BWS_ID_HCLOUD_TOKEN }} > HCLOUD_TOKEN
             ${{ vars.BWS_ID_GH_APP_ID }} > GH_APP_ID
             ${{ vars.BWS_ID_GH_APP_PRIVATE_KEY }} > GH_APP_PRIVATE_KEY
+
+      - name: Mask Bitwarden-fetched values
+        run: |
+          for v in OCI_CONFIG OCI_PRIVATE_KEY OCI_NAMESPACE TF_STATE_BUCKET HCLOUD_TOKEN GH_APP_ID GH_APP_PRIVATE_KEY TS_CI_OAUTH_CLIENT_ID TS_CI_OAUTH_SECRET; do
+            [ -n "${!v:-}" ] && echo "::add-mask::${!v}"
+          done
 
       - name: Generate GitHub App Token
         id: generate-token
@@ -251,8 +254,10 @@ jobs:
 
       - name: Encrypt Plan
         if: steps.plan.outputs.has_changes == 'true'
+        env:
+          PLAN_KEY: ${{ secrets.BW_ACCESS_TOKEN }}
         run: |
-          gpg --symmetric --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan
+          gpg --symmetric --batch --passphrase "$PLAN_KEY" tfplan
           rm -f tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
 
@@ -285,15 +290,18 @@ jobs:
             ${{ vars.BWS_ID_OCI_CONFIG }} > OCI_CONFIG
             ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
             ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
-            ${{ vars.BWS_ID_TS_OAUTH_CLIENT_ID }} > TS_OAUTH_CLIENT_ID
-            ${{ vars.BWS_ID_TS_OAUTH_SECRET }} > TS_OAUTH_SECRET
             ${{ vars.BWS_ID_TS_CI_OAUTH_CLIENT_ID }} > TS_CI_OAUTH_CLIENT_ID
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
             ${{ vars.BWS_ID_TF_STATE_BUCKET }} > TF_STATE_BUCKET
-            ${{ vars.BWS_ID_PROXMOX_API_TOKEN }} > PROXMOX_API_TOKEN_VALUE
             ${{ vars.BWS_ID_HCLOUD_TOKEN }} > HCLOUD_TOKEN
             ${{ vars.BWS_ID_GH_APP_ID }} > GH_APP_ID
             ${{ vars.BWS_ID_GH_APP_PRIVATE_KEY }} > GH_APP_PRIVATE_KEY
+
+      - name: Mask Bitwarden-fetched values
+        run: |
+          for v in OCI_CONFIG OCI_PRIVATE_KEY OCI_NAMESPACE TF_STATE_BUCKET HCLOUD_TOKEN GH_APP_ID GH_APP_PRIVATE_KEY TS_CI_OAUTH_CLIENT_ID TS_CI_OAUTH_SECRET; do
+            [ -n "${!v:-}" ] && echo "::add-mask::${!v}"
+          done
 
       - name: Generate GitHub App Token
         id: generate-token
@@ -444,8 +452,10 @@ jobs:
           path: ${{ env.TF_WORKING_DIR }}
 
       - name: Decrypt Terraform Plan
+        env:
+          PLAN_KEY: ${{ secrets.BW_ACCESS_TOKEN }}
         run: |
-          gpg --decrypt --batch --passphrase "${{ secrets.BW_ACCESS_TOKEN }}" tfplan.gpg > tfplan
+          gpg --decrypt --batch --passphrase "$PLAN_KEY" tfplan.gpg > tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
 
       - name: Terraform Init

@@ -17,8 +17,6 @@ spec:
           namespace: traefik
         - name: authentik
           namespace: traefik
-        - name: adguard-auto-login
-          namespace: home
   tls:
     certResolver: letsencrypt
     domains:

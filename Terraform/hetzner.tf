@@ -53,7 +53,6 @@ resource "hcloud_storage_box" "backups" {
 
   lifecycle {
     prevent_destroy = true
-    ignore_changes  = [ssh_keys]
   }
 }
 

@@ -19,6 +19,9 @@ on:
           - setup-proxmox.yaml
           - maintenance.yaml
 
+permissions:
+  contents: read
+
 env:
   ANSIBLE_DIR: "./Ansible"
 
@@ -34,6 +37,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          # github.event.before can be several commits back on a multi-commit push
+          fetch-depth: 0
 
       # Fetch secrets from Bitwarden (using IDs from GitHub variables)
       - name: Get Secrets from Bitwarden
@@ -45,6 +51,12 @@ jobs:
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_OAUTH_SECRET
             ${{ vars.BWS_ID_ORACLE_SSH_PRIVATE_KEY }} > ORACLE_SSH_KEY
             ${{ vars.BWS_ID_TAILSCALE_ORACLE_AUTH_KEY }} > TS_ORACLE_AUTHKEY
+
+      - name: Mask Bitwarden-fetched values
+        run: |
+          for v in TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET ORACLE_SSH_KEY TS_ORACLE_AUTHKEY; do
+            [ -n "${!v:-}" ] && echo "::add-mask::${!v}"
+          done
 
       # Connect to Tailscale for SSH access
       - name: Connect to Tailscale
@@ -83,12 +95,9 @@ jobs:
       - name: Get changed playbooks
         id: changed-files
         if: github.event_name == 'push'
-        uses: tj-actions/changed-files@v47
-        with:
-          files: |
-            Ansible/setup-oracle.yaml
-            Ansible/setup-proxmox.yaml
-            Ansible/maintenance.yaml
+        run: |
+          echo "all_changed_files=$(git diff --name-only "${{ github.event.before }}" HEAD -- \
+            Ansible/setup-oracle.yaml Ansible/setup-proxmox.yaml Ansible/maintenance.yaml | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
 
       # Determine which playbook to run
       - name: Set playbook
@@ -113,9 +122,7 @@ jobs:
           fi
 
       - name: Run Ansible playbook
-        run: |
-          ansible-playbook ${{ steps.playbook.outputs.name }} \
-            -e "tailscale_authkey=${{ env.TS_ORACLE_AUTHKEY }}"
+        run: ansible-playbook ${{ steps.playbook.outputs.name }}
         working-directory: ${{ env.ANSIBLE_DIR }}
         env:
-          ANSIBLE_HOST_KEY_CHECKING: "false"
+          TAILSCALE_ORACLE_AUTH_KEY: ${{ env.TS_ORACLE_AUTHKEY }}

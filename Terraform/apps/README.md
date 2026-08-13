@@ -32,8 +32,7 @@ Required Bitwarden secrets:
 
 - `sonarr-api-key`, `radarr-api-key`, `prowlarr-api-key` — \*arr API keys
 - `jellyfin-admin-password` — Jellyfin bootstrap/admin password
-- `qbittorrent-username`, `qbittorrent-password` — qBittorrent credentials
-- `adguard-admin-username`, `adguard-admin-password` — AdGuard admin credentials (plaintext)
+- `adguard-admin-password` — AdGuard admin password (username is always `admin`)
 
 ## Usage
 
