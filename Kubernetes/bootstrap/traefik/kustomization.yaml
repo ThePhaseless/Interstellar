@@ -26,7 +26,7 @@ helmCharts:
           prometheus.io/port: "8080"
         initContainers:
           - name: fix-acme-permissions
-            image: busybox:1.37-musl@sha256:fc6dddc4c44b1bfe37f41cae8e67d1693828e8f42a91862816d7953e2c9d3f23
+            image: busybox:1.38-musl@sha256:32b5cdad7cce41dfd53d0ae06baebcf8357a147ee7694dc706911c373bc30c37
             command:
               - /bin/sh
               - -c
