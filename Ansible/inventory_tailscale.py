@@ -9,6 +9,7 @@ used as ansible_host so connections work from anywhere on the tailnet
 Tag → Group mapping (configure TAG_GROUP_MAP below):
     tag:proxmox  → proxmox
     tag:oracle   → oracle, plus oracle_proxy by hostname
+    (untagged)   → personal, for hosts named in PERSONAL_HOSTNAMES
     tag:node     → cluster
     tag:cluster  → cluster   (legacy fallback during migration)
 
@@ -47,6 +48,10 @@ GROUP_VARS: dict[str, dict[str, str]] = {
         "ansible_user": "ubuntu",
         "ansible_ssh_private_key_file": "~/.ssh/oracle_ed25519",
     },
+    "personal": {
+        "ansible_user": "ubuntu",
+        "ansible_ssh_private_key_file": "~/.ssh/oracle_ed25519",
+    },
 }
 
 # Oracle sub-groups are keyed on hostname, never on position.  'tailscale
@@ -54,10 +59,10 @@ GROUP_VARS: dict[str, dict[str, str]] = {
 # moves which machine HAProxy is deployed to whenever the peer list shifts.
 ORACLE_PROXY_HOSTNAME = "proxy"
 
-# The two Oracle VMs, named outright because there will only ever be these two.
-# 'compute' is an untagged personal device, so no tag can find it — but it still
-# needs patching, and it is the only untagged host this inventory admits.
-ORACLE_HOSTNAMES = ("proxy", "compute")
+# Untagged personal devices, named outright: no tag can find them.  They go in
+# their own group because CI runs as tag:ci and the policy gives it no route to
+# a personal device — only a local run from the owner's machine can reach these.
+PERSONAL_HOSTNAMES = ("compute",)
 # ── End configuration ────────────────────────────────────────────────────────
 
 
@@ -93,8 +98,8 @@ def build_inventory() -> dict:
     for peer in peers.values():
         tags: list[str] = peer.get("Tags", [])
         peer_hostname: str = peer.get("HostName", "")
-        is_oracle_vm = peer_hostname in ORACLE_HOSTNAMES
-        if not tags and not is_oracle_vm:
+        is_personal = peer_hostname in PERSONAL_HOSTNAMES
+        if not tags and not is_personal:
             continue
 
         # Use the MagicDNS short name (strip trailing dot + tailnet suffix)
@@ -114,12 +119,12 @@ def build_inventory() -> dict:
         host_vars = dict(GLOBAL_HOST_VARS)
         host_vars["ansible_host"] = ip
 
-        matched = is_oracle_vm
-        if is_oracle_vm:
-            groups.setdefault("oracle", [])
-            if hostname not in groups["oracle"]:
-                groups["oracle"].append(hostname)
-            host_vars.update(GROUP_VARS["oracle"])
+        matched = is_personal
+        if is_personal:
+            groups.setdefault("personal", [])
+            if hostname not in groups["personal"]:
+                groups["personal"].append(hostname)
+            host_vars.update(GROUP_VARS["personal"])
 
         for tag in tags:
             if tag in TAG_GROUP_MAP:

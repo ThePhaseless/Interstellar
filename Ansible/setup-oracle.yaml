@@ -1,9 +1,9 @@
-- name: Configure unattended upgrades on both Oracle VMs
+- name: Configure unattended upgrades on the proxy VPS
   hosts: oracle
   become: true
   vars:
-    # Staggered so the public entrypoint and the personal box never reboot together.
-    unattended_reboot_time: "{{ '03:00' if inventory_hostname == 'proxy' else '04:00' }}"
+    # Staggered against the personal box so they never reboot together.
+    unattended_reboot_time: "03:00"
   tasks:
     - name: Apply unattended-upgrades configuration
       ansible.builtin.import_tasks: tasks/unattended-upgrades.yaml
