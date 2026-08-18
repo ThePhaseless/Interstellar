@@ -38,7 +38,6 @@ spec:
             - name: JELLYFIN_PublishedServerUrl
               value: "https://watch.nerine.dev"
             # OIDC SSO via JellyfinSecurity plugin (Authentik)
-            # Seerr uses Jellyfin as its auth provider
           volumeMounts:
             - name: config
               mountPath: /config
@@ -66,7 +65,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
           # No special security context needed - Intel GPU Device Plugin
-          # handles GPU device access via gpu.intel.com/xe resource
 
       volumes:
         - name: config
@@ -74,7 +72,16 @@ spec:
             claimName: jellyfin-config
         - name: cache
           emptyDir:
-            sizeLimit: 10Gi
+            # Local disk on purpose: HLS segments are a high-churn
+            # create/write/unlink workload, so NFS (where /media lives) or a
+            # replicated Longhorn volume would push every segment across the
+            # network on top of the source read.
+            #
+            # Shares the node's 62Gi /var with container images, so this has to
+            # stay well under the free space there -- overrunning it evicts the
+            # pod mid-playback rather than failing the transcode. Throttling in
+            # Terraform/apps/jellyfin.tf is what bounds a single stream.
+            sizeLimit: 15Gi
         - name: media
           persistentVolumeClaim:
             claimName: media-pvc
