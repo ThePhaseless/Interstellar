@@ -50,6 +50,14 @@
       "dst":    ["*:*"]
     },
 
+    // Full access to your own untagged devices, any port.
+    // The ssh rule below also needs this: Tailscale requires a network rule too.
+    {
+      "action": "accept",
+      "src":    ["autogroup:member"],
+      "dst":    ["autogroup:self:*"]
+    },
+
     // CI runners can access Proxmox and Talos nodes for deployments
     {
       "action": "accept",
@@ -217,6 +225,14 @@
       "users":  ["autogroup:nonroot", "root"]
     },
 
+    // Personal devices: SSH between your own untagged machines (e.g. laptop → compute)
+    {
+      "action": "accept",
+      "src":    ["autogroup:member"],
+      "dst":    ["autogroup:self"],
+      "users":  ["autogroup:nonroot", "root"]
+    },
+
     // CI can SSH for deployments
     {
       "action": "accept",
@@ -258,7 +274,8 @@
 
   // Node Attributes
   "nodeAttrs": [
-    // Disable key expiry for infrastructure nodes
+    // Deny Funnel on infrastructure nodes.
+    // Key expiry is set by tailscale_device_key.infra in Terraform/tailscale.tf.
     {
       "target": ["tag:cluster", "tag:node", "tag:service", "tag:oracle", "tag:proxmox"],
       "attr":   ["funnel:deny"]

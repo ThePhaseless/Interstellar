@@ -159,6 +159,23 @@ variable "proxy_public_access" {
   default     = false
 }
 
+# Steady state is Tailscale-only SSH, so this stays false in every committed
+# tfvars. The oracle-bootstrap workflow flips it on just long enough to enroll a
+# VM that is not on the tailnet yet, then flips it back off.
+variable "oracle_ssh_public_access" {
+  description = "Temporarily open public SSH (port 22) to the Oracle VPS instances so a not-yet-enrolled VM can be reached for Tailscale bootstrap. Leave false outside of a bootstrap run."
+  type        = bool
+  default     = false
+}
+
+# Paired with oracle_ssh_public_access. The bootstrap workflow passes its own
+# runner egress IP as a /32; the open default only applies if a caller forgets.
+variable "oracle_ssh_source_cidr" {
+  description = "Source CIDR allowed to reach port 22 while oracle_ssh_public_access is true. Scope this to the caller's own address."
+  type        = string
+  default     = "0.0.0.0/0"
+}
+
 # Hetzner Cloud Configuration
 variable "hcloud_token" {
   description = "Hetzner Cloud API token. Sourced from HCLOUD_TOKEN env var via setup-env.sh."

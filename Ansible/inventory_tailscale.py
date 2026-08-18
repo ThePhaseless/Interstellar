@@ -8,9 +8,12 @@ used as ansible_host so connections work from anywhere on the tailnet
 
 Tag → Group mapping (configure TAG_GROUP_MAP below):
     tag:proxmox  → proxmox
-    tag:oracle   → oracle, oracle_proxy   (first oracle host is proxy)
+    tag:oracle   → oracle, plus oracle_proxy by hostname
     tag:node     → cluster
     tag:cluster  → cluster   (legacy fallback during migration)
+
+Only machines already on the tailnet appear here.  To enrol the proxy VPS when
+it is not, use bootstrap-oracle.yaml with a bare-IP inventory.
 
 Usage:
     ansible-inventory -i inventory_tailscale.py --list
@@ -46,8 +49,15 @@ GROUP_VARS: dict[str, dict[str, str]] = {
     },
 }
 
-# Oracle sub-groups: first oracle host becomes oracle_proxy
-ORACLE_SUBGROUPS = True
+# Oracle sub-groups are keyed on hostname, never on position.  'tailscale
+# status' has no stable ordering, so picking "the first oracle host" silently
+# moves which machine HAProxy is deployed to whenever the peer list shifts.
+ORACLE_PROXY_HOSTNAME = "proxy"
+
+# The two Oracle VMs, named outright because there will only ever be these two.
+# 'compute' is an untagged personal device, so no tag can find it — but it still
+# needs patching, and it is the only untagged host this inventory admits.
+ORACLE_HOSTNAMES = ("proxy", "compute")
 # ── End configuration ────────────────────────────────────────────────────────
 
 
@@ -78,17 +88,18 @@ def build_inventory() -> dict:
     # Collect hosts per group
     groups: dict[str, list[str]] = {}
     hostvars: dict[str, dict] = {}
+    peer_hostnames: dict[str, str] = {}
 
-    for _key, peer in peers.items():
+    for peer in peers.values():
         tags: list[str] = peer.get("Tags", [])
-        if not tags:
+        peer_hostname: str = peer.get("HostName", "")
+        is_oracle_vm = peer_hostname in ORACLE_HOSTNAMES
+        if not tags and not is_oracle_vm:
             continue
 
         # Use the MagicDNS short name (strip trailing dot + tailnet suffix)
         dns_name: str = peer.get("DNSName", "")
-        hostname = (
-            dns_name.split(".")[0] if dns_name else peer.get("HostName", "unknown")
-        )
+        hostname = dns_name.split(".")[0] if dns_name else peer_hostname or "unknown"
         if not hostname:
             continue
 
@@ -103,7 +114,13 @@ def build_inventory() -> dict:
         host_vars = dict(GLOBAL_HOST_VARS)
         host_vars["ansible_host"] = ip
 
-        matched = False
+        matched = is_oracle_vm
+        if is_oracle_vm:
+            groups.setdefault("oracle", [])
+            if hostname not in groups["oracle"]:
+                groups["oracle"].append(hostname)
+            host_vars.update(GROUP_VARS["oracle"])
+
         for tag in tags:
             if tag in TAG_GROUP_MAP:
                 matched = True
@@ -119,14 +136,16 @@ def build_inventory() -> dict:
 
         if matched:
             hostvars[hostname] = host_vars
+            peer_hostnames[hostname] = peer_hostname or hostname
 
-    # Build oracle sub-groups (first host = proxy, rest = compute)
-    if ORACLE_SUBGROUPS and "oracle" in groups:
-        oracle_hosts = groups["oracle"]
-        if oracle_hosts:
-            groups["oracle_proxy"] = [oracle_hosts[0]]
-        if len(oracle_hosts) > 1:
-            groups["oracle_compute"] = oracle_hosts[1:]
+    # Build the oracle sub-group by hostname.  An empty oracle_proxy makes the
+    # HAProxy plays no-op, which beats deploying them to an arbitrary machine.
+    if "oracle" in groups:
+        groups["oracle_proxy"] = [
+            h
+            for h in groups["oracle"]
+            if peer_hostnames.get(h, h) == ORACLE_PROXY_HOSTNAME
+        ]
 
     # Build Ansible JSON inventory
     inventory: dict = {"_meta": {"hostvars": hostvars}}

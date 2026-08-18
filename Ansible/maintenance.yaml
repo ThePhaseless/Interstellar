@@ -4,10 +4,3 @@
   tasks:
     - name: Update Proxmox packages
       ansible.builtin.include_tasks: tasks/update-proxmox.yaml
-
-- name: Update Oracle VPS instances
-  hosts: oracle
-  become: true
-  tasks:
-    - name: Update apt packages
-      ansible.builtin.import_tasks: tasks/update-apt.yaml

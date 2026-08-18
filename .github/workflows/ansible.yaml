@@ -7,6 +7,9 @@ on:
       - "Ansible/setup-oracle.yaml"
       - "Ansible/setup-proxmox.yaml"
       - "Ansible/maintenance.yaml"
+      - "Ansible/vars/oracle.yaml"
+      - "Ansible/vars/proxmox.yaml"
+      - "Ansible/inventory_tailscale.py"
   workflow_dispatch:
     inputs:
       playbook:
@@ -55,8 +58,12 @@ jobs:
       - name: Mask Bitwarden-fetched values
         run: |
           for v in TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET ORACLE_SSH_KEY TS_ORACLE_AUTHKEY; do
-            [ -n "${!v:-}" ] && echo "::add-mask::${!v}"
+            # add-mask registers a single line, so multi-line PEMs are masked line by line
+            while IFS= read -r line; do
+              [ -n "$line" ] && echo "::add-mask::$line"
+            done <<< "${!v:-}"
           done
+          true
 
       # Connect to Tailscale for SSH access
       - name: Connect to Tailscale
@@ -97,7 +104,8 @@ jobs:
         if: github.event_name == 'push'
         run: |
           echo "all_changed_files=$(git diff --name-only "${{ github.event.before }}" HEAD -- \
-            Ansible/setup-oracle.yaml Ansible/setup-proxmox.yaml Ansible/maintenance.yaml | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+            Ansible/setup-oracle.yaml Ansible/setup-proxmox.yaml Ansible/maintenance.yaml \
+            Ansible/vars/oracle.yaml Ansible/vars/proxmox.yaml Ansible/inventory_tailscale.py | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
 
       # Determine which playbook to run
       - name: Set playbook
@@ -109,9 +117,9 @@ jobs:
             # On push, run based on changed files
             CHANGED="${{ steps.changed-files.outputs.all_changed_files }}"
 
-            if echo "$CHANGED" | grep -q "setup-proxmox"; then
+            if echo "$CHANGED" | grep -q "setup-proxmox\|vars/proxmox"; then
               echo "name=setup-proxmox.yaml" >> $GITHUB_OUTPUT
-            elif echo "$CHANGED" | grep -q "setup-oracle"; then
+            elif echo "$CHANGED" | grep -q "setup-oracle\|vars/oracle\|inventory_tailscale"; then
               echo "name=setup-oracle.yaml" >> $GITHUB_OUTPUT
             elif echo "$CHANGED" | grep -q "maintenance"; then
               echo "name=maintenance.yaml" >> $GITHUB_OUTPUT

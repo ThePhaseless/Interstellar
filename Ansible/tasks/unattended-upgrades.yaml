@@ -1,0 +1,25 @@
+# A drop-in rather than a rewrite of 50unattended-upgrades: the package owns that
+# file and a distro upgrade will restore its defaults over anything written there.
+# apt reads apt.conf.d in lexical order, so 52- wins over 50-.
+- name: Install unattended-upgrades
+  ansible.builtin.apt:
+    name: unattended-upgrades
+    state: present
+    lock_timeout: 300
+
+- name: Configure automatic reboots for unattended upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/52unattended-upgrades-local
+    mode: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      Unattended-Upgrade::Automatic-Reboot "true";
+      Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+      Unattended-Upgrade::Automatic-Reboot-Time "{{ unattended_reboot_time }}";
+
+- name: Enable the unattended-upgrades service
+  ansible.builtin.systemd_service:
+    name: unattended-upgrades
+    enabled: true
+    state: started

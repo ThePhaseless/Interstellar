@@ -101,6 +101,24 @@ resource "oci_core_security_list" "main" {
     }
   }
 
+  # Ingress: SSH (conditional on oracle_ssh_public_access)
+  # Only open during a Tailscale bootstrap run — see .github/workflows/oracle-bootstrap.yaml.
+  # The runner passes its own egress address as a /32: one rule, not the whole
+  # internet. This list is attached to the subnet, so the rule reaches both VMs.
+  dynamic "ingress_security_rules" {
+    for_each = var.oracle_ssh_public_access ? [1] : []
+    content {
+      protocol    = "6"
+      source      = var.oracle_ssh_source_cidr
+      description = "SSH for Tailscale bootstrap"
+
+      tcp_options {
+        min = 22
+        max = 22
+      }
+    }
+  }
+
   ingress_security_rules {
     protocol    = "17" # UDP
     source      = "0.0.0.0/0"

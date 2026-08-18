@@ -1,15 +1,35 @@
-- name: Configure Oracle VPS Instances
+- name: Configure unattended upgrades on both Oracle VMs
   hosts: oracle
   become: true
+  vars:
+    # Staggered so the public entrypoint and the personal box never reboot together.
+    unattended_reboot_time: "{{ '03:00' if inventory_hostname == 'proxy' else '04:00' }}"
   tasks:
-    - name: Update packages
-      ansible.builtin.import_tasks: tasks/update-apt.yaml
+    - name: Apply unattended-upgrades configuration
+      ansible.builtin.import_tasks: tasks/unattended-upgrades.yaml
 
-- name: Setup Tailscale on all Oracle instances
-  hosts: oracle
+# The role only runs on a host holding no identity yet, so re-running this
+# playbook after editing anything cannot overwrite an enrolled machine.
+# compute is absent on purpose: it is a personal device, and Tailscale only
+# issues untagged keys to a person, so its enrolment is a browser login.
+- name: Setup Tailscale on the proxy VPS
+  hosts: oracle_proxy
   become: true
   vars_files:
     - vars/oracle.yaml
+  pre_tasks:
+    - name: Read the current Tailscale state
+      ansible.builtin.command: tailscale status --json
+      register: tailscale_state
+      changed_when: false
+      failed_when: false
+
+    - name: Skip the role when this host already holds a Tailscale identity
+      ansible.builtin.meta: end_host
+      when:
+        - tailscale_state.rc == 0
+        - tailscale_state.stdout is search('^\s*\{')
+        - (tailscale_state.stdout | from_json).BackendState not in ['NoState', 'NeedsLogin']
   roles:
     - role: artis3n.tailscale.machine
 
@@ -37,9 +57,21 @@
         action: insert
         rule_num: 6
 
+    # iptables-save emits a generation date in comments and live packet/byte
+    # counters on every chain line. Both change constantly, so they are stripped
+    # and zeroed — otherwise the file differs on every run and never converges.
+    - name: Read the current iptables rules
+      ansible.builtin.shell:
+        cmd: set -o pipefail && iptables-save | grep -v '^#' | sed -E 's/\[[0-9]+:[0-9]+\]/[0:0]/'
+        executable: /bin/bash
+      register: iptables_rules
+      changed_when: false
+
     - name: Persist iptables rules
-      ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
-      changed_when: true
+      ansible.builtin.copy:
+        content: "{{ iptables_rules.stdout }}\n"
+        dest: /etc/iptables/rules.v4
+        mode: "0640"
 
 - name: Deploy HAProxy on Proxy VPS
   hosts: oracle_proxy

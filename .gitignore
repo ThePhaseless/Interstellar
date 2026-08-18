@@ -4,6 +4,10 @@ Logs/
 
 .venv*/
 
+# Python
+__pycache__/
+*.py[cod]
+
 .env*
 !.env*.example
 mise.local.toml

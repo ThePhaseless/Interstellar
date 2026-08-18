@@ -120,6 +120,21 @@ locals {
   ]
   tailscale_adguard_ip = try(local.adguard_devices[0].addresses[0], "1.1.1.1")
   adguard_exists       = length(local.adguard_devices) >= 1
+
+  infra_device_tags = ["tag:proxmox", "tag:node", "tag:cluster", "tag:oracle"]
+  infra_devices = {
+    for d in data.tailscale_devices.cluster.devices : d.name => d.id
+    if length(setintersection(toset(d.tags), toset(local.infra_device_tags))) > 0
+  }
+}
+
+# Key expiry for infrastructure nodes — headless nodes cannot answer a re-auth
+# prompt, so an expired key drops them off the tailnet.
+resource "tailscale_device_key" "infra" {
+  for_each = local.infra_devices
+
+  device_id           = each.value
+  key_expiry_disabled = true
 }
 
 # Tailscale DNS Configuration
