@@ -65,12 +65,11 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
           # No special security context needed - Intel GPU Device Plugin
-          # handles GPU device access via gpu.intel.com/xe resource
 
       volumes:
         - name: cache
-          emptyDir:
-            sizeLimit: 10Gi
+          persistentVolumeClaim:
+            claimName: immich-ml-cache
 ---
 # Machine Learning Service
 apiVersion: v1

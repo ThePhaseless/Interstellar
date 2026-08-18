@@ -12,3 +12,20 @@ spec:
   resources:
     requests:
       storage: 3Gi
+---
+# Not an emptyDir: that would sit on the node's 62Gi /var alongside container
+# images, and overrunning an emptyDir sizeLimit evicts the pod rather than
+# failing the write. It would also lose every model on each pod replacement.
+# Sized against ~6.8Gi of models currently in use.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-ml-cache
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-cache
+  resources:
+    requests:
+      storage: 12Gi
