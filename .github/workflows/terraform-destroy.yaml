@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -50,7 +50,7 @@ jobs:
         run: uv sync --locked --link-mode=copy
 
       - name: Cache Terraform Providers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: Terraform/.terraform
           key: ${{ runner.os }}-terraform-${{ hashFiles('Terraform/.terraform.lock.hcl') }}
@@ -58,7 +58,7 @@ jobs:
             ${{ runner.os }}-terraform-
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
@@ -68,7 +68,7 @@ jobs:
           ${OCI_private_key_path}
 
       - name: Setup Tailscale
-        uses: tailscale/github-action@v4
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4
         with:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
@@ -126,7 +126,7 @@ jobs:
 
       - name: Upload Terraform Plan
         if: steps.plan.outputs.destroy_needed == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: tfdestroyplan
           path: Terraform/tfdestroyplan.gpg
@@ -162,7 +162,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -174,7 +174,7 @@ jobs:
         run: uv sync --locked --link-mode=copy
 
       - name: Cache Terraform Providers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: Terraform/.terraform
           key:
@@ -184,7 +184,7 @@ jobs:
             ${{ runner.os }}-terraform-
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
@@ -194,7 +194,7 @@ jobs:
           ${OCI_private_key_path}
 
       - name: Setup Tailscale
-        uses: tailscale/github-action@v4
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4
         with:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
@@ -208,7 +208,7 @@ jobs:
           }}" -backend-config="namespace=${{ secrets.TF_NAMESPACE }}"
 
       - name: Download Terraform Plan
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: tfdestroyplan
           path: Terraform

@@ -39,14 +39,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # github.event.before can be several commits back on a multi-commit push
           fetch-depth: 0
 
       # Fetch secrets from Bitwarden (using IDs from GitHub variables)
       - name: Get Secrets from Bitwarden
-        uses: bitwarden/sm-action@v3.0.1
+        uses: bitwarden/sm-action@1238aae8fc64b212641190a9227c8a734ab1a793 # v3.0.1
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
@@ -67,7 +67,7 @@ jobs:
 
       # Connect to Tailscale for SSH access
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v4
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4
         with:
           oauth-client-id: ${{ env.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_OAUTH_SECRET }}
@@ -75,7 +75,7 @@ jobs:
           args: --accept-dns=false
 
       - name: Setup SSH Agent
-        uses: webfactory/ssh-agent@v0.10.0
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
         with:
           ssh-private-key: ${{ env.ORACLE_SSH_KEY }}
 
@@ -86,7 +86,7 @@ jobs:
         run: uv tool install ansible-core
 
       - name: Cache Ansible Galaxy content
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             ~/.ansible/collections
