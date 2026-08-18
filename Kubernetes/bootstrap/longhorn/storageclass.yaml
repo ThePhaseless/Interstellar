@@ -27,3 +27,22 @@ parameters:
   staleReplicaTimeout: "2880"
   fsType: "ext4"
   nfsOptions: "vers=4.2,noresvport,softerr,timeo=600,retrans=5"
+---
+# For regenerable data only. Single replica on purpose: the contents can
+# always be re-fetched, so paying 2x disk and replication traffic to protect
+# them is waste, and losing the replica costs a re-download rather than data.
+# Consumers are pinned to one node by a GPU nodeSelector, so best-effort
+# locality keeps the replica on the node that reads it.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn-cache
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+  numberOfReplicas: "1"
+  staleReplicaTimeout: "2880"
+  fsType: "ext4"
+  dataLocality: "best-effort"
