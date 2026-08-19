@@ -27,6 +27,12 @@ resources:
   - backup-externalsecret.yaml
   - backup-cronjob.yaml
 
+patches:
+  - path: backup-common.yaml
+    target:
+      kind: CronJob
+      labelSelector: backup=borg
+
 configMapGenerator:
   - name: grafana-dashboard-cluster
     files:

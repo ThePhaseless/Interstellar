@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: borg-backup-common
+spec:
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 120
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: borgbackup
+              image: alpine:3.24
+              command: ["/bin/sh", "/scripts/borg-backup.sh"]
+              env:
+                - name: BORG_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef: { name: borg-secrets, key: passphrase }
+                - name: BORG_REPO
+                  valueFrom:
+                    secretKeyRef: { name: borg-secrets, key: repo-url }
+                - name: BORG_SERVER_HOST
+                  valueFrom:
+                    secretKeyRef: { name: borg-secrets, key: server-host }
+              volumeMounts:
+                - name: borg-ssh-key
+                  mountPath: /secrets/ssh
+                  readOnly: true
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+                - name: borg-cache
+                  mountPath: /root/.cache/borg
+              resources:
+                requests: { cpu: 200m, memory: 512Mi }
+                limits: { cpu: 2000m, memory: 2Gi }
+          volumes:
+            - name: borg-ssh-key
+              secret:
+                secretName: borg-secrets
+                items:
+                  - key: ssh-private-key
+                    path: id_ed25519
+                    mode: 0600
+                defaultMode: 0600
+            - name: backup-script
+              configMap:
+                name: observability-backup-script
+                defaultMode: 0755
+            - name: borg-cache
+              emptyDir:
+                sizeLimit: 2Gi
