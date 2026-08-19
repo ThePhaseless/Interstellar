@@ -142,6 +142,7 @@ Keep entries to one bullet point. If a section grows beyond ~15 bullets, consoli
 
 ## Workflow
 
+- **Run `terraform plan` and `apply` locally before pushing, and treat CI as confirmation only.** A local plan is the drift check: it compares the real infrastructure against the branch, so it catches out-of-band changes (a rebuilt node, a hand-applied resource, a controller that owns an object the repo also declares) while they are still cheap to reconcile. CI applies automatically on `main` — pushing an unplanned change means discovering the drift as a failed or destructive apply against live infrastructure instead. Local runs need `source scripts/setup-env.sh` for Bitwarden-backed credentials, plus `./scripts/port-forward-apps.sh` for the `Terraform/apps/` root.
 - **Kubernetes changes**: Use `git push` + ArgoCD resync. ArgoCD is the GitOps source of truth.
 - **Temporary cluster fixes are allowed** for debugging or to unblock a workload, but only if you first confirm ArgoCD will not revert them (e.g. the resource is not in Git, auto-sync is paused, or the field is not managed). Final, durable changes must be committed to Git and verified as Synced in ArgoCD before considering the job done.
 - Apply script (`./scripts/apply-kubernetes.sh`) is for bootstrapping only, not routine changes.
