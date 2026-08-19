@@ -3,7 +3,7 @@ min_version = "2026.4.28"
 [tools]
 python = "3.14.7"
 uv = "0.12.5"
-terraform = "1.15.8"
+terraform = "1.15.9"
 kubectl = "1.36.3"
 kustomize = "latest"
 helm = "4.2.4"
