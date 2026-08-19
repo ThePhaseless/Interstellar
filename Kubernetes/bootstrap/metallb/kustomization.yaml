@@ -1,6 +1,3 @@
-# =============================================================================
-# MetalLB Bootstrap Kustomization
-# =============================================================================
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -27,8 +24,4 @@ helmCharts:
           serviceMonitor:
             enabled: false
       speaker:
-        # All Talos nodes are control-plane nodes and Kubernetes automatically
-        # labels them with node.kubernetes.io/exclude-from-external-load-balancers.
-        # This causes MetalLB to skip L2 announcement on all nodes. Setting
-        # ignoreExcludeLB: true allows MetalLB to announce on control-plane nodes.
         ignoreExcludeLB: true
