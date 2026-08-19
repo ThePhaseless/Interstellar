@@ -60,7 +60,7 @@ spec:
             name: loki-config
         - name: data
           persistentVolumeClaim:
-            claimName: data-loki-0-rwx
+            claimName: loki-data
 ---
 apiVersion: v1
 kind: Service

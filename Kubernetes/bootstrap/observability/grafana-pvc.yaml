@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: grafana-data-rwx
+  name: grafana-data
   namespace: observability
 spec:
   accessModes:
-    - ReadWriteMany
-  storageClassName: longhorn-rwx
+    - ReadWriteOnce
+  storageClassName: longhorn
   resources:
     requests:
       storage: 2Gi

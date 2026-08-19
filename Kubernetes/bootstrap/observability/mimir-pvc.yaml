@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: data-mimir-0-rwx
+  name: mimir-data
   namespace: observability
 spec:
   accessModes:
-    - ReadWriteMany
-  storageClassName: longhorn-rwx
+    - ReadWriteOnce
+  storageClassName: longhorn
   resources:
     requests:
       storage: 10Gi
