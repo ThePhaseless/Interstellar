@@ -141,13 +141,13 @@ variable "tailscale_magicdns_domain" {
 }
 
 variable "talos_api_endpoints" {
-  description = "Reachable Talos API endpoint per node. Defaults to live Tailscale device IPs when available, and falls back to LAN IPs for first bootstrap before nodes join Tailscale."
+  description = "Reachable Talos API endpoint per node. Defaults to LAN IPs; CI overrides with Tailscale IPs resolved at runtime, since runners cannot reach the home LAN."
   type        = map(string)
   default     = {}
 }
 
 variable "kubernetes_api_host" {
-  description = "Reachable Talos MagicDNS hostname to use for Kubernetes provider access when the default bootstrap node hostname is not serving the API over Tailscale."
+  description = "Reachable Kubernetes API host for provider access. Defaults to the cluster VIP on the LAN; CI overrides with a Tailscale endpoint resolved at runtime."
   type        = string
   default     = null
 }

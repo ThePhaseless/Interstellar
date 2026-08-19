@@ -22,7 +22,6 @@ env:
   TF_PLUGIN_CACHE_DIR: "${{ github.workspace }}/.terraform.d/plugin-cache"
 
 jobs:
-  # Terraform Plan (runs on all PRs and pushes)
   plan:
     name: Plan
     runs-on: ubuntu-latest
@@ -78,7 +77,6 @@ jobs:
         run: |
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
 
-          # Use variable if provided, otherwise fetch dynamically from BWS
           ORG_ID="${{ vars.BW_ORGANIZATION_ID }}"
           if [ -z "$ORG_ID" ]; then
             echo "BW_ORGANIZATION_ID not set, fetching from BWS..."
@@ -98,7 +96,6 @@ jobs:
           echo "TF_VAR_tailscale_oauth_client_id=$TS_OAUTH_CLIENT_ID" >> $GITHUB_ENV
           echo "TF_VAR_tailscale_oauth_secret=$TS_OAUTH_SECRET" >> $GITHUB_ENV
 
-      # Connect to Tailscale for Proxmox access
       - name: Connect to Tailscale
         uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4
         with:
@@ -153,6 +150,7 @@ jobs:
           echo "Registered $TALOS_API_HOST -> $TALOS_API_IP"
 
           echo "TF_VAR_kubernetes_api_host=$TALOS_API_HOST" >> "$GITHUB_ENV"
+          echo "TF_VAR_talos_api_endpoints=$TALOS_API_ENDPOINTS" >> "$GITHUB_ENV"
 
       - name: Write OCI config
         shell: bash
@@ -266,7 +264,6 @@ jobs:
           name: tfplan
           path: ${{ env.TF_WORKING_DIR }}/tfplan.gpg
 
-  # Terraform Apply (only on main branch)
   apply:
     name: Apply
     runs-on: ubuntu-latest
@@ -323,7 +320,6 @@ jobs:
         run: |
           echo "BW_ACCESS_TOKEN=${{ secrets.BW_ACCESS_TOKEN }}" >> $GITHUB_ENV
 
-          # Use variable if provided, otherwise fetch dynamically from BWS
           ORG_ID="${{ vars.BW_ORGANIZATION_ID }}"
           if [ -z "$ORG_ID" ]; then
             echo "BW_ORGANIZATION_ID not set, fetching from BWS..."
@@ -343,7 +339,6 @@ jobs:
           echo "TF_VAR_tailscale_oauth_client_id=$TS_OAUTH_CLIENT_ID" >> $GITHUB_ENV
           echo "TF_VAR_tailscale_oauth_secret=$TS_OAUTH_SECRET" >> $GITHUB_ENV
 
-      # Connect to Tailscale for Proxmox access
       - name: Connect to Tailscale
         uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4
         with:
@@ -398,6 +393,7 @@ jobs:
           echo "Registered $TALOS_API_HOST -> $TALOS_API_IP"
 
           echo "TF_VAR_kubernetes_api_host=$TALOS_API_HOST" >> "$GITHUB_ENV"
+          echo "TF_VAR_talos_api_endpoints=$TALOS_API_ENDPOINTS" >> "$GITHUB_ENV"
 
       - name: Write OCI config
         shell: bash

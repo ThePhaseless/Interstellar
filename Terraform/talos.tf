@@ -5,14 +5,8 @@ locals {
   talos_node_hostnames = {
     for node_name in local.talos_node_names : node_name => "${node_name}.${var.tailscale_magicdns_domain}"
   }
-  talos_tailscale_ips = {
-    for hostname, addresses in {
-      for device in data.tailscale_devices.cluster.devices : device.hostname => device.addresses[0]...
-      if contains(local.talos_node_names, device.hostname) && length(device.addresses) > 0
-    } : hostname => addresses[0]
-  }
   talos_node_api_endpoints = {
-    for node_name in local.talos_node_names : node_name => lookup(var.talos_api_endpoints, node_name, lookup(local.talos_tailscale_ips, node_name, local.talos_node_ips[node_name]))
+    for node_name in local.talos_node_names : node_name => lookup(var.talos_api_endpoints, node_name, local.talos_node_ips[node_name])
   }
   talos_longhorn_data_disk_symlink = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
   talos_node_is_gpu                = { for node_name, node in var.nodes : node_name => node.gpu }
@@ -112,7 +106,6 @@ data "talos_machine_configuration" "controlplane" {
       auto       = "off"
     }),
 
-    # Minimal machine configuration for Proxmox Talos nodes
     yamlencode({
       machine = {
         certSANs = [
@@ -191,13 +184,10 @@ data "talos_machine_configuration" "controlplane" {
       }
     }) : null,
 
-    # Minimal cluster-level settings
     yamlencode({
       cluster = {
-        # Allow scheduling on control-plane nodes (combined nodes)
         allowSchedulingOnControlPlanes = true
 
-        # API server configuration
         apiServer = {
           certSANs = [
             local.cluster_vip,
@@ -214,7 +204,6 @@ data "talos_machine_configuration" "controlplane" {
       }
     }),
 
-    # Tailscale extension service configuration
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "ExtensionServiceConfig"

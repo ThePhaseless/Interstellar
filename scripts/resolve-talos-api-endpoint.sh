@@ -86,9 +86,18 @@ if [[ -z "$selected_host" || -z "$selected_ip" ]]; then
     exit 1
 fi
 
+endpoints_json="$(jq -c '
+    [.Peer | to_entries[] | .value
+     | select((.HostName // "") | startswith("talos-"))
+     | {(.HostName): (.TailscaleIPs[]? | select(test(":") | not))}]
+    | add
+' <<<"$tailscale_status_json")"
+
 if [[ "$output_format" == "shell" ]]; then
     printf 'TALOS_API_HOST=%q\n' "$selected_host"
     printf 'TALOS_API_IP=%q\n' "$selected_ip"
+    printf 'TALOS_API_ENDPOINTS=%q\n' "$endpoints_json"
 else
-    jq -n --arg host "$selected_host" --arg ip "$selected_ip" '{host: $host, ip: $ip}'
+    jq -n --arg host "$selected_host" --arg ip "$selected_ip" --argjson endpoints "$endpoints_json" \
+        '{host: $host, ip: $ip, endpoints: $endpoints}'
 fi
