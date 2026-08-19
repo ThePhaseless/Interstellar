@@ -5,3 +5,14 @@ metadata:
   labels:
     name: intel-device-plugins
     pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: default-memory-request
+  namespace: intel-device-plugins
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        memory: 128Mi
