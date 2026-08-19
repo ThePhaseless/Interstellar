@@ -64,7 +64,6 @@ jobs:
           done
           true
 
-      # Connect to Tailscale for SSH access
       - name: Connect to Tailscale
         uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4
         with:
@@ -112,7 +111,6 @@ jobs:
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "name=${{ github.event.inputs.playbook }}" >> $GITHUB_OUTPUT
           else
-            # On push, run based on changed files
             CHANGED="${{ steps.changed-files.outputs.all_changed_files }}"
 
             if echo "$CHANGED" | grep -q "setup-proxmox\|vars/proxmox"; then

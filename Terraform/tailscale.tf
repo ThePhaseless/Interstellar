@@ -13,7 +13,6 @@ resource "tailscale_acl" "main" {
   acl = file("${path.module}/../Tailscale/policy.hujson")
 }
 
-# Tailscale Auth Key for Cluster Nodes
 resource "tailscale_tailnet_key" "cluster" {
   depends_on    = [tailscale_acl.main]
   reusable      = true
@@ -35,7 +34,6 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
   }
 }
 
-# Tailscale Auth Key for Oracle VPS Instances
 resource "tailscale_tailnet_key" "oracle" {
   depends_on    = [tailscale_acl.main]
   reusable      = true

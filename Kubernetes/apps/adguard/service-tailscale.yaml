@@ -6,7 +6,6 @@ metadata:
   labels:
     app: adguard
   annotations:
-    # Expose as shareable Tailscale node
     tailscale.com/expose: "true"
     tailscale.com/hostname: "adguard"
 spec:

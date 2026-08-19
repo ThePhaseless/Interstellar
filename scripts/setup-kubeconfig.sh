@@ -37,7 +37,6 @@ for cmd in bws jq talosctl; do
     fi
 done
 
-# Auto-load BWS_ACCESS_TOKEN from .env if not set
 if [[ -z "${BWS_ACCESS_TOKEN:-}" ]]; then
     env_file="${REPO_ROOT}/.env"
     if [[ -f "$env_file" ]]; then

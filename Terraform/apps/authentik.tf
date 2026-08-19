@@ -246,7 +246,6 @@ resource "authentik_application" "grafana" {
   meta_launch_url   = "https://grafana.${var.authentik_domain}"
 }
 
-# Bind admins policy to Grafana
 resource "authentik_policy_binding" "grafana_admins" {
   target = authentik_application.grafana.uuid
   policy = authentik_policy_expression.admins_only.id

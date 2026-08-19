@@ -17,7 +17,6 @@ helmCharts:
     namespace: argocd
     includeCRDs: true
 
-# Patches for ArgoCD configuration
 patches:
   # Enable insecure mode (TLS termination at Traefik)
   - target:

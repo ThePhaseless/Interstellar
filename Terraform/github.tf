@@ -5,8 +5,6 @@ provider "github" {
 locals {
   github_repo_name = split("/", var.github_repository)[1]
 
-  # Map of GitHub variable names to Bitwarden Secret IDs
-  # Using direct resource references for all managed secrets
   bws_id_map = {
     "OCI_CONFIG"                = bitwarden-secrets_secret.oci_config.id
     "OCI_PRIVATE_KEY"           = bitwarden-secrets_secret.oci_private_key.id

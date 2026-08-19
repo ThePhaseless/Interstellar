@@ -17,7 +17,6 @@ provider "proxmox" {
 }
 
 # TalosOS ISO Image
-# Download TalosOS base ISO with extensions pre-installed
 resource "proxmox_download_file" "talos_iso_base" {
   content_type = "iso"
   datastore_id = "local"
@@ -28,7 +27,6 @@ resource "proxmox_download_file" "talos_iso_base" {
   overwrite = true
 }
 
-# Download TalosOS GPU ISO (only when at least one GPU node exists)
 resource "proxmox_download_file" "talos_iso_gpu" {
   count = local.talos_has_gpu_nodes ? 1 : 0
 
@@ -76,7 +74,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
     pre_enrolled_keys = false
   }
 
-  # Talos OS boot disk
   disk {
     datastore_id = var.vm_os_datastore_id
     interface    = "scsi0"
@@ -111,7 +108,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
     model  = "virtio"
   }
 
-  # Cloud-init network with static IP
   initialization {
     datastore_id = var.vm_os_datastore_id
 
@@ -123,7 +119,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
     }
   }
 
-  # GPU passthrough for talos-1
   dynamic "hostpci" {
     for_each = each.value.gpu ? [1] : []
     content {

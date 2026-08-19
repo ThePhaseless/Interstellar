@@ -19,7 +19,6 @@ spec:
       enableServiceLinks: false
 
       initContainers:
-        # Build Immich config JSON with OAuth settings from secrets
         - name: build-oauth-config
           image: busybox:1.38
           command: ["/bin/sh", "-c"]
@@ -107,7 +106,6 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
 
-        # PostgreSQL Sidecar
         - name: postgres
           image: ghcr.io/immich-app/postgres:17-vectorchord0.3.0-pgvectors0.3.0
           env:
@@ -138,7 +136,6 @@ spec:
               cpu: 1000m
               memory: 2Gi
 
-        # Redis Sidecar
         - name: redis
           image: redis:8-alpine
           ports:
@@ -169,7 +166,6 @@ spec:
             medium: Memory
             sizeLimit: 8Mi
 ---
-# ExternalSecret for Immich database password
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:

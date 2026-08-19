@@ -34,7 +34,6 @@ TAG_GROUP_MAP: dict[str, list[str]] = {
     "tag:cluster": ["cluster"],
 }
 
-# Ansible variables applied to every host
 GLOBAL_HOST_VARS: dict[str, str] = {
     "ansible_user": "root",
 }
@@ -81,7 +80,6 @@ def build_inventory() -> dict:
     status = tailscale_status()
     peers: dict = status.get("Peer", {})
 
-    # Collect hosts per group
     groups: dict[str, list[str]] = {}
     hostvars: dict[str, dict] = {}
     peer_hostnames: dict[str, str] = {}
@@ -103,7 +101,6 @@ def build_inventory() -> dict:
         if not ip:
             continue
 
-        # Skip offline peers
         if not peer.get("Online", False):
             continue
 
@@ -152,7 +149,6 @@ def main() -> None:
     if len(sys.argv) == 2 and sys.argv[1] == "--list":
         print(json.dumps(build_inventory(), indent=2))
     elif len(sys.argv) == 3 and sys.argv[1] == "--host":
-        # Single-host mode – return hostvars for the given host
         inventory = build_inventory()
         host = sys.argv[2]
         hostvars = inventory.get("_meta", {}).get("hostvars", {}).get(host, {})

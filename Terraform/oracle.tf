@@ -192,7 +192,6 @@ resource "oci_core_instance" "proxy" {
       apt-get update
       apt-get install -y curl apt-transport-https ca-certificates gnupg
 
-      # Unattended upgrades with auto-reboot
       apt-get install -y unattended-upgrades
       cat > /etc/apt/apt.conf.d/50unattended-upgrades <<'UPGRADES'
 Unattended-Upgrade::Automatic-Reboot "true";
@@ -246,7 +245,6 @@ resource "oci_core_instance" "compute" {
       apt-get update
       apt-get install -y curl apt-transport-https ca-certificates gnupg
 
-      # Unattended upgrades with auto-reboot
       apt-get install -y unattended-upgrades
       cat > /etc/apt/apt.conf.d/50unattended-upgrades <<'UPGRADES'
 Unattended-Upgrade::Automatic-Reboot "true";
@@ -268,7 +266,6 @@ UPGRADES
   }
 }
 
-# Store SSH Key in Bitwarden
 resource "bitwarden-secrets_secret" "oracle_ssh_private_key" {
   key        = "oracle-ssh-private-key"
   value      = tls_private_key.oracle_ssh.private_key_openssh
