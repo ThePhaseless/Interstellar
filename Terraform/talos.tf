@@ -121,6 +121,11 @@ data "talos_machine_configuration" "controlplane" {
 
           extraConfig = {
             imageMaximumGCAge = "168h"
+
+            shutdownGracePeriodByPodPriority = [
+              { priority = 0, shutdownGracePeriodSeconds = 120 },
+              { priority = 1000000000, shutdownGracePeriodSeconds = 60 },
+            ]
           }
         }
 
