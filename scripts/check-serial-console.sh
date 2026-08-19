@@ -42,13 +42,11 @@ log()  { [[ "$VERBOSE" -eq 1 ]] && echo "$*" || true; }
 warn() { echo "WARNING: $*" >&2; }
 err()  { echo "ERROR: $*" >&2; }
 
-# Check if we can reach the Proxmox host
 if ! ssh -o ConnectTimeout=5 -o BatchMode=yes "root@$PROXMOX_HOST" "echo ok" >/dev/null 2>&1; then
   err "Cannot reach Proxmox host $PROXMOX_HOST via SSH"
   exit 1
 fi
 
-# Check if the serial logger service is running
 log "Checking vm-110-serial-logger service status..."
 service_status=$(ssh "root@$PROXMOX_HOST" "systemctl is-active vm-110-serial-logger.service" 2>/dev/null || echo "unknown")
 if [[ "$service_status" != "active" ]]; then
@@ -58,7 +56,6 @@ if [[ "$service_status" != "active" ]]; then
 fi
 log "✓ Serial logger service is active"
 
-# Check if the serial log file exists and has content
 log "Checking serial log file..."
 log_info=$(ssh "root@$PROXMOX_HOST" "ls -lh /var/log/vm-110-serial.log 2>/dev/null || echo 'missing'" 2>/dev/null)
 if [[ "$log_info" == "missing" ]]; then
@@ -68,7 +65,6 @@ if [[ "$log_info" == "missing" ]]; then
 fi
 log "✓ Serial log file exists: $log_info"
 
-# Check if the log file has recent data
 log "Checking for recent data in serial log..."
 last_modified=$(ssh "root@$PROXMOX_HOST" "stat -c %Y /var/log/vm-110-serial.log" 2>/dev/null)
 now=$(date +%s)
@@ -79,14 +75,12 @@ if [[ "$age" -gt "$THRESHOLD" ]]; then
   warn "This may indicate the serial console is not receiving data"
   warn "Last modified: $(ssh "root@$PROXMOX_HOST" "date -d @$last_modified" 2>/dev/null)"
 
-  # Check if the VM is running
   vm_status=$(ssh "root@$PROXMOX_HOST" "qm status 110" 2>/dev/null || echo "unknown")
   if [[ "$vm_status" != "status: running" ]]; then
     err "GPU VM (110) is not running (status: $vm_status)"
     exit 3
   fi
 
-  # Check if the serial socket exists
   socket_exists=$(ssh "root@$PROXMOX_HOST" "test -S /var/run/qemu-server/110.serial0 && echo yes || echo no" 2>/dev/null)
   if [[ "$socket_exists" != "yes" ]]; then
     err "Serial socket /var/run/qemu-server/110.serial0 does not exist"
@@ -102,7 +96,6 @@ fi
 
 log "✓ Serial log has recent data (last updated ${age}s ago)"
 
-# Check if kernel is using console=ttyS0
 log "Checking kernel console configuration on GPU node..."
 if command -v talosctl >/dev/null 2>&1; then
   cmdline=$(talosctl -n 192.168.1.110 read /proc/cmdline 2>/dev/null | tail -1 || echo "")

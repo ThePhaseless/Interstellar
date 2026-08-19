@@ -33,7 +33,6 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-# Check if talosctl can reach the node
 if ! talosctl -n "$GPU_NODE" version >/dev/null 2>&1; then
   echo "ERROR: Cannot reach GPU node $GPU_NODE via talosctl" >&2
   exit 1

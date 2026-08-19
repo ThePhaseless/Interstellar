@@ -30,7 +30,6 @@ TALOS_CONFIG="${TALOS_DIR}/config"
 KUBE_DIR="${HOME}/.kube"
 KUBE_CONFIG="${KUBE_DIR}/config"
 
-# Check required commands
 for cmd in bws jq talosctl; do
     if ! command -v "$cmd" &>/dev/null; then
         log_error "Required command not found: $cmd"
@@ -78,8 +77,6 @@ chmod 600 "$TALOS_CONFIG"
 log_success "Talosconfig written to ${TALOS_CONFIG}"
 
 # --- Extract node for kubeconfig generation ---
-# Use the first endpoint from the talosconfig to find a reachable node via MagicDNS.
-# The talosconfig context name is the cluster name.
 bootstrap_node=$(talosctl config info --output json 2>/dev/null | jq -r '.nodes[0] // .endpoints[0] // empty' 2>/dev/null || true)
 
 if [[ -z "$bootstrap_node" ]]; then
@@ -87,8 +84,6 @@ if [[ -z "$bootstrap_node" ]]; then
     bootstrap_node=$(jq -r '.contexts | to_entries[0].value.endpoints[0] // empty' <<< "$(yq -o=json '.' "$TALOS_CONFIG" 2>/dev/null)" 2>/dev/null || true)
 fi
 
-# Resolve via Tailscale MagicDNS: prefer the first Talos host that is actually
-# serving the Kubernetes API over Tailscale, then fall back to talosconfig data.
 talos_node=""
 tailscale_domain=""
 talos_ip=""
@@ -107,8 +102,6 @@ if command -v tailscale &>/dev/null; then
 fi
 
 # --- Resolve Tailscale IP ---
-# talosctl needs both -e (endpoint) and -n (node) overridden to the Tailscale IP,
-# because the talosconfig stores LAN IPs which are unreachable remotely.
 if [[ -z "$talos_node" ]]; then
     if [[ -n "$bootstrap_node" ]]; then
         if [[ "$bootstrap_node" =~ \.ts\.net$ ]]; then
@@ -154,8 +147,6 @@ chmod 700 "$KUBE_DIR"
 
 if talosctl -e "$talos_ip" -n "$talos_ip" kubeconfig "$KUBE_CONFIG" --force 2>/dev/null; then
     chmod 600 "$KUBE_CONFIG"
-    # Patch the kubeconfig server: talosctl writes the cluster VIP (LAN IP),
-    # replace it with the Tailscale IP so kubectl works remotely.
     sed -i "s|server: https://[0-9.]\+:6443|server: https://${talos_ip}:6443|" "$KUBE_CONFIG"
     log_success "Kubeconfig written to ${KUBE_CONFIG}"
 else

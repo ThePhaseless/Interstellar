@@ -22,11 +22,9 @@ locals {
 }
 
 # Talos Machine Secrets
-# Generate secrets for the cluster (PKI, tokens, etc.)
 resource "talos_machine_secrets" "cluster" {}
 
 # Talos Image Factory
-# Get the schematic IDs for custom images with node-specific extensions
 data "talos_image_factory_extensions_versions" "base_extensions" {
   talos_version = var.talos_version
   exact_filters = {
@@ -76,7 +74,6 @@ data "talos_image_factory_urls" "gpu_image" {
 
 
 # Client Configuration
-# Generate talosconfig for talosctl CLI access
 data "talos_client_configuration" "cluster" {
   cluster_name         = var.cluster_name
   client_configuration = talos_machine_secrets.cluster.client_configuration
@@ -156,7 +153,6 @@ data "talos_machine_configuration" "controlplane" {
           ]
         }
 
-        # Install configuration with extensions
         install = {
           disk  = "/dev/sda"
           image = each.value.gpu ? "factory.talos.dev/installer/${talos_image_factory_schematic.gpu.id}:${var.talos_version}" : "factory.talos.dev/installer/${talos_image_factory_schematic.base.id}:${var.talos_version}"

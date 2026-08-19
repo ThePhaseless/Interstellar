@@ -44,7 +44,6 @@ jobs:
           # github.event.before can be several commits back on a multi-commit push
           fetch-depth: 0
 
-      # Fetch secrets from Bitwarden (using IDs from GitHub variables)
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@1238aae8fc64b212641190a9227c8a734ab1a793 # v3.0.1
         with:
@@ -107,7 +106,6 @@ jobs:
             Ansible/setup-oracle.yaml Ansible/setup-proxmox.yaml Ansible/maintenance.yaml \
             Ansible/vars/oracle.yaml Ansible/vars/proxmox.yaml Ansible/inventory_tailscale.py | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
 
-      # Determine which playbook to run
       - name: Set playbook
         id: playbook
         run: |

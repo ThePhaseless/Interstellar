@@ -75,19 +75,9 @@ resource "jellyfin_branding_configuration" "this" {
 }
 
 # Transcode buffer limits.
-#
-# Jellyfin writes HLS segments to the transcode temp dir, which lives on the
-# `cache` emptyDir (sizeLimit 10Gi, see Kubernetes/apps/jellyfin/deployment.yaml).
-# With throttling and segment deletion both off, ffmpeg races ahead of the
-# player at full GPU speed and never reclaims consumed segments, so a single
-# remux transcode fills 10Gi in minutes and the kubelet evicts the pod
-# mid-playback. Bounding the buffer on both ends keeps the volume in budget.
 resource "jellyfin_encoding_configuration" "this" {
-  # Pause ffmpeg once it is this far ahead of the playback position.
-  enable_throttling      = true
-  throttle_delay_seconds = 180
-
-  # Reclaim segments the client has already played.
+  enable_throttling       = true
+  throttle_delay_seconds  = 180
   enable_segment_deletion = true
   segment_keep_seconds    = 720
 }
