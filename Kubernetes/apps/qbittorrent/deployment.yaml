@@ -46,7 +46,6 @@ spec:
                 sed -i "/^WebUI\\\\${KEY}[[:space:]]*=/d" "${CONFIG_FILE}"
               done
               sed -i '/^\[Preferences\]/a WebUI\\LocalHostAuth=false\nWebUI\\HostHeaderValidation=false\nWebUI\\CSRFProtection=false\nWebUI\\AuthSubnetWhitelistEnabled=true\nWebUI\\AuthSubnetWhitelist=0.0.0.0\/0' "${CONFIG_FILE}"
-              # Set download path to shared volume
               if ! grep -q '^\[BitTorrent\]' "${CONFIG_FILE}"; then
                 printf '\n[BitTorrent]\nSession\\DefaultSavePath=/downloads\n' >> "${CONFIG_FILE}"
               elif ! grep -q 'DefaultSavePath' "${CONFIG_FILE}"; then

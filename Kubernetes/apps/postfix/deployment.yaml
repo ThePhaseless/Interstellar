@@ -26,7 +26,6 @@ spec:
                 secretKeyRef:
                   name: smtp-credentials
                   key: host
-            # SMTP authentication credentials
             - name: RELAYHOST_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -45,13 +44,11 @@ spec:
               value: "nerine.dev"
             - name: MYNETWORKS
               value: "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.0/8"
-            # Mail hostname
             - name: HOSTNAME
               value: "mail.nerine.dev"
             # Message size limit (25MB)
             - name: MESSAGE_SIZE_LIMIT
               value: "26214400"
-            # Log to stdout
             - name: LOG_FORMAT
               value: "json"
             - name: TZ

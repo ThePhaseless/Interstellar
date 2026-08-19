@@ -17,7 +17,6 @@ spec:
         app: immich-ml
     spec:
       enableServiceLinks: false
-      # Schedule on GPU node
       nodeSelector:
         intel.feature.node.kubernetes.io/gpu: "true"
 
@@ -64,14 +63,12 @@ spec:
               port: http
             initialDelaySeconds: 60
             periodSeconds: 10
-          # No special security context needed - Intel GPU Device Plugin
 
       volumes:
         - name: cache
           persistentVolumeClaim:
             claimName: immich-ml-cache
 ---
-# Machine Learning Service
 apiVersion: v1
 kind: Service
 metadata:

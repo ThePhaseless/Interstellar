@@ -2,12 +2,10 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
-# SSH Key for BorgBackup
 resource "tls_private_key" "borg_ssh_key" {
   algorithm = "ED25519"
 }
 
-# Borg Encryption Passphrase
 resource "random_password" "borg_passphrase" {
   length  = 64
   special = false
@@ -24,7 +22,6 @@ resource "random_password" "storagebox_password" {
   min_special      = 2
 }
 
-# Storage Box
 resource "hcloud_storage_box" "backups" {
   name             = "interstellar-backups"
   storage_box_type = var.hetzner_storagebox_type
