@@ -72,15 +72,6 @@ spec:
             claimName: jellyfin-config
         - name: cache
           emptyDir:
-            # Local disk on purpose: HLS segments are a high-churn
-            # create/write/unlink workload, so NFS (where /media lives) or a
-            # replicated Longhorn volume would push every segment across the
-            # network on top of the source read.
-            #
-            # Shares the node's 62Gi /var with container images, so this has to
-            # stay well under the free space there -- overrunning it evicts the
-            # pod mid-playback rather than failing the transcode. Throttling in
-            # Terraform/apps/jellyfin.tf is what bounds a single stream.
             sizeLimit: 15Gi
         - name: media
           persistentVolumeClaim:

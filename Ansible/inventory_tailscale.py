@@ -27,9 +27,6 @@ import json
 import subprocess
 import sys
 
-# ── Configuration ────────────────────────────────────────────────────────────
-# Map Tailscale tags to Ansible groups.  A device can appear in several groups
-# if its tag matches multiple entries.
 TAG_GROUP_MAP: dict[str, list[str]] = {
     "tag:proxmox": ["proxmox"],
     "tag:oracle": ["oracle"],
@@ -54,14 +51,8 @@ GROUP_VARS: dict[str, dict[str, str]] = {
     },
 }
 
-# Oracle sub-groups are keyed on hostname, never on position.  'tailscale
-# status' has no stable ordering, so picking "the first oracle host" silently
-# moves which machine HAProxy is deployed to whenever the peer list shifts.
 ORACLE_PROXY_HOSTNAME = "proxy"
 
-# Untagged personal devices, named outright: no tag can find them.  They go in
-# their own group because CI runs as tag:ci and the policy gives it no route to
-# a personal device — only a local run from the owner's machine can reach these.
 PERSONAL_HOSTNAMES = ("compute",)
 # ── End configuration ────────────────────────────────────────────────────────
 
@@ -134,7 +125,6 @@ def build_inventory() -> dict:
                     if hostname not in groups[group]:
                         groups[group].append(hostname)
 
-                    # Merge group-specific vars
                     for g in TAG_GROUP_MAP[tag]:
                         if g in GROUP_VARS:
                             host_vars.update(GROUP_VARS[g])
@@ -143,8 +133,6 @@ def build_inventory() -> dict:
             hostvars[hostname] = host_vars
             peer_hostnames[hostname] = peer_hostname or hostname
 
-    # Build the oracle sub-group by hostname.  An empty oracle_proxy makes the
-    # HAProxy plays no-op, which beats deploying them to an arbitrary machine.
     if "oracle" in groups:
         groups["oracle_proxy"] = [
             h
@@ -152,7 +140,6 @@ def build_inventory() -> dict:
             if peer_hostnames.get(h, h) == ORACLE_PROXY_HOSTNAME
         ]
 
-    # Build Ansible JSON inventory
     inventory: dict = {"_meta": {"hostvars": hostvars}}
     for group, hosts in groups.items():
         inventory[group] = {"hosts": hosts}
