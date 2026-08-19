@@ -10,7 +10,6 @@ data "authentik_flow" "default-source-authentication" {
   slug = "default-source-authentication"
 }
 
-# Self-signed certificate for JWT signing
 data "authentik_certificate_key_pair" "default" {
   name = "authentik Self-signed Certificate"
 }
@@ -24,10 +23,9 @@ data "authentik_property_mapping_provider_scope" "oauth2" {
   ]
 }
 
-# Custom Enrollment Flow — Creates users as "internal" type
 # Google OAuth enrollment creates users as "external" by default, which blocks
-# access to the Authentik admin interface. This custom flow overrides the
-# user_write stage to set user_type=internal for all Google-enrolled users.
+# access to the Authentik admin interface, so this flow overrides the user_write
+# stage to set user_type=internal.
 
 resource "authentik_flow" "google_enrollment" {
   name               = "google-source-enrollment"
@@ -48,8 +46,6 @@ resource "authentik_flow_stage_binding" "google_enrollment_write" {
   order  = 10
 }
 
-# Google OAuth Source — The only login method
-
 resource "authentik_source_oauth" "google" {
   access_token_url  = "https://oauth2.googleapis.com/token"
   authorization_url = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -65,16 +61,13 @@ resource "authentik_source_oauth" "google" {
   consumer_key    = data.bitwarden-secrets_secret.google_oauth_client_id.value
   consumer_secret = data.bitwarden-secrets_secret.google_oauth_client_secret.value
 
-  # Show on login page + auto-enroll new users
   promoted            = true
   user_matching_mode  = "email_link"
   group_matching_mode = "identifier"
 }
 
-# Owner Account — Superuser via owner-email Bitwarden secret
-# Look up the existing user by email (must have logged in via Google at least once).
-# If the user hasn't logged in yet, the group is created empty and will be
-# populated on the next apply after the user authenticates via Google.
+# The owner must have logged in via Google at least once. Until then the lookup
+# returns nothing and the group is created empty, filling in on the next apply.
 data "authentik_users" "owner" {
   email = data.bitwarden-secrets_secret.owner_email.value
 }
@@ -89,7 +82,17 @@ resource "authentik_group" "admins" {
   }
 }
 
-# Google-Only Authentication Flow — No username/password
+# Trusted people. Every policy that accepts vips also accepts admins, so admins
+# are effectively a superset of vips without relying on Authentik group nesting
+# (the groups claim sent to Grafana/ArgoCD/Jellyfin lists direct memberships only).
+resource "authentik_group" "vips" {
+  name  = "vips"
+  users = []
+
+  lifecycle {
+    ignore_changes = [users]
+  }
+}
 
 resource "authentik_flow" "google_only_auth" {
   name               = "google-only-authentication"
@@ -99,7 +102,6 @@ resource "authentik_flow" "google_only_auth" {
   policy_engine_mode = "any"
 }
 
-# Identification stage showing only the Google source button (no user_fields)
 resource "authentik_stage_identification" "google_only" {
   name        = "google-only-identification"
   user_fields = []
@@ -112,7 +114,6 @@ resource "authentik_flow_stage_binding" "google_only_id" {
   order  = 10
 }
 
-# Set Google-only flow as the default authentication flow via brand
 resource "authentik_brand" "default" {
   domain              = "authentik-default"
   default             = true
@@ -122,9 +123,6 @@ resource "authentik_brand" "default" {
   branding_logo       = "/static/dist/assets/icons/icon_left_brand.svg"
 }
 
-# Proxy Providers — Forward Auth (Domain Level)
-
-# Private: VIP email-restricted access
 resource "authentik_provider_proxy" "private" {
   name               = "private-proxy"
   mode               = "forward_domain"
@@ -140,7 +138,7 @@ resource "authentik_provider_proxy" "private" {
 # Public: Any Google account — copyparty only.
 # MUST stay forward_single: two forward_domain providers sharing an external_host
 # can't be multiplexed by the outpost, so this zero-policy provider won every host
-# and admins_only never fired.
+# and the access policy never fired.
 resource "authentik_provider_proxy" "public" {
   name               = "public-proxy"
   mode               = "forward_single"
@@ -154,8 +152,6 @@ resource "authentik_provider_proxy" "public" {
   refresh_token_validity = "days=30"
 }
 
-# Applications — Linked to providers
-
 resource "authentik_application" "private" {
   name              = "Private Services"
   slug              = "private-services"
@@ -163,46 +159,51 @@ resource "authentik_application" "private" {
   meta_description  = "VIP email-restricted homelab services (homepage, *arr stack, monitoring, etc.)"
 }
 
-# NOTE: authentik_application.public is covered by authentik_application.copyparty
-# (both would bind to the same public proxy provider, which Authentik forbids).
-# Copyparty serves as the canonical public-proxy application in the app portal.
+# There is no separate "public" application: Authentik forbids two applications
+# on one provider, so authentik_application.copyparty owns the public proxy.
 
-# Access Policies — Group-based RBAC
-# admins_only:         requires membership in the "Admins" group
-# watchers_or_admins:  requires "watchers" OR "Admins" group (Jellyfin)
-# Add users to groups in the Authentik web UI — no Terraform changes needed.
+# Access policies. Membership is managed in the Authentik web UI — adding a
+# person to a group needs no Terraform change.
 
-resource "authentik_policy_expression" "admins_only" {
-  name       = "admins-only"
-  expression = <<-EOT
-    return ak_is_group_member(request.user, name="admins")
-  EOT
-}
-
-resource "authentik_policy_expression" "watchers_or_admins" {
-  name       = "watchers-or-admins"
+resource "authentik_policy_expression" "vips_or_admins" {
+  name       = "vips-or-admins"
   expression = <<-EOT
     return (
-        ak_is_group_member(request.user, name="watchers")
+        ak_is_group_member(request.user, name="vips")
         or ak_is_group_member(request.user, name="admins")
     )
   EOT
 }
 
-# Bind admins policy to private (proxy) application — covers homepage, *arr, longhorn, traefik
-resource "authentik_policy_binding" "private_admins" {
+resource "authentik_policy_expression" "watchers_vips_or_admins" {
+  name       = "watchers-vips-or-admins"
+  expression = <<-EOT
+    return (
+        ak_is_group_member(request.user, name="watchers")
+        or ak_is_group_member(request.user, name="vips")
+        or ak_is_group_member(request.user, name="admins")
+    )
+  EOT
+}
+
+resource "authentik_policy_expression" "photos_or_admins" {
+  name       = "photos-or-admins"
+  expression = <<-EOT
+    return (
+        ak_is_group_member(request.user, name="photos")
+        or ak_is_group_member(request.user, name="admins")
+    )
+  EOT
+}
+
+resource "authentik_policy_binding" "private_access" {
   target = authentik_application.private.uuid
-  policy = authentik_policy_expression.admins_only.id
+  policy = authentik_policy_expression.vips_or_admins.id
   order  = 0
 }
 
-# Embedded Outpost — Uses the proxy providers
-# The embedded outpost is automatically available in Authentik.
-# We just need to assign our providers to it.
-
-# NOTE: The embedded outpost is managed by Authentik itself.
-# We use the resource to assign our proxy providers to it.
-# No service_connection needed — the embedded outpost runs inside authentik-server.
+# Authentik owns the embedded outpost's lifecycle; this resource only assigns
+# providers to it. No service_connection — it runs inside authentik-server.
 resource "authentik_outpost" "embedded" {
   name = "authentik Embedded Outpost"
   protocol_providers = [
@@ -216,8 +217,6 @@ resource "authentik_outpost" "embedded" {
     kubernetes_disabled_components = ["deployment", "secret", "service", "prometheus servicemonitor", "ingress", "traefik middleware"]
   })
 }
-
-# Grafana OIDC Provider
 
 resource "authentik_provider_oauth2" "grafana" {
   name               = "Grafana"
@@ -246,13 +245,14 @@ resource "authentik_application" "grafana" {
   meta_launch_url   = "https://grafana.${var.authentik_domain}"
 }
 
-resource "authentik_policy_binding" "grafana_admins" {
+# Grafana maps the groups claim to a role itself: admins land on Admin,
+# everyone else (vips included) falls through to Viewer.
+resource "authentik_policy_binding" "grafana_access" {
   target = authentik_application.grafana.uuid
-  policy = authentik_policy_expression.admins_only.id
+  policy = authentik_policy_expression.vips_or_admins.id
   order  = 0
 }
 
-# Store Grafana OIDC credentials in Bitwarden for Kubernetes to consume
 resource "bitwarden-secrets_secret" "grafana_oauth_client_id" {
   key        = "authentik-grafana-client-id"
   value      = authentik_provider_oauth2.grafana.client_id
@@ -266,8 +266,6 @@ resource "bitwarden-secrets_secret" "grafana_oauth_client_secret" {
   project_id = local.bitwarden_generated_project_id
   note       = "Grafana OIDC client secret (via Authentik). Managed by Terraform."
 }
-
-# Immich OIDC Provider
 
 resource "authentik_provider_oauth2" "immich" {
   name               = "Immich"
@@ -303,7 +301,6 @@ resource "authentik_application" "immich" {
   meta_launch_url   = "https://photos.${var.authentik_domain}/auth/login?autoLaunch=1"
 }
 
-# Store Immich OIDC credentials in Bitwarden for Kubernetes to consume
 resource "bitwarden-secrets_secret" "immich_oauth_client_id" {
   key        = "authentik-immich-client-id"
   value      = authentik_provider_oauth2.immich.client_id
@@ -318,17 +315,16 @@ resource "bitwarden-secrets_secret" "immich_oauth_client_secret" {
   note       = "Immich OIDC client secret (via Authentik). Managed by Terraform."
 }
 
-# Bind admins policy to Immich — only admins can log in via OIDC; public share links bypass auth
-resource "authentik_policy_binding" "immich_admins" {
+# Public share links bypass auth; this only gates OIDC login. Immich has
+# autoRegister enabled, so a photos member self-provisions on first login.
+resource "authentik_policy_binding" "immich_access" {
   target = authentik_application.immich.uuid
-  policy = authentik_policy_expression.admins_only.id
+  policy = authentik_policy_expression.photos_or_admins.id
   order  = 0
 }
 
-# Jellyfin & Copyparty Groups — RBAC via Authentik group membership
-# "watchers" → allowed to log into Jellyfin
-# "writers"  → Copyparty upload access
-# Groups are created empty. Manage membership manually in the Authentik UI.
+# "watchers" → Jellyfin login, "writers" → Copyparty upload, "photos" → Immich login.
+# Created empty; manage membership in the Authentik UI.
 
 resource "authentik_group" "watchers" {
   name  = "watchers"
@@ -348,15 +344,21 @@ resource "authentik_group" "writers" {
   }
 }
 
-# Group membership scope mapping (shared by Grafana, Jellyfin, ArgoCD)
+resource "authentik_group" "photos" {
+  name  = "photos"
+  users = []
+
+  lifecycle {
+    ignore_changes = [users]
+  }
+}
+
 resource "authentik_property_mapping_provider_scope" "groups" {
   name        = "Group Membership"
   scope_name  = "groups"
   description = "Maps user group memberships and username for RBAC"
   expression  = "return {\"groups\": [group.name for group in user.groups.all()], \"preferred_username\": user.username}"
 }
-
-# Jellyfin OIDC Provider — SSO with automatic account creation
 
 resource "authentik_provider_oauth2" "jellyfin" {
   name               = "Jellyfin"
@@ -401,7 +403,6 @@ resource "authentik_application" "jellyfin" {
   meta_launch_url   = "https://watch.${var.authentik_domain}"
 }
 
-# Store Jellyfin OIDC credentials in Bitwarden for Kubernetes to consume
 resource "bitwarden-secrets_secret" "jellyfin_oauth_client_id" {
   key        = "authentik-jellyfin-client-id"
   value      = authentik_provider_oauth2.jellyfin.client_id
@@ -416,21 +417,14 @@ resource "bitwarden-secrets_secret" "jellyfin_oauth_client_secret" {
   note       = "Jellyfin OIDC client secret (via Authentik). Managed by Terraform."
 }
 
-# Bind watchers_or_admins policy to Jellyfin — only watchers/Admins can log in via SSO
-resource "authentik_policy_binding" "jellyfin_watchers" {
+resource "authentik_policy_binding" "jellyfin_access" {
   target = authentik_application.jellyfin.uuid
-  policy = authentik_policy_expression.watchers_or_admins.id
+  policy = authentik_policy_expression.watchers_vips_or_admins.id
   order  = 0
 }
 
-# MCPJungle — Tailscale-only, no Authentik application needed
-# mcp.nerine.dev is gated entirely by Traefik's tailscale-only IP middleware.
-# No Authentik application is registered for it.
-
-# Copyparty — Proxy application (any Google account)
-# Copyparty manages fine-grained permissions internally via IdP group headers
-# (X-authentik-groups): @acct=read, @writers=read+write, @Admins=full admin.
-# No Authentik-level access policy needed here.
+# No access policy: any Google account may sign in, and copyparty applies its own
+# volume ACLs from the X-authentik-groups header (writers upload, admins full).
 
 resource "authentik_application" "copyparty" {
   name              = "Copyparty"
@@ -440,12 +434,8 @@ resource "authentik_application" "copyparty" {
   meta_launch_url   = "https://files.${var.authentik_domain}"
 }
 
-# qBittorrent — access is controlled via the private-chain Traefik middleware,
-# which validates auth through authentik_application.private (private-services).
-# A separate Authentik application is not needed since qBittorrent shares the
-# private proxy provider (Authentik forbids one provider bound to multiple apps).
-
-# ArgoCD OIDC Provider — Native ArgoCD SSO (admins only)
+# qBittorrent has no application of its own: its IngressRoute carries the shared
+# authentik forward-auth middleware, which resolves to the private proxy provider.
 
 resource "authentik_provider_oauth2" "argocd" {
   name               = "ArgoCD"
@@ -474,13 +464,14 @@ resource "authentik_application" "argocd" {
   meta_launch_url   = "https://argocd.${var.authentik_domain}"
 }
 
-resource "authentik_policy_binding" "argocd_admins" {
+# Reaching the app is gated here; the role once inside comes from
+# argocd-rbac-cm (admins → admin, vips → readonly).
+resource "authentik_policy_binding" "argocd_access" {
   target = authentik_application.argocd.uuid
-  policy = authentik_policy_expression.admins_only.id
+  policy = authentik_policy_expression.vips_or_admins.id
   order  = 0
 }
 
-# Store ArgoCD OIDC client secret in Bitwarden for Kubernetes to consume
 resource "bitwarden-secrets_secret" "argocd_oidc_client_secret" {
   key        = "authentik-argocd-client-secret"
   value      = authentik_provider_oauth2.argocd.client_secret

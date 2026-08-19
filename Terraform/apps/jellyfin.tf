@@ -36,6 +36,8 @@ resource "jellyfin_plugin" "jellyfin_security" {
 resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
   plugin_id = jellyfin_plugin.jellyfin_security.id
 
+  # Password login stays on as the emergency path for when Authentik is down.
+  # The local admin account must therefore carry a long, unique password.
   block_empty_password_login     = true
   disable_password_login         = false
   allow_admin_password_login     = true
@@ -53,7 +55,7 @@ resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
       client_id                   = data.bitwarden-secrets_secret.jellyfin_oauth_client_id.value
       client_secret               = data.bitwarden-secrets_secret.jellyfin_oauth_client_secret.value
       scopes                      = ["openid", "profile", "email", "groups"]
-      allowed_groups              = ["watchers", "admins"]
+      allowed_groups              = ["watchers", "vips", "admins"]
       admin_groups                = ["admins"]
       allow_admin_group_elevation = true
       auto_create_users           = true

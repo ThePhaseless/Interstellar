@@ -3,10 +3,9 @@ kind: ConfigMap
 metadata:
   name: argocd-rbac-cm
 data:
-  # Default: read-only for any authenticated user
-  policy.default: role:readonly
-  # Use 'groups' claim (populated from Authentik via userinfo) for RBAC
+  # Empty default: an Authentik user outside admins/vips gets no access at all.
+  policy.default: ""
   scopes: "[groups]"
   policy.csv: |
-    # Authentik 'admins' group → ArgoCD admin role
     g, admins, role:admin
+    g, vips, role:readonly
