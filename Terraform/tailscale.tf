@@ -119,7 +119,7 @@ locals {
   tailscale_adguard_ip = try(local.adguard_devices[0].addresses[0], "1.1.1.1")
   adguard_exists       = length(local.adguard_devices) >= 1
 
-  infra_device_tags = ["tag:proxmox", "tag:node", "tag:cluster", "tag:oracle"]
+  infra_device_tags = ["tag:proxmox", "tag:node", "tag:oracle"]
   infra_devices = {
     for d in data.tailscale_devices.cluster.devices : d.name => d.id
     if length(setintersection(toset(d.tags), toset(local.infra_device_tags))) > 0
