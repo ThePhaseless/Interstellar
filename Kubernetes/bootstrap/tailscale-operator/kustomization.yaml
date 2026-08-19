@@ -17,7 +17,11 @@ helmCharts:
       oauth:
         clientId: "" # Set via ExternalSecret
         clientSecret: "" # Set via ExternalSecret
-      operator:
+      # Chart key is operatorConfig, not operator. Helm accepts unknown values
+      # silently, so the previous `operator.hostname` was never applied and the
+      # device registered under the chart default, colliding with an earlier
+      # record and landing on tailscale-operator-1.
+      operatorConfig:
         hostname: "talos-operator"
       apiServerProxyConfig:
         mode: "true"
