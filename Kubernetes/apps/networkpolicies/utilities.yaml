@@ -1,0 +1,107 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: utilities
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik
+  namespace: utilities
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [copyparty, homepage, immich, whoami]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - {protocol: TCP, port: 3923}
+        - {protocol: TCP, port: 80}
+        - {protocol: TCP, port: 3001}
+---
+# copyparty's Tailscale LoadBalancer bypasses Traefik, so the operator's proxy
+# pod is the second legitimate caller. It is the path that carries no identity
+# header, so it lands on copyparty's own anonymous/local accounts.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-copyparty-tailscale-proxy
+  namespace: utilities
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchLabels:
+      app: copyparty
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tailscale
+      ports:
+        - {protocol: TCP, port: 3923}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-immich-internal
+  namespace: utilities
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [immich, immich-ml]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [immich, immich-ml]
+      ports:
+        - {protocol: TCP, port: 3003}
+        - {protocol: TCP, port: 5432}
+    # The nightly CronJob dumps the Immich database before archiving it.
+    # Its pod is labelled app.kubernetes.io/name, not app.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: borgbackup
+      ports:
+        - {protocol: TCP, port: 5432}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postfix-senders
+  namespace: utilities
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchLabels:
+      app: postfix
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: utilities
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: authentik
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+      ports:
+        - {protocol: TCP, port: 587}
