@@ -28,7 +28,6 @@ resources:
   - postfix/
   - copyparty/
   - immich/
-  - mcpjungle/
   - adguard/
   - homepage/
   - whoami/
