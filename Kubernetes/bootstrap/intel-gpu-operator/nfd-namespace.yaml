@@ -5,14 +5,3 @@ metadata:
   labels:
     name: node-feature-discovery
     pod-security.kubernetes.io/enforce: privileged
----
-apiVersion: v1
-kind: LimitRange
-metadata:
-  name: default-memory-request
-  namespace: node-feature-discovery
-spec:
-  limits:
-    - type: Container
-      defaultRequest:
-        memory: 128Mi
