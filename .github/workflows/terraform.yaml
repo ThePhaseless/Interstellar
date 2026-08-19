@@ -33,10 +33,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Get Secrets from Bitwarden
-        uses: bitwarden/sm-action@v3.0.1
+        uses: bitwarden/sm-action@1238aae8fc64b212641190a9227c8a734ab1a793 # v3.0.1
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
@@ -58,7 +58,7 @@ jobs:
 
       - name: Generate GitHub App Token
         id: generate-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           client-id: ${{ env.GH_APP_ID }}
           private-key: ${{ env.GH_APP_PRIVATE_KEY }}
@@ -98,7 +98,7 @@ jobs:
 
       # Connect to Tailscale for Proxmox access
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v4
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4
         with:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
@@ -182,7 +182,7 @@ jobs:
           echo "OCI_CLI_REGION=$(grep '^region=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
           terraform_wrapper: false
 
@@ -190,7 +190,7 @@ jobs:
         run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
 
       - name: Cache Terraform Providers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
           key: ${{ runner.os }}-terraform-main-${{
@@ -263,7 +263,7 @@ jobs:
 
       - name: Upload Terraform Plan
         if: steps.plan.outputs.has_changes == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: tfplan
           path: ${{ env.TF_WORKING_DIR }}/tfplan.gpg
@@ -280,10 +280,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Get Secrets from Bitwarden
-        uses: bitwarden/sm-action@v3.0.1
+        uses: bitwarden/sm-action@1238aae8fc64b212641190a9227c8a734ab1a793 # v3.0.1
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
@@ -305,7 +305,7 @@ jobs:
 
       - name: Generate GitHub App Token
         id: generate-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           client-id: ${{ env.GH_APP_ID }}
           private-key: ${{ env.GH_APP_PRIVATE_KEY }}
@@ -345,7 +345,7 @@ jobs:
 
       # Connect to Tailscale for Proxmox access
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v4
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4
         with:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
@@ -429,7 +429,7 @@ jobs:
           echo "OCI_CLI_REGION=$(grep '^region=' $HOME/.oci/config | head -1 | cut -d'=' -f2 | tr -d '[:space:]')" >> $GITHUB_ENV
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
           terraform_wrapper: false
 
@@ -437,7 +437,7 @@ jobs:
         run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
 
       - name: Cache Terraform Providers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
           key: ${{ runner.os }}-terraform-main-${{
@@ -446,7 +446,7 @@ jobs:
             ${{ runner.os }}-terraform-main-
 
       - name: Download Terraform Plan
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: tfplan
           path: ${{ env.TF_WORKING_DIR }}
