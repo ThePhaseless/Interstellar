@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: observability-backup
+  name: mimir-backup
   namespace: observability
 spec:
   schedule: "30 3 * * *"
@@ -15,6 +15,13 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: mimir
+                  topologyKey: kubernetes.io/hostname
           containers:
             - name: borgbackup
               image: alpine:3.24
@@ -38,16 +45,174 @@ spec:
                 - name: BORG_BACKUP_TARGETS
                   value: |
                     observability-mimir:/data
-                    observability-grafana:/grafana
-                    observability-loki:/loki
               volumeMounts:
-                - name: mimir-data
+                - name: data
                   mountPath: /data
                   readOnly: true
-                - name: grafana-data
+                - name: borg-ssh-key
+                  mountPath: /secrets/ssh
+                  readOnly: true
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+                - name: borg-cache
+                  mountPath: /root/.cache/borg
+              resources:
+                requests: { cpu: 200m, memory: 512Mi }
+                limits: { cpu: 2000m, memory: 2Gi }
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: mimir-data
+            - name: borg-ssh-key
+              secret:
+                secretName: borg-secrets
+                items:
+                  - key: ssh-private-key
+                    path: id_ed25519
+                    mode: 0600
+                defaultMode: 0600
+            - name: backup-script
+              configMap:
+                name: observability-backup-script
+                defaultMode: 0755
+            - name: borg-cache
+              emptyDir:
+                sizeLimit: 2Gi
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: grafana-backup
+  namespace: observability
+spec:
+  schedule: "35 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 120
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: grafana
+                  topologyKey: kubernetes.io/hostname
+          containers:
+            - name: borgbackup
+              image: alpine:3.24
+              command: ["/bin/sh", "/scripts/borg-backup.sh"]
+              env:
+                - name: BORG_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: passphrase
+                - name: BORG_REPO
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: repo-url
+                - name: BORG_SERVER_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: server-host
+                - name: BORG_BACKUP_TARGETS
+                  value: |
+                    observability-grafana:/grafana
+              volumeMounts:
+                - name: data
                   mountPath: /grafana
                   readOnly: true
-                - name: loki-data
+                - name: borg-ssh-key
+                  mountPath: /secrets/ssh
+                  readOnly: true
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+                - name: borg-cache
+                  mountPath: /root/.cache/borg
+              resources:
+                requests: { cpu: 200m, memory: 512Mi }
+                limits: { cpu: 2000m, memory: 2Gi }
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: grafana-data
+            - name: borg-ssh-key
+              secret:
+                secretName: borg-secrets
+                items:
+                  - key: ssh-private-key
+                    path: id_ed25519
+                    mode: 0600
+                defaultMode: 0600
+            - name: backup-script
+              configMap:
+                name: observability-backup-script
+                defaultMode: 0755
+            - name: borg-cache
+              emptyDir:
+                sizeLimit: 2Gi
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: loki-backup
+  namespace: observability
+spec:
+  schedule: "40 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 120
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: loki
+                  topologyKey: kubernetes.io/hostname
+          containers:
+            - name: borgbackup
+              image: alpine:3.24
+              command: ["/bin/sh", "/scripts/borg-backup.sh"]
+              env:
+                - name: BORG_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: passphrase
+                - name: BORG_REPO
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: repo-url
+                - name: BORG_SERVER_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-secrets
+                      key: server-host
+                - name: BORG_BACKUP_TARGETS
+                  value: |
+                    observability-loki:/loki
+              volumeMounts:
+                - name: data
                   mountPath: /loki
                   readOnly: true
                 - name: borg-ssh-key
@@ -62,15 +227,9 @@ spec:
                 requests: { cpu: 200m, memory: 512Mi }
                 limits: { cpu: 2000m, memory: 2Gi }
           volumes:
-            - name: mimir-data
+            - name: data
               persistentVolumeClaim:
-                claimName: data-mimir-0-rwx
-            - name: grafana-data
-              persistentVolumeClaim:
-                claimName: grafana-data-rwx
-            - name: loki-data
-              persistentVolumeClaim:
-                claimName: data-loki-0-rwx
+                claimName: loki-data
             - name: borg-ssh-key
               secret:
                 secretName: borg-secrets
