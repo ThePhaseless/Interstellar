@@ -92,7 +92,7 @@ echo ""
 echo -e "${YELLOW}Running kube-linter...${NC}"
 echo ""
 
-YAML_FILES=$(find "${K8S_DIR}" -type f \( -name "*.yaml" -o -name "*.yml" \) ! -name "kustomization.yaml" | sort)
+YAML_FILES=$(find "${K8S_DIR}" -type f \( -name "*.yaml" -o -name "*.yml" \) ! -name "kustomization.yaml" -not -path "*/charts/*" | sort)
 
 if [[ -z "${YAML_FILES}" ]]; then
     echo -e "${YELLOW}Warning: No YAML files found to lint${NC}"
