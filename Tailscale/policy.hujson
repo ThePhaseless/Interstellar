@@ -1,103 +1,52 @@
 {
-  // Tailscale ACL Policy for Interstellar Infrastructure
-  // This policy defines access controls for the TalosOS cluster and services.
-  // Managed via GitOps - changes are applied via GitHub Actions.
-
-  // Tag Owners
-  // tag:ci is the automation/Terraform tag. It owns all infrastructure tags
-  // so Terraform can create auth keys and OAuth clients for any of them.
+  // Owners implicitly own every tag, so only automation tags need listing.
   "tagOwners": {
-    "tag:ci":           ["autogroup:admin", "tag:ci"],
-    "tag:proxmox":      ["autogroup:admin", "tag:ci"],
-    "tag:oracle":       ["autogroup:admin", "tag:ci"],
-    "tag:cluster":      ["autogroup:admin", "tag:ci"],
-    "tag:node":         ["autogroup:admin", "tag:ci"],
-    "tag:k8s-operator": ["autogroup:admin", "tag:ci"],
-    "tag:service":      ["autogroup:admin", "tag:k8s-operator"], // Proxy pods provisioned by the Tailscale operator
-    "tag:minecraft": ["autogroup:admin", "tag:ci"], // Allow connecting though minecraft server port
+    "tag:ci":           ["tag:ci"],
+    "tag:proxmox":      ["tag:ci"],
+    "tag:oracle":       ["tag:ci"],
+    "tag:node":         ["tag:ci"],
+    "tag:k8s-operator": ["tag:ci"],
+    "tag:service":      ["tag:k8s-operator"],
+    "tag:minecraft":    ["tag:ci"],
   },
 
-  // Groups
-  // Groups define collections of users for access control.
-  "groups": {
-    // Full admin access - infrastructure operators
-    "group:vips": [
-      // Add admin email addresses here
-    ],
-
-    // Science club members - shared access to cluster services
-    "group:silvernet": [
-      // Add member email addresses here
-    ],
-
-    // Media consumers - Jellyfin/Seerr access only
-    "group:media": [
-      // Add media user email addresses here
-    ],
-
-    // DNS users - AdGuard DNS access only
-    "group:dns": [
-      // Add DNS user email addresses here
-    ]
-  },
-
-  // Access Control Lists
   "acls": [
-    // Admins and VIPs have full access to everything
     {
       "action": "accept",
-      "src":    ["autogroup:admin", "group:vips"],
+      "src":    ["autogroup:owner"],
       "dst":    ["*:*"]
     },
 
-    // Full access to your own untagged devices, any port.
-    // The ssh rule below also needs this: Tailscale requires a network rule too.
+    // Tailscale requires this network rule alongside the matching ssh rule below.
     {
       "action": "accept",
-      "src":    ["autogroup:member"],
+      "src":    ["autogroup:owner"],
       "dst":    ["autogroup:self:*"]
     },
 
-    // CI runners can access Proxmox and Talos nodes for deployments
     {
       "action": "accept",
       "src":    ["tag:ci"],
       "dst": [
-        "tag:proxmox:22",      // SSH to Proxmox
-        "tag:proxmox:8006",    // Proxmox API (for Terraform)
-        "tag:oracle:22",       // SSH to Oracle VPS
-        "tag:cluster:6443",    // Kubernetes API (current Talos tag)
-        "tag:cluster:50000",   // Talos API (current Talos tag)
-        "tag:node:6443",       // Kubernetes API
-        "tag:node:50000"       // Talos API
+        "tag:proxmox:22",
+        "tag:proxmox:8006",
+        "tag:oracle:22",
+        "tag:node:6443",
+        "tag:node:50000"
       ]
     },
 
-    // Oracle VPS can reach Tailscale proxy services — MetalLB/cluster IPs are LAN-only
+    // MetalLB/cluster IPs are LAN-only, so the VPS reaches Traefik via its proxy pod.
     {
       "action": "accept",
       "src":    ["tag:oracle"],
-      "dst": [
-        "tag:service:80",   // Tailscale operator proxy pods (e.g. ts-traefik-*)
-        "tag:service:443"
-      ]
+      "dst":    ["tag:service:80", "tag:service:443"]
     },
 
-    // Minecraft tag
     {
       "action": "accept",
       "src":    ["autogroup:shared"],
-      "dst": [
-        "tag:minecraft:25565",   // Minecraft Java Edition
-        "tag:minecraft:8100",
-      ]
-    },
-
-    // Talos instances can communicate with each other
-    {
-      "action": "accept",
-      "src":    ["tag:cluster"],
-      "dst":    ["tag:cluster:*"]
+      "dst":    ["tag:minecraft:25565", "tag:minecraft:8100"]
     },
 
     {
@@ -106,24 +55,10 @@
       "dst":    ["tag:node:*"]
     },
 
-    // Talos nodes can reach Proxmox for iSCSI storage
-    {
-      "action": "accept",
-      "src":    ["tag:cluster"],
-      "dst":    ["tag:proxmox:3260"]
-    },
-
     {
       "action": "accept",
       "src":    ["tag:node"],
       "dst":    ["tag:proxmox:3260"]
-    },
-
-    // K8s Operator has full Talos node access
-    {
-      "action": "accept",
-      "src":    ["tag:k8s-operator"],
-      "dst":    ["tag:cluster:*"]
     },
 
     {
@@ -132,108 +67,49 @@
       "dst":    ["tag:node:*"]
     },
 
-    // Service proxy pods can see each other (needed for MagicDNS resolution between pods)
     {
       "action": "accept",
       "src":    ["tag:service"],
       "dst":    ["tag:service:*"]
     },
 
-    // Talos nodes can resolve service proxy pod IPs via MagicDNS (100.100.100.100)
-    // Required for AdGuard to forward fold-hen.ts.net queries via Tailscale resolver
-    {
-      "action": "accept",
-      "src":    ["tag:cluster"],
-      "dst":    ["tag:service:*"]
-    },
-
+    // Lets AdGuard forward fold-hen.ts.net queries via the Tailscale resolver.
     {
       "action": "accept",
       "src":    ["tag:node"],
       "dst":    ["tag:service:*"]
     },
 
-    // Tailnet DNS override forces clients through AdGuard; every member who can
-    // use the tailnet needs DNS reachability even when app access stays scoped.
-    // CI also needs DNS reachability in workflows that accept tailnet DNS.
+    // Tailnet DNS override forces every client through AdGuard, so anything that
+    // accepts tailnet DNS needs this or it loses resolution entirely.
     {
       "action": "accept",
-      "src":    ["autogroup:member", "tag:ci"],
+      "src":    ["autogroup:owner", "tag:ci"],
       "dst":    ["tag:service:53"]
     },
 
-    // Silvernet members can access cluster services (not personal devices)
-    {
-      "action": "accept",
-      "src":    ["group:silvernet"],
-      "dst": [
-        "tag:service:80",    // Tailscale operator proxy pods (web traffic)
-        "tag:service:443",
-        "tag:service:445",   // SMB via operator proxy
-        "tag:service:3945"   // Copyparty port
-      ]
-    },
-
-    // Media group - only Jellyfin and Seerr
-    {
-      "action": "accept",
-      "src":    ["group:media"],
-      "dst": [
-        "tag:service:80",    // Tailscale operator proxy pods (web traffic)
-        "tag:service:443"
-      ]
-    },
-
-    // DNS group - only AdGuard DNS
-    {
-      "action": "accept",
-      "src":    ["group:dns"],
-      "dst": [
-        "tag:service:53"     // DNS via AdGuard proxy pod (TCP and UDP)
-      ]
-    },
-
-    // Shared Access - External Tailscale users (via node sharing)
-    // When you share a node tagged with "tag:shared", external users
-    // from their own tailnet can access these services.
-    // This provides fallback access when OCI proxy is offline.
-    //
-    // To share: Tailscale Admin Console → Machines → Share → Enter their email
-    // Their devices will appear as "autogroup:shared" in ACLs
-    //
-    // Shared nodes:
-    //   - traefik: HTTP/HTTPS access to all web services
-    //   - adguard: DNS server for automatic domain resolution
     {
       "action": "accept",
       "src":    ["autogroup:shared"],
-      "dst": [
-        "tag:service:80",    // Tailscale operator proxy pods
-        "tag:service:443",
-        "tag:service:53"     // DNS (AdGuard)
-      ]
+      "dst":    ["tag:service:80", "tag:service:443", "tag:service:53"]
     }
   ],
 
-  // SSH Configuration
   "ssh": [
-    // Admins and VIPs can SSH to all tagged devices
     {
       "action": "accept",
-      "src":    ["autogroup:admin", "group:vips"],
-      "dst":    ["tag:proxmox", "tag:oracle", "tag:cluster", "tag:node", "tag:minecraft"],
+      "src":    ["autogroup:owner"],
+      "dst":    ["tag:proxmox", "tag:oracle", "tag:node", "tag:minecraft"],
       "users":  ["autogroup:nonroot", "root"]
     },
 
-    // Personal devices: SSH between your own untagged machines (e.g. laptop → compute)
     {
       "action": "accept",
-      "src":    ["autogroup:member"],
+      "src":    ["autogroup:owner"],
       "dst":    ["autogroup:self"],
       "users":  ["autogroup:nonroot", "root"]
     },
 
-    // CI can SSH for deployments
     {
       "action": "accept",
       "src":    ["tag:ci"],
@@ -242,25 +118,19 @@
     }
   ],
 
-  // Auto Approvers
-  // Automatically approve certain network features.
   "autoApprovers": {
-    // Exit node approval (Oracle VPS)
     "exitNode": ["tag:oracle"],
 
-    // Subnet routes (cluster pod/service CIDRs)
     "routes": {
-      "10.244.0.0/16":  ["tag:cluster", "tag:node"], // Pod CIDR
-      "10.96.0.0/12":   ["tag:cluster", "tag:node"]  // Service CIDR
+      "10.244.0.0/16":  ["tag:node"], // Pod CIDR
+      "10.96.0.0/12":   ["tag:node"]  // Service CIDR
     }
   },
 
-  // Grants
-  // Kubernetes API proxy: impersonate Tailscale admins as system:masters
-  // This gives autogroup:admin full cluster-admin access without hardcoding emails.
+  // Impersonating the owner avoids hardcoding emails in the cluster.
   "grants": [
     {
-      "src": ["autogroup:admin"],
+      "src": ["autogroup:owner"],
       "dst": ["tag:k8s-operator"],
       "app": {
         "tailscale.com/cap/kubernetes": [{
@@ -272,12 +142,10 @@
     }
   ],
 
-  // Node Attributes
+  // Key expiry is set by tailscale_device_key.infra in Terraform/tailscale.tf.
   "nodeAttrs": [
-    // Deny Funnel on infrastructure nodes.
-    // Key expiry is set by tailscale_device_key.infra in Terraform/tailscale.tf.
     {
-      "target": ["tag:cluster", "tag:node", "tag:service", "tag:oracle", "tag:proxmox"],
+      "target": ["tag:node", "tag:service", "tag:oracle", "tag:proxmox"],
       "attr":   ["funnel:deny"]
     }
   ],

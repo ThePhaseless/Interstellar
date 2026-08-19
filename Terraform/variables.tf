@@ -117,14 +117,14 @@ variable "talos_gpu_extensions" {
 variable "talos_version" {
   description = "TalosOS version"
   type        = string
-  default     = "v1.13.4"
+  default     = "v1.13.9"
 }
 
 # renovate: datasource=github-releases depName=siderolabs/talos extractVersion=^v(?<version>.+)$ versioning=semver
 variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
-  default     = "1.36.2"
+  default     = "1.36.3"
 }
 
 variable "tf_state_bucket" {

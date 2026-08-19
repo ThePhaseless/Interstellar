@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - rbac.yaml
+  - default-serviceaccounts.yaml
   - media-pv.yaml
   - externalsecrets.yaml
   - media-runtime-config.yaml

@@ -211,6 +211,17 @@ data "talos_machine_configuration" "controlplane" {
         etcd = {
           advertisedSubnets = [var.cluster_network]
         }
+
+        # Flannel alone silently ignores NetworkPolicy objects; this deploys
+        # kube-network-policies alongside it so they are actually enforced.
+        network = {
+          cni = {
+            name = "flannel"
+            flannel = {
+              kubeNetworkPoliciesEnabled = true
+            }
+          }
+        }
       }
     }),
 

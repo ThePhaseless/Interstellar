@@ -1,0 +1,52 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: home
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik
+  namespace: home
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchLabels:
+      app: adguard
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - {protocol: TCP, port: 3000}
+    # adguard-tailscale maps :443 to targetPort http (3000), so the operator's
+    # proxy pod reaches the UI and DoH endpoint without passing through Traefik.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tailscale
+      ports:
+        - {protocol: TCP, port: 3000}
+---
+# DNS reaches AdGuard from LAN and tailnet clients through MetalLB and the
+# Tailscale proxy, so the source is outside the pod network entirely.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: home
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchLabels:
+      app: adguard
+  ingress:
+    - ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}

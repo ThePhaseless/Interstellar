@@ -36,10 +36,16 @@ resource "hcloud_storage_box" "backups" {
     zfs_enabled          = true
   }
 
+  # Weekly rather than daily: the borg repo is the real backup, so snapshots
+  # exist to survive the repo itself being destroyed by a compromised client.
+  # A wider window matters more than granularity, and BX11 caps automatic
+  # snapshots at 10. day_of_week is 0=Sunday in the provider (the API uses
+  # 1=Monday, and the provider translates).
   snapshot_plan = {
-    max_snapshots = 7
+    max_snapshots = 10
     minute        = 0
     hour          = 6
+    day_of_week   = 0
   }
 
   ssh_keys = [
