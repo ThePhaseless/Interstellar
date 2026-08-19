@@ -10,7 +10,7 @@ services:
 
   watchtower:
     container_name: watchtower
-    image: nickfedor/watchtower:latest@sha256:bee77696862e09521c49e5ab4904a4179accece6d561a2ef334c7589b84a2438
+    image: nickfedor/watchtower:latest@sha256:d76a95a54ab636968f77cb1780fb597b3e28511b535a86e3af212a290ef4d743
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
