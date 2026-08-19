@@ -122,6 +122,11 @@ data "talos_machine_configuration" "controlplane" {
           extraConfig = {
             imageMaximumGCAge = "168h"
 
+            # Talos defaults these to 30s/10s; kubelet rejects the config if
+            # either is non-zero alongside shutdownGracePeriodByPodPriority.
+            shutdownGracePeriod             = "0s"
+            shutdownGracePeriodCriticalPods = "0s"
+
             shutdownGracePeriodByPodPriority = [
               { priority = 0, shutdownGracePeriodSeconds = 120 },
               { priority = 1000000000, shutdownGracePeriodSeconds = 60 },
