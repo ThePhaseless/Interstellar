@@ -1,6 +1,3 @@
-# =============================================================================
-# LongHorn Storage Bootstrap Kustomization
-# =============================================================================
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -9,6 +6,7 @@ namespace: longhorn-system
 resources:
   - namespace.yaml
   - ingress.yaml
+  - storageclass.yaml
 
 helmCharts:
   - name: longhorn

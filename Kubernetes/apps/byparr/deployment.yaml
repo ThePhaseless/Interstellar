@@ -44,8 +44,6 @@ spec:
                   name: byparr-proxy
                   key: proxy-password
                   optional: true
-          # camoufox (Firefox) needs shared memory: README requires shm_size
-          # 512mb-1g and 2Gi memory for challenge solving in containers.
           volumeMounts:
             - name: dshm
               mountPath: /dev/shm

@@ -189,7 +189,8 @@ main() {
 
     fetch_batch \
         "oci-namespace" "TF_VAR_oci_namespace" \
-        "tailscale-tailnet" "TF_VAR_tailscale_tailnet" \
+        "tailscale-oauth-client-id" "TF_VAR_tailscale_oauth_client_id" \
+        "tailscale-oauth-secret" "TF_VAR_tailscale_oauth_secret" \
         "tailscale-oracle-auth-key" "TAILSCALE_ORACLE_AUTH_KEY" \
         "cloudflare-api-token" "CLOUDFLARE_API_TOKEN" \
         "cloudflare-zone-id" "TF_VAR_cloudflare_zone_id" \
