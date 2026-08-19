@@ -128,6 +128,10 @@ data "talos_machine_configuration" "controlplane" {
           nodeIP = {
             validSubnets = [var.cluster_network]
           }
+
+          extraConfig = {
+            imageMaximumGCAge = "168h"
+          }
         }
 
         network = {
