@@ -1,0 +1,139 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: media
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik
+  namespace: media
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [sonarr, radarr, prowlarr, bazarr, seerr, jellyfin, qbittorrent]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - {protocol: TCP, port: 8989}
+        - {protocol: TCP, port: 7878}
+        - {protocol: TCP, port: 9696}
+        - {protocol: TCP, port: 6767}
+        - {protocol: TCP, port: 5055}
+        - {protocol: TCP, port: 8096}
+        - {protocol: TCP, port: 8080}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-arr-consumers
+  namespace: media
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [sonarr, radarr]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [seerr, bazarr, decluttarr, recyclarr, prowlarr]
+      ports:
+        - {protocol: TCP, port: 8989}
+        - {protocol: TCP, port: 7878}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prowlarr-from-arr
+  namespace: media
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchLabels:
+      app: prowlarr
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [sonarr, radarr]
+      ports:
+        - {protocol: TCP, port: 9696}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-qbittorrent-from-arr
+  namespace: media
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchLabels:
+      app: qbittorrent
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [sonarr, radarr, decluttarr]
+      ports:
+        - {protocol: TCP, port: 8080}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-byparr-from-indexers
+  namespace: media
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [byparr, byparr-proxy, byparr-proxy-eztv]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [prowlarr, sonarr, radarr, byparr-proxy, byparr-proxy-eztv]
+      ports:
+        - {protocol: TCP, port: 8191}
+        - {protocol: TCP, port: 8888}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-jellyfin-from-seerr
+  namespace: media
+spec:
+  policyTypes: [Ingress]
+  podSelector:
+    matchLabels:
+      app: jellyfin
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: seerr
+      ports:
+        - {protocol: TCP, port: 8096}

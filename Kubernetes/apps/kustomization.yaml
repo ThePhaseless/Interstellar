@@ -32,6 +32,9 @@ resources:
   - homepage/
   - whoami/
 
+  # Network isolation
+  - networkpolicies/
+
   # System tools
   - descheduler/
 
