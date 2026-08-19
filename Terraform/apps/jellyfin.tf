@@ -77,7 +77,5 @@ resource "jellyfin_branding_configuration" "this" {
 # Transcode buffer limits.
 resource "jellyfin_encoding_configuration" "this" {
   enable_throttling       = true
-  throttle_delay_seconds  = 180
   enable_segment_deletion = true
-  segment_keep_seconds    = 720
 }
