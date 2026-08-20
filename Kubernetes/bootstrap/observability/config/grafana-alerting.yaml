@@ -131,10 +131,14 @@ groups:
           severity: critical
         isPaused: false
 
-      # Pod CrashLooping – noDataState OK
-      # Query filters > 5 restarts, threshold gt:0 fires on any returned series
+      # Container Restarting – noDataState OK
+      # Any restart in 10m is abnormal here, so this is > 0 rather than > 5.
+      # It deliberately catches the crash-and-recover case that never reaches
+      # CrashLoopBackOff; the sustained case is covered by pod-crashloopbackoff
+      # below, which is the critical one. Keep this at warning so a single
+      # transient restart does not also page by email.
       - uid: pod-crashloop
-        title: Pod CrashLooping
+        title: Container Restarting
         condition: C
         data:
           - refId: A
@@ -143,7 +147,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: increase(kube_pod_container_status_restarts_total[10m]) > 5
+              expr: increase(kube_pod_container_status_restarts_total[10m]) > 0
               intervalMs: 1000
               maxDataPoints: 43200
           - refId: B
@@ -189,7 +193,83 @@ groups:
         execErrState: Error
         for: 0s
         annotations:
-          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} restarted {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.0f\" .Value }}{{ end }}{{ end }} times in 10m"
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} restarted {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.0f\" .Value }}{{ end }}{{ end }} times in 10m"
+        labels:
+          severity: warning
+        isPaused: false
+
+      # Pod Crash Looping – the runtime-crash alert.
+      # "Restarted recently AND currently not ready" is the durable signal for a
+      # pod that cannot stay up. Deliberately NOT built on
+      # kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}:
+      # that series only exists during the backoff window, a crashing container
+      # alternates between terminated and waiting, and it was verified absent
+      # from Mimir even while a pod was actively crash-looping.
+      # The `and on(namespace,pod)` is what keeps completed Job pods out — they
+      # are not ready but never restart.
+      # This catches the case the restart-rate alert alone misses: once kubelet
+      # backoff reaches its 5m cap a crashing container only accrues ~2 restarts
+      # per 10m, so a rate threshold goes quiet precisely when it is most broken.
+      - uid: pod-crashloopbackoff
+        title: Pod Crash Looping
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: |
+                max by (namespace, pod) (increase(kube_pod_container_status_restarts_total[15m])) > 0
+                and on(namespace, pod)
+                (max by (namespace, pod) (kube_pod_status_ready{condition="true"}) == 0)
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping - it restarted recently and is still not ready"
         labels:
           severity: critical
         isPaused: false
