@@ -32,20 +32,27 @@ spec:
               [Preferences]
               WebUI\Port=8080
               WebUI\AuthSubnetWhitelistEnabled=true
-              WebUI\AuthSubnetWhitelist=0.0.0.0/0
-              WebUI\CSRFProtection=false
-              WebUI\HostHeaderValidation=false
+              WebUI\AuthSubnetWhitelist=10.244.0.0/16
+              WebUI\CSRFProtection=true
+              WebUI\HostHeaderValidation=true
+              WebUI\ServerDomains=qbittorrent.nerine.dev,qbittorrent.media.svc.cluster.local,qbittorrent
               WebUI\LocalHostAuth=false
               WebUI\RootFolder=/vuetorrent
               EOF
                 chmod 600 "${CONFIG_FILE}"
               fi
-              # Idempotently ensure auth is bypassed for all IPs (auth handled by Traefik).
+              # Credential auth is delegated to Traefik forward-auth, so the subnet
+              # whitelist skips qBittorrent's own login -- but only for the pod CIDR,
+              # which is the only source that can reach port 8080 (Traefik and the
+              # *arr callers). CSRF and Host validation stay ON: the Authentik cookie
+              # is scoped to nerine.dev, so without them any page on a sibling
+              # subdomain could forge an authenticated setPreferences call, and
+              # autorun_program turns that into command execution in this pod.
               # Spaces around "=" must match: configparser below rewrites with " = ".
-              for KEY in CSRFProtection HostHeaderValidation LocalHostAuth AuthSubnetWhitelistEnabled AuthSubnetWhitelist; do
+              for KEY in CSRFProtection HostHeaderValidation ServerDomains LocalHostAuth AuthSubnetWhitelistEnabled AuthSubnetWhitelist; do
                 sed -i "/^WebUI\\\\${KEY}[[:space:]]*=/d" "${CONFIG_FILE}"
               done
-              sed -i '/^\[Preferences\]/a WebUI\\LocalHostAuth=false\nWebUI\\HostHeaderValidation=false\nWebUI\\CSRFProtection=false\nWebUI\\AuthSubnetWhitelistEnabled=true\nWebUI\\AuthSubnetWhitelist=0.0.0.0\/0' "${CONFIG_FILE}"
+              sed -i '/^\[Preferences\]/a WebUI\\LocalHostAuth=false\nWebUI\\HostHeaderValidation=true\nWebUI\\ServerDomains=qbittorrent.nerine.dev,qbittorrent.media.svc.cluster.local,qbittorrent\nWebUI\\CSRFProtection=true\nWebUI\\AuthSubnetWhitelistEnabled=true\nWebUI\\AuthSubnetWhitelist=10.244.0.0\/16' "${CONFIG_FILE}"
               if ! grep -q '^\[BitTorrent\]' "${CONFIG_FILE}"; then
                 printf '\n[BitTorrent]\nSession\\DefaultSavePath=/downloads\n' >> "${CONFIG_FILE}"
               elif ! grep -q 'DefaultSavePath' "${CONFIG_FILE}"; then

@@ -33,8 +33,10 @@ import time
 import urllib.request
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlsplit
 
 UPSTREAM = os.environ.get("UPSTREAM", "https://1337x.to").rstrip("/")
+_UPSTREAM_NETLOC = urlsplit(UPSTREAM).netloc
 BYPARR = os.environ.get("BYPARR", "http://byparr:8191/v1")
 TIMEOUT_MS = int(os.environ.get("TIMEOUT_MS", "120000"))
 PORT = int(os.environ.get("PORT", "8888"))
@@ -179,6 +181,23 @@ def _fetch_from_byparr(rid, target):
     return sol.get("status", 200), sol["response"].encode("utf-8", errors="replace")
 
 
+def _resolve_target(path):
+    """Compose the upstream URL for `path`, or None if it escapes UPSTREAM.
+
+    BaseHTTPRequestHandler does not require the request target to begin with
+    "/", so concatenating it onto UPSTREAM is not safe on its own: a target of
+    "@evil.tld/x" demotes the configured host to a URL userinfo field, and
+    ".evil.tld/x" makes it a subdomain prefix -- either way the caller, not the
+    config, picks the host Byparr fetches.
+    """
+    if not path.startswith("/") or path.startswith("//") or "\\" in path:
+        return None
+    target = UPSTREAM + path
+    if urlsplit(target).netloc != _UPSTREAM_NETLOC:
+        return None
+    return target
+
+
 class Handler(BaseHTTPRequestHandler):
     def _proxy(self):
         rid = uuid.uuid4().hex[:6]
@@ -186,6 +205,12 @@ class Handler(BaseHTTPRequestHandler):
         method = self.command
         path = self.path
         start = time.monotonic()
+
+        if _resolve_target(path) is None:
+            log.warning("[%s] %s %r from %s -> 400 rejected (bad request target)",
+                        rid, method, path, client)
+            self.send_error(400, "bad request target")
+            return
 
         if SKIP_EXT.search(path):
             log.info("[%s] %s %s from %s -> 404 skipped (static asset)",
@@ -261,7 +286,7 @@ class Handler(BaseHTTPRequestHandler):
                 return None, None, None, 0.0
             return pending.status, pending.body, "coalesced", 0.0
 
-        target = UPSTREAM + path
+        target = _resolve_target(path)
         log.info("[%s] %s %s from %s -> forwarding to byparr (%s)",
                  rid, method, path, client, target)
         byparr_start = time.monotonic()

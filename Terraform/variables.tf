@@ -153,20 +153,30 @@ variable "kubernetes_api_host" {
 }
 
 # Steady state is Tailscale-only SSH, so this stays false in every committed
-# tfvars. The oracle-bootstrap workflow flips it on just long enough to enroll a
-# VM that is not on the tailnet yet, then flips it back off.
+# tfvars. Flip it on by hand only for as long as it takes to enroll a VM that is
+# not on the tailnet yet, then flip it back off. (The oracle-bootstrap workflow
+# that used to automate this was removed along with the HAProxy VM in 7158f21.)
 variable "oracle_ssh_public_access" {
   description = "Temporarily open public SSH (port 22) to the Oracle VPS instances so a not-yet-enrolled VM can be reached for Tailscale bootstrap. Leave false outside of a bootstrap run."
   type        = bool
   default     = false
 }
 
-# Paired with oracle_ssh_public_access. The bootstrap workflow passes its own
-# runner egress IP as a /32; the open default only applies if a caller forgets.
+# Paired with oracle_ssh_public_access, and deliberately fails closed: the
+# default reaches nothing, so forgetting to pass an address costs you a failed
+# bootstrap rather than an internet-facing sshd. Pass your own egress IP as /32.
 variable "oracle_ssh_source_cidr" {
   description = "Source CIDR allowed to reach port 22 while oracle_ssh_public_access is true. Scope this to the caller's own address."
   type        = string
-  default     = "0.0.0.0/0"
+  default     = "127.0.0.1/32"
+
+  validation {
+    condition = (
+      can(cidrnetmask(var.oracle_ssh_source_cidr)) &&
+      can(regex("/(2[4-9]|3[0-2])$", var.oracle_ssh_source_cidr))
+    )
+    error_message = "oracle_ssh_source_cidr must be a valid IPv4 CIDR of /24 or narrower - never 0.0.0.0/0. Pass the caller's own address, e.g. \"203.0.113.7/32\"."
+  }
 }
 
 # Hetzner Cloud Configuration

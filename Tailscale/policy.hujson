@@ -6,6 +6,10 @@
     "tag:node":         ["tag:ci"],
     "tag:k8s-operator": ["tag:ci"],
     "tag:service":      ["tag:k8s-operator"],
+    // Traefik's proxy only. Split out of tag:service so externally shared
+    // guests can be granted the web entrypoint without also reaching every
+    // other operator-exposed Service (copyparty, AdGuard).
+    "tag:web":          ["tag:k8s-operator"],
     "tag:minecraft":    ["tag:ci"],
   },
 
@@ -68,7 +72,7 @@
     {
       "action": "accept",
       "src":    ["tag:node"],
-      "dst":    ["tag:service:*"]
+      "dst":    ["tag:service:*", "tag:web:*"]
     },
 
     // Tailnet DNS override forces every client through AdGuard, so anything that
@@ -79,10 +83,12 @@
       "dst":    ["tag:service:53"]
     },
 
+    // Shared guests get the Traefik entrypoint (every app behind it is gated by
+    // Authentik) plus DNS, and nothing else that the operator happens to expose.
     {
       "action": "accept",
       "src":    ["autogroup:shared"],
-      "dst":    ["tag:service:80", "tag:service:443", "tag:service:53"]
+      "dst":    ["tag:web:80", "tag:web:443", "tag:service:53"]
     }
   ],
 
@@ -134,7 +140,7 @@
   // Key expiry is set by tailscale_device_key.infra in Terraform/tailscale.tf.
   "nodeAttrs": [
     {
-      "target": ["tag:node", "tag:service", "tag:proxmox"],
+      "target": ["tag:node", "tag:service", "tag:web", "tag:proxmox"],
       "attr":   ["funnel:deny"]
     }
   ],

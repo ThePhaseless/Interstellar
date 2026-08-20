@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: copyparty-tailscale
   namespace: utilities
+  # Targets copyparty-dav, not copyparty: this path does not pass through
+  # Traefik, so it must not reach an instance that trusts identity headers.
   annotations:
     tailscale.com/expose: "true"
     tailscale.com/hostname: "files"
@@ -12,4 +14,4 @@ spec:
       port: 80
       targetPort: http
   selector:
-    app: copyparty
+    app: copyparty-dav

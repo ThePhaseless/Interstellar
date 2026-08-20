@@ -5,15 +5,14 @@ namespace: utilities
 
 resources:
   - deployment.yaml
-  - service.yaml
-  - ingress.yaml
+  - service-tailscale.yaml
 
 configMapGenerator:
-  - name: copyparty-config
+  - name: copyparty-dav-config
     files:
-      - copyparty.conf
+      - copyparty-dav.conf
 
 labels:
   - pairs:
-      app: copyparty
+      app: copyparty-dav
     includeSelectors: true

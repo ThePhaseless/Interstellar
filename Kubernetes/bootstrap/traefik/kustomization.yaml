@@ -95,6 +95,12 @@ helmCharts:
         annotations:
           tailscale.com/expose: "true"
           tailscale.com/hostname: "traefik"
+          # tag:web, not the operator default tag:service: shared guests are
+          # granted this tag alone, so they reach the Authentik-gated entrypoint
+          # without also reaching copyparty or the AdGuard admin UI.
+          # Push the ACL (Tailscale/policy.hujson) BEFORE this annotation, or the
+          # operator cannot tag the proxy and Traefik drops off the tailnet.
+          tailscale.com/tags: "tag:web"
 
       # Providers
       providers:

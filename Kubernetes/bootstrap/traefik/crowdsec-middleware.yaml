@@ -23,10 +23,12 @@ spec:
       # Trusted networks — bypass ALL checks (bans, rate limiting, AppSec WAF).
       # Tailscale operator uses L3 DNAT (does NOT forward real client IP — see
       # tailscale/tailscale#11024), so all Tailscale direct traffic appears as
-      # the ts-traefik pod IP. The pod CIDR here is what actually matches that
-      # traffic; 100.64.0.0/10 is kept for forward-compat if Tailscale ever
-      # adds PROXY protocol support. Public traffic gets its real IP via
-      # PROXY protocol from HAProxy, so it is NOT bypassed.
+      # the ts-traefik pod IP; the pod CIDR is what actually matches it.
+      # Since the Oracle/HAProxy public entrypoint was retired (7158f21) there
+      # is no untrusted source left: LAN and Tailscale are both listed here, so
+      # the bouncer inspects nothing in practice. It stays wired up so that
+      # restoring a public entrypoint re-arms it without a config change —
+      # whatever terminates that traffic must pass the real client IP through.
       clientTrustedIPs:
         - "192.168.1.0/24" # Home LAN (direct access, bypasses Tailscale)
         - "10.244.0.0/16" # Pod CIDR — matches ts-traefik DNAT'd Tailscale traffic
