@@ -14,10 +14,6 @@ flowchart TB
         Devices(["Private Devices"])
     end
 
-    subgraph Oracle["☁️ Oracle Cloud"]
-        HAProxy["HAProxy<br/>Entry Point"]
-    end
-
     subgraph Tailscale["🔐 Tailscale Mesh"]
         TS(("Encrypted<br/>Overlay"))
     end
@@ -31,9 +27,7 @@ flowchart TB
         iSCSI[("ZFS<br/>iSCSI<br/>15TB")]
     end
 
-    Users -->|HTTPS| HAProxy
     Devices -->|Tailscale| TS
-    HAProxy -->|Tailscale| TS
     TS <-->|Encrypted| T1 & T2 & T3
     T1 & T2 & T3 <-->|LongHorn| iSCSI
 
@@ -88,7 +82,7 @@ flowchart TB
 | **CPU**      | 4 Ampere cores                |
 | **RAM**      | 24GB                          |
 | **Network**  | 4Gbps + public IP             |
-| **Role**     | HAProxy → Tailscale → Traefik |
+| **Role**     | General compute / build host  |
 
 ## 📦 Services
 
@@ -139,7 +133,6 @@ Interstellar/
 │   └── tailscale-acl.yaml   # ACL policy sync
 ├── .kube-linter.yaml        # Kube-linter configuration
 ├── Ansible/                 # Host configuration playbooks
-│   └── setup-oracle.yaml    # HAProxy, Tailscale
 ├── Kubernetes/
 │   ├── bootstrap/           # Core infrastructure
 │   │   ├── argocd/
@@ -162,8 +155,6 @@ Interstellar/
 │   ├── tailscale.tf         # Auth keys
 │   ├── oracle.tf            # VPS infrastructure
 │   └── bitwarden.tf         # Secret references
-├── haproxy.cfg.j2           # Oracle HAProxy config (templated; traefik tailnet IP baked at deploy time)
-└── compose.proxy.yaml       # HAProxy Docker Compose
 ```
 
 ## 🚀 Getting Started

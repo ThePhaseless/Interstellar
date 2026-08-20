@@ -28,14 +28,11 @@ spec:
       # adds PROXY protocol support. Public traffic gets its real IP via
       # PROXY protocol from HAProxy, so it is NOT bypassed.
       clientTrustedIPs:
-        - "100.64.0.0/10" # Tailscale CGNAT (forward-compat; not seen today due to DNAT)
         - "192.168.1.0/24" # Home LAN (direct access, bypasses Tailscale)
         - "10.244.0.0/16" # Pod CIDR — matches ts-traefik DNAT'd Tailscale traffic
-      # Forward headers from HAProxy PROXY protocol
       forwardedHeadersCustomName: X-Forwarded-For
       forwardedHeadersTrustedIPs:
-        - "100.64.0.0/10" # Tailscale (Oracle HAProxy)
-        - "10.244.0.0/16" # Pod CIDR (ts-traefik proxy forwards real client IP)
+        - "10.244.0.0/16"
       # AppSec WAF (virtual patching) — real-time request inspection
       # Blocks SQL injection, XSS, path traversal, RCE, known CVE exploits
       crowdsecAppsecEnabled: true

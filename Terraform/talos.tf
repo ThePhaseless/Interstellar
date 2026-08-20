@@ -84,6 +84,10 @@ resource "talos_cluster_kubeconfig" "cluster" {
   node                 = local.talos_bootstrap_node_endpoint
 
   depends_on = [talos_machine_bootstrap.cluster]
+
+  lifecycle {
+    ignore_changes = [endpoint, node]
+  }
 }
 
 # Machine Configuration - Control Plane
@@ -255,6 +259,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
       talos_image_factory_schematic.base,
       talos_image_factory_schematic.gpu,
     ]
+    ignore_changes = [endpoint, node]
   }
 }
 
@@ -265,6 +270,10 @@ resource "talos_machine_bootstrap" "cluster" {
   node                 = local.talos_bootstrap_node_endpoint
 
   depends_on = [talos_machine_configuration_apply.controlplane]
+
+  lifecycle {
+    ignore_changes = [endpoint, node]
+  }
 }
 
 # Outputs

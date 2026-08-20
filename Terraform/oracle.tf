@@ -74,33 +74,6 @@ resource "oci_core_security_list" "main" {
     protocol    = "all"
   }
 
-  # Ingress: HTTP (conditional on proxy_public_access)
-  dynamic "ingress_security_rules" {
-    for_each = var.proxy_public_access ? [1] : []
-    content {
-      protocol    = "6"
-      source      = "0.0.0.0/0"
-      description = "HTTP traffic"
-
-      tcp_options {
-        min = 80
-        max = 80
-      }
-    }
-  }
-
-  # Ingress: HTTPS (always enabled for public TLS entrypoint)
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    description = "HTTPS traffic"
-
-    tcp_options {
-      min = 443
-      max = 443
-    }
-  }
-
   # Ingress: SSH (conditional on oracle_ssh_public_access)
   # Only open during a Tailscale bootstrap run — see .github/workflows/oracle-bootstrap.yaml.
   # The runner passes its own egress address as a /32: one rule, not the whole
@@ -160,59 +133,6 @@ resource "tls_private_key" "oracle_ssh" {
   algorithm = "ED25519"
 }
 
-# Proxy VPS (Minimal - just HAProxy)
-resource "oci_core_instance" "proxy" {
-  compartment_id      = oci_identity_compartment.main.id
-  availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
-  display_name        = "oracle-proxy"
-  shape               = "VM.Standard.A1.Flex"
-
-  shape_config {
-    ocpus         = 1
-    memory_in_gbs = 6
-  }
-
-  source_details {
-    source_type             = "image"
-    source_id               = data.oci_core_images.ubuntu.images[0].id
-    boot_volume_size_in_gbs = 50
-  }
-
-  create_vnic_details {
-    subnet_id        = oci_core_subnet.main.id
-    assign_public_ip = true
-    display_name     = "oracle-proxy-vnic"
-    hostname_label   = "proxy"
-  }
-
-  metadata = {
-    ssh_authorized_keys = tls_private_key.oracle_ssh.public_key_openssh
-    user_data = base64encode(<<-EOF
-      #!/bin/bash
-      apt-get update
-      apt-get install -y curl apt-transport-https ca-certificates gnupg
-
-      apt-get install -y unattended-upgrades
-      cat > /etc/apt/apt.conf.d/50unattended-upgrades <<'UPGRADES'
-Unattended-Upgrade::Automatic-Reboot "true";
-Unattended-Upgrade::Automatic-Reboot-Time "03:00";
-UPGRADES
-      systemctl enable unattended-upgrades
-    EOF
-    )
-  }
-
-  freeform_tags = {
-    "project"    = "interstellar"
-    "managed_by" = "terraform"
-    "purpose"    = "haproxy-entry-point"
-  }
-
-  lifecycle {
-    ignore_changes = [metadata["user_data"], source_details[0].source_id]
-  }
-}
-
 # Compute VPS (Remaining resources for general workloads)
 resource "oci_core_instance" "compute" {
   compartment_id      = oci_identity_compartment.main.id
@@ -221,8 +141,8 @@ resource "oci_core_instance" "compute" {
   shape               = "VM.Standard.A1.Flex"
 
   shape_config {
-    ocpus         = 3
-    memory_in_gbs = 18
+    ocpus         = 4
+    memory_in_gbs = 24
   }
 
   source_details {
@@ -273,13 +193,6 @@ resource "bitwarden-secrets_secret" "oracle_ssh_private_key" {
   note       = "SSH private key for Oracle VPS instances. Managed by Terraform."
 }
 
-# Outputs
-output "oracle_proxy_public_ip" {
-  description = "Public IP of proxy VPS"
-  value       = oci_core_instance.proxy.public_ip
-  sensitive   = true
-}
-
 output "oracle_compute_public_ip" {
   description = "Public IP of compute VPS"
   value       = oci_core_instance.compute.public_ip
@@ -290,4 +203,24 @@ output "oracle_ssh_private_key" {
   description = "SSH private key for Oracle VPS (sensitive)"
   value       = tls_private_key.oracle_ssh.private_key_openssh
   sensitive   = true
+}
+
+resource "oci_budget_budget" "free_tier_guard" {
+  compartment_id = local.oci_tenancy_ocid
+  target_type    = "COMPARTMENT"
+  targets        = [oci_identity_compartment.main.id]
+  amount         = 1
+  reset_period   = "MONTHLY"
+  display_name   = "free-tier-guard"
+  description    = "Alerts if Always Free allowance is exceeded. Steady state is 0."
+}
+
+resource "oci_budget_alert_rule" "free_tier_guard" {
+  budget_id      = oci_budget_budget.free_tier_guard.id
+  threshold      = 1
+  threshold_type = "ABSOLUTE"
+  type           = "ACTUAL"
+  display_name   = "free-tier-exceeded"
+  recipients     = var.billing_alert_email
+  message        = "OCI spend exceeded the Always Free allowance. Check A1 OCPU/memory usage."
 }

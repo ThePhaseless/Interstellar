@@ -152,13 +152,6 @@ variable "kubernetes_api_host" {
   default     = null
 }
 
-# Oracle Proxy Configuration
-variable "proxy_public_access" {
-  description = "Enable public HTTP (port 80) access to the Oracle proxy VPS. HTTPS (443) remains open; SSH is intended via Tailscale only."
-  type        = bool
-  default     = false
-}
-
 # Steady state is Tailscale-only SSH, so this stays false in every committed
 # tfvars. The oracle-bootstrap workflow flips it on just long enough to enroll a
 # VM that is not on the tailnet yet, then flips it back off.
@@ -199,4 +192,10 @@ variable "github_repository" {
   description = "GitHub repository name (owner/repo)"
   type        = string
   default     = "ThePhaseless/Interstellar"
+}
+
+variable "billing_alert_email" {
+  description = "Email address that receives OCI budget alerts when spend exceeds the Always Free allowance."
+  type        = string
+  default     = "admin@nerine.dev"
 }

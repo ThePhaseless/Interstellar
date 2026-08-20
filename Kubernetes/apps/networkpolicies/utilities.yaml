@@ -19,7 +19,7 @@ spec:
     matchExpressions:
       - key: app
         operator: In
-        values: [copyparty, homepage, immich, whoami]
+        values: [copyparty, homepage, immich]
   ingress:
     - from:
         - namespaceSelector:
