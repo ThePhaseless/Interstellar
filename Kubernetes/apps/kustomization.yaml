@@ -30,7 +30,6 @@ resources:
   - immich/
   - adguard/
   - homepage/
-  - whoami/
 
   # Network isolation
   - networkpolicies/
