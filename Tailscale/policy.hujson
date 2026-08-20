@@ -88,18 +88,15 @@
 
     // Shared guests get the Traefik entrypoint (every app behind it is gated by
     // Authentik) plus DNS, and nothing else that the operator happens to expose.
-    //
-    // TRANSITIONAL: tag:service:80/443 is still granted because the Traefik
-    // proxy device predates the tag:web split and the operator only assigns
-    // tags at registration time, so it still carries tag:service. Retag it in
-    // place (POST /api/v2/device/<id>/tags {"tags":["tag:web"]}) — that keeps
-    // its Tailscale IP and MagicDNS name, which AdGuard's *.nerine.dev
-    // rewrites depend on — then drop the two tag:service lines below. Until
-    // then this rule still exposes the AdGuard admin UI to shared guests.
+    // Note the operator only assigns tags when a proxy device first registers,
+    // so moving an existing one between tags needs an in-place API retag
+    // (POST /api/v2/device/<id>/tags) — re-registering would change its
+    // Tailscale IP and MagicDNS name, which AdGuard's *.nerine.dev rewrites
+    // and the operator's API-proxy certificate both depend on.
     {
       "action": "accept",
       "src":    ["autogroup:shared"],
-      "dst":    ["tag:web:80", "tag:web:443", "tag:service:80", "tag:service:443", "tag:service:53"]
+      "dst":    ["tag:web:80", "tag:web:443", "tag:service:53"]
     }
   ],
 
