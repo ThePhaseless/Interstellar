@@ -8,13 +8,11 @@ used as ansible_host so connections work from anywhere on the tailnet
 
 Tag → Group mapping (configure TAG_GROUP_MAP below):
     tag:proxmox  → proxmox
-    tag:oracle   → oracle, plus oracle_proxy by hostname
     (untagged)   → personal, for hosts named in PERSONAL_HOSTNAMES
     tag:node     → cluster
     tag:cluster  → cluster   (legacy fallback during migration)
 
-Only machines already on the tailnet appear here.  To enrol the proxy VPS when
-it is not, use bootstrap-oracle.yaml with a bare-IP inventory.
+Only machines already on the tailnet appear here.
 
 Usage:
     ansible-inventory -i inventory_tailscale.py --list
@@ -29,7 +27,6 @@ import sys
 
 TAG_GROUP_MAP: dict[str, list[str]] = {
     "tag:proxmox": ["proxmox"],
-    "tag:oracle": ["oracle"],
     "tag:node": ["cluster"],
     "tag:cluster": ["cluster"],
 }
@@ -40,17 +37,11 @@ GLOBAL_HOST_VARS: dict[str, str] = {
 
 # Per-group variable overrides (merged on top of GLOBAL_HOST_VARS)
 GROUP_VARS: dict[str, dict[str, str]] = {
-    "oracle": {
-        "ansible_user": "ubuntu",
-        "ansible_ssh_private_key_file": "~/.ssh/oracle_ed25519",
-    },
     "personal": {
         "ansible_user": "ubuntu",
         "ansible_ssh_private_key_file": "~/.ssh/oracle_ed25519",
     },
 }
-
-ORACLE_PROXY_HOSTNAME = "proxy"
 
 PERSONAL_HOSTNAMES = ("compute",)
 # ── End configuration ────────────────────────────────────────────────────────
@@ -129,13 +120,6 @@ def build_inventory() -> dict:
         if matched:
             hostvars[hostname] = host_vars
             peer_hostnames[hostname] = peer_hostname or hostname
-
-    if "oracle" in groups:
-        groups["oracle_proxy"] = [
-            h
-            for h in groups["oracle"]
-            if peer_hostnames.get(h, h) == ORACLE_PROXY_HOSTNAME
-        ]
 
     inventory: dict = {"_meta": {"hostvars": hostvars}}
     for group, hosts in groups.items():

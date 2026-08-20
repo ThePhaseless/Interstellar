@@ -46,25 +46,6 @@ output "access_instructions" {
   EOT
 }
 
-output "ansible_inventory" {
-  description = "Ansible inventory for Oracle VPS configuration"
-  value = yamlencode({
-    all = {
-      hosts = {
-        oracle = {
-          ansible_host                 = oci_core_instance.proxy.public_ip
-          ansible_user                 = "ubuntu"
-          ansible_ssh_private_key_file = "~/.ssh/oracle_ed25519"
-        }
-      }
-      vars = {
-        tailscale_authkey = tailscale_tailnet_key.cluster.key
-      }
-    }
-  })
-  sensitive = true
-}
-
 output "storage_box_server" {
   description = "Hetzner Storage Box FQDN"
   value       = hcloud_storage_box.backups.server

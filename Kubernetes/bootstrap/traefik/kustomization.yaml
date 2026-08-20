@@ -73,27 +73,7 @@ helmCharts:
                 scheme: https
                 permanent: true
                 priority: 10
-          proxyProtocol:
-            trustedIPs:
-              - "100.64.0.0/10" # Tailscale CGNAT (Oracle HAProxy)
-              - "10.244.0.0/16" # Pod CIDR (ts-traefik proxy pod, for Tailscale operator Proxy Protocol - see tailscale/tailscale#11024)
-              - "192.168.0.0/16" # LAN clients hitting MetalLB directly
-          forwardedHeaders:
-            trustedIPs:
-              - "100.64.0.0/10"
-              - "10.244.0.0/16"
-              - "192.168.0.0/16"
         websecure:
-          proxyProtocol:
-            trustedIPs:
-              - "100.64.0.0/10"
-              - "10.244.0.0/16"
-              - "192.168.0.0/16"
-          forwardedHeaders:
-            trustedIPs:
-              - "100.64.0.0/10"
-              - "10.244.0.0/16"
-              - "192.168.0.0/16"
           http:
             middlewares:
               - "traefik-security-headers@kubernetescrd"
@@ -105,6 +85,8 @@ helmCharts:
                 - main: "nerine.dev"
                   sans:
                     - "*.nerine.dev"
+          http3:
+            enabled: true
       # Service
       service:
         spec:

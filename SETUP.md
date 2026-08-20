@@ -87,7 +87,6 @@ terraform apply
 
 ```bash
 cd ../Ansible
-ansible-playbook setup-oracle.yaml
 ansible-playbook setup-proxmox.yaml
 ```
 

@@ -3,7 +3,6 @@
   "tagOwners": {
     "tag:ci":           ["tag:ci"],
     "tag:proxmox":      ["tag:ci"],
-    "tag:oracle":       ["tag:ci"],
     "tag:node":         ["tag:ci"],
     "tag:k8s-operator": ["tag:ci"],
     "tag:service":      ["tag:k8s-operator"],
@@ -30,17 +29,9 @@
       "dst": [
         "tag:proxmox:22",
         "tag:proxmox:8006",
-        "tag:oracle:22",
         "tag:node:6443",
         "tag:node:50000"
       ]
-    },
-
-    // MetalLB/cluster IPs are LAN-only, so the VPS reaches Traefik via its proxy pod.
-    {
-      "action": "accept",
-      "src":    ["tag:oracle"],
-      "dst":    ["tag:service:80", "tag:service:443"]
     },
 
     {
@@ -99,7 +90,7 @@
     {
       "action": "accept",
       "src":    ["autogroup:owner"],
-      "dst":    ["tag:proxmox", "tag:oracle", "tag:node", "tag:minecraft"],
+      "dst":    ["tag:proxmox", "tag:node", "tag:minecraft"],
       "users":  ["autogroup:nonroot", "root"]
     },
 
@@ -113,14 +104,12 @@
     {
       "action": "accept",
       "src":    ["tag:ci"],
-      "dst":    ["tag:proxmox", "tag:oracle"],
+      "dst":    ["tag:proxmox"],
       "users":  ["autogroup:nonroot", "root"]
     }
   ],
 
   "autoApprovers": {
-    "exitNode": ["tag:oracle"],
-
     "routes": {
       "10.244.0.0/16":  ["tag:node"], // Pod CIDR
       "10.96.0.0/12":   ["tag:node"]  // Service CIDR
@@ -145,7 +134,7 @@
   // Key expiry is set by tailscale_device_key.infra in Terraform/tailscale.tf.
   "nodeAttrs": [
     {
-      "target": ["tag:node", "tag:service", "tag:oracle", "tag:proxmox"],
+      "target": ["tag:node", "tag:service", "tag:proxmox"],
       "attr":   ["funnel:deny"]
     }
   ],

@@ -34,26 +34,6 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
   }
 }
 
-resource "tailscale_tailnet_key" "oracle" {
-  depends_on    = [tailscale_acl.main]
-  reusable      = true
-  preauthorized = true
-  expiry        = 7776000 # 90 days in seconds
-  tags          = ["tag:oracle"]
-  description   = "Oracle VPS instances auth key"
-}
-
-resource "bitwarden-secrets_secret" "tailscale_oracle_auth_key" {
-  key        = "tailscale-oracle-auth-key"
-  value      = tailscale_tailnet_key.oracle.key
-  project_id = local.bitwarden_generated_project_id
-  note       = "Tailscale auth key for Oracle VPS instances. Managed by Terraform."
-
-  lifecycle {
-    ignore_changes = [value]
-  }
-}
-
 # Managed OAuth Clients
 # All OAuth clients are created by the provider (tag:ci) which owns all
 # infrastructure tags via ACL tagOwners, so any tag can be assigned here.
@@ -173,13 +153,3 @@ output "tailscale_auth_key_expiry" {
   value       = tailscale_tailnet_key.cluster.expires_at
 }
 
-output "tailscale_oracle_auth_key" {
-  description = "Tailscale auth key for Oracle VPS instances (sensitive)"
-  value       = tailscale_tailnet_key.oracle.key
-  sensitive   = true
-}
-
-output "tailscale_oracle_auth_key_expiry" {
-  description = "Oracle Tailscale auth key expiry date"
-  value       = tailscale_tailnet_key.oracle.expires_at
-}

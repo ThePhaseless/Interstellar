@@ -1,8 +1,0 @@
-# 'proxy' is the only member of the oracle group — compute is a personal device.
-# A literal also resets the name if the node ever rejoins as 'proxy-1'.
-tailscale_args: --ssh --hostname=proxy --accept-dns=false
-
-# The auth key is tagged tag:oracle and preauthorized (tailscale_tailnet_key.oracle
-# in Terraform/tailscale.tf), so the tag comes from the key and needs no
-# --advertise-tags here.
-tailscale_authkey: "{{ lookup('env', 'TAILSCALE_ORACLE_AUTH_KEY') }}"

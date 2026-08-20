@@ -4,21 +4,18 @@ on:
   push:
     branches: [main, migration]
     paths:
-      - "Ansible/setup-oracle.yaml"
       - "Ansible/setup-proxmox.yaml"
       - "Ansible/maintenance.yaml"
-      - "Ansible/vars/oracle.yaml"
       - "Ansible/vars/proxmox.yaml"
       - "Ansible/inventory_tailscale.py"
   workflow_dispatch:
     inputs:
       playbook:
-        description: "Playbook to run (e.g., setup-oracle.yaml)"
+        description: "Playbook to run (e.g., setup-proxmox.yaml)"
         required: true
-        default: "setup-oracle.yaml"
+        default: "setup-proxmox.yaml"
         type: choice
         options:
-          - setup-oracle.yaml
           - setup-proxmox.yaml
           - maintenance.yaml
 
@@ -52,11 +49,10 @@ jobs:
             ${{ vars.BWS_ID_TS_CI_OAUTH_CLIENT_ID }} > TS_OAUTH_CLIENT_ID
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_OAUTH_SECRET
             ${{ vars.BWS_ID_ORACLE_SSH_PRIVATE_KEY }} > ORACLE_SSH_KEY
-            ${{ vars.BWS_ID_TAILSCALE_ORACLE_AUTH_KEY }} > TS_ORACLE_AUTHKEY
 
       - name: Mask Bitwarden-fetched values
         run: |
-          for v in TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET ORACLE_SSH_KEY TS_ORACLE_AUTHKEY; do
+          for v in TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET ORACLE_SSH_KEY; do
             # add-mask registers a single line, so multi-line PEMs are masked line by line
             while IFS= read -r line; do
               [ -n "$line" ] && echo "::add-mask::$line"
@@ -102,8 +98,8 @@ jobs:
         if: github.event_name == 'push'
         run: |
           echo "all_changed_files=$(git diff --name-only "${{ github.event.before }}" HEAD -- \
-            Ansible/setup-oracle.yaml Ansible/setup-proxmox.yaml Ansible/maintenance.yaml \
-            Ansible/vars/oracle.yaml Ansible/vars/proxmox.yaml Ansible/inventory_tailscale.py | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+            Ansible/setup-proxmox.yaml Ansible/maintenance.yaml \
+            Ansible/vars/proxmox.yaml Ansible/inventory_tailscale.py | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
 
       - name: Set playbook
         id: playbook
@@ -113,10 +109,8 @@ jobs:
           else
             CHANGED="${{ steps.changed-files.outputs.all_changed_files }}"
 
-            if echo "$CHANGED" | grep -q "setup-proxmox\|vars/proxmox"; then
+            if echo "$CHANGED" | grep -q "setup-proxmox\|vars/proxmox\|inventory_tailscale"; then
               echo "name=setup-proxmox.yaml" >> $GITHUB_OUTPUT
-            elif echo "$CHANGED" | grep -q "setup-oracle\|vars/oracle\|inventory_tailscale"; then
-              echo "name=setup-oracle.yaml" >> $GITHUB_OUTPUT
             elif echo "$CHANGED" | grep -q "maintenance"; then
               echo "name=maintenance.yaml" >> $GITHUB_OUTPUT
             else
@@ -128,5 +122,3 @@ jobs:
       - name: Run Ansible playbook
         run: ansible-playbook ${{ steps.playbook.outputs.name }}
         working-directory: ${{ env.ANSIBLE_DIR }}
-        env:
-          TAILSCALE_ORACLE_AUTH_KEY: ${{ env.TS_ORACLE_AUTHKEY }}
