@@ -5,11 +5,14 @@
     "tag:proxmox":      ["tag:ci"],
     "tag:node":         ["tag:ci"],
     "tag:k8s-operator": ["tag:ci"],
-    "tag:service":      ["tag:k8s-operator"],
+    // tag:ci is co-owner so the Terraform/CI identity can retag an existing
+    // proxy device in place; the operator only assigns tags at registration,
+    // and re-registering would change the device's IP and MagicDNS name.
+    "tag:service":      ["tag:k8s-operator", "tag:ci"],
     // Traefik's proxy only. Split out of tag:service so externally shared
     // guests can be granted the web entrypoint without also reaching every
     // other operator-exposed Service (copyparty, AdGuard).
-    "tag:web":          ["tag:k8s-operator"],
+    "tag:web":          ["tag:k8s-operator", "tag:ci"],
     "tag:minecraft":    ["tag:ci"],
   },
 
@@ -85,10 +88,18 @@
 
     // Shared guests get the Traefik entrypoint (every app behind it is gated by
     // Authentik) plus DNS, and nothing else that the operator happens to expose.
+    //
+    // TRANSITIONAL: tag:service:80/443 is still granted because the Traefik
+    // proxy device predates the tag:web split and the operator only assigns
+    // tags at registration time, so it still carries tag:service. Retag it in
+    // place (POST /api/v2/device/<id>/tags {"tags":["tag:web"]}) — that keeps
+    // its Tailscale IP and MagicDNS name, which AdGuard's *.nerine.dev
+    // rewrites depend on — then drop the two tag:service lines below. Until
+    // then this rule still exposes the AdGuard admin UI to shared guests.
     {
       "action": "accept",
       "src":    ["autogroup:shared"],
-      "dst":    ["tag:web:80", "tag:web:443", "tag:service:53"]
+      "dst":    ["tag:web:80", "tag:web:443", "tag:service:80", "tag:service:443", "tag:service:53"]
     }
   ],
 
