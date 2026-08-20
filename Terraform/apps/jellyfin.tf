@@ -81,3 +81,7 @@ resource "jellyfin_encoding_configuration" "this" {
   enable_throttling       = true
   enable_segment_deletion = true
 }
+
+resource "jellyfin_system_configuration" "this" {
+  remote_client_bitrate_limit = 150000000
+}
