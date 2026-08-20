@@ -34,27 +34,32 @@ spec:
               WebUI\AuthSubnetWhitelistEnabled=true
               WebUI\AuthSubnetWhitelist=0.0.0.0/0
               WebUI\CSRFProtection=true
-              WebUI\HostHeaderValidation=true
-              WebUI\ServerDomains=qbittorrent.nerine.dev,qbittorrent.media.svc.cluster.local,qbittorrent
+              WebUI\HostHeaderValidation=false
               WebUI\LocalHostAuth=false
               WebUI\RootFolder=/vuetorrent
               EOF
                 chmod 600 "${CONFIG_FILE}"
               fi
-              # Credential auth is delegated to Traefik forward-auth, so the subnet
-              # whitelist skips qBittorrent's own login. It stays 0.0.0.0/0 because
-              # narrowing it to the pod CIDR made qBittorrent 401 every in-cluster
-              # caller even though their IPs are inside 10.244.0.0/16; who can reach
-              # port 8080 is already constrained by NetworkPolicy (Traefik + the
-              # three *arr pods). CSRF and Host validation stay ON: the Authentik cookie
-              # is scoped to nerine.dev, so without them any page on a sibling
-              # subdomain could forge an authenticated setPreferences call, and
+              # Credential auth is delegated to Traefik forward-auth; the subnet
+              # whitelist skips qBittorrent's own login, and who can reach port 8080
+              # is constrained by NetworkPolicy (Traefik + the three *arr pods).
+              #
+              # CSRFProtection is ON and is the control that matters here: the
+              # Authentik cookie is scoped to nerine.dev, so without it a page on any
+              # sibling subdomain could forge a setPreferences call, and
               # autorun_program turns that into command execution in this pod.
+              # Verified: a POST carrying a foreign Origin or Referer gets 401, while
+              # header-less API calls from the *arr apps still succeed.
+              #
+              # HostHeaderValidation must stay OFF. Turning it on made qBittorrent
+              # answer 401 to every caller regardless of Host -- including hostnames
+              # explicitly listed in ServerDomains -- which broke the *arr download
+              # client and crashlooped decluttarr on /api/v2/auth/login.
               # Spaces around "=" must match: configparser below rewrites with " = ".
               for KEY in CSRFProtection HostHeaderValidation ServerDomains LocalHostAuth AuthSubnetWhitelistEnabled AuthSubnetWhitelist; do
                 sed -i "/^WebUI\\\\${KEY}[[:space:]]*=/d" "${CONFIG_FILE}"
               done
-              sed -i '/^\[Preferences\]/a WebUI\\LocalHostAuth=false\nWebUI\\HostHeaderValidation=true\nWebUI\\ServerDomains=qbittorrent.nerine.dev,qbittorrent.media.svc.cluster.local,qbittorrent\nWebUI\\CSRFProtection=true\nWebUI\\AuthSubnetWhitelistEnabled=true\nWebUI\\AuthSubnetWhitelist=0.0.0.0\/0' "${CONFIG_FILE}"
+              sed -i '/^\[Preferences\]/a WebUI\\LocalHostAuth=false\nWebUI\\HostHeaderValidation=false\nWebUI\\CSRFProtection=true\nWebUI\\AuthSubnetWhitelistEnabled=true\nWebUI\\AuthSubnetWhitelist=0.0.0.0\/0' "${CONFIG_FILE}"
               if ! grep -q '^\[BitTorrent\]' "${CONFIG_FILE}"; then
                 printf '\n[BitTorrent]\nSession\\DefaultSavePath=/downloads\n' >> "${CONFIG_FILE}"
               elif ! grep -q 'DefaultSavePath' "${CONFIG_FILE}"; then
