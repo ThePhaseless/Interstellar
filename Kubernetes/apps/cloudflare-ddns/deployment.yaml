@@ -40,6 +40,10 @@ spec:
               value: "none"
             - name: TTL
               value: "60"
+            # Must match the comment Terraform seeds the records with, or every
+            # run logs a mismatch warning.
+            - name: RECORD_COMMENT
+              value: "Home Traefik ingress - value maintained by cloudflare-ddns"
             - name: UPDATE_CRON
               value: "@every 5m"
             - name: TZ
