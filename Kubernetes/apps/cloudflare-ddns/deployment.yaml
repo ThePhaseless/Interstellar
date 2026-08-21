@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflare-ddns
+  namespace: utilities
+  labels:
+    app: cloudflare-ddns
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: cloudflare-ddns
+  template:
+    metadata:
+      labels:
+        app: cloudflare-ddns
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: cloudflare-ddns
+          image: favonia/cloudflare-ddns:1.17.0
+          env:
+            - name: CLOUDFLARE_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-api-token
+                  key: api-token
+            - name: IP4_DOMAINS
+              value: "nerine.dev,*.nerine.dev"
+            # Traefik terminates TLS and CrowdSec/allowlists match on the real
+            # client IP, which the Cloudflare proxy would replace with its own.
+            - name: PROXIED
+              value: "false"
+            - name: IP6_PROVIDER
+              value: "none"
+            - name: TTL
+              value: "60"
+            - name: UPDATE_CRON
+              value: "@every 5m"
+            - name: TZ
+              value: "UTC"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
