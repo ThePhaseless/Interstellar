@@ -24,18 +24,6 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: tailscale-only
-  namespace: traefik
-spec:
-  ipAllowList:
-    sourceRange:
-      - "100.64.0.0/10" # Tailscale CGNAT range
-      - "192.168.1.0/24" # Home LAN
-      - "10.244.0.0/16" # Pod CIDR
----
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
   name: timeout-standard
   namespace: traefik
 spec:
@@ -77,20 +65,6 @@ spec:
       - X-authentik-meta-app
       - X-authentik-meta-version
 ---
-# Network-level gate only. Routes that also need a signed-in user must list the
-# authentik middleware alongside this chain.
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: private-chain
-  namespace: traefik
-spec:
-  chain:
-    middlewares:
-      - name: security-headers
-      - name: tailscale-only
-      - name: timeout-standard
----
 # Rate limiting comes from the CrowdSec bouncer, whose clientTrustedIPs exempt
 # local and Tailscale sources.
 apiVersion: traefik.io/v1alpha1
@@ -104,6 +78,17 @@ spec:
       - name: security-headers
       - name: crowdsec-bouncer
       - name: timeout-standard
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-to-auth
+  namespace: traefik
+spec:
+  redirectRegex:
+    regex: "^https://nerine\\.dev(/.*)?$"
+    replacement: "https://auth.nerine.dev/"
+    permanent: false
 ---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

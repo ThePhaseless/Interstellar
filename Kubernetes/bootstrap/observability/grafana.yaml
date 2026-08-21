@@ -213,7 +213,7 @@ spec:
         - name: grafana
           port: 3000
       middlewares:
-        - name: private-chain
+        - name: public-chain
           namespace: traefik
         - name: authentik
           namespace: traefik
