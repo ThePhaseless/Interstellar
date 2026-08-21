@@ -156,7 +156,8 @@ resource "authentik_application" "private" {
   name              = "Private Services"
   slug              = "private-services"
   protocol_provider = authentik_provider_proxy.private.id
-  meta_description  = "VIP email-restricted homelab services (homepage, *arr stack, monitoring, etc.)"
+  meta_description  = "Forward-auth carrier for the *arr stack, monitoring and cluster tooling. Not a launchable app."
+  meta_launch_url   = "blank://blank"
 }
 
 # There is no separate "public" application: Authentik forbids two applications
@@ -243,6 +244,7 @@ resource "authentik_application" "grafana" {
   protocol_provider = authentik_provider_oauth2.grafana.id
   meta_description  = "Grafana observability dashboard"
   meta_launch_url   = "https://grafana.${var.authentik_domain}"
+  meta_icon         = "${local.icon_base}/grafana.svg"
 }
 
 # Grafana maps the groups claim to a role itself: admins land on Admin,
@@ -299,6 +301,7 @@ resource "authentik_application" "immich" {
   protocol_provider = authentik_provider_oauth2.immich.id
   meta_description  = "Immich photo management"
   meta_launch_url   = "https://photos.${var.authentik_domain}/auth/login?autoLaunch=1"
+  meta_icon         = "${local.icon_base}/immich.svg"
 }
 
 resource "bitwarden-secrets_secret" "immich_oauth_client_id" {
@@ -401,6 +404,7 @@ resource "authentik_application" "jellyfin" {
   protocol_provider = authentik_provider_oauth2.jellyfin.id
   meta_description  = "Jellyfin media server with SSO authentication"
   meta_launch_url   = "https://watch.${var.authentik_domain}"
+  meta_icon         = "${local.icon_base}/jellyfin.svg"
 }
 
 resource "bitwarden-secrets_secret" "jellyfin_oauth_client_id" {
@@ -432,10 +436,88 @@ resource "authentik_application" "copyparty" {
   protocol_provider = authentik_provider_proxy.public.id
   meta_description  = "File server: read=any Google user, write=writers group, admin=Admins group"
   meta_launch_url   = "https://files.${var.authentik_domain}"
+  meta_icon         = "${local.icon_base}/copyparty.svg"
 }
 
-# qBittorrent has no application of its own: its IngressRoute carries the shared
-# authentik forward-auth middleware, which resolves to the private proxy provider.
+locals {
+  icon_base = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg"
+
+  private_service_apps = {
+    seerr = {
+      name        = "Seerr"
+      host        = "add"
+      description = "Request movies and TV shows"
+      icon        = "${local.icon_base}/seerr.svg"
+    }
+    sonarr = {
+      name        = "Sonarr"
+      host        = "sonarr"
+      description = "TV series management"
+      icon        = "${local.icon_base}/sonarr.svg"
+    }
+    radarr = {
+      name        = "Radarr"
+      host        = "radarr"
+      description = "Movie management"
+      icon        = "${local.icon_base}/radarr.svg"
+    }
+    bazarr = {
+      name        = "Bazarr"
+      host        = "bazarr"
+      description = "Subtitle management"
+      icon        = "${local.icon_base}/bazarr.svg"
+    }
+    prowlarr = {
+      name        = "Prowlarr"
+      host        = "prowlarr"
+      description = "Indexer management"
+      icon        = "${local.icon_base}/prowlarr.svg"
+    }
+    adguard = {
+      name        = "AdGuard"
+      host        = "dns"
+      description = "DNS and ad blocking"
+      icon        = "${local.icon_base}/adguard-home.svg"
+    }
+    qbittorrent = {
+      name        = "qBittorrent"
+      host        = "qbittorrent"
+      description = "Download client"
+      icon        = "${local.icon_base}/qbittorrent.svg"
+    }
+    longhorn = {
+      name        = "Longhorn"
+      host        = "longhorn"
+      description = "Distributed block storage for the cluster"
+      # selfh.st has no longhorn icon; dashboard-icons does.
+      icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/longhorn.svg"
+    }
+    traefik = {
+      name        = "Traefik"
+      host        = "traefik"
+      description = "Ingress dashboard"
+      icon        = "${local.icon_base}/traefik.svg"
+    }
+  }
+}
+
+resource "authentik_application" "private_service" {
+  for_each = local.private_service_apps
+
+  name             = each.value.name
+  slug             = each.key
+  meta_description = each.value.description
+  meta_launch_url  = "https://${each.value.host}.${var.authentik_domain}"
+  meta_icon        = each.value.icon
+}
+
+resource "authentik_policy_binding" "private_service_access" {
+  for_each = local.private_service_apps
+
+  target = authentik_application.private_service[each.key].uuid
+  policy = authentik_policy_expression.vips_or_admins.id
+  order  = 0
+}
 
 resource "authentik_provider_oauth2" "argocd" {
   name               = "ArgoCD"
@@ -462,6 +544,7 @@ resource "authentik_application" "argocd" {
   protocol_provider = authentik_provider_oauth2.argocd.id
   meta_description  = "GitOps continuous delivery for Kubernetes"
   meta_launch_url   = "https://argocd.${var.authentik_domain}"
+  meta_icon         = "${local.icon_base}/argo-cd.svg"
 }
 
 # Reaching the app is gated here; the role once inside comes from

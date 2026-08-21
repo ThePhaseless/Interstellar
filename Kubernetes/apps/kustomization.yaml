@@ -30,7 +30,6 @@ resources:
   - copyparty-dav/
   - immich/
   - adguard/
-  - homepage/
   - cloudflare-ddns/
 
   # Network isolation

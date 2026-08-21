@@ -19,7 +19,7 @@ spec:
     matchExpressions:
       - key: app
         operator: In
-        values: [copyparty, homepage, immich]
+        values: [copyparty, immich]
   ingress:
     - from:
         - namespaceSelector:
@@ -31,7 +31,6 @@ spec:
         # allowing 3001 dropped every request Traefik made and photos.nerine.dev
         # returned 504. Keep these in sync with containerPort, not servicePort.
         - {protocol: TCP, port: 3923} # copyparty
-        - {protocol: TCP, port: 80} # homepage
         - {protocol: TCP, port: 2283} # immich
 ---
 # copyparty's Tailscale LoadBalancer bypasses Traefik, so the operator's proxy
