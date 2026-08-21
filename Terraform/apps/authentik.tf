@@ -242,7 +242,7 @@ resource "authentik_application" "grafana" {
   name              = "Grafana"
   slug              = "grafana"
   protocol_provider = authentik_provider_oauth2.grafana.id
-  meta_description  = "Grafana observability dashboard"
+  meta_description  = "Dashboards and graphs showing how the server is doing"
   meta_launch_url   = "https://grafana.${var.authentik_domain}"
   meta_icon         = "${local.icon_base}/grafana.svg"
 }
@@ -299,7 +299,7 @@ resource "authentik_application" "immich" {
   name              = "Immich"
   slug              = "immich"
   protocol_provider = authentik_provider_oauth2.immich.id
-  meta_description  = "Immich photo management"
+  meta_description  = "Browse, back up and share your photos and videos"
   meta_launch_url   = "https://photos.${var.authentik_domain}/auth/login?autoLaunch=1"
   meta_icon         = "${local.icon_base}/immich.svg"
 }
@@ -402,7 +402,7 @@ resource "authentik_application" "jellyfin" {
   name              = "Jellyfin"
   slug              = "jellyfin"
   protocol_provider = authentik_provider_oauth2.jellyfin.id
-  meta_description  = "Jellyfin media server with SSO authentication"
+  meta_description  = "Stream the movies, shows and music on the server"
   meta_launch_url   = "https://watch.${var.authentik_domain}"
   meta_icon         = "${local.icon_base}/jellyfin.svg"
 }
@@ -434,7 +434,7 @@ resource "authentik_application" "copyparty" {
   name              = "Copyparty"
   slug              = "copyparty"
   protocol_provider = authentik_provider_proxy.public.id
-  meta_description  = "File server: read=any Google user, write=writers group, admin=Admins group"
+  meta_description  = "Upload, browse and share files"
   meta_launch_url   = "https://files.${var.authentik_domain}"
   meta_icon         = "${local.icon_base}/copyparty.svg"
 }
@@ -446,56 +446,56 @@ locals {
     seerr = {
       name        = "Seerr"
       host        = "add"
-      description = "Request movies and TV shows"
+      description = "Ask for a film or series to be added to the library"
       icon        = "${local.icon_base}/seerr.svg"
     }
     sonarr = {
       name        = "Sonarr"
       host        = "sonarr"
-      description = "TV series management"
+      description = "Follows TV series and fetches new episodes as they air"
       icon        = "${local.icon_base}/sonarr.svg"
     }
     radarr = {
       name        = "Radarr"
       host        = "radarr"
-      description = "Movie management"
+      description = "Finds and downloads films for the library"
       icon        = "${local.icon_base}/radarr.svg"
     }
     bazarr = {
       name        = "Bazarr"
       host        = "bazarr"
-      description = "Subtitle management"
+      description = "Finds and downloads subtitles for the library"
       icon        = "${local.icon_base}/bazarr.svg"
     }
     prowlarr = {
       name        = "Prowlarr"
       host        = "prowlarr"
-      description = "Indexer management"
+      description = "Manages the sites the download apps search"
       icon        = "${local.icon_base}/prowlarr.svg"
     }
     adguard = {
       name        = "AdGuard"
       host        = "dns"
-      description = "DNS and ad blocking"
+      description = "Blocks ads and trackers across the whole network"
       icon        = "${local.icon_base}/adguard-home.svg"
     }
     qbittorrent = {
       name        = "qBittorrent"
       host        = "qbittorrent"
-      description = "Download client"
+      description = "Shows what is downloading right now and how fast"
       icon        = "${local.icon_base}/qbittorrent.svg"
     }
     longhorn = {
       name        = "Longhorn"
       host        = "longhorn"
-      description = "Distributed block storage for the cluster"
+      description = "Manages the server's disks, volumes and backups"
       # selfh.st has no longhorn icon; dashboard-icons does.
       icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/longhorn.svg"
     }
     traefik = {
       name        = "Traefik"
       host        = "traefik"
-      description = "Ingress dashboard"
+      description = "Routes incoming traffic to the right service"
       icon        = "${local.icon_base}/traefik.svg"
     }
   }
@@ -542,7 +542,7 @@ resource "authentik_application" "argocd" {
   name              = "ArgoCD"
   slug              = "argocd"
   protocol_provider = authentik_provider_oauth2.argocd.id
-  meta_description  = "GitOps continuous delivery for Kubernetes"
+  meta_description  = "Deploys and keeps every service on the cluster up to date"
   meta_launch_url   = "https://argocd.${var.authentik_domain}"
   meta_icon         = "${local.icon_base}/argo-cd.svg"
 }
