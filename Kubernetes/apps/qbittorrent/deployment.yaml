@@ -87,6 +87,14 @@ spec:
                   # MaxActiveTorrents=0 means zero active torrents, not unlimited
                   # (-1); a stale 0 in the config queued every download forever.
                   'Session\\MaxActiveTorrents': '-1',
+                  'Session\\MaxActiveDownloads': '10',
+                  'Session\\MaxActiveUploads': '-1',
+                  # Thresholds are KiB/s; 977 KiB/s = 1 MB/s. Torrents slower
+                  # than this for SlowTorrentsInactivityTimer stop consuming an
+                  # active slot.
+                  'Session\\IgnoreSlowTorrentsForQueueing': 'true',
+                  'Session\\SlowTorrentsDownloadRate': '977',
+                  'Session\\SlowTorrentsUploadRate': '977',
                   # Config file stores speed limits in KiB/s while the WebAPI
                   # reports bytes/s. 1 Gbit/s down and 300 Mbit/s up.
                   'Session\\AlternativeGlobalDLSpeedLimit': '122070',
