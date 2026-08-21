@@ -57,6 +57,14 @@ radarr:
         assign_scores_to:
           - trash_id: d1d310673359205736b4b84acd5ea8c8 # Remux 2160p (Combined)
             score: 100
+      # Hard ban, not a penalty: this sits below min_format_score
+      # (-1000000), so an upscaled release is rejected outright instead of
+      # being outranked. The guide's own -10000 only demotes it.
+      - trash_ids:
+          - bfd8eb01832d646a0a89c4deb46f8564 # Upscaled
+        assign_scores_to:
+          - trash_id: d1d310673359205736b4b84acd5ea8c8 # Remux 2160p (Combined)
+            score: -10000000
 
     custom_format_groups:
       add:

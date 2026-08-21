@@ -75,6 +75,19 @@ sonarr:
           allowed: true
           until_quality: Bluray-1080p Remux
 
+    custom_formats:
+      # Hard ban, not a penalty: this sits below min_format_score (-1000000),
+      # so an upscaled release is rejected outright instead of being
+      # outranked. The guide's own -10000 only demotes it, and the anime
+      # profile does not score it at all.
+      - trash_ids:
+          - 23297a736ca77c0fc8e70f8edd7ee56c # Upscaled
+        assign_scores_to:
+          - trash_id: c4cadd6b35b95f62c3d47a408e53e2f7 # WEB-2160p (Combined)
+            score: -10000000
+          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
+            score: -10000000
+
     custom_format_groups:
       add:
         - trash_id: e3f37512790f00d0e89e54fe5e790d1c # [Required] Golden Rule UHD
