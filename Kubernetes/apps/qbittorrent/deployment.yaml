@@ -84,6 +84,13 @@ spec:
                   'Session\\GlobalMaxRatio': '2',
                   'Session\\GlobalMaxSeedingMinutes': '10080',
                   'Session\\ShareLimitAction': 'Stop',
+                  # MaxActiveTorrents=0 means zero active torrents, not unlimited
+                  # (-1); a stale 0 in the config queued every download forever.
+                  'Session\\MaxActiveTorrents': '-1',
+                  # Config file stores speed limits in KiB/s while the WebAPI
+                  # reports bytes/s. 1 Gbit/s down and 300 Mbit/s up.
+                  'Session\\AlternativeGlobalDLSpeedLimit': '122070',
+                  'Session\\AlternativeGlobalUPSpeedLimit': '36621',
               }
               changed = False
               for k, v in updates.items():
