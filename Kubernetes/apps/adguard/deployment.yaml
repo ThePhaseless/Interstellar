@@ -26,16 +26,13 @@ spec:
           effect: NoSchedule
 
       initContainers:
-        - name: set-admin-password
-          image: httpd:2.4-alpine@sha256:1b766f17b84026429b7cb243317b142921b24432336e798bc881c43f45ed9567
-          command: ["/bin/sh", "/scripts/set-admin-password.sh"]
+        - name: disable-admin-auth
+          image: busybox:1.37.0@sha256:9db7b59979c38555a39def84a31fb98b5296952f9e3afd4f6f11f05b07adfab0
+          command: ["/bin/sh", "/scripts/disable-admin-auth.sh"]
           volumeMounts:
             - name: data
               mountPath: /opt/adguardhome/conf
               subPath: conf
-            - name: adguard-secrets
-              mountPath: /secrets/adguard
-              readOnly: true
             - name: scripts
               mountPath: /scripts
               readOnly: true
@@ -102,10 +99,6 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: adguard-data
-        - name: adguard-secrets
-          secret:
-            secretName: adguard-secrets
-            defaultMode: 0400
         - name: scripts
           configMap:
             name: adguard-scripts

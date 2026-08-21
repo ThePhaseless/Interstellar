@@ -13,6 +13,9 @@ kind: NetworkPolicy
 metadata:
   name: allow-traefik
   namespace: home
+# AdGuard has no login of its own (see adguard/disable-admin-auth.sh), so this
+# policy is the only thing standing between a pod and DNS admin. Traefik is the
+# sole allowed source because it is what applies the Authentik forward-auth.
 spec:
   policyTypes: [Ingress]
   podSelector:
@@ -23,14 +26,6 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
-      ports:
-        - {protocol: TCP, port: 3000}
-    # adguard-tailscale maps :443 to targetPort http (3000), so the operator's
-    # proxy pod reaches the UI and DoH endpoint without passing through Traefik.
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: tailscale
       ports:
         - {protocol: TCP, port: 3000}
 ---

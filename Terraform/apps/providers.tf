@@ -13,6 +13,8 @@ provider "prowlarr" {
   api_key = data.bitwarden-secrets_secret.prowlarr_api_key.value
 }
 
+# AdGuard has no users configured, so it accepts these unread — the provider
+# just refuses to start without a non-empty username and password.
 provider "adguard" {
   host     = var.adguard_provider_url
   scheme   = "http"

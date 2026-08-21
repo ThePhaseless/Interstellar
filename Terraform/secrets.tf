@@ -107,7 +107,7 @@ resource "bitwarden-secrets_secret" "adguard_admin_password" {
   key        = "adguard-admin-password"
   value      = random_password.adguard_admin_password.result
   project_id = local.bitwarden_generated_project_id
-  note       = "AdGuard Home admin password, stamped into AdGuardHome.yaml by the adguard init container. Owned by Terraform; rotate by tainting random_password.adguard_admin_password and re-applying."
+  note       = "AdGuard Home admin password. Vestigial: AdGuard runs with no users, so it ignores credentials entirely and access is gated by Authentik plus the allow-traefik NetworkPolicy. Kept because the adguard provider rejects an empty username/password. Owned by Terraform; rotate by tainting random_password.adguard_admin_password and re-applying."
 }
 
 # Bitwarden Secrets — Discord (placeholder, user fills in later)

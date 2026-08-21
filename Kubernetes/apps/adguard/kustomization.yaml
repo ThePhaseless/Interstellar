@@ -9,7 +9,6 @@ resources:
   - service-tailscale.yaml
   - ingress.yaml
   - pvc.yaml
-  - externalsecret.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
@@ -18,7 +17,7 @@ configMapGenerator:
   - name: adguard-scripts
     namespace: home
     files:
-      - scripts/set-admin-password.sh
+      - scripts/disable-admin-auth.sh
 
 labels:
   - pairs:
