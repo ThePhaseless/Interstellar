@@ -65,3 +65,33 @@ resource "adguard_list_filter" "adaway_default" {
   url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt"
   enabled = true
 }
+
+resource "adguard_list_filter" "hagezi_normal" {
+  name    = "HaGeZi's Normal Blocklist"
+  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_34.txt"
+  enabled = true
+}
+
+resource "adguard_list_filter" "steven_black" {
+  name    = "Steven Black's List"
+  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt"
+  enabled = true
+}
+
+resource "adguard_list_filter" "oisd_big" {
+  name    = "OISD Blocklist Big"
+  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt"
+  enabled = true
+}
+
+resource "adguard_list_filter" "cert_polska" {
+  name    = "POL: CERT Polska List of malicious domains"
+  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_41.txt"
+  enabled = true
+}
+
+resource "adguard_list_filter" "polish_pihole" {
+  name    = "POL: Polish filters for Pi-hole"
+  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_14.txt"
+  enabled = true
+}
