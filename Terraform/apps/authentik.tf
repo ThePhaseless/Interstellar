@@ -139,6 +139,22 @@ resource "authentik_provider_proxy" "private" {
 # MUST stay forward_single: two forward_domain providers sharing an external_host
 # can't be multiplexed by the outpost, so this zero-policy provider won every host
 # and the access policy never fired.
+# Off the shared private proxy so watchers reach Seerr without also reaching the
+# *arr stack and cluster tooling. forward_single for the reason on
+# authentik_provider_proxy.public.
+resource "authentik_provider_proxy" "seerr" {
+  name               = "seerr-proxy"
+  mode               = "forward_single"
+  authorization_flow = data.authentik_flow.default-authorization-flow.id
+  invalidation_flow  = data.authentik_flow.default-invalidation-flow.id
+  external_host      = "https://add.${var.authentik_domain}"
+  # Authentik's API refuses to clear this; inert in forward_single mode.
+  cookie_domain = var.authentik_domain
+
+  access_token_validity  = "hours=24"
+  refresh_token_validity = "days=30"
+}
+
 resource "authentik_provider_proxy" "public" {
   name               = "public-proxy"
   mode               = "forward_single"
@@ -210,6 +226,7 @@ resource "authentik_outpost" "embedded" {
   protocol_providers = [
     authentik_provider_proxy.private.id,
     authentik_provider_proxy.public.id,
+    authentik_provider_proxy.seerr.id,
   ]
   config = jsonencode({
     authentik_host                 = "https://auth.${var.authentik_domain}/"
@@ -326,7 +343,7 @@ resource "authentik_policy_binding" "immich_access" {
   order  = 0
 }
 
-# "watchers" → Jellyfin login, "writers" → Copyparty upload, "photos" → Immich login.
+# "watchers" → Jellyfin and Seerr login, "writers" → Copyparty upload, "photos" → Immich login.
 # Created empty; manage membership in the Authentik UI.
 
 resource "authentik_group" "watchers" {
@@ -443,12 +460,6 @@ locals {
   icon_base = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg"
 
   private_service_apps = {
-    seerr = {
-      name        = "Seerr"
-      host        = "add"
-      description = "Ask for a film or series to be added to the library"
-      icon        = "${local.icon_base}/seerr.svg"
-    }
     sonarr = {
       name        = "Sonarr"
       host        = "sonarr"
@@ -509,6 +520,21 @@ resource "authentik_application" "private_service" {
   meta_description = each.value.description
   meta_launch_url  = "https://${each.value.host}.${var.authentik_domain}"
   meta_icon        = each.value.icon
+}
+
+resource "authentik_application" "seerr" {
+  name              = "Seerr"
+  slug              = "seerr"
+  protocol_provider = authentik_provider_proxy.seerr.id
+  meta_description  = "Ask for a film or series to be added to the library"
+  meta_launch_url   = "https://add.${var.authentik_domain}"
+  meta_icon         = "${local.icon_base}/seerr.svg"
+}
+
+resource "authentik_policy_binding" "seerr_access" {
+  target = authentik_application.seerr.uuid
+  policy = authentik_policy_expression.watchers_vips_or_admins.id
+  order  = 0
 }
 
 resource "authentik_policy_binding" "private_service_access" {

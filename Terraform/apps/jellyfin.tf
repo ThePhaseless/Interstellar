@@ -84,4 +84,8 @@ resource "jellyfin_encoding_configuration" "this" {
 
 resource "jellyfin_system_configuration" "this" {
   remote_client_bitrate_limit = 150000000
+
+  # Authentik-provisioned users have no Jellyfin password, so Quick Connect is
+  # their only way to authenticate Seerr against Jellyfin.
+  quick_connect_available = true
 }
