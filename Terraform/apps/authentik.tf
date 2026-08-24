@@ -616,3 +616,32 @@ resource "authentik_flow_stage_binding" "google_enrollment_login_binding" {
   stage  = authentik_stage_user_login.google_enrollment_login.id
   order  = 20 # Must run AFTER the user_write stage (order 10)
 }
+
+resource "authentik_event_transport" "discord" {
+  name = "discord"
+  mode = "webhook_slack"
+  # Discord rejects Slack-shaped payloads on the bare webhook; only the /slack
+  # variant of the same URL accepts them.
+  webhook_url = "${data.bitwarden-secrets_secret.discord_webhook_url.value}/slack"
+}
+
+# EventMatcherPolicy.passes ANDs every criterion it has set, so naming both
+# narrows this to user rows rather than every model_created event.
+resource "authentik_policy_event_matcher" "user_created" {
+  name   = "user-created"
+  action = "model_created"
+  model  = "authentik_core.user"
+}
+
+resource "authentik_event_rule" "user_created" {
+  name              = "user-created"
+  transports        = [authentik_event_transport.discord.id]
+  destination_group = authentik_group.admins.id
+  severity          = "notice"
+}
+
+resource "authentik_policy_binding" "user_created" {
+  target = authentik_event_rule.user_created.id
+  policy = authentik_policy_event_matcher.user_created.id
+  order  = 0
+}
