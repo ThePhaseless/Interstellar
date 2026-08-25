@@ -59,10 +59,16 @@ resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
       admin_groups                = ["admins"]
       allow_admin_group_elevation = true
       auto_create_users           = true
+      sync_profile_picture        = true
       omit_prompt_login           = true
       force_https                 = false
       allow_private_networks      = true
       additional_allowed_cidrs    = ["192.168.0.0/16"]
+
+      # Without this, omit_prompt_login lets the next sign-in back through
+      # with no credentials.
+      rp_initiated_logout_enabled      = true
+      rp_initiated_logout_redirect_uri = "https://watch.${var.authentik_domain}/TwoFactorAuth/Oidc/LoggedOut"
     }
   ]
 }
