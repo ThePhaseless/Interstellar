@@ -29,12 +29,27 @@ resource "jellyfin_plugin_repository" "jellyfin_security" {
 }
 
 resource "jellyfin_plugin" "jellyfin_security" {
-  name           = "Jellyfin Security"
+  name = "Jellyfin Security"
+  # Pinned because omitting it resolves "latest" once at create and never
+  # again: the attribute is UseStateForUnknown, so the plugin would sit on
+  # whatever version it was first installed with.
+  # renovate: datasource=github-releases depName=ZL154/JellyfinSecurity extractVersion=^v(?<version>.+)$
+  version        = "2.5.22"
   repository_url = local.jellyfin_security_plugin_repository_url
 }
 
+# Jellyfin loads plugin assemblies at startup, so without this the
+# configuration below writes fields the running assembly has no property for
+# and Jellyfin silently drops them.
+resource "jellyfin_restart" "jellyfin_security" {
+  triggers = {
+    plugin_version = jellyfin_plugin.jellyfin_security.version
+  }
+}
+
 resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
-  plugin_id = jellyfin_plugin.jellyfin_security.id
+  plugin_id  = jellyfin_plugin.jellyfin_security.id
+  depends_on = [jellyfin_restart.jellyfin_security]
 
   # Password login stays on as the emergency path for when Authentik is down.
   # The local admin account must therefore carry a long, unique password.
