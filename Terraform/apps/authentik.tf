@@ -51,6 +51,9 @@ resource "authentik_flow" "google_source_auth" {
   slug               = "google-source-authentication"
   designation        = "authentication"
   policy_engine_mode = "any"
+  # Matches the stock source-authentication flow this replaces; without it an
+  # already-signed-in user can re-enter the login flow.
+  authentication = "require_unauthenticated"
 }
 
 # never_create: this flow only ever runs with an already-linked user pending, and
