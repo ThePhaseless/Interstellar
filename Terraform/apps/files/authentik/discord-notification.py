@@ -53,6 +53,10 @@ if model_name == "user" and model.get("pk"):
         if target.email:
             fields.append({"name": "Email", "value": target.email, "inline": True})
         fields.append({"name": "Type", "value": str(target.type), "inline": True})
+    else:
+        # model_deleted fires after the row is gone, so only the context's
+        # display name survives.
+        fields.append({"name": "User ID", "value": str(model.get("pk")), "inline": True})
 elif model:
     fields.append(
         {

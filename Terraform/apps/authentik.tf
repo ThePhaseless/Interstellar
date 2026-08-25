@@ -709,3 +709,37 @@ resource "authentik_policy_binding" "user_created" {
   policy = authentik_policy_event_matcher.user_created.id
   order  = 0
 }
+
+# A null model matches on action alone — login_failed and password_set carry no model.
+locals {
+  discord_event_rules = {
+    "user-deleted" = { action = "model_deleted", model = "authentik_core.user", severity = "notice" }
+    "password-set" = { action = "password_set", model = null, severity = "warning" }
+    "login-failed" = { action = "login_failed", model = null, severity = "warning" }
+  }
+}
+
+resource "authentik_policy_event_matcher" "discord" {
+  for_each = local.discord_event_rules
+
+  name   = each.key
+  action = each.value.action
+  model  = each.value.model
+}
+
+resource "authentik_event_rule" "discord" {
+  for_each = local.discord_event_rules
+
+  name              = each.key
+  transports        = [authentik_event_transport.discord.id]
+  destination_group = authentik_group.admins.id
+  severity          = each.value.severity
+}
+
+resource "authentik_policy_binding" "discord" {
+  for_each = local.discord_event_rules
+
+  target = authentik_event_rule.discord[each.key].id
+  policy = authentik_policy_event_matcher.discord[each.key].id
+  order  = 0
+}
