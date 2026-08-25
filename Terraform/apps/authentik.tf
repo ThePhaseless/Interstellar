@@ -673,11 +673,21 @@ resource "authentik_flow_stage_binding" "google_enrollment_login_binding" {
   order  = 20 # Must run AFTER the user_write stage (order 10)
 }
 
+resource "authentik_property_mapping_notification" "discord" {
+  name = "discord-event"
+  expression = templatefile("${path.module}/files/authentik/discord-notification.py", {
+    authentik_url = "https://auth.${var.authentik_domain}"
+  })
+}
+
 resource "authentik_event_transport" "discord" {
   name = "discord"
-  mode = "webhook_slack"
-  # Discord accepts Slack-shaped payloads only on the /slack variant of the URL.
-  webhook_url = "${data.bitwarden-secrets_secret.discord_webhook_url.value}/slack"
+  # Not webhook_slack: that payload carries only notification.body, which reads
+  # "Model created by <actor>" with no clue which account. Discord takes native
+  # payloads on the bare URL only — the /slack variant expects Slack-shaped ones.
+  mode                 = "webhook"
+  webhook_url          = data.bitwarden-secrets_secret.discord_webhook_url.value
+  webhook_mapping_body = authentik_property_mapping_notification.discord.id
 }
 
 # EventMatcherPolicy.passes ANDs every criterion it has set.
