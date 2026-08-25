@@ -37,8 +37,19 @@ resource "jellyfin_plugin" "jellyfin_security" {
   repository_url = local.jellyfin_security_plugin_repository_url
 }
 
+# Jellyfin loads plugin assemblies at startup, so a freshly installed version
+# is inert until the server restarts. jellyfin_plugin does not return until the
+# pinned version is on disk, so restarting on that version loads it rather than
+# the one it replaced.
+resource "jellyfin_restart" "jellyfin_security" {
+  triggers = {
+    plugin_version = jellyfin_plugin.jellyfin_security.version
+  }
+}
+
 resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
-  plugin_id = jellyfin_plugin.jellyfin_security.id
+  plugin_id  = jellyfin_plugin.jellyfin_security.id
+  depends_on = [jellyfin_restart.jellyfin_security]
 
   # Password login stays on as the emergency path for when Authentik is down.
   # The local admin account must therefore carry a long, unique password.
