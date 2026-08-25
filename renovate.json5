@@ -15,6 +15,17 @@
       '/(^|/)Kubernetes/.+\\.ya?ml$/',
     ],
   },
+  // Four-segment assembly versions: Jellyfin resolves a plugin install against
+  // this manifest, not against the three-segment git tags the releases carry.
+  customDatasources: {
+    'jellyfin-security-manifest': {
+      defaultRegistryUrlTemplate: 'https://raw.githubusercontent.com/ZL154/JellyfinSecurity/main/manifest.json',
+      format: 'json',
+      transformTemplates: [
+        '{"releases": [$[0].versions.{"version": version}]}',
+      ],
+    },
+  },
   packageRules: [
     {
       description: 'Ignore broken and legacy LinuxServer qBittorrent tags',

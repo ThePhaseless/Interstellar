@@ -30,10 +30,9 @@ resource "jellyfin_plugin_repository" "jellyfin_security" {
 
 resource "jellyfin_plugin" "jellyfin_security" {
   name = "Jellyfin Security"
-  # Four segments: Jellyfin matches against manifest.json, which carries the
-  # assembly version, not the three-segment git tag the releases are named for.
   # Pinned rather than omitted because the attribute is UseStateForUnknown, so
   # an omitted version resolves "latest" once at create and never again.
+  # renovate: datasource=custom.jellyfin-security-manifest depName=JellyfinSecurity versioning=loose
   version        = "2.5.22.0"
   repository_url = local.jellyfin_security_plugin_repository_url
 }
