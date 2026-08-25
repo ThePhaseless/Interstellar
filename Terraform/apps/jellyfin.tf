@@ -42,6 +42,9 @@ resource "jellyfin_plugin" "jellyfin_security" {
 # configuration below writes fields the running assembly has no property for
 # and Jellyfin silently drops them.
 resource "jellyfin_restart" "jellyfin_security" {
+  # The 120s default expires before the pod reschedules and Jellyfin finishes
+  # starting.
+  timeout = 600
   triggers = {
     plugin_version = jellyfin_plugin.jellyfin_security.version
   }
