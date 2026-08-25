@@ -6,10 +6,6 @@ data "authentik_flow" "default-invalidation-flow" {
   slug = "default-provider-invalidation-flow"
 }
 
-data "authentik_flow" "default-source-authentication" {
-  slug = "default-source-authentication"
-}
-
 data "authentik_certificate_key_pair" "default" {
   name = "authentik Self-signed Certificate"
 }
@@ -46,6 +42,52 @@ resource "authentik_flow_stage_binding" "google_enrollment_write" {
   order  = 10
 }
 
+# The stock default-source-authentication flow only logs the user in, so mapped
+# properties are recomputed each login and discarded. The user_write below is what
+# persists them, which also refreshes name and email from Google on every sign-in.
+resource "authentik_flow" "google_source_auth" {
+  name               = "google-source-authentication"
+  title              = "Sign in with Google"
+  slug               = "google-source-authentication"
+  designation        = "authentication"
+  policy_engine_mode = "any"
+  # Matches the stock source-authentication flow this replaces; without it an
+  # already-signed-in user can re-enter the login flow.
+  authentication = "require_unauthenticated"
+}
+
+# never_create: this flow only ever runs with an already-linked user pending, and
+# create_when_required would silently enroll around the enrollment flow.
+resource "authentik_stage_user_write" "google_source_auth" {
+  name               = "google-auth-user-write"
+  user_creation_mode = "never_create"
+}
+
+resource "authentik_flow_stage_binding" "google_source_auth_write" {
+  target = authentik_flow.google_source_auth.uuid
+  stage  = authentik_stage_user_write.google_source_auth.id
+  order  = 10
+}
+
+resource "authentik_stage_user_login" "google_source_auth" {
+  name = "google-auth-user-login"
+}
+
+resource "authentik_flow_stage_binding" "google_source_auth_login" {
+  target = authentik_flow.google_source_auth.uuid
+  stage  = authentik_stage_user_login.google_source_auth.id
+  order  = 20
+}
+
+# Authentik's Google source type forwards only email and name from userinfo, so the
+# `picture` claim is dropped unless a mapping keeps it.
+resource "authentik_property_mapping_source_oauth" "google_avatar" {
+  name       = "google-avatar"
+  expression = <<-EOT
+    return {"attributes": {"avatar": info.get("picture")}}
+  EOT
+}
+
 resource "authentik_source_oauth" "google" {
   access_token_url  = "https://oauth2.googleapis.com/token"
   authorization_url = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -54,7 +96,7 @@ resource "authentik_source_oauth" "google" {
 
   name                = "Google"
   slug                = "google"
-  authentication_flow = data.authentik_flow.default-source-authentication.id
+  authentication_flow = authentik_flow.google_source_auth.uuid
   enrollment_flow     = authentik_flow.google_enrollment.uuid
 
   provider_type   = "google"
@@ -64,6 +106,14 @@ resource "authentik_source_oauth" "google" {
   promoted            = true
   user_matching_mode  = "email_link"
   group_matching_mode = "identifier"
+
+  property_mappings = [authentik_property_mapping_source_oauth.google_avatar.id]
+}
+
+# Tried left to right per user: the Google picture once the mapping has captured one,
+# Gravatar for accounts that have not signed in since, generated initials otherwise.
+resource "authentik_system_settings" "default" {
+  avatars = "attributes.avatar,gravatar,initials"
 }
 
 # The owner must have logged in via Google at least once. Until then the lookup
