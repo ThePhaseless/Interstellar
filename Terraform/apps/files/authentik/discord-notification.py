@@ -13,6 +13,11 @@ ICONS = {
     "impersonation_started": "🎭",
     "suspicious_request": "🚨",
     "configuration_error": "⚠️",
+    "policy_exception": "💥",
+    "property_mapping_exception": "💥",
+    "system_exception": "💥",
+    "system_task_exception": "💥",
+    "update_available": "⬆️",
 }
 
 event = notification.event
@@ -96,6 +101,7 @@ extra = {
     for key, value in context.items()
     if key not in ("model", "http_request", "username", "password")
     and isinstance(value, (str, int, float, bool))
+    and value != ""
 }
 description = ", ".join("**{}**: {}".format(k, v) for k, v in extra.items())[:2000]
 

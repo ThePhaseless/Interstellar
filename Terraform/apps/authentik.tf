@@ -716,6 +716,15 @@ locals {
     "user-deleted" = { action = "model_deleted", model = "authentik_core.user", severity = "notice" }
     "password-set" = { action = "password_set", model = null, severity = "warning" }
     "login-failed" = { action = "login_failed", model = null, severity = "warning" }
+
+    # authentik's own default-notify-* rules cover these actions but set no
+    # destination group and leave destination_event_user false, so
+    # NotificationRule.destination_users() yields nobody and never sends.
+    "config-error"               = { action = "configuration_error", model = null, severity = "alert" }
+    "policy-exception"           = { action = "policy_exception", model = null, severity = "alert" }
+    "property-mapping-exception" = { action = "property_mapping_exception", model = null, severity = "alert" }
+    "system-exception"           = { action = "system_exception", model = null, severity = "alert" }
+    "system-task-exception"      = { action = "system_task_exception", model = null, severity = "alert" }
   }
 }
 
