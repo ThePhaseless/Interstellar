@@ -30,29 +30,16 @@ resource "jellyfin_plugin_repository" "jellyfin_security" {
 
 resource "jellyfin_plugin" "jellyfin_security" {
   name = "Jellyfin Security"
-  # Pinned because omitting it resolves "latest" once at create and never
-  # again: the attribute is UseStateForUnknown, so the plugin would sit on
-  # whatever version it was first installed with.
-  # renovate: datasource=github-releases depName=ZL154/JellyfinSecurity extractVersion=^v(?<version>.+)$
-  version        = "2.5.22"
+  # Four segments: Jellyfin matches against manifest.json, which carries the
+  # assembly version, not the three-segment git tag the releases are named for.
+  # Pinned rather than omitted because the attribute is UseStateForUnknown, so
+  # an omitted version resolves "latest" once at create and never again.
+  version        = "2.5.22.0"
   repository_url = local.jellyfin_security_plugin_repository_url
 }
 
-# Jellyfin loads plugin assemblies at startup, so without this the
-# configuration below writes fields the running assembly has no property for
-# and Jellyfin silently drops them.
-resource "jellyfin_restart" "jellyfin_security" {
-  # The 120s default expires before the pod reschedules and Jellyfin finishes
-  # starting.
-  timeout = 600
-  triggers = {
-    plugin_version = jellyfin_plugin.jellyfin_security.version
-  }
-}
-
 resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
-  plugin_id  = jellyfin_plugin.jellyfin_security.id
-  depends_on = [jellyfin_restart.jellyfin_security]
+  plugin_id = jellyfin_plugin.jellyfin_security.id
 
   # Password login stays on as the emergency path for when Authentik is down.
   # The local admin account must therefore carry a long, unique password.
