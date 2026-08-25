@@ -46,6 +46,16 @@ resource "authentik_flow_stage_binding" "google_enrollment_write" {
   order  = 10
 }
 
+# Authentik's Google source type forwards only email and name from userinfo, so the
+# `picture` claim is dropped unless a mapping keeps it. Mappings run at login, so
+# existing users get an avatar on their next sign-in, not on apply.
+resource "authentik_property_mapping_source_oauth" "google_avatar" {
+  name       = "google-avatar"
+  expression = <<-EOT
+    return {"attributes": {"avatar": info.get("picture")}}
+  EOT
+}
+
 resource "authentik_source_oauth" "google" {
   access_token_url  = "https://oauth2.googleapis.com/token"
   authorization_url = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -64,6 +74,14 @@ resource "authentik_source_oauth" "google" {
   promoted            = true
   user_matching_mode  = "email_link"
   group_matching_mode = "identifier"
+
+  property_mappings = [authentik_property_mapping_source_oauth.google_avatar.id]
+}
+
+# Tried left to right per user: the Google picture once the mapping has captured one,
+# Gravatar for accounts that have not signed in since, generated initials otherwise.
+resource "authentik_system_settings" "default" {
+  avatars = "attributes.avatar,gravatar,initials"
 }
 
 # The owner must have logged in via Google at least once. Until then the lookup
