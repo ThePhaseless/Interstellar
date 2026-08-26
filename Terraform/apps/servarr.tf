@@ -91,3 +91,50 @@ resource "prowlarr_notification_discord" "discord" {
   on_health_issue    = true
   on_health_restored = true
 }
+
+# Prowlarr owns rejectBlocklistedTorrentHashesWhileGrabbing on the *arr side:
+# fullSync rebuilds every synced indexer from Prowlarr's definition, so setting
+# it in Sonarr/Radarr is undone on the next sync. devopsarr/prowlarr 3.2.1 has
+# no attribute for it. A prowlarr_application update resets fields the provider
+# does not know back to their defaults, hence triggering on its whole config.
+resource "terraform_data" "prowlarr_reject_blocklisted_hashes" {
+  for_each = {
+    sonarr = prowlarr_application.sonarr
+    radarr = prowlarr_application.radarr
+  }
+
+  triggers_replace = [
+    each.value.id,
+    each.value.sync_level,
+    join(",", sort([for category in each.value.sync_categories : tostring(category)])),
+  ]
+
+  provisioner "local-exec" {
+    interpreter = ["/usr/bin/env", "bash", "-c"]
+
+    environment = {
+      PROWLARR_URL = var.prowlarr_provider_url
+      PROWLARR_KEY = data.bitwarden-secrets_secret.prowlarr_api_key.value
+      APP_ID       = tostring(each.value.id)
+    }
+
+    command = <<-EOT
+      set -euo pipefail
+
+      application=$(curl -sf -H "X-Api-Key: $PROWLARR_KEY" \
+        "$PROWLARR_URL/api/v1/applications/$APP_ID")
+
+      printf '%s' "$application" \
+        | jq '.fields |= map(
+            if .name == "syncRejectBlocklistedTorrentHashesWhileGrabbing"
+            then .value = true else . end)' \
+        | curl -sf -X PUT --data-binary @- \
+            -H "X-Api-Key: $PROWLARR_KEY" -H "Content-Type: application/json" \
+            "$PROWLARR_URL/api/v1/applications/$APP_ID" >/dev/null
+
+      curl -sf -X POST -d '{"name":"ApplicationIndexerSync"}' \
+        -H "X-Api-Key: $PROWLARR_KEY" -H "Content-Type: application/json" \
+        "$PROWLARR_URL/api/v1/command" >/dev/null
+    EOT
+  }
+}
