@@ -138,3 +138,53 @@ resource "terraform_data" "prowlarr_reject_blocklisted_hashes" {
     EOT
   }
 }
+
+# doNotPrefer takes proper/repack out of the revision gate that vetoes any
+# same-quality upgrade, and lets the Repack/Proper custom formats (5/6/7, from
+# the TRaSH profiles Recyclarr syncs) rank it as part of the total score
+# instead. Every attribute below is required by the provider, so the rest
+# mirror the live config rather than expressing an intent.
+resource "radarr_media_management" "movies" {
+  download_propers_and_repacks = "doNotPrefer"
+
+  auto_rename_folders                         = false
+  auto_unmonitor_previously_downloaded_movies = false
+  chmod_folder                                = "755"
+  chown_group                                 = ""
+  copy_using_hardlinks                        = true
+  create_empty_movie_folders                  = false
+  delete_empty_folders                        = false
+  enable_media_info                           = true
+  extra_file_extensions                       = "srt"
+  file_date                                   = "none"
+  import_extra_files                          = false
+  minimum_free_space_when_importing           = 100
+  paths_default_static                        = false
+  recycle_bin                                 = ""
+  recycle_bin_cleanup_days                    = 7
+  rescan_after_refresh                        = "always"
+  set_permissions_linux                       = false
+  skip_free_space_check_when_importing        = false
+}
+
+resource "sonarr_media_management" "series" {
+  download_propers_repacks = "doNotPrefer"
+
+  chmod_folder                = "755"
+  chown_group                 = ""
+  create_empty_folders        = false
+  delete_empty_folders        = false
+  enable_media_info           = true
+  episode_title_required      = "always"
+  extra_file_extensions       = "srt"
+  file_date                   = "none"
+  hardlinks_copy              = true
+  import_extra_files          = false
+  minimum_free_space          = 100
+  recycle_bin_days            = 7
+  recycle_bin_path            = ""
+  rescan_after_refresh        = "always"
+  set_permissions             = false
+  skip_free_space_check       = false
+  unmonitor_previous_episodes = false
+}
