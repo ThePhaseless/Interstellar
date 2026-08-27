@@ -14,7 +14,7 @@ resources:
 helmCharts:
   - name: traefik
     repo: https://helm.traefik.io/traefik
-    version: 41.3.0
+    version: 41.4.0
     releaseName: traefik
     namespace: traefik
     includeCRDs: true
