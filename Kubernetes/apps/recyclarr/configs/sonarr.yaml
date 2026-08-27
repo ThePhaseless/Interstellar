@@ -76,6 +76,24 @@ sonarr:
           until_quality: Bluray-1080p Remux
 
     custom_formats:
+      # The anime profile scores no repack CFs, so with Sonarr's
+      # downloadPropersAndRepacks set to doNotPrefer (Terraform/apps/servarr.tf)
+      # a proper would carry no preference at all there.
+      - trash_ids:
+          - ec8fa7296b64e8cd390a1600981f3923 # Repack/Proper
+        assign_scores_to:
+          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
+            score: 5
+      - trash_ids:
+          - eb3d5cc0a2be0db205fb823640db6a3c # Repack2
+        assign_scores_to:
+          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
+            score: 6
+      - trash_ids:
+          - 44e7c4de10ae50265753082e5dc76047 # Repack3
+        assign_scores_to:
+          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
+            score: 7
       # Hard ban, not a penalty: this sits below min_format_score (-1000000),
       # so an upscaled release is rejected outright instead of being
       # outranked. The guide's own -10000 only demotes it, and the anime
