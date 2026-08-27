@@ -52,7 +52,7 @@ spec:
             matchExpressions:
               - key: app
                 operator: In
-                values: [seerr, bazarr, decluttarr, recyclarr, prowlarr]
+                values: [seerr, bazarr, decluttarr, recyclarr, prowlarr, arr-coverage-search]
       ports:
         - {protocol: TCP, port: 8989}
         - {protocol: TCP, port: 7878}
@@ -73,7 +73,7 @@ spec:
             matchExpressions:
               - key: app
                 operator: In
-                values: [sonarr, radarr]
+                values: [sonarr, radarr, arr-coverage-search]
       ports:
         - {protocol: TCP, port: 9696}
 ---
