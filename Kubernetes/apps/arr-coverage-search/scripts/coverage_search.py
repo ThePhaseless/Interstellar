@@ -1,5 +1,5 @@
 """Search every movie/series one at a time, refusing to advance while any
-Prowlarr indexer is in failure backoff."""
+indexer this app queries is in failure backoff."""
 
 import json
 import os
@@ -21,10 +21,10 @@ ITEM_DELAY = float(os.environ.get("ITEM_DELAY_SECONDS", "5"))
 ONLY_IDS = [int(x) for x in os.environ.get("ONLY_IDS", "").replace(",", " ").split()]
 
 APPS = {
-    "radarr": ("movie", lambda i: {"name": "MoviesSearch", "movieIds": [i]}),
-    "sonarr": ("series", lambda i: {"name": "SeriesSearch", "seriesId": i}),
+    "radarr": ("movie", lambda i: {"name": "MoviesSearch", "movieIds": [i]}, 2000),
+    "sonarr": ("series", lambda i: {"name": "SeriesSearch", "seriesId": i}, 5000),
 }
-ENTITY, SEARCH_PAYLOAD = APPS[APP]
+ENTITY, SEARCH_PAYLOAD, CATEGORY_BASE = APPS[APP]
 
 # Sonarr's interactive-search endpoint needs a season or episode, so there is no
 # series-wide equivalent of Radarr's non-grabbing release lookup.
@@ -32,6 +32,7 @@ if DRY_RUN and APP != "radarr":
     sys.exit(f"DRY_RUN is only supported for radarr, not {APP}; set DRY_RUN=false")
 
 _status_shape_logged = False
+RELEVANT_IDS = set()
 
 
 def log(msg):
@@ -50,15 +51,30 @@ def api(base, key, path, method="GET", body=None, timeout=600):
     return json.loads(raw) if raw else None
 
 
+def relevant_indexers():
+    """Indexer ids this app actually queries. An indexer serving only other
+    categories can still fail from Prowlarr's RSS sync, and gating on those
+    would stall the run over coverage it never had. Unknown capabilities count
+    as relevant so a parsing gap cannot silently narrow the check."""
+    ids = set()
+    for ix in api(PROWLARR, PROWLARR_KEY, "api/v1/indexer", timeout=60) or []:
+        if not ix.get("enable", True):
+            continue
+        cats = {c["id"] for c in (ix.get("capabilities") or {}).get("categories", [])}
+        if not cats or any(CATEGORY_BASE <= c < CATEGORY_BASE + 1000 for c in cats):
+            ids.add(ix["id"])
+    return ids
+
+
 def failing_indexers():
     """Prowlarr records a status row on the first failure, so a non-empty list
-    means at least one indexer is currently backed off."""
+    means at least one relevant indexer is currently backed off."""
     global _status_shape_logged
     rows = api(PROWLARR, PROWLARR_KEY, "api/v1/indexerstatus", timeout=30) or []
     if rows and not _status_shape_logged:
         log(f"indexerstatus record shape: {json.dumps(rows[0])}")
         _status_shape_logged = True
-    return rows
+    return [r for r in rows if r.get("indexerId") in RELEVANT_IDS]
 
 
 def backoff_deadline(rows):
@@ -117,38 +133,58 @@ def search(item_id):
     return f"command {await_command(cmd['id'])}"
 
 
+def process(item, label):
+    """True when the search completed with every relevant indexer healthy."""
+    while True:
+        if not wait_for_healthy():
+            log(f"{label} SKIPPED (backoff over cap): {item['_title']}")
+            return False
+        try:
+            detail = search(item["id"])
+        except (urllib.error.URLError, TimeoutError) as exc:
+            log(f"{label} search error, retrying: {item['_title']} ({exc})")
+            time.sleep(30)
+            continue
+        if failing_indexers():
+            log(f"{label} indexer failed mid-search, retrying: {item['_title']}")
+            continue
+        log(f"{label} ok: {item['_title']} | {detail}")
+        return True
+
+
+def run_pass(items, covered, pass_name=""):
+    incomplete = []
+    for n, item in enumerate(items, 1):
+        label = f"[{pass_name}{n}/{len(items)}]"
+        (covered if process(item, label) else incomplete).append(item)
+        time.sleep(ITEM_DELAY)
+    return incomplete
+
+
 def main():
+    global RELEVANT_IDS
+    RELEVANT_IDS = relevant_indexers()
+
     items = api(APP_URL, APP_KEY, f"api/v3/{ENTITY}")
     if ONLY_IDS:
         items = [i for i in items if i["id"] in ONLY_IDS]
-    items.sort(key=lambda i: i.get("sortTitle") or i.get("title", ""))
-    log(f"{APP}: {len(items)} items | dry_run={DRY_RUN} | backoff cap={MAX_WAIT}s")
+    for i in items:
+        i["_title"] = (i.get("title") or "?")[:55]
+    items.sort(key=lambda i: i.get("sortTitle") or i["_title"])
+    log(
+        f"{APP}: {len(items)} items | dry_run={DRY_RUN} | backoff cap={MAX_WAIT}s "
+        f"| gating on {len(RELEVANT_IDS)} indexer(s): {sorted(RELEVANT_IDS)}"
+    )
 
-    covered, incomplete = [], []
-    for n, item in enumerate(items, 1):
-        title = item.get("title", "?")[:55]
-        while True:
-            if not wait_for_healthy():
-                incomplete.append(title)
-                log(f"[{n}/{len(items)}] SKIPPED (backoff over cap): {title}")
-                break
-            try:
-                detail = search(item["id"])
-            except (urllib.error.URLError, TimeoutError) as exc:
-                log(f"[{n}/{len(items)}] search error, retrying: {title} ({exc})")
-                time.sleep(30)
-                continue
-            if failing_indexers():
-                log(f"[{n}/{len(items)}] indexer failed mid-search, retrying: {title}")
-                continue
-            covered.append(title)
-            log(f"[{n}/{len(items)}] ok: {title} | {detail}")
-            break
-        time.sleep(ITEM_DELAY)
+    covered = []
+    incomplete = run_pass(items, covered)
+    if incomplete:
+        log(f"retry pass over {len(incomplete)} item(s) that exceeded the backoff cap")
+        incomplete = run_pass(incomplete, covered, "retry ")
 
     log(f"done | full coverage: {len(covered)} | incomplete: {len(incomplete)}")
-    for t in incomplete:
-        log(f"  incomplete: {t}")
+    for i in incomplete:
+        log(f"  incomplete: {i['_title']}")
     return 1 if incomplete else 0
 
 
