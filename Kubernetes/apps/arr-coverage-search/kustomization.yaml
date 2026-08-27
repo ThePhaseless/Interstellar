@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: media
+
+resources:
+  - cronjob.yaml
+
+configMapGenerator:
+  - name: arr-coverage-search-scripts
+    namespace: media
+    options:
+      disableNameSuffixHash: true
+    files:
+      - scripts/coverage_search.py
+
+labels:
+  - pairs:
+      app: arr-coverage-search
+    includeSelectors: true

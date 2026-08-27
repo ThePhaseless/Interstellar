@@ -21,6 +21,7 @@ resources:
   - qbittorrent/
   - decluttarr/
   - recyclarr/
+  - arr-coverage-search/
   - byparr/
   - byparr-proxy/
 

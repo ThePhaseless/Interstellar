@@ -1,0 +1,75 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: arr-coverage-search
+  namespace: media
+  labels:
+    app: arr-coverage-search
+spec:
+  # Triggered by hand: kubectl -n media create job <name> --from=cronjob/arr-coverage-search
+  schedule: "0 5 31 2 *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: arr-coverage-search
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: coverage-search
+              image: python:3.14-alpine
+              command: ["python3", "/scripts/coverage_search.py"]
+              env:
+                - name: APP
+                  value: "radarr"
+                - name: APP_URL
+                  value: "http://radarr.media.svc.cluster.local:7878"
+                - name: PROWLARR_URL
+                  value: "http://prowlarr.media.svc.cluster.local:9696"
+                # false grabs for real; true only reports what would have been grabbed.
+                - name: DRY_RUN
+                  value: "true"
+                - name: MAX_BACKOFF_WAIT_SECONDS
+                  value: "3600"
+                - name: ITEM_DELAY_SECONDS
+                  value: "5"
+                - name: APP_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: arr-api-keys
+                      key: radarr-api-key
+                - name: PROWLARR_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: arr-api-keys
+                      key: prowlarr-api-key
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: arr-coverage-search-scripts
