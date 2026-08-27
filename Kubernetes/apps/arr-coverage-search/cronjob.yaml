@@ -39,7 +39,7 @@ spec:
                   value: "http://prowlarr.media.svc.cluster.local:9696"
                 # false grabs for real; true only reports what would have been grabbed.
                 - name: DRY_RUN
-                  value: "true"
+                  value: "false"
                 - name: MAX_BACKOFF_WAIT_SECONDS
                   value: "3600"
                 - name: ITEM_DELAY_SECONDS
