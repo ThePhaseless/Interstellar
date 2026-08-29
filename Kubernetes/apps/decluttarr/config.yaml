@@ -13,9 +13,14 @@ jobs:
   remove_metadata_missing:
   remove_missing_files:
   remove_orphans:
+  # A 50 GiB remux on a small swarm swings either side of min_speed for long
+  # stretches; at the default 3 strikes it is deleted after 30 minutes and its
+  # release blocklisted, burning a good source that would have finished.
   remove_slow:
     min_speed: 100
+    max_strikes: 12
   remove_stalled:
+    max_strikes: 9
   remove_unmonitored:
 
 instances:
