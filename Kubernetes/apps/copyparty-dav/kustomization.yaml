@@ -9,6 +9,8 @@ resources:
 
 configMapGenerator:
   - name: copyparty-dav-config
+    options:
+      disableNameSuffixHash: true
     files:
       - copyparty-dav.conf
 

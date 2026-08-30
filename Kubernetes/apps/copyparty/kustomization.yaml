@@ -10,6 +10,8 @@ resources:
 
 configMapGenerator:
   - name: copyparty-config
+    options:
+      disableNameSuffixHash: true
     files:
       - copyparty.conf
 

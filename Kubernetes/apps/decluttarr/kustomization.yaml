@@ -9,6 +9,8 @@ resources:
 configMapGenerator:
   - name: decluttarr-config
     namespace: media
+    options:
+      disableNameSuffixHash: true
     files:
       - config.yaml
 
