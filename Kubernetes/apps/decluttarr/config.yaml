@@ -12,7 +12,10 @@ jobs:
   remove_failed_imports:
   remove_metadata_missing:
   remove_missing_files:
+  # Orphan detection diffs two separate queue reads, so one momentary misread
+  # marks every in-progress download an orphan.
   remove_orphans:
+    max_strikes: 3
   # A 50 GiB remux on a small swarm swings either side of min_speed for long
   # stretches; at the default 3 strikes it is deleted after 30 minutes and its
   # release blocklisted, burning a good source that would have finished.
