@@ -19,6 +19,7 @@ DRY_RUN = os.environ.get("DRY_RUN", "true").lower() != "false"
 MAX_WAIT = int(os.environ.get("MAX_BACKOFF_WAIT_SECONDS", "3600"))
 ITEM_DELAY = float(os.environ.get("ITEM_DELAY_SECONDS", "5"))
 ONLY_IDS = [int(x) for x in os.environ.get("ONLY_IDS", "").replace(",", " ").split()]
+SKIP_UNAVAILABLE = os.environ.get("SKIP_UNAVAILABLE", "true").lower() != "false"
 
 APPS = {
     "radarr": ("movie", lambda i: {"name": "MoviesSearch", "movieIds": [i]}, 2000),
@@ -168,6 +169,13 @@ def main():
     items = api(APP_URL, APP_KEY, f"api/v3/{ENTITY}")
     if ONLY_IDS:
         items = [i for i in items if i["id"] in ONLY_IDS]
+    if SKIP_UNAVAILABLE:
+        # Radarr only sets isAvailable once minimumAvailability is met; searching
+        # before that burns a full indexer sweep on something with no releases.
+        held = [i for i in items if not i.get("isAvailable", True)]
+        items = [i for i in items if i.get("isAvailable", True)]
+        for i in held:
+            log(f"skipping unreleased: {(i.get('title') or '?')[:50]} ({i.get('status')})")
     for i in items:
         i["_title"] = (i.get("title") or "?")[:55]
     items.sort(key=lambda i: i.get("sortTitle") or i["_title"])
