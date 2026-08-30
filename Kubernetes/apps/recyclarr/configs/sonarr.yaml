@@ -28,21 +28,21 @@ sonarr:
         qualities:
           - name: Bluray-2160p Remux
           - name: Bluray-2160p
-          - name: WEBRip-2160p
           - name: WEBDL-2160p
+          - name: WEBRip-2160p
           - name: Bluray-1080p Remux
           - name: Bluray-1080p
-          - name: WEBRip-1080p
           - name: WEBDL-1080p
+          - name: WEBRip-1080p
           - name: HDTV-2160p
           - name: Bluray-720p
-          - name: WEBRip-720p
           - name: WEBDL-720p
+          - name: WEBRip-720p
           - name: HDTV-720p
           - name: Bluray-576p
           - name: Bluray-480p
-          - name: WEBRip-480p
           - name: WEBDL-480p
+          - name: WEBRip-480p
           - name: DVD
           - name: SDTV
         upgrade:
@@ -60,15 +60,15 @@ sonarr:
           - name: Bluray-1080p Remux
           - name: Bluray-1080p
           - name: HDTV-1080p
-          - name: WEBRip-1080p
           - name: WEBDL-1080p
+          - name: WEBRip-1080p
           - name: Bluray-720p
           - name: HDTV-720p
-          - name: WEBRip-720p
           - name: WEBDL-720p
+          - name: WEBRip-720p
           - name: Bluray-480p
-          - name: WEBRip-480p
           - name: WEBDL-480p
+          - name: WEBRip-480p
           - name: DVD
           - name: SDTV
         upgrade:
