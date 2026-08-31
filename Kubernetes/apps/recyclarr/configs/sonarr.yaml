@@ -35,6 +35,7 @@ sonarr:
           - name: WEBDL-1080p
           - name: WEBRip-1080p
           - name: HDTV-2160p
+          - name: HDTV-1080p
           - name: Bluray-720p
           - name: WEBDL-720p
           - name: WEBRip-720p
@@ -108,7 +109,7 @@ sonarr:
 
     custom_format_groups:
       add:
-        - trash_id: e3f37512790f00d0e89e54fe5e790d1c # [Required] Golden Rule UHD
+        - trash_id: e3f37512790f00d0e89e54fe5e790d1c # [Optional] Golden Rule UHD
         - trash_id: d920fd959d220306888f40b6f38e1578 # [Optional] Season Packs
         - trash_id: 35fb4585dcd9e2a5ac732e4309f5a45a # [Streaming Services] Asian
         - trash_id: f4a0410a1df109a66d6e47dcadcce014 # [Optional] Miscellaneous
@@ -121,6 +122,6 @@ sonarr:
             - cddfb4e32db826151d97352b8e37c648 # x264
             - c9eafd50846d299b862ca9bb6ea91950 # x265
             - 041d90b435ebd773271cea047a457a6a # x266
-        - trash_id: e1053c0ef622df3749fa43c22865663a # [Optional] SDR
+        - trash_id: e1053c0ef622df3749fa43c22865663a # [HDR Formats] SDR
           select:
             - 83304f261cf516bb208c18c54c0adf97 # SDR (no WEBDL)

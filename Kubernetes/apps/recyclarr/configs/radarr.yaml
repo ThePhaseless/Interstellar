@@ -28,8 +28,8 @@ radarr:
           - name: Bluray-1080p
           - name: WEBDL-1080p
           - name: WEBRip-1080p
-          - name: HDTV-1080p
           - name: HDTV-2160p
+          - name: HDTV-1080p
           - name: Bluray-720p
           - name: WEBDL-720p
           - name: WEBRip-720p
@@ -68,7 +68,7 @@ radarr:
 
     custom_format_groups:
       add:
-        - trash_id: ff204bbcecdd487d1cefcefdbf0c278d # [Required] Golden Rule UHD
+        - trash_id: ff204bbcecdd487d1cefcefdbf0c278d # [Optional] Golden Rule UHD
         - trash_id: f993ad37540147e4d00e66503545d81b # [Streaming Services] Anime
         - trash_id: 9337080378236ce4c0b183e35790d2a7 # [Optional] Miscellaneous
           select:
@@ -91,6 +91,6 @@ radarr:
             - 0f12c086e289cf966fa5948eac571f44 # Hybrid
             - eecf3a857724171f968a66cb5719e152 # IMAX
             - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
-        - trash_id: 47f0d69750de9e16855915fa73bb7b08 # [Optional] SDR
+        - trash_id: 47f0d69750de9e16855915fa73bb7b08 # [HDR Formats] SDR
           select:
             - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
