@@ -86,11 +86,12 @@ updates = {
     # A queued storage move makes saveResumeData() loop forever:
     # its 30s abort is gated on m_moveStorageQueue being empty.
     # Without a download path there are no move jobs at all.
-    # Re-enabled now that TempPath is NVMe rather than the HDD array. A queued
-    # storage move makes saveResumeData() loop forever - its 30s abort is gated
-    # on m_moveStorageQueue being empty - so ShutdownTimeout above is what keeps
-    # shutdown bounded.
-    'Session\\TempPathEnabled': 'true',
+    # Deliberately false, not unused: turning it on relocates every in-progress
+    # torrent to TempPath at once, so only enable it while the already-
+    # downloaded bytes of incomplete torrents fit in the 231 GiB pool. Doing so
+    # also makes the move queue live again - saveResumeData() loops forever
+    # while it is non-empty, and ShutdownTimeout above is the backstop.
+    'Session\\TempPathEnabled': 'false',
     'Session\\TempPath': '/downloads-ssd',
     # Legacy writes one .fastresume file per torrent; SQLite is a
     # single transaction, so the 30s resume-data budget is never
