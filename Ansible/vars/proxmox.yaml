@@ -1,6 +1,9 @@
 nfs_exports:
   - path: /Storage # HDD — large media library
   - path: /SSDStorage # SSD — active/personal files
+  # Its own pool, not a directory under /SSDStorage: that one shares a dataset
+  # with the Proxmox root, which has no quota.
+  - path: /ssdstage/downloads # NVMe — qBittorrent download staging
 
 # Restrict NFS access to specific TalosOS node IPs (vmid-based: 192.168.1.<vmid>)
 nfs_allowed_hosts:
@@ -18,3 +21,4 @@ media_managed_paths:
   - /Storage/Media/TVShows
   - /Storage/Media/Movies
   - /Storage/Media/Downloads
+  - /ssdstage/downloads
