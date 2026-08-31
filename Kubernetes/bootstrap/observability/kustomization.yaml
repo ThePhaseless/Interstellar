@@ -6,7 +6,7 @@ namespace: observability
 helmCharts:
   - name: prometheus-node-exporter
     repo: https://prometheus-community.github.io/helm-charts
-    version: 4.56.1
+    version: 4.56.3
     releaseName: node-exporter
     namespace: observability
     valuesFile: config/node-exporter-values.yaml
