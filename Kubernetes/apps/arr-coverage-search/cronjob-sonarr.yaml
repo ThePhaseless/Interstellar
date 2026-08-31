@@ -1,0 +1,77 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: arr-coverage-search-sonarr
+  namespace: media
+  labels:
+    app: arr-coverage-search-sonarr
+spec:
+  # Triggered by hand: kubectl -n media create job <name> --from=cronjob/arr-coverage-search-sonarr
+  schedule: "0 5 31 2 *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: arr-coverage-search-sonarr
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: coverage-search
+              image: python:3.14-alpine
+              command: ["python3", "/scripts/coverage_search.py"]
+              env:
+                - name: APP
+                  value: "sonarr"
+                - name: APP_URL
+                  value: "http://sonarr.media.svc.cluster.local:8989"
+                - name: PROWLARR_URL
+                  value: "http://prowlarr.media.svc.cluster.local:9696"
+                # The script refuses DRY_RUN for sonarr: its interactive-search
+                # endpoint needs a season or episode, so there is no series-wide
+                # non-grabbing lookup.
+                - name: DRY_RUN
+                  value: "false"
+                - name: MAX_BACKOFF_WAIT_SECONDS
+                  value: "3600"
+                - name: ITEM_DELAY_SECONDS
+                  value: "5"
+                - name: APP_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: arr-api-keys
+                      key: sonarr-api-key
+                - name: PROWLARR_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: arr-api-keys
+                      key: prowlarr-api-key
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: arr-coverage-search-scripts

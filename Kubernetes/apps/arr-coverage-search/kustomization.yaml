@@ -5,6 +5,7 @@ namespace: media
 
 resources:
   - cronjob.yaml
+  - cronjob-sonarr.yaml
 
 configMapGenerator:
   - name: arr-coverage-search-scripts

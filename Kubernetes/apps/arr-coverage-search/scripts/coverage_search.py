@@ -21,11 +21,16 @@ ITEM_DELAY = float(os.environ.get("ITEM_DELAY_SECONDS", "5"))
 ONLY_IDS = [int(x) for x in os.environ.get("ONLY_IDS", "").replace(",", " ").split()]
 SKIP_UNAVAILABLE = os.environ.get("SKIP_UNAVAILABLE", "true").lower() != "false"
 
+# Radarr's isAvailable tracks minimumAvailability, not just release. Sonarr has
+# no equivalent, and its episodeCount reads 0 for any series whose seasons are
+# unmonitored — an appealing but wrong substitute.
 APPS = {
-    "radarr": ("movie", lambda i: {"name": "MoviesSearch", "movieIds": [i]}, 2000),
-    "sonarr": ("series", lambda i: {"name": "SeriesSearch", "seriesId": i}, 5000),
+    "radarr": ("movie", lambda i: {"name": "MoviesSearch", "movieIds": [i]}, 2000,
+               lambda i: i.get("isAvailable", True)),
+    "sonarr": ("series", lambda i: {"name": "SeriesSearch", "seriesId": i}, 5000,
+               lambda i: i.get("status") != "upcoming"),
 }
-ENTITY, SEARCH_PAYLOAD, CATEGORY_BASE = APPS[APP]
+ENTITY, SEARCH_PAYLOAD, CATEGORY_BASE, IS_RELEASED = APPS[APP]
 
 # Sonarr's interactive-search endpoint needs a season or episode, so there is no
 # series-wide equivalent of Radarr's non-grabbing release lookup.
@@ -170,10 +175,10 @@ def main():
     if ONLY_IDS:
         items = [i for i in items if i["id"] in ONLY_IDS]
     if SKIP_UNAVAILABLE:
-        # Radarr only sets isAvailable once minimumAvailability is met; searching
-        # before that burns a full indexer sweep on something with no releases.
-        held = [i for i in items if not i.get("isAvailable", True)]
-        items = [i for i in items if i.get("isAvailable", True)]
+        # Searching before anything is released burns a full indexer sweep on
+        # something that has no releases to find.
+        held = [i for i in items if not IS_RELEASED(i)]
+        items = [i for i in items if IS_RELEASED(i)]
         for i in held:
             log(f"skipping unreleased: {(i.get('title') or '?')[:50]} ({i.get('status')})")
     for i in items:
