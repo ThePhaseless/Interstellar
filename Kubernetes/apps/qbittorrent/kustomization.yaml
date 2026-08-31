@@ -13,3 +13,10 @@ labels:
   - pairs:
       app: qbittorrent
     includeSelectors: true
+
+configMapGenerator:
+  - name: qbittorrent-scripts
+    options:
+      disableNameSuffixHash: true
+    files:
+      - scripts/config-init.sh
