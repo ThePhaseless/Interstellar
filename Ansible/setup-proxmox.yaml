@@ -315,6 +315,17 @@
           options zfs zfs_txg_timeout=30
           # Limit ARC to 4 GiB to reduce host memory pressure and metadata churn.
           options zfs zfs_arc_max=4294967296
+          # ZFS scales its async write queue by how full the dirty buffer is:
+          # below async_write_active_min_dirty_percent it issues only
+          # async_write_min_active (2) concurrent writes per vdev, and past
+          # zfs_delay_min_dirty_percent (60) it deliberately delays the writer.
+          # With the 30s txg_timeout above, a sustained NFS write load reached
+          # that delay before the queue ever ramped up, leaving the RAIDZ1
+          # disks near half idle while writers stalled.
+          options zfs zfs_vdev_async_write_max_active=32
+          options zfs zfs_vdev_async_write_active_min_dirty_percent=10
+          # 12 GiB of 62 GiB RAM, so the buffer is not the thing that fills.
+          options zfs zfs_dirty_data_max=12884901888
       notify: Update initramfs and refresh Proxmox boot
       tags:
         - power
@@ -330,6 +341,17 @@
       ansible.builtin.command:
         cmd: sh -c 'echo 4294967296 > /sys/module/zfs/parameters/zfs_arc_max'
       changed_when: false
+      tags:
+        - power
+
+    - name: Apply ZFS async write tuning live
+      ansible.builtin.command:
+        cmd: sh -c 'echo {{ item.value }} > /sys/module/zfs/parameters/{{ item.name }}'
+      changed_when: false
+      loop:
+        - {name: zfs_vdev_async_write_max_active, value: 32}
+        - {name: zfs_vdev_async_write_active_min_dirty_percent, value: 10}
+        - {name: zfs_dirty_data_max, value: 12884901888}
       tags:
         - power
 

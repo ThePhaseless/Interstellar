@@ -63,7 +63,7 @@ updates = {
     # MaxActiveTorrents=0 means zero active torrents, not unlimited
     # (-1); a stale 0 in the config queued every download forever.
     'Session\\MaxActiveTorrents': '-1',
-    'Session\\MaxActiveDownloads': '20',
+    'Session\\MaxActiveDownloads': '50',
     'Session\\MaxActiveUploads': '-1',
     # Thresholds are KiB/s. Anything below them is exempt from
     # MaxActiveDownloads, so a high value lets the limit be bypassed
