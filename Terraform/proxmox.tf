@@ -141,8 +141,12 @@ resource "proxmox_virtual_environment_vm" "talos" {
   }
 
   lifecycle {
+    # cdrom is deliberately NOT ignored: file_name carries talos_version, and
+    # proxmox_download_file replaces the ISO in place on a version bump. Ignoring
+    # it leaves the VM pointing at a filename that no longer exists, which
+    # Proxmox only refuses at boot -- so the cluster comes back down at the next
+    # reboot, long after the change that caused it.
     ignore_changes = [
-      cdrom,
       efi_disk,
       initialization,
       tags,
