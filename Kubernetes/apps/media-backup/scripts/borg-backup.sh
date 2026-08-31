@@ -190,6 +190,11 @@ if [ "$GLOBAL" -eq 0 ]; then
     info "Backup, Prune, and Compact finished successfully"
 elif [ "$GLOBAL" -eq 1 ]; then
     info "Backup, Prune, and/or Compact finished with warnings"
+    # borg exits 1 when a file changed or vanished mid-read, which a live data
+    # directory does constantly (Loki rotates its WAL and compacts chunks while
+    # we read). The archive is still complete, so propagating it only burns the
+    # Job's backoffLimit and marks a good backup failed.
+    GLOBAL=0
 else
     info "Backup, Prune, and/or Compact finished with errors"
 fi
