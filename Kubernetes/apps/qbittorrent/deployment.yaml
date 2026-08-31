@@ -99,6 +99,22 @@ spec:
                   # reports bytes/s. 1 Gbit/s down and 300 Mbit/s up.
                   'Session\\AlternativeGlobalDLSpeedLimit': '122070',
                   'Session\\AlternativeGlobalUPSpeedLimit': '36621',
+                  # Shutdown must fit the pod's grace period: a process blocked
+                  # on the hard-mounted NFS share cannot be killed, so an overrun
+                  # strands the pod in Terminating holding its RWO volume. These
+                  # three bound every wait in SessionImpl::~SessionImpl.
+                  #
+                  # A queued storage move makes saveResumeData() loop forever:
+                  # its 30s abort is gated on m_moveStorageQueue being empty.
+                  # Without a download path there are no move jobs at all.
+                  'Session\\TempPathEnabled': 'false',
+                  # Legacy writes one .fastresume file per torrent; SQLite is a
+                  # single transaction, so the 30s resume-data budget is never
+                  # the thing that runs out.
+                  'Session\\ResumeDataStorageType': 'SQLite',
+                  # Bounds the final libtorrent session abort, which defaults to
+                  # -1 (wait indefinitely).
+                  'Session\\ShutdownTimeout': '15',
               }
               changed = False
               for k, v in updates.items():
