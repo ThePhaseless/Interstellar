@@ -65,12 +65,15 @@ updates = {
     'Session\\MaxActiveTorrents': '-1',
     'Session\\MaxActiveDownloads': '20',
     'Session\\MaxActiveUploads': '-1',
-    # Thresholds are KiB/s; 977 KiB/s = 1 MB/s. Torrents slower
-    # than this for SlowTorrentsInactivityTimer stop consuming an
-    # active slot.
+    # Thresholds are KiB/s. Anything below them is exempt from
+    # MaxActiveDownloads, so a high value lets the limit be bypassed
+    # entirely. That matters because the pool is 5 HDDs in RAIDZ1, where
+    # many interleaved files turn sequential writes into random ones. Set
+    # low rather than disabling the exemption, so genuinely stalled
+    # torrents still cannot hold an active slot.
     'Session\\IgnoreSlowTorrentsForQueueing': 'true',
-    'Session\\SlowTorrentsDownloadRate': '977',
-    'Session\\SlowTorrentsUploadRate': '977',
+    'Session\\SlowTorrentsDownloadRate': '50',
+    'Session\\SlowTorrentsUploadRate': '50',
     # Config file stores speed limits in KiB/s while the WebAPI
     # reports bytes/s. 1 Gbit/s down and 300 Mbit/s up.
     'Session\\AlternativeGlobalDLSpeedLimit': '122070',
