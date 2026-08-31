@@ -115,6 +115,16 @@ spec:
                   # Bounds the final libtorrent session abort, which defaults to
                   # -1 (wait indefinitely).
                   'Session\\ShutdownTimeout': '15',
+                  # max_queued_disk_bytes. Its 1 MiB default is exceeded almost
+                  # immediately with dozens of torrents writing at once, and
+                  # libtorrent then throttles peers -- the "write disk cache
+                  # overload" warning, and download rates that sawtooth.
+                  'Session\\DiskQueueSize': '67108864',
+                  # Writes to the NFS share are latency-bound, not bandwidth-
+                  # bound: measured aggregate throughput rose 102 -> 512 MB/s
+                  # going from 1 to 32 concurrent writers. More threads keep
+                  # more writes in flight so the queue above actually drains.
+                  'Session\\AsyncIOThreadsCount': '32',
               }
               changed = False
               for k, v in updates.items():
