@@ -145,7 +145,7 @@ spec:
             defaultMode: 0755
         - name: downloads
           persistentVolumeClaim:
-            claimName: downloads-pvc
+            claimName: downloads-pool-pvc
         - name: media
           persistentVolumeClaim:
             claimName: media-pvc

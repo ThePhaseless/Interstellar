@@ -86,13 +86,10 @@ updates = {
     # A queued storage move makes saveResumeData() loop forever:
     # its 30s abort is gated on m_moveStorageQueue being empty.
     # Without a download path there are no move jobs at all.
-    # Deliberately false, not unused: turning it on relocates every in-progress
-    # torrent to TempPath at once, so only enable it while the already-
-    # downloaded bytes of incomplete torrents fit in the 231 GiB pool. Doing so
-    # also makes the move queue live again - saveResumeData() loops forever
-    # while it is non-empty, and ShutdownTimeout above is the backstop.
+    # NVMe-versus-HDD placement is mergerfs's job on the NFS server, not
+    # qBittorrent's, so a download path would buy nothing and cost the
+    # shutdown guarantee above.
     'Session\\TempPathEnabled': 'false',
-    'Session\\TempPath': '/downloads-ssd',
     # Legacy writes one .fastresume file per torrent; SQLite is a
     # single transaction, so the 30s resume-data budget is never
     # the thing that runs out.

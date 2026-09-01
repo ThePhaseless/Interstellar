@@ -167,6 +167,41 @@ spec:
     requests:
       storage: 231Gi
 ---
+# A mergerfs union on carbon: NVMe, HDD overflow, and the draining legacy
+# directory. Separate from /Storage/Media because both writable branches are
+# sync=disabled, confining that to re-downloadable torrent data.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: downloads-pool-nfs-pv
+spec:
+  capacity:
+    storage: 4Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: REPLACED_BY_KUSTOMIZE
+    path: /srv/downloads
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: downloads-pool-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: downloads-pool-nfs-pv
+  resources:
+    requests:
+      storage: 4Ti
+---
 # Photos (Immich) - utilities namespace
 apiVersion: v1
 kind: PersistentVolume

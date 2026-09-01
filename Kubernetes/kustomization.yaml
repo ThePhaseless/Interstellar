@@ -41,6 +41,11 @@ replacements:
           name: downloads-ssd-nfs-pv
         fieldPaths:
           - spec.nfs.server
+      - select:
+          kind: PersistentVolume
+          name: downloads-pool-nfs-pv
+        fieldPaths:
+          - spec.nfs.server
 
 labels:
   - includeSelectors: false

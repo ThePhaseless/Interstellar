@@ -49,8 +49,6 @@ spec:
               mountPath: /config
             - name: downloads
               mountPath: /downloads
-            - name: downloads-ssd
-              mountPath: /downloads-ssd
           resources:
             requests:
               cpu: 100m
@@ -81,7 +79,4 @@ spec:
             claimName: qbittorrent-config
         - name: downloads
           persistentVolumeClaim:
-            claimName: downloads-pvc
-        - name: downloads-ssd
-          persistentVolumeClaim:
-            claimName: downloads-ssd-pvc
+            claimName: downloads-pool-pvc

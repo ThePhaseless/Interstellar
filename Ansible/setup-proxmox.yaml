@@ -68,7 +68,7 @@
       ansible.builtin.lineinfile:
         path: /etc/exports
         regexp: "^{{ item.path | regex_escape }}\\s"
-        line: "{{ item.path }} {{ nfs_allowed_hosts | map('regex_replace', '$', '(rw,sync,no_subtree_check,no_root_squash)') | join(' ') }}"
+        line: "{{ item.path }} {{ nfs_allowed_hosts | map('regex_replace', '$', '(' ~ (item.options | default(nfs_default_export_options)) ~ ')') | join(' ') }}"
         state: present
       loop: "{{ nfs_exports }}"
       notify: Re-export NFS shares
@@ -304,6 +304,54 @@
       changed_when: false # idempotent: zfs set is a no-op if already set
       tags:
         - power
+
+    # Set locally, never on a parent: inherited, this would silently make
+    # every future directory under Storage non-durable.
+    - name: Create download datasets with sync disabled
+      ansible.builtin.command:
+        cmd: >-
+          zfs create -p -o sync=disabled -o recordsize=1M -o compression=off {{ item }}
+      register: dl_dataset
+      changed_when: dl_dataset.rc == 0
+      failed_when: dl_dataset.rc != 0 and 'dataset already exists' not in dl_dataset.stderr
+      loop:
+        - ssdstage/dl
+        - Storage/dl
+      tags:
+        - storage
+
+    - name: Enforce sync=disabled on the download datasets
+      ansible.builtin.command:
+        cmd: zfs set sync=disabled {{ item }}
+      changed_when: false # idempotent: zfs set is a no-op if already set
+      loop:
+        - ssdstage/dl
+        - Storage/dl
+      tags:
+        - storage
+
+    - name: Install mergerfs for the download pool
+      ansible.builtin.apt:
+        name: mergerfs
+        state: present
+      tags:
+        - storage
+
+    # NC keeps the legacy branch writable for torrents already seeding there
+    # while excluding it from new files; moveonenospc relocates a torrent that
+    # outgrows the NVMe mid-download.
+    - name: Mount the download pool union
+      ansible.posix.mount:
+        path: /srv/downloads
+        src: /ssdstage/dl=RW:/Storage/dl=RW:/Storage/Media/Downloads=NC
+        fstype: fuse.mergerfs
+        opts: >-
+          category.create=ff,minfreespace=25G,moveonenospc=true,noforget,
+          inodecalc=path-hash,cache.files=partial,dropcacheonclose=true,allow_other,
+          x-systemd.requires=zfs-mount.service,x-systemd.before=nfs-server.service,_netdev
+        state: mounted
+      tags:
+        - storage
 
     - name: Configure ZFS module parameters for power and memory
       ansible.builtin.copy:
