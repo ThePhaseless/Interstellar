@@ -1,6 +1,14 @@
 # Joined with commas at use: a folded scalar would splice in spaces, and the
 # mount module then sees opts that differ from fstab and tries to remount --
 # which fails, because knfsd holds the export busy.
+# Sized so a runaway grab cannot push the pool into the range where ZFS
+# write performance collapses; raise only alongside pool capacity.
+downloads_hdd_quota: 2T
+
+fan_control_chip: nct6797
+fan_control_pwm1: 30
+fan_control_pwm2: 60
+
 downloads_pool_mount_opts:
   - category.create=ff
   - minfreespace=25G

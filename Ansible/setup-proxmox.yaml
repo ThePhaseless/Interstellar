@@ -170,6 +170,35 @@
       tags:
         - power
 
+    # hwmon indices are assignment order, not identity - a reboot can leave the
+    # old index pointing at an nvme sensor, and the unit then fails silently
+    # with the fans back on automatic. Resolve the controller by name.
+    - name: Configure manual fan control
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/fan-control.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Manual fan speed control
+          After=multi-user.target
+          Before=power-tuning.service
+
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          ExecStart=/bin/sh -c 'for h in /sys/class/hwmon/hwmon*; do \
+            [ "$(cat "$h/name" 2>/dev/null)" = "{{ fan_control_chip }}" ] || continue; \
+            echo 1 > "$h/pwm1_enable"; echo {{ fan_control_pwm1 }} > "$h/pwm1"; \
+            echo 1 > "$h/pwm2_enable"; echo {{ fan_control_pwm2 }} > "$h/pwm2"; \
+            exit 0; \
+          done; echo "no hwmon named {{ fan_control_chip }}" >&2; exit 1'
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Reload systemd and restart fan control
+      tags:
+        - power
+
     - name: Create powertop auto-tune service
       ansible.builtin.copy:
         dest: /etc/systemd/system/powertop-auto-tune.service
@@ -334,6 +363,16 @@
       tags:
         - storage
 
+    # Bounds downloads to a share of the pool: past ~90% ZFS write throughput
+    # collapses and stalls nfsd for every client. Hitting the quota instead
+    # errors individual torrents, which is visible and recoverable.
+    - name: Cap the HDD download dataset so it cannot fill the pool
+      ansible.builtin.command:
+        cmd: zfs set quota={{ downloads_hdd_quota }} Storage/dl
+      changed_when: false # idempotent: zfs set is a no-op if already set
+      tags:
+        - storage
+
     - name: Install mergerfs for the download pool
       ansible.builtin.apt:
         name: mergerfs
@@ -452,6 +491,15 @@
       ansible.builtin.systemd:
         name: powertop-auto-tune
         state: restarted
+        daemon_reload: true
+      tags:
+        - power
+
+    - name: Reload systemd and restart fan control
+      ansible.builtin.systemd:
+        name: fan-control
+        state: restarted
+        enabled: true
         daemon_reload: true
       tags:
         - power

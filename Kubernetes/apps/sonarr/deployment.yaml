@@ -68,7 +68,9 @@ spec:
               memory: 256Mi
             limits:
               cpu: 1000m
-              memory: 1Gi
+              # Idles near 260Mi but spikes past 1Gi during large searches, and
+              # the s6 cgroup OOM kills the whole container when it does.
+              memory: 2Gi
           livenessProbe:
             httpGet:
               path: /ping
