@@ -31,7 +31,7 @@ datasets and cannot spread by inheritance.
 The `NC` branch is a drain-only tier: as old torrents finish seeding and are
 removed it empties, and can eventually be dropped from the union entirely.
 
-## Validated by test (2026-09-01)
+## Validated by test before rollout (2026-09-01)
 
 Run against scratch datasets on carbon, then torn down completely:
 
@@ -48,6 +48,20 @@ Run against scratch datasets on carbon, then torn down completely:
 Throughput, 512 MiB sequential to the NVMe: 139 MB/s through FUSE+NFS versus
 168 MB/s plain NFS — roughly 20% for FUSE, against a workload that peaks near
 60 MB/s. Two to ten times more headroom than needed.
+
+## As built (2026-09-01)
+
+Implemented and live. The 37 incomplete torrents were relocated first — 25 onto
+the NVMe (78 GiB, projected 157 GiB at completion) and 12 onto the HDD dataset
+(396 GiB) — so nothing had to be re-fetched. 2.0 TiB of completed seeders stayed
+on the legacy branch to drain.
+
+After cutover: `write_cache_overload` 44% -> 0%, `queued_io_jobs` 6018 -> 0,
+106 torrents resumed with zero rechecks and zero missing files.
+
+Allocation to the NVMe was by *projected final* size, not current size: these
+files are sparse, so packing by today's footprint would fill the pool as they
+grow and trigger a `moveonenospc` copy per torrent.
 
 ## Steps
 
