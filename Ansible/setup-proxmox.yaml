@@ -68,7 +68,11 @@
       ansible.builtin.lineinfile:
         path: /etc/exports
         regexp: "^{{ item.path | regex_escape }}\\s"
-        line: "{{ item.path }} {{ nfs_allowed_hosts | map('regex_replace', '$', '(' ~ (item.options | default(nfs_default_export_options)) ~ ')') | join(' ') }}"
+        line: >-
+          {{ item.path }}
+          {{ nfs_allowed_hosts
+             | map('regex_replace', '$', '(' ~ (item.options | default(nfs_default_export_options)) ~ ')')
+             | join(' ') }}
         state: present
       loop: "{{ nfs_exports }}"
       notify: Re-export NFS shares
@@ -345,10 +349,7 @@
         path: /srv/downloads
         src: /ssdstage/dl=RW:/Storage/dl=RW:/Storage/Media/Downloads=NC
         fstype: fuse.mergerfs
-        opts: >-
-          category.create=ff,minfreespace=25G,moveonenospc=true,noforget,
-          inodecalc=path-hash,cache.files=partial,dropcacheonclose=true,allow_other,
-          x-systemd.requires=zfs-mount.service,x-systemd.before=nfs-server.service,_netdev
+        opts: "{{ downloads_pool_mount_opts | join(',') }}"
         state: mounted
       tags:
         - storage

@@ -1,3 +1,19 @@
+# Joined with commas at use: a folded scalar would splice in spaces, and the
+# mount module then sees opts that differ from fstab and tries to remount --
+# which fails, because knfsd holds the export busy.
+downloads_pool_mount_opts:
+  - category.create=ff
+  - minfreespace=25G
+  - moveonenospc=true
+  - noforget
+  - inodecalc=path-hash
+  - cache.files=partial
+  - dropcacheonclose=true
+  - allow_other
+  - x-systemd.requires=zfs-mount.service
+  - x-systemd.before=nfs-server.service
+  - _netdev
+
 nfs_default_export_options: rw,sync,no_subtree_check,no_root_squash
 
 nfs_exports:
