@@ -90,6 +90,11 @@ updates = {
     # qBittorrent's, so a download path would buy nothing and cost the
     # shutdown guarantee above.
     'Session\\TempPathEnabled': 'false',
+    # Renaming X.mkv.!qB to X.mkv on completion changes the inode mergerfs
+    # synthesises from the path, and the NFS client answers a fileid it did not
+    # expect by marking the inode stale. Enough of those wedge a client hard
+    # enough that the node cannot unmount, and so cannot reboot.
+    'Session\\AddExtensionToIncompleteFiles': 'false',
     # Legacy writes one .fastresume file per torrent; SQLite is a
     # single transaction, so the 30s resume-data budget is never
     # the thing that runs out.
