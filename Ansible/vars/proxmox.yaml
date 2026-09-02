@@ -9,6 +9,12 @@ fan_control_chip: nct6797
 fan_control_pwm1: 30
 fan_control_pwm2: 60
 
+# The NVMe branch needs its own floor because the global minfreespace is
+# measured against sparse files: a 79G torrent occupies 0.9G when created, so
+# 25G never trips and the branch accepts far more than it can ever hold.
+# Reserved as growth room for the torrents already there.
+downloads_ssd_minfreespace: 75G
+
 downloads_pool_mount_opts:
   - category.create=ff
   - minfreespace=25G

@@ -97,6 +97,12 @@ Branch order is the create order: NVMe first, HDD overflow second. The `NC` mode
 on the third branch is what keeps new downloads off the `sync=standard` dataset
 while leaving the torrents already there fully functional.
 
+The NVMe branch carries its own `minfreespace` (`/ssdstage/dl=RW,75G`), set from
+`downloads_ssd_minfreespace`. It is growth room for the torrents already on the
+branch, not a create threshold in the usual sense — see below for why the global
+value cannot serve that purpose. Measured 2026-09-02: the branch held 199 GiB of
+data that will grow to 898 GiB, on a 238 GiB device.
+
 `minfreespace=25G` was chosen against the ~24 GiB average torrent, on the theory
 that a new torrent only starts on the NVMe if it can plausibly finish there.
 **This does not hold, and the average was the wrong statistic.** mergerfs decides

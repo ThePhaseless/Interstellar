@@ -396,11 +396,12 @@
 
     # NC keeps the legacy branch writable for torrents already seeding there
     # while excluding it from new files; moveonenospc relocates a torrent that
-    # outgrows the NVMe mid-download.
+    # outgrows the NVMe mid-download -- as a dense copy, which is why both
+    # datasets carry compression (see the zfs tasks above).
     - name: Mount the download pool union
       ansible.posix.mount:
         path: /srv/downloads
-        src: /ssdstage/dl=RW:/Storage/dl=RW:/Storage/Media/Downloads=NC
+        src: /ssdstage/dl=RW,{{ downloads_ssd_minfreespace }}:/Storage/dl=RW:/Storage/Media/Downloads=NC
         fstype: fuse.mergerfs
         opts: "{{ downloads_pool_mount_opts | join(',') }}"
         state: mounted
