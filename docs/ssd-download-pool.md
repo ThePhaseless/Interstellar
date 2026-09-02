@@ -68,12 +68,19 @@ grow and trigger a `moveonenospc` copy per torrent.
 ### 1. The two download datasets
 
 ```
-zfs create -o sync=disabled -o recordsize=1M -o compression=off ssdstage/dl
-zfs create -o sync=disabled -o recordsize=1M -o compression=off Storage/dl
+zfs create -o sync=disabled -o recordsize=1M -o compression=zle ssdstage/dl
+zfs create -o sync=disabled -o recordsize=1M -o compression=zle Storage/dl
 ```
 
 `sync=disabled` is set **locally** on each, never inherited from a parent, so it
 cannot spread to anything else. Both are created empty — no migration.
+
+`compression=zle` is not there to shrink the payload — torrent data is already
+compressed and the ratio stays at `1.00x`. It is there because ZFS only checks
+for all-zero blocks when compression is set to something other than `off`, and
+that check is what absorbs the zeros `moveonenospc` writes (see Operational
+notes). `zle` encodes runs of zeros and nothing else, so the check costs
+essentially nothing on incompressible video.
 
 ### 2. mergerfs on carbon
 
@@ -90,9 +97,16 @@ Branch order is the create order: NVMe first, HDD overflow second. The `NC` mode
 on the third branch is what keeps new downloads off the `sync=standard` dataset
 while leaving the torrents already there fully functional.
 
-`minfreespace=25G` exceeds the ~24 GiB average torrent, so a new torrent only
-starts on the NVMe if it can plausibly finish there; `moveonenospc` catches the
-rest.
+`minfreespace=25G` was chosen against the ~24 GiB average torrent, on the theory
+that a new torrent only starts on the NVMe if it can plausibly finish there.
+**This does not hold, and the average was the wrong statistic.** mergerfs decides
+on the branch's *current* free space, but qBittorrent creates its files sparse —
+a 79 GiB torrent occupies 0.9 GiB at creation, so the threshold never trips and
+new torrents keep being admitted. Measured 2026-09-02: 609 GiB of apparent size
+committed to a 238 GiB pool, which then ran to 0 B free. `moveonenospc` catches
+the overflow, and with `compression=zle` that is now cheap, but placement is
+over-committed by design and the tail size (79 GiB), not the average, is what
+sets the risk.
 
 ### 3. Export and PV
 
@@ -133,6 +147,21 @@ design supersedes.
 
 ## Operational notes
 
+- **`moveonenospc` relocation is not sparse-aware, and cannot be made so.**
+  mergerfs copies with `sendfile()` — the binary imports `sendfile64`, not
+  `copy_file_range`, and does no `lseek(SEEK_HOLE/SEEK_DATA)` extent walk the way
+  `cp --sparse=always` and `rsync -S` do. `FICLONE` is impossible rather than
+  unimplemented: per `man mergerfs`, FUSE has no `clone_file_range`, so mergerfs
+  never sees the request. A relocated torrent therefore arrives at full apparent
+  size. `compression=zle` on both datasets is what makes that free — ZFS stores
+  the all-zero records as holes instead of allocating them. Two limits: the check
+  is per-record and `recordsize=1M`, so a hole only vanishes if it spans a full
+  aligned 1 MiB record; and the property affects only newly-written data, so
+  files inflated before it was set need `fallocate -d` or a rewrite.
+- **mergerfs never moves a file back up to the NVMe.** There is no rebalancer;
+  `moveonenospc` fires only on a failing write and only moves downward. Anything
+  that overflows to the HDD seeds from there for good, and the NVMe recycles only
+  as completed torrents are deleted.
 - **A mergerfs restart is not a clean stop/start while exported.** knfsd holds a
   reference; `umount` fails with `EBUSY` until `exportfs -f` flushes the export
   cache. Sequence: `exportfs -u`, `exportfs -f`, `umount`, remount, re-export.

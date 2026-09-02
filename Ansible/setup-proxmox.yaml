@@ -338,12 +338,22 @@
       tags:
         - power
 
+    # Storage already carries zstd. Compression is safe to inherit -- unlike
+    # sync below it costs no durability -- and without it every future dataset
+    # on this pool starts with the all-zero-block check disabled.
+    - name: Enable zero-block elision on the NVMe pool root
+      ansible.builtin.command:
+        cmd: zfs set compression=zle ssdstage
+      changed_when: false # idempotent: zfs set is a no-op if already set
+      tags:
+        - storage
+
     # Set locally, never on a parent: inherited, this would silently make
     # every future directory under Storage non-durable.
     - name: Create download datasets with sync disabled
       ansible.builtin.command:
         cmd: >-
-          zfs create -p -o sync=disabled -o recordsize=1M -o compression=off {{ item }}
+          zfs create -p -o sync=disabled -o recordsize=1M -o compression=zle {{ item }}
       register: dl_dataset
       changed_when: dl_dataset.rc == 0
       failed_when: dl_dataset.rc != 0 and 'dataset already exists' not in dl_dataset.stderr
@@ -353,9 +363,13 @@
       tags:
         - storage
 
-    - name: Enforce sync=disabled on the download datasets
+    # zle is not for the payload -- torrent data is already compressed. Any
+    # setting but off re-enables ZFS's all-zero-block check, and mergerfs
+    # relocates with sendfile(), which turns every hole in a sparse torrent
+    # into real zeros on arrival.
+    - name: Enforce sync and compression on the download datasets
       ansible.builtin.command:
-        cmd: zfs set sync=disabled {{ item }}
+        cmd: zfs set sync=disabled compression=zle {{ item }}
       changed_when: false # idempotent: zfs set is a no-op if already set
       loop:
         - ssdstage/dl
@@ -437,9 +451,9 @@
         cmd: sh -c 'echo {{ item.value }} > /sys/module/zfs/parameters/{{ item.name }}'
       changed_when: false
       loop:
-        - {name: zfs_vdev_async_write_max_active, value: 32}
-        - {name: zfs_vdev_async_write_active_min_dirty_percent, value: 10}
-        - {name: zfs_dirty_data_max, value: 12884901888}
+        - { name: zfs_vdev_async_write_max_active, value: 32 }
+        - { name: zfs_vdev_async_write_active_min_dirty_percent, value: 10 }
+        - { name: zfs_dirty_data_max, value: 12884901888 }
       tags:
         - power
 
