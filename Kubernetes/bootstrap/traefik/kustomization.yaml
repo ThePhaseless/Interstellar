@@ -192,3 +192,15 @@ helmCharts:
             matchLabels:
               app.kubernetes.io/name: traefik
               app.kubernetes.io/instance: traefik
+
+patches:
+  - target:
+      kind: Deployment
+      name: traefik
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: traefik
+        annotations:
+          argocd.argoproj.io/sync-options: ServerSideApply=true
