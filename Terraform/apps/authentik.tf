@@ -500,8 +500,16 @@ resource "authentik_policy_binding" "jellyfin_access" {
   order  = 0
 }
 
-# No access policy: any Google account may sign in, and copyparty applies its own
-# volume ACLs from the X-authentik-groups header (writers upload, admins full).
+resource "authentik_policy_expression" "any_user" {
+  name       = "any-user"
+  expression = "return True"
+}
+
+resource "authentik_policy_binding" "copyparty_access" {
+  target = authentik_application.copyparty.uuid
+  policy = authentik_policy_expression.any_user.id
+  order  = 0
+}
 
 resource "authentik_application" "copyparty" {
   name              = "Copyparty"
