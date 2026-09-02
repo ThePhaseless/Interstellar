@@ -204,3 +204,13 @@ patches:
         name: traefik
         annotations:
           argocd.argoproj.io/sync-options: ServerSideApply=true
+  - target:
+      kind: Service
+      name: traefik
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: traefik
+        annotations:
+          argocd.argoproj.io/sync-options: ServerSideApply=true
