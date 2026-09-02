@@ -8,10 +8,17 @@ job_defaults:
   max_strikes: 3
 
 jobs:
+  # A transient storage fault errors a torrent rather than slowing it: ENOSPC
+  # on a full branch, or ESTALE when a fileid changes under the NFS client.
+  # Those episodes have lasted over two hours, and at the 30-minute default
+  # both jobs delete a half-finished download and blocklist its release.
+  # Timer is 10 minutes, so 18 strikes is three hours.
   remove_failed_downloads:
+    max_strikes: 18
   remove_failed_imports:
   remove_metadata_missing:
   remove_missing_files:
+    max_strikes: 18
   # Orphan detection diffs two separate queue reads, so one momentary misread
   # marks every in-progress download an orphan.
   remove_orphans:
