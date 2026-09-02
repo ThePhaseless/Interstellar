@@ -85,6 +85,9 @@ helmCharts:
                 - main: "nerine.dev"
                   sans:
                     - "*.nerine.dev"
+          http3:
+            enabled: true
+            advertisedPort: 443
       # Service
       service:
         spec:
