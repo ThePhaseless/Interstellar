@@ -110,3 +110,12 @@ resource "jellyfin_system_configuration" "this" {
   # their only way to authenticate Seerr against Jellyfin.
   quick_connect_available = true
 }
+
+# Separate from the key the provider itself authenticates with, so revoking
+# one does not lock Terraform out of Jellyfin.
+resource "jellyfin_api_key" "servarr" {
+  app_name = "Servarr"
+
+  # Sonarr and Radarr test-connect to Jellyfin when saving their connection.
+  depends_on = [jellyfin_restart.jellyfin_security]
+}

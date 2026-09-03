@@ -40,6 +40,18 @@ variable "radarr_movie_category" {
   default     = "movies"
 }
 
+variable "jellyfin_host" {
+  type        = string
+  description = "Jellyfin cluster-internal host (stored in Sonarr/Radarr connection config)"
+  default     = "jellyfin.media.svc.cluster.local"
+}
+
+variable "jellyfin_port" {
+  type        = number
+  description = "Jellyfin port"
+  default     = 8096
+}
+
 variable "byparr_url" {
   type        = string
   description = "Byparr (FlareSolverr-compatible) cluster-internal URL"

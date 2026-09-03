@@ -188,3 +188,39 @@ resource "sonarr_media_management" "series" {
   skip_free_space_check       = false
   unmonitor_previous_episodes = false
 }
+
+resource "sonarr_notification_emby" "jellyfin" {
+  name    = "Jellyfin"
+  host    = var.jellyfin_host
+  port    = var.jellyfin_port
+  api_key = jellyfin_api_key.servarr.access_token
+  use_ssl = false
+
+  update_library = true
+  notify         = false
+
+  on_download                        = true
+  on_upgrade                         = true
+  on_rename                          = true
+  on_series_delete                   = true
+  on_episode_file_delete             = true
+  on_episode_file_delete_for_upgrade = true
+}
+
+resource "radarr_notification_emby" "jellyfin" {
+  name    = "Jellyfin"
+  host    = var.jellyfin_host
+  port    = var.jellyfin_port
+  api_key = jellyfin_api_key.servarr.access_token
+  use_ssl = false
+
+  update_library = true
+  notify         = false
+
+  on_download                      = true
+  on_upgrade                       = true
+  on_rename                        = true
+  on_movie_delete                  = true
+  on_movie_file_delete             = true
+  on_movie_file_delete_for_upgrade = true
+}

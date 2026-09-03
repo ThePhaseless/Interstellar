@@ -123,7 +123,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-jellyfin-from-seerr
+  name: allow-jellyfin-from-media-apps
   namespace: media
 spec:
   policyTypes: [Ingress]
@@ -133,8 +133,10 @@ spec:
   ingress:
     - from:
         - podSelector:
-            matchLabels:
-              app: seerr
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [seerr, sonarr, radarr]
       ports:
         - {protocol: TCP, port: 8096}
 ---
