@@ -28,7 +28,6 @@ resources:
   # Utilities
   - postfix/
   - copyparty/
-  - copyparty-dav/
   - immich/
   - adguard/
   - cloudflare-ddns/

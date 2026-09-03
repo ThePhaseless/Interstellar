@@ -104,7 +104,7 @@ flowchart TB
 
 | Service      | Access            | Description                   |
 | ------------ | ----------------- | ----------------------------- |
-| Copyparty    | Tailscale + OAuth | File sharing (GPU processing) |
+| Copyparty    | OAuth             | File sharing (GPU processing) |
 | Immich       | Tailscale         | Photo management (ML on GPU)  |
 | AdGuard Home | Tailscale         | DNS + ad blocking             |
 | MCPJungle    | Internal          | MCP server aggregator         |

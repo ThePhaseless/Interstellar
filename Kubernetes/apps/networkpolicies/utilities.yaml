@@ -33,29 +33,6 @@ spec:
         - {protocol: TCP, port: 3923} # copyparty
         - {protocol: TCP, port: 2283} # immich
 ---
-# copyparty's Tailscale LoadBalancer bypasses Traefik, so the operator's proxy
-# pod is the second legitimate caller — but it reaches copyparty-dav, never the
-# IdP-enabled copyparty. The operator DNATs at L3 (tailscale/tailscale#11024),
-# so the client picks its own headers and the source IP lands in the pod CIDR;
-# copyparty-dav configures no IdP at all, which is what makes that harmless.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-copyparty-tailscale-proxy
-  namespace: utilities
-spec:
-  policyTypes: [Ingress]
-  podSelector:
-    matchLabels:
-      app: copyparty-dav
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: tailscale
-      ports:
-        - {protocol: TCP, port: 3923}
----
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
