@@ -4,7 +4,7 @@ collections:
   - name: artis3n.tailscale
     version: "==1.2.1"
   - name: community.docker
-    version: "==5.2.2"
+    version: "==5.3.0"
 
 roles:
   - name: geerlingguy.docker
