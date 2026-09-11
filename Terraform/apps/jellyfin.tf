@@ -33,7 +33,7 @@ resource "jellyfin_plugin" "jellyfin_security" {
   # Pinned rather than omitted because the attribute is UseStateForUnknown, so
   # an omitted version resolves "latest" once at create and never again.
   # renovate: datasource=custom.jellyfin-security-manifest depName=JellyfinSecurity versioning=loose
-  version        = "2.5.22.0"
+  version        = "2.6.0.1"
   repository_url = local.jellyfin_security_plugin_repository_url
 }
 
