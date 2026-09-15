@@ -21,8 +21,12 @@
     'jellyfin-security-manifest': {
       defaultRegistryUrlTemplate: 'https://raw.githubusercontent.com/ZL154/JellyfinSecurity/main/manifest.json',
       format: 'json',
+      // Upstream publishes each release twice, once per Jellyfin ABI, and the
+      // Jellyfin 12 build sorts above its 10.11 twin under loose versioning.
+      // The server silently declines a newer-ABI plugin, so `jellyfin_plugin`
+      // times out rather than erroring. Raise to 11/12 when the server moves.
       transformTemplates: [
-        '{"releases": [$[0].versions.{"version": version}]}',
+        '{"releases": [$[0].versions[$split(targetAbi, ".")[0] = "10"].{"version": version}]}',
       ],
     },
   },
