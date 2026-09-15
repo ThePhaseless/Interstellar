@@ -50,12 +50,17 @@ spec:
               gpu.intel.com/xe: "1"
             limits:
               gpu.intel.com/xe: "1"
+          # /health answers from Kestrel directly, so it stays 200 while a
+          # plugin breaks every static asset. index.html goes through the File
+          # Transformation pipeline, so probing it catches that.
           livenessProbe:
             httpGet:
-              path: /health
+              path: /web/index.html
               port: http
             initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
