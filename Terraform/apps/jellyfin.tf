@@ -81,9 +81,12 @@ resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
       additional_allowed_cidrs    = ["192.168.0.0/16"]
 
       # Without this, omit_prompt_login lets the next sign-in back through
-      # with no credentials.
+      # with no credentials. Authentik requires id_token_hint for
+      # post_logout_redirect_uri, which the plugin does not retain, so
+      # omit rp_initiated_logout_redirect_uri to end the Authentik session
+      # and land on Authentik's sign-in page without tripping a 400.
       rp_initiated_logout_enabled      = true
-      rp_initiated_logout_redirect_uri = "https://watch.${var.authentik_domain}/TwoFactorAuth/Oidc/LoggedOut"
+      rp_initiated_logout_redirect_uri = ""
     }
   ]
 }

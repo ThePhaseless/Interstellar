@@ -3,7 +3,7 @@ data "authentik_flow" "default-authorization-flow" {
 }
 
 data "authentik_flow" "default-invalidation-flow" {
-  slug = "default-provider-invalidation-flow"
+  slug = "default-invalidation-flow"
 }
 
 data "authentik_certificate_key_pair" "default" {
@@ -461,12 +461,6 @@ resource "authentik_provider_oauth2" "jellyfin" {
       matching_mode     = "strict"
       redirect_uri_type = "authorization"
       url               = "http://localhost:8096/TwoFactorAuth/Oidc/Callback/authentik"
-    },
-    {
-      # https only: the plugin drops a post_logout_redirect_uri that is not absolute https.
-      matching_mode     = "strict"
-      redirect_uri_type = "logout"
-      url               = "https://watch.${var.authentik_domain}/TwoFactorAuth/Oidc/LoggedOut"
     }
   ]
 }
