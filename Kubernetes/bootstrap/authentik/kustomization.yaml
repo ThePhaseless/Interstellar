@@ -22,10 +22,6 @@ helmCharts:
           enabled: false
         postgresql:
           password: "" # Set via AUTHENTIK_POSTGRESQL__PASSWORD env var from secret
-          # Chart default is the bare "authentik-postgresql", which ndots:5
-          # expands against every search domain -- up to 5 lookups per family
-          # for one connect, each a chance to time out. Paired with ndots:2
-          # below this resolves absolutely in one query.
           host: authentik-postgresql.authentik.svc.cluster.local
         email:
           host: "postfix.utilities.svc.cluster.local"
@@ -58,9 +54,6 @@ helmCharts:
       server:
         ingress:
           enabled: false # Using Traefik IngressRoute instead
-        # Chart defaults (3s timeout, 3 failures over 30s) kill a healthy
-        # server whenever Longhorn rebuild load slows the reply. Matches the
-        # worker's tolerances below.
         livenessProbe:
           timeoutSeconds: 10
           periodSeconds: 20
@@ -73,17 +66,9 @@ helmCharts:
           timeoutSeconds: 10
           periodSeconds: 20
           failureThreshold: 90
-        # glibc resolves A and AAAA in parallel over one socket, and the
-        # conntrack DNAT race drops one often enough that resolving
-        # authentik-postgresql fails on startup. The Python bootstrap retries
-        # and wins; the Rust component (ak-common/src/db.rs) exits instead, so
-        # the pod crash-looped hourly. single-request-reopen uses a separate
-        # socket per query.
         dnsConfig:
           options:
             - name: single-request-reopen
-            # Bare names (0 dots) still use the search list; anything already
-            # qualified resolves in one query instead of five.
             - name: ndots
               value: "2"
 
