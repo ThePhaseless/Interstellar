@@ -26,7 +26,11 @@ helmCharts:
         # etcd shares the rpool NVMe mirror with these volumes, so the ceiling
         # is its raft fsync latency, not Longhorn throughput. 2 starves it.
         concurrentAutomaticEngineUpgradePerNodeLimit: 1
-        concurrentReplicaRebuildPerNodeLimit: 1
+        # TEMPORARY 0 (2026-09-21): rebuild reads saturate the mirror until
+        # replica IO passes engineReplicaTimeout, and the volume then returns
+        # errors that abort guest ext4 journals — which restarts the workload
+        # and schedules more rebuilds. Restore to 1 once the pool is quiet.
+        concurrentReplicaRebuildPerNodeLimit: 0
         engineReplicaTimeout: 30
       persistence:
         defaultDataLocality: best-effort
