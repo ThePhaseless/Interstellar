@@ -82,6 +82,10 @@ spec:
 
         - name: api-extractor
           image: bitnami/kubectl:latest
+          # Always-pull on :latest makes every restart depend on the node
+          # resolving registry-1.docker.io; one node's DNS faltering then
+          # leaves the app in ImagePullBackOff with the image already cached.
+          imagePullPolicy: IfNotPresent
           command:
             [
               "/bin/bash",
