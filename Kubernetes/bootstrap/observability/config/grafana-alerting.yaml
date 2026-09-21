@@ -1044,7 +1044,9 @@ groups:
               type: threshold
         dashboardUid: ""
         panelId: 0
-        noDataState: Alerting
+        # NoData means the datasource is not answering, not that a
+        # Longhorn node vanished.
+        noDataState: OK
         execErrState: Error
         for: 10m
         annotations:
