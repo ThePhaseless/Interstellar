@@ -24,10 +24,7 @@ helmCharts:
         defaultDataLocality: best-effort
         # Reduce upgrade/rebuild blast radius to avoid cluster-wide IO storms.
         # etcd shares the rpool NVMe mirror with these volumes, so the ceiling
-        # is its raft fsync latency, not Longhorn throughput: at 2, rebuilds
-        # pushed rpool to 112 MB/s read and every txg into its dirty threshold,
-        # and kubelet lease writes began failing with `etcdserver: request
-        # timed out`.
+        # is its raft fsync latency, not Longhorn throughput. 2 starves it.
         concurrentAutomaticEngineUpgradePerNodeLimit: 1
         concurrentReplicaRebuildPerNodeLimit: 1
         engineReplicaTimeout: 30
