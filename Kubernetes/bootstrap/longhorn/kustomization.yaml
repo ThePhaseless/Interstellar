@@ -25,6 +25,11 @@ helmCharts:
         # Reduce upgrade/rebuild blast radius to avoid cluster-wide IO storms.
         concurrentAutomaticEngineUpgradePerNodeLimit: 1
         concurrentReplicaRebuildPerNodeLimit: 1
+        # A replica serving rebuild reads alongside live IO can exceed the 8s
+        # default; the engine then faults it, which schedules another rebuild
+        # and makes the next timeout likelier, so a large recovery can fail to
+        # converge. 30 is the maximum Longhorn accepts.
+        engineReplicaTimeout: 30
       persistence:
         defaultDataLocality: best-effort
 
