@@ -428,14 +428,11 @@
           options zfs zfs_vdev_async_write_max_active=32
           options zfs zfs_vdev_async_write_active_min_dirty_percent=10
           # Global, not per-pool, so rpool (etcd + every VM disk) runs the 30s txg
-          # meant for the idle HDD pool. Sized so a sync stays short enough that
-          # etcd's raft fsyncs never miss a heartbeat: at 12 GiB the size trigger
-          # (20%) sat above what rpool dirties in 30s, so the timeout won and each
-          # txg flushed ~1.8 GiB in one 6-25s sync, costing leader elections. 1 GiB
-          # still let a Longhorn rebuild burst reach 631 MiB and 3.9s, which fails
-          # etcd's health check and flaps the node. At 256 MiB a burst caps near
-          # 150 MiB, measured at well under a second. Storage dirties nothing, so
-          # it still spins down.
+          # meant for the idle HDD pool. Size it so a sync stays short enough that
+          # etcd's raft fsyncs never queue behind one: at 1 GiB a Longhorn rebuild
+          # burst still reached 631 MiB and a 3.9s sync, which fails etcd's health
+          # check and flaps the node. 256 MiB caps a burst near 150 MiB, measured
+          # well under a second. Storage dirties nothing, so it still spins down.
           options zfs zfs_dirty_data_max=268435456
       notify: Update initramfs and refresh Proxmox boot
       tags:
