@@ -53,6 +53,21 @@ helmCharts:
       server:
         ingress:
           enabled: false # Using Traefik IngressRoute instead
+        # Chart defaults (3s timeout, 3 failures over 30s) kill a healthy
+        # server whenever Longhorn rebuild load slows the reply. Matches the
+        # worker's tolerances below.
+        livenessProbe:
+          timeoutSeconds: 10
+          periodSeconds: 20
+          failureThreshold: 6
+        readinessProbe:
+          timeoutSeconds: 10
+          periodSeconds: 20
+          failureThreshold: 6
+        startupProbe:
+          timeoutSeconds: 10
+          periodSeconds: 20
+          failureThreshold: 90
         # glibc resolves A and AAAA in parallel over one socket, and the
         # conntrack DNAT race drops one often enough that resolving
         # authentik-postgresql fails on startup. The Python bootstrap retries
