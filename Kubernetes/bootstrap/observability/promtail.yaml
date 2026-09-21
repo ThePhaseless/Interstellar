@@ -59,10 +59,12 @@ spec:
               readOnly: true
           resources:
             requests:
-              cpu: 10m
+              cpu: 50m
               memory: 64Mi
             limits:
-              cpu: 100m
+              # Log shipping is bursty: average use is ~10m but spikes peg
+              # the limit, and throttling here delays log-based alerting.
+              cpu: 500m
               memory: 256Mi
           securityContext:
             readOnlyRootFilesystem: true
