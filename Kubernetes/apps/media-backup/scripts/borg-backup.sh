@@ -64,6 +64,11 @@ chmod 600 ~/.ssh/config
 
 export BORG_RSH="ssh -p 23 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30"
 
+# Every backup CronJob shares one repo, so an overrunning job holds the lock
+# while the next one starts. Borg's default wait is 1s, which turns that
+# overlap into a failed Job even though the archive itself succeeded.
+export BORG_LOCK_WAIT="${BORG_LOCK_WAIT:-1800}"
+
 BORG_USER=$(echo "$BORG_REPO" | sed -n 's|ssh://\([^@]*\)@.*|\1|p')
 BORG_PATH=$(echo "$BORG_REPO" | sed -n 's|.*:23/\./||p')
 BORG_DIR=$(dirname "$BORG_PATH")
