@@ -471,6 +471,71 @@ groups:
           severity: critical
         isPaused: false
 
+      # Node Flapping – a node that recovers inside Node Not Ready's 5m `for`
+      # never fires it, so repeated short outages are otherwise invisible.
+      # 6h window, not 1h: these arrive roughly hourly, so a 1h window sits
+      # under any threshold that still ignores a single blip.
+      - uid: node-flapping
+        title: Node Flapping
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 21600
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: changes(kube_node_status_condition{condition="Ready",status="true"}[6h]) > 2
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 21600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 21600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Node {{ $labels.node }} has flapped Ready repeatedly in the last 6 hours
+        labels:
+          severity: critical
+        isPaused: false
+
       # Certificate Expiring Soon – noDataState OK (no cert-manager = no certs)
       # Query returns seconds remaining (positive), threshold gt:0 fires correctly
       - uid: cert-expiring
