@@ -22,6 +22,11 @@ helmCharts:
           enabled: false
         postgresql:
           password: "" # Set via AUTHENTIK_POSTGRESQL__PASSWORD env var from secret
+          # Chart default is the bare "authentik-postgresql", which ndots:5
+          # expands against every search domain -- up to 5 lookups per family
+          # for one connect, each a chance to time out. Paired with ndots:2
+          # below this resolves absolutely in one query.
+          host: authentik-postgresql.authentik.svc.cluster.local
         email:
           host: "postfix.utilities.svc.cluster.local"
           port: 587
@@ -77,11 +82,17 @@ helmCharts:
         dnsConfig:
           options:
             - name: single-request-reopen
+            # Bare names (0 dots) still use the search list; anything already
+            # qualified resolves in one query instead of five.
+            - name: ndots
+              value: "2"
 
       worker:
         dnsConfig:
           options:
             - name: single-request-reopen
+            - name: ndots
+              value: "2"
         livenessProbe:
           timeoutSeconds: 10
           periodSeconds: 20
