@@ -427,8 +427,13 @@
           # disks near half idle while writers stalled.
           options zfs zfs_vdev_async_write_max_active=32
           options zfs zfs_vdev_async_write_active_min_dirty_percent=10
-          # 12 GiB of 62 GiB RAM, so the buffer is not the thing that fills.
-          options zfs zfs_dirty_data_max=12884901888
+          # Global, not per-pool, so rpool (etcd + every VM disk) runs the 30s txg
+          # meant for the idle HDD pool. At 12 GiB the size trigger (20% = 2.4 GiB)
+          # sat above what rpool dirties in 30s, so the timeout always won and each
+          # txg flushed ~1.8 GiB in one 6-25s sync — long enough for etcd's raft
+          # fsyncs to miss heartbeats and force a leader election. 1 GiB caps a txg
+          # at ~200 MiB; Storage dirties nothing, so it still spins down.
+          options zfs zfs_dirty_data_max=1073741824
       notify: Update initramfs and refresh Proxmox boot
       tags:
         - power
@@ -454,7 +459,7 @@
       loop:
         - { name: zfs_vdev_async_write_max_active, value: 32 }
         - { name: zfs_vdev_async_write_active_min_dirty_percent, value: 10 }
-        - { name: zfs_dirty_data_max, value: 12884901888 }
+        - { name: zfs_dirty_data_max, value: 1073741824 }
       tags:
         - power
 
