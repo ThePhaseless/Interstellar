@@ -1071,7 +1071,11 @@ groups:
                 type: loki
                 uid: loki
               editorMode: code
-              expr: 'sum by(namespace, pod) (count_over_time({namespace=~"media|utilities|home|longhorn-system"} |~ "Read-only file system|Input/output error|I/O error" [5m]))'
+              # longhorn-manager re-emits historical engine logs when instance
+              # diagnostics are requested, so old error text arrives with a
+              # current ingest time. Volume health is covered by the metric
+              # based Longhorn rules instead.
+              expr: 'sum by(namespace, pod) (count_over_time({namespace=~"media|utilities|home|longhorn-system", pod!~"longhorn-manager.*"} |~ "Read-only file system|Input/output error|I/O error" [5m]))'
               intervalMs: 1000
               maxDataPoints: 43200
               queryType: range
