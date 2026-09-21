@@ -18,6 +18,20 @@ spec:
       labels:
         app: grafana
     spec:
+      # loki, mimir and grafana together saturate a node's virtio-scsi
+      # queue; co-located they push guest io pressure high enough for
+      # kubelet to miss heartbeats. Soft so they stay schedulable.
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: [loki, mimir, grafana]
       terminationGracePeriodSeconds: 90
       securityContext:
         fsGroup: 472
