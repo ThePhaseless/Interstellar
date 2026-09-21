@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: crowdsec-backup
+  namespace: crowdsec
+  labels:
+    backup: borg
+spec:
+  schedule: "50 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      k8s-app: crowdsec
+                      type: lapi
+                  topologyKey: kubernetes.io/hostname
+          containers:
+            - name: borgbackup
+              image: alpine:3.24
+              env:
+                - name: BORG_BACKUP_TARGETS
+                  value: |
+                    crowdsec:/crowdsec-config /crowdsec-db
+              volumeMounts:
+                - name: config
+                  mountPath: /crowdsec-config
+                  readOnly: true
+                - name: db
+                  mountPath: /crowdsec-db
+                  readOnly: true
+          volumes:
+            - name: config
+              persistentVolumeClaim:
+                claimName: crowdsec-config-pvc
+            - name: db
+              persistentVolumeClaim:
+                claimName: crowdsec-db-pvc

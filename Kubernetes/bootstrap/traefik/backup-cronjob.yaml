@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: traefik-backup
+  namespace: traefik
+  labels:
+    backup: borg
+spec:
+  schedule: "45 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: traefik
+                  topologyKey: kubernetes.io/hostname
+          containers:
+            - name: borgbackup
+              image: alpine:3.24
+              env:
+                - name: BORG_BACKUP_TARGETS
+                  value: |
+                    traefik:/data
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+                  readOnly: true
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: traefik

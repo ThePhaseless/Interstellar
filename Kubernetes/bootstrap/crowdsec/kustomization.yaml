@@ -6,6 +6,8 @@ namespace: crowdsec
 resources:
   - namespace.yaml
   - externalsecret.yaml
+  - backup-externalsecret.yaml
+  - backup-cronjob.yaml
 
 helmCharts:
   - name: crowdsec
@@ -19,6 +21,10 @@ helmCharts:
 # CrowdSec chart omits metadata.namespace — kustomize namespace transformer
 # doesn't apply to Helm output in v5.8.1, so add namespace via patches.
 patches:
+  - path: backup-common.yaml
+    target:
+      kind: CronJob
+      labelSelector: backup=borg
   - target:
       kind: Deployment
     patch: |-
@@ -55,3 +61,10 @@ patches:
       - op: add
         path: /metadata/namespace
         value: crowdsec
+
+configMapGenerator:
+  - name: crowdsec-backup-script
+    files:
+      - scripts/borg-backup.sh
+    options:
+      disableNameSuffixHash: true
