@@ -53,8 +53,20 @@ helmCharts:
       server:
         ingress:
           enabled: false # Using Traefik IngressRoute instead
+        # glibc resolves A and AAAA in parallel over one socket, and the
+        # conntrack DNAT race drops one often enough that resolving
+        # authentik-postgresql fails on startup. The Python bootstrap retries
+        # and wins; the Rust component (ak-common/src/db.rs) exits instead, so
+        # the pod crash-looped hourly. single-request-reopen uses a separate
+        # socket per query.
+        dnsConfig:
+          options:
+            - name: single-request-reopen
 
       worker:
+        dnsConfig:
+          options:
+            - name: single-request-reopen
         livenessProbe:
           timeoutSeconds: 10
           periodSeconds: 20
