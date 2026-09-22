@@ -25,7 +25,6 @@ helmCharts:
         # Reduce upgrade/rebuild blast radius to avoid cluster-wide IO storms.
         concurrentAutomaticEngineUpgradePerNodeLimit: 1
         concurrentReplicaRebuildPerNodeLimit: 2
-        engineReplicaTimeout: 30
       persistence:
         defaultDataLocality: best-effort
 
