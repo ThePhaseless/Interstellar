@@ -25,6 +25,9 @@ helmCharts:
         # Reduce upgrade/rebuild blast radius to avoid cluster-wide IO storms.
         concurrentAutomaticEngineUpgradePerNodeLimit: 1
         concurrentReplicaRebuildPerNodeLimit: 2
+        # The default, but keep it explicit: Longhorn never resets a Setting
+        # whose key is dropped from this list, so omitting it pins any old value.
+        engineReplicaTimeout: 8
       persistence:
         defaultDataLocality: best-effort
 
