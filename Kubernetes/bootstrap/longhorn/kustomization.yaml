@@ -23,12 +23,8 @@ helmCharts:
         replicaAutoBalance: least-effort
         defaultDataLocality: best-effort
         # Reduce upgrade/rebuild blast radius to avoid cluster-wide IO storms.
-        # The rebuild limit is per node, so three still run at once cluster
-        # wide; above that, rebuild reads saturate the rpool mirror etcd also
-        # sits on, replica IO passes engineReplicaTimeout, and the volume
-        # returns errors that abort guest ext4 journals.
         concurrentAutomaticEngineUpgradePerNodeLimit: 1
-        concurrentReplicaRebuildPerNodeLimit: 1
+        concurrentReplicaRebuildPerNodeLimit: 2
         engineReplicaTimeout: 30
       persistence:
         defaultDataLocality: best-effort

@@ -237,12 +237,6 @@ data "talos_machine_configuration" "controlplane" {
         "TS_AUTHKEY=${tailscale_tailnet_key.cluster.key}",
         "TS_HOSTNAME=${each.key}",
         "TS_EXTRA_ARGS=--accept-routes --advertise-tags=tag:node --accept-dns=false",
-        # Three tailscaled behind one NAT otherwise share the default 41641, and
-        # the one that loses the mapping rotates source ports indefinitely.
-        # Keyed on vmid so adding a node never renumbers the rest.
-        # --port is a tailscaled flag, so it cannot ride TS_EXTRA_ARGS —
-        # containerboot passes that one to `tailscale up`, which rejects it.
-        "TS_TAILSCALED_EXTRA_ARGS=--port=${40000 + each.value.vmid}",
         "TS_AUTH_ONCE=true",
       ]
     }),
