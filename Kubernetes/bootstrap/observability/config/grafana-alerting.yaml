@@ -469,14 +469,16 @@ groups:
       # A node that recovers inside Node Not Ready's 5m `for` never fires it, so
       # repeated short outages are otherwise invisible. 6h window, not 1h: these
       # arrive roughly hourly, so a 1h window sits under any threshold that
-      # still ignores a single blip.
+      # still ignores a single blip. Keep relativeTimeRange short despite the 6h
+      # range vector: `> 2` drops the healthy points, so a 6h `from` lets the
+      # `last` reducer latch onto a flap from hours ago and fire for 12h.
       - uid: node-flapping
         title: Node Flapping
         condition: C
         data:
           - refId: A
             relativeTimeRange:
-              from: 21600
+              from: 600
               to: 0
             datasourceUid: mimir
             model:
@@ -485,7 +487,7 @@ groups:
               maxDataPoints: 43200
           - refId: B
             relativeTimeRange:
-              from: 21600
+              from: 600
               to: 0
             datasourceUid: __expr__
             model:
@@ -497,7 +499,7 @@ groups:
               type: reduce
           - refId: C
             relativeTimeRange:
-              from: 21600
+              from: 600
               to: 0
             datasourceUid: __expr__
             model:
