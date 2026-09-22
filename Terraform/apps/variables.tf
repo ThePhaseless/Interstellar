@@ -58,7 +58,6 @@ variable "byparr_url" {
   default     = "http://byparr.media.svc.cluster.local:8191"
 }
 
-# --- Provider URLs (how Terraform connects to services via kubectl port-forward) ---
 # Locally: run ./scripts/port-forward-apps.sh to forward services to localhost.
 # In CI: override with TF_VAR_* env vars pointing to Tailscale MagicDNS names.
 variable "sonarr_provider_url" {
@@ -115,7 +114,6 @@ variable "bitwarden_prowlarr_api_key_name" {
   default     = "prowlarr-api-key"
 }
 
-# --- Authentik ---
 variable "authentik_provider_url" {
   type        = string
   description = "Authentik URL reachable from Terraform (via Tailscale MagicDNS)"

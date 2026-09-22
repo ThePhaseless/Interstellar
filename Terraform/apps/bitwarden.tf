@@ -11,7 +11,6 @@ locals {
   secret_key_to_id               = { for s in data.bitwarden-secrets_list_secrets.all.secrets : s.key => s.id }
   bitwarden_generated_project_id = try(one([for p in data.bitwarden-secrets_projects.all.projects : p.id if p.name == "interstellar-generated"]), null)
 
-  # Common placeholder values that indicate a secret has not been properly set
   _placeholder_values = toset(["changeme", "change_me", "placeholder", "your-api-key", "default", "secret", "password", "username", "admin"])
 }
 

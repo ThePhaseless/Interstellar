@@ -1,5 +1,3 @@
-# Jellyfin state that used to be enforced by the Kubernetes setup sidecar.
-
 locals {
   jellyfin_security_plugin_repository_url = "https://raw.githubusercontent.com/ZL154/JellyfinSecurity/main/manifest.json"
 }
@@ -100,7 +98,6 @@ resource "jellyfin_branding_configuration" "this" {
   custom_css = file("${path.module}/files/jellyfin/branding/custom.css")
 }
 
-# Transcode buffer limits.
 resource "jellyfin_encoding_configuration" "this" {
   enable_throttling       = true
   enable_segment_deletion = true

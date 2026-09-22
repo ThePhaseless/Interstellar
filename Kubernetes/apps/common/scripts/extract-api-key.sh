@@ -1,5 +1,4 @@
 #!/bin/bash
-# Extract API Key from *arr config.xml
 # Usage: extract-api-key.sh <app-name> <config-path>
 
 set -euo pipefail

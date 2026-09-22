@@ -1,6 +1,5 @@
 #!/bin/sh
 # Configure Seerr with Jellyfin, Sonarr, and Radarr
-# Usage: configure-seerr.sh
 
 set -e
 

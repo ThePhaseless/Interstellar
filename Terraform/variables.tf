@@ -10,7 +10,6 @@ variable "proxmox_node" {
   default     = "carbon"
 }
 
-# Cluster Configuration
 variable "cluster_name" {
   description = "Name of the Kubernetes cluster"
   type        = string
@@ -29,7 +28,6 @@ variable "cluster_domain" {
   default     = "nerine.dev"
 }
 
-# Node Configuration
 variable "nodes" {
   description = "TalosOS node configuration"
   type = map(object({
@@ -66,7 +64,6 @@ variable "nodes" {
   }
 }
 
-# Network Configuration
 variable "cluster_network" {
   description = "Cluster network CIDR for Talos nodes on the home LAN"
   type        = string
@@ -85,7 +82,6 @@ variable "proxmox_cluster_bridge_name" {
   default     = "vmbr0"
 }
 
-# TalosOS Extensions
 variable "talos_base_extensions" {
   description = "TalosOS extensions to install on all nodes"
   type        = list(string)
@@ -103,12 +99,10 @@ variable "talos_gpu_extensions" {
   default = [
     "siderolabs/mei",
     "siderolabs/xe",
-    # Temporary: ships i915/bmg_dmc.bin so xe runtime PM works.
-    # The xe driver loads DMC firmware from i915/bmg_dmc.bin (legacy path),
-    # but the Talos xe extension only ships /usr/lib/firmware/xe/, so runtime
-    # PM was hard-disabled (~9W GPU idle floor). Remove once the upstream PR
-    # to siderolabs/extensions (drm/xe/pkg.yaml) merges and the xe extension
-    # includes i915/ firmware by default.
+    # The xe driver loads DMC firmware from the legacy i915/bmg_dmc.bin path,
+    # which the Talos xe extension does not ship, so runtime PM is hard-disabled
+    # (~9W GPU idle floor) without this. Remove once the upstream PR to
+    # siderolabs/extensions (drm/xe/pkg.yaml) merges.
     "siderolabs/i915",
   ]
 }
@@ -133,7 +127,6 @@ variable "tf_state_bucket" {
   default     = "tf-state"
 }
 
-# Tailscale Configuration
 variable "tailscale_magicdns_domain" {
   description = "Tailscale MagicDNS domain suffix (e.g. fold-hen.ts.net). Found via: tailscale status --json | jq -r '.MagicDNSSuffix'"
   type        = string
@@ -154,8 +147,7 @@ variable "kubernetes_api_host" {
 
 # Steady state is Tailscale-only SSH, so this stays false in every committed
 # tfvars. Flip it on by hand only for as long as it takes to enroll a VM that is
-# not on the tailnet yet, then flip it back off. (The oracle-bootstrap workflow
-# that used to automate this was removed along with the HAProxy VM in 7158f21.)
+# not on the tailnet yet, then flip it back off.
 variable "oracle_ssh_public_access" {
   description = "Temporarily open public SSH (port 22) to the Oracle VPS instances so a not-yet-enrolled VM can be reached for Tailscale bootstrap. Leave false outside of a bootstrap run."
   type        = bool
@@ -179,7 +171,6 @@ variable "oracle_ssh_source_cidr" {
   }
 }
 
-# Hetzner Cloud Configuration
 variable "hcloud_token" {
   description = "Hetzner Cloud API token. Sourced from HCLOUD_TOKEN env var via setup-env.sh."
   type        = string

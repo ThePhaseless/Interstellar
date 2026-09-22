@@ -6,7 +6,7 @@ metadata:
   labels:
     app: recyclarr
 spec:
-  schedule: "0 4 * * *" # Run daily at 4 AM
+  schedule: "0 4 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1

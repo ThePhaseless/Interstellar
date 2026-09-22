@@ -309,9 +309,8 @@ class Handler(BaseHTTPRequestHandler):
         # Empty pages happen when the search legitimately has no matches,
         # when Cloudflare served a challenge page instead of the real
         # content, or on transient upstream errors. None of these should
-        # be pinned for an hour. Detection is content-based (presence of
-        # the /torrent/ link prefix that every result row carries) rather
-        # than size-based, so it doesn't depend on byte counts.
+        # be pinned for an hour. Detection is content-based: the /torrent/
+        # link prefix that every result row carries.
         has_results = b"/torrent/" in body
         with _state_lock:
             _inflight.pop(path, None)

@@ -48,7 +48,6 @@ spec:
                 secretKeyRef:
                   name: grafana-secrets
                   key: admin-password
-            # Authentik OIDC
             - name: GF_AUTH_GENERIC_OAUTH_ENABLED
               value: "true"
             - name: GF_AUTH_GENERIC_OAUTH_NAME
@@ -103,7 +102,6 @@ spec:
                   name: discord-webhook
                   key: webhook-url
                   optional: true
-            # SMTP via Postfix relay
             - name: GF_SMTP_ENABLED
               value: "true"
             - name: GF_SMTP_HOST

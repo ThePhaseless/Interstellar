@@ -1,7 +1,6 @@
 ---
-# TLS options for nerine.dev — disable CBC ciphers (LUCKY13 mitigation)
-# TLS 1.3 uses only AEAD ciphers (AES-GCM, ChaCha20-Poly1305) and is unaffected.
-# TLS 1.2 is restricted to GCM + ChaCha20-Poly1305, dropping all CBC suites.
+# No CBC ciphers, to mitigate LUCKY13 / CVE-2013-0169. Only TLS 1.2 needs the
+# list below; TLS 1.3 is AEAD-only already.
 apiVersion: traefik.io/v1alpha1
 kind: TLSOption
 metadata:
@@ -11,7 +10,6 @@ spec:
   minVersion: VersionTLS12
   maxVersion: VersionTLS13
   cipherSuites:
-    # TLS 1.2 — AEAD only, no CBC (mitigates LUCKY13 / CVE-2013-0169)
     - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
     - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
     - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256

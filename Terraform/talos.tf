@@ -15,10 +15,8 @@ locals {
   talos_bootstrap_node_endpoint    = local.talos_node_api_endpoints[local.talos_bootstrap_node_name]
 }
 
-# Talos Machine Secrets
 resource "talos_machine_secrets" "cluster" {}
 
-# Talos Image Factory
 data "talos_image_factory_extensions_versions" "base_extensions" {
   talos_version = var.talos_version
   exact_filters = {
@@ -67,7 +65,6 @@ data "talos_image_factory_urls" "gpu_image" {
 }
 
 
-# Client Configuration
 data "talos_client_configuration" "cluster" {
   cluster_name         = var.cluster_name
   client_configuration = talos_machine_secrets.cluster.client_configuration
@@ -77,7 +74,6 @@ data "talos_client_configuration" "cluster" {
   depends_on = [proxmox_virtual_environment_vm.talos]
 }
 
-# Kubeconfig for Kubernetes provider access (post-bootstrap)
 resource "talos_cluster_kubeconfig" "cluster" {
   client_configuration = talos_machine_secrets.cluster.client_configuration
   endpoint             = local.talos_bootstrap_node_endpoint
@@ -90,7 +86,6 @@ resource "talos_cluster_kubeconfig" "cluster" {
   }
 }
 
-# Machine Configuration - Control Plane
 data "talos_machine_configuration" "controlplane" {
   for_each = var.nodes
 
@@ -211,7 +206,7 @@ data "talos_machine_configuration" "controlplane" {
           ]
         }
 
-        # Restrict etcd to LAN subnet (exclude Tailscale IPs)
+        # Keep etcd off the Tailscale IPs.
         etcd = {
           advertisedSubnets = [var.cluster_network]
         }
@@ -243,7 +238,6 @@ data "talos_machine_configuration" "controlplane" {
   ])
 }
 
-# Apply Configuration to Nodes
 resource "talos_machine_configuration_apply" "controlplane" {
   for_each = var.nodes
 
@@ -263,7 +257,6 @@ resource "talos_machine_configuration_apply" "controlplane" {
   }
 }
 
-# Bootstrap the Cluster
 resource "talos_machine_bootstrap" "cluster" {
   client_configuration = talos_machine_secrets.cluster.client_configuration
   endpoint             = local.talos_bootstrap_node_endpoint
@@ -276,7 +269,6 @@ resource "talos_machine_bootstrap" "cluster" {
   }
 }
 
-# Outputs
 output "talos_schematic_id" {
   description = "Talos Factory schematic IDs for base and GPU images"
   value = {

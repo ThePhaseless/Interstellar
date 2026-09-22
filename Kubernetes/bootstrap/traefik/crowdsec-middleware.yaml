@@ -13,30 +13,25 @@ spec:
       updateMaxFailure: 0
       defaultDecisionSeconds: 60
       httpTimeoutSeconds: 10
-      # Stream mode - recommended for performance
-      # Decisions are updated every 60 sec, requests hit local cache
+      # Stream mode: requests hit a local cache refreshed every 60s.
       crowdsecMode: stream
       crowdsecLapiScheme: http
       crowdsecLapiHost: crowdsec-service.crowdsec.svc.cluster.local:8080
-      # API key loaded from external secret via environment
       crowdsecLapiKeyFile: /secrets/crowdsec/crowdsecLapiKey
       # Trusted networks — bypass ALL checks (bans, rate limiting, AppSec WAF).
-      # Tailscale operator uses L3 DNAT (does NOT forward real client IP — see
-      # tailscale/tailscale#11024), so all Tailscale direct traffic appears as
-      # the ts-traefik pod IP; the pod CIDR is what actually matches it.
-      # Since the Oracle/HAProxy public entrypoint was retired (7158f21) there
-      # is no untrusted source left: LAN and Tailscale are both listed here, so
-      # the bouncer inspects nothing in practice. It stays wired up so that
-      # restoring a public entrypoint re-arms it without a config change —
-      # whatever terminates that traffic must pass the real client IP through.
+      # The Tailscale operator uses L3 DNAT and does NOT forward the real client
+      # IP (tailscale/tailscale#11024), so Tailscale traffic arrives as the
+      # ts-traefik pod IP and only the pod CIDR matches it.
+      # LAN and Tailscale are the only sources today, so the bouncer inspects
+      # nothing in practice. It stays wired up so a future public entrypoint
+      # re-arms it — whatever terminates that traffic must pass the real
+      # client IP through.
       clientTrustedIPs:
         - "192.168.1.0/24" # Home LAN (direct access, bypasses Tailscale)
         - "10.244.0.0/16" # Pod CIDR — matches ts-traefik DNAT'd Tailscale traffic
       forwardedHeadersCustomName: X-Forwarded-For
       forwardedHeadersTrustedIPs:
         - "10.244.0.0/16"
-      # AppSec WAF (virtual patching) — real-time request inspection
-      # Blocks SQL injection, XSS, path traversal, RCE, known CVE exploits
       crowdsecAppsecEnabled: true
       crowdsecAppsecHost: crowdsec-appsec-service.crowdsec.svc.cluster.local:7422
       crowdsecAppsecFailureBlock: true

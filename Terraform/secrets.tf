@@ -38,8 +38,6 @@ resource "random_password" "adguard_admin_password" {
   special = false
 }
 
-# Bitwarden Secrets — CrowdSec
-
 resource "bitwarden-secrets_secret" "crowdsec_api_key" {
   key        = "crowdsec-api-key"
   value      = random_password.crowdsec_bouncer_key.result
@@ -59,9 +57,8 @@ resource "random_password" "crowdsec_lapi_registration_token" {
   special = false
 }
 
-# Fully Terraform-generated (random_password), like the other generated secrets.
-# Rotation: re-apply (agents auto-register with the new token; bouncer uses its
-# own key).
+# Rotate by re-applying: agents auto-register with the new token, and the
+# bouncer uses its own key.
 resource "bitwarden-secrets_secret" "crowdsec_lapi_secret" {
   key        = "crowdsec-lapi-secret"
   value      = random_password.crowdsec_lapi_secret.result
@@ -75,8 +72,6 @@ resource "bitwarden-secrets_secret" "crowdsec_lapi_registration_token" {
   project_id = local.bitwarden_generated_project_id
   note       = "CrowdSec LAPI agent registration token. Managed by Terraform; rotate by re-applying."
 }
-
-# Bitwarden Secrets — Grafana
 
 resource "bitwarden-secrets_secret" "grafana_admin_password" {
   key        = "grafana-admin-password"
@@ -92,8 +87,6 @@ resource "bitwarden-secrets_secret" "grafana_auth" {
   note       = "Grafana auth string (username:password) for Terraform provider. Managed by Terraform."
 }
 
-# Bitwarden Secrets — Jellyfin
-
 resource "bitwarden-secrets_secret" "jellyfin_admin_password" {
   key        = "jellyfin-admin-password"
   value      = random_password.jellyfin_admin_password.result
@@ -101,16 +94,12 @@ resource "bitwarden-secrets_secret" "jellyfin_admin_password" {
   note       = "Jellyfin admin password for automated setup wizard. Managed by Terraform."
 }
 
-# Bitwarden Secrets — AdGuard Home
-
 resource "bitwarden-secrets_secret" "adguard_admin_password" {
   key        = "adguard-admin-password"
   value      = random_password.adguard_admin_password.result
   project_id = local.bitwarden_generated_project_id
   note       = "AdGuard Home admin password. Vestigial: AdGuard runs with no users, so it ignores credentials entirely and access is gated by Authentik plus the allow-traefik NetworkPolicy. Kept because the adguard provider rejects an empty username/password. Owned by Terraform; rotate by tainting random_password.adguard_admin_password and re-applying."
 }
-
-# Bitwarden Secrets — Discord (placeholder, user fills in later)
 
 resource "bitwarden-secrets_secret" "discord_webhook_url" {
   key        = "discord-webhook-url"
@@ -122,8 +111,6 @@ resource "bitwarden-secrets_secret" "discord_webhook_url" {
     ignore_changes = [value]
   }
 }
-
-# Bitwarden Secrets — *arr API Keys (populated at runtime by init containers)
 
 resource "bitwarden-secrets_secret" "sonarr_api_key" {
   key        = "sonarr-api-key"
@@ -158,16 +145,12 @@ resource "bitwarden-secrets_secret" "prowlarr_api_key" {
   }
 }
 
-# Bitwarden Secrets — Immich
-
 resource "bitwarden-secrets_secret" "immich_db_password" {
   key        = "immich-db-password"
   value      = random_password.immich_db_password.result
   project_id = local.bitwarden_generated_project_id
   note       = "Immich PostgreSQL database password. Managed by Terraform."
 }
-
-# Bitwarden Secrets — Owner Email
 
 resource "bitwarden-secrets_secret" "owner_email" {
   key        = "owner-email"
@@ -180,8 +163,6 @@ resource "bitwarden-secrets_secret" "owner_email" {
   }
 }
 
-# Bitwarden Secrets — External Secrets bootstrap token (manual value)
-
 resource "bitwarden-secrets_secret" "bitwarden_access_token_kubernetes" {
   key        = "bitwarden-access-token-kubernetes"
   value      = "fill-me-manually"
@@ -192,8 +173,6 @@ resource "bitwarden-secrets_secret" "bitwarden_access_token_kubernetes" {
     ignore_changes = [value]
   }
 }
-
-# Bitwarden Secrets — Authentik (Identity Provider)
 
 resource "bitwarden-secrets_secret" "authentik_secret_key" {
   key        = "authentik-secret-key"
@@ -216,9 +195,9 @@ resource "bitwarden-secrets_secret" "authentik_bootstrap_token" {
   note       = "Authentik API bootstrap token for Terraform provider authentication. Managed by Terraform."
 }
 
-# Bitwarden Secrets — Google OAuth (shared by Authentik, Grafana, Immich)
-# OAuth client is created manually in GCP Console. These placeholders are
-# overwritten manually in Bitwarden after creating the client. See SETUP.md.
+# Shared by Authentik, Grafana and Immich. The OAuth client is created by hand
+# in the GCP Console and these placeholders are then overwritten by hand in
+# Bitwarden — see SETUP.md.
 
 resource "bitwarden-secrets_secret" "google_oauth_client_id" {
   key        = "google-oauth-client-id"

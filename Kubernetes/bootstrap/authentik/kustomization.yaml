@@ -91,7 +91,6 @@ helmCharts:
           periodSeconds: 20
           failureThreshold: 90
 
-      # --- Embedded PostgreSQL ---
       postgresql:
         enabled: true
         auth:
@@ -104,6 +103,6 @@ helmCharts:
             size: 5Gi
             storageClass: longhorn
 
-      # --- Service Account (required for embedded outpost) ---
+      # Required by the embedded outpost.
       serviceAccount:
         create: true

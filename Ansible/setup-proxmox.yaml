@@ -43,14 +43,12 @@
         MARKER="/var/cache/ansible-media-normalized"
 
         if [ -f "$MARKER" ]; then
-          # Fast path: only scan directories modified since last normalization
           find "{{ item }}" -xdev -type d -newer "$MARKER" \
             \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} -o ! -perm -2775 \) \
             -print0 | xargs -0 -r -n 100 chown {{ media_runtime_uid }}:{{ media_runtime_gid }}
           find "{{ item }}" -xdev -type d -newer "$MARKER" ! -perm -2775 \
             -print0 | xargs -0 -r -n 100 chmod 2775
         else
-          # First run: full scan
           find "{{ item }}" -xdev -type d \
             \( ! -uid {{ media_runtime_uid }} -o ! -gid {{ media_runtime_gid }} -o ! -perm -2775 \) \
             -print0 | xargs -0 -r -n 100 chown {{ media_runtime_uid }}:{{ media_runtime_gid }}
@@ -83,7 +81,6 @@
         enabled: true
         state: started
 
-    # -- Health checks --
     - name: Flush handlers before health checks
       ansible.builtin.meta: flush_handlers
 
@@ -137,7 +134,6 @@
           exports={{ nfs_exports | map(attribute='path') | list | join(', ') }},
           mounts=ok
 
-    # -- Power management --
     - name: Install power management packages
       ansible.builtin.apt:
         name:
@@ -457,7 +453,6 @@
       tags:
         - power
 
-    # -- SSH hardening --
     - name: Harden SSH configuration
       ansible.builtin.copy:
         dest: /etc/ssh/sshd_config.d/99-hardening.conf

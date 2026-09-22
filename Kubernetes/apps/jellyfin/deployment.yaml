@@ -6,7 +6,6 @@ metadata:
   labels:
     app: jellyfin
   annotations:
-    # Auto-restart on config/secret changes
     reloader.stakater.com/auto: "true"
 spec:
   strategy:

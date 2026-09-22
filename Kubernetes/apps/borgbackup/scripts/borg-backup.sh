@@ -1,36 +1,24 @@
 #!/bin/sh
-# Generic BorgBackup runner.
+# Drives `borg create` / `borg prune` / `borg compact` against one shared repo.
 #
-# Drives `borg create` / `borg prune` / `borg compact` against a single
-# shared repository, parameterized by environment variables. One CronJob
-# may declare multiple targets by listing one `prefix:path1 path2 ...` per
-# line in BORG_BACKUP_TARGETS (e.g. observability backs up mimir/grafana/loki
-# in a single daily run).
-#
-# Required env:
-#   BORG_PASSPHRASE       — repo encryption passphrase (from borg-secrets)
-#   BORG_REPO             — repo URL (from borg-secrets)
-#   BORG_SERVER_HOST      — SSH host for known_hosts (from borg-secrets)
-#   BORG_BACKUP_TARGETS   — one `prefix:paths` per line, paths space-separated
+# Required env (from borg-secrets): BORG_PASSPHRASE, BORG_REPO, BORG_SERVER_HOST.
+# BORG_BACKUP_TARGETS takes one `prefix:path1 path2 ...` per line, so a single
+# CronJob can back up several targets in one run.
 #
 # Optional env:
-#   BORG_LEGACY_GLOBS     — space-separated extra `--glob-archives` patterns
-#                           to keep pruning (for archive families renamed or
-#                           split away). Example: "immich-*"
-#   BORG_EXCLUDES         — space-separated extra borg exclude patterns applied
-#                           to every target in this CronJob.
-#   BORG_PATTERNS         — newline-separated borg patterns (one per line) passed
-#                           via --patterns-from (sh: style, first match wins).
-#                           Unlike BORG_EXCLUDES this supports `+` include
-#                           prefixes, e.g. "back up only X/safe under X":
-#                           "+ X/safe + X/safe/** - X/**". Patterns must match
-#                           the archived paths (no leading slash, e.g. the
-#                           target /photos is archived as "photos/...").
+#   BORG_LEGACY_GLOBS     — space-separated extra `--glob-archives` patterns to
+#                           keep pruning (for archive families renamed or split
+#                           away). Example: "immich-*"
+#   BORG_EXCLUDES         — space-separated extra exclude patterns applied to
+#                           every target in this CronJob.
+#   BORG_PATTERNS         — newline-separated `--patterns-from` lines (sh: style,
+#                           first match wins). Unlike BORG_EXCLUDES this supports
+#                           `+` include prefixes, e.g. "back up only X/safe under
+#                           X": "+ X/safe + X/safe/** - X/**". Patterns match the
+#                           archived paths, so no leading slash: the target
+#                           /photos is archived as "photos/...".
 #
-# Pod layout expected:
-#   /secrets/ssh/id_ed25519  (mode 0600)   — SSH private key
-#   /root/.cache/borg        (emptyDir)    — borg cache
-#   /scripts/borg-backup.sh  (ConfigMap)   — this script
+# The pod must also mount /root/.cache/borg as an emptyDir for the borg cache.
 set -eu
 
 info() { printf '\n%s %s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2; }
@@ -95,8 +83,7 @@ done
 PATTERNS_ARGS=""
 if [ -n "${BORG_PATTERNS:-}" ]; then
     PATTERNS_FILE=$(mktemp)
-    # One pattern per line — newline-separated (word-splitting would break
-    # "+ path" pairs apart).
+    # Newline-separated: word-splitting would break "+ path" pairs apart.
     printf '%s\n' "$BORG_PATTERNS" >"$PATTERNS_FILE"
     PATTERNS_ARGS="--patterns-from $PATTERNS_FILE"
 fi
@@ -104,7 +91,7 @@ fi
 # Heredoc loop keeps variable updates in the current shell (no subshell).
 while IFS= read -r target; do
     case "$target" in
-        ''|\#*) continue ;;  # skip blank lines and comments
+        ''|\#*) continue ;;
     esac
     prefix=${target%%:*}
     paths=${target#*:}
@@ -196,9 +183,8 @@ if [ "$GLOBAL" -eq 0 ]; then
 elif [ "$GLOBAL" -eq 1 ]; then
     info "Backup, Prune, and/or Compact finished with warnings"
     # borg exits 1 when a file changed or vanished mid-read, which a live data
-    # directory does constantly (Loki rotates its WAL and compacts chunks while
-    # we read). The archive is still complete, so propagating it only burns the
-    # Job's backoffLimit and marks a good backup failed.
+    # directory does constantly (Loki rotates its WAL as we read). The archive is
+    # still complete, so propagating it would only fail a good backup.
     GLOBAL=0
 else
     info "Backup, Prune, and/or Compact finished with errors"

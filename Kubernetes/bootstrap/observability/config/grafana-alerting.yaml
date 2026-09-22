@@ -5,9 +5,8 @@ groups:
     folder: Alerts
     interval: 1m
     rules:
-      # High CPU Usage – noDataState OK (no data = no problem)
-      # Severity critical so email is sent as well
-      # Query already filters > 80, so threshold gt:0 fires on any returned series
+      # No data means no problem here, and severity critical also sends email.
+      # The query already filters > 80, so threshold gt:0 fires on any series.
       - uid: high-cpu
         title: High CPU Usage
         condition: C
@@ -69,7 +68,7 @@ groups:
           severity: critical
         isPaused: false
 
-      # High Memory Usage – noDataState OK, severity critical for email
+      # No data means no problem here, and severity critical also sends email.
       - uid: high-memory
         title: High Memory Usage
         condition: C
@@ -131,12 +130,10 @@ groups:
           severity: critical
         isPaused: false
 
-      # Container Restarting – noDataState OK
       # Any restart in 10m is abnormal here, so this is > 0 rather than > 5.
       # It deliberately catches the crash-and-recover case that never reaches
       # CrashLoopBackOff; the sustained case is covered by pod-crashloopbackoff
-      # below, which is the critical one. Keep this at warning so a single
-      # transient restart does not also page by email.
+      # below. Keep this at warning so a single transient restart does not page.
       - uid: pod-crashloop
         title: Container Restarting
         condition: C
@@ -198,7 +195,6 @@ groups:
           severity: warning
         isPaused: false
 
-      # Pod Crash Looping – the runtime-crash alert.
       # "Restarted recently AND currently not ready" is the durable signal for a
       # pod that cannot stay up. Deliberately NOT built on
       # kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}:
@@ -274,9 +270,8 @@ groups:
           severity: critical
         isPaused: false
 
-      # Pod Not Ready – JOIN with kube_pod_owner to exclude Job-owned pods.
+      # The kube_pod_owner join excludes Job-owned pods.
       # Uses `== bool 0` so not-ready pods evaluate to 1 and threshold `gt:0` works.
-      # Fires when readiness is 0 for 5m, but only for ReplicaSet/StatefulSet/DaemonSet.
       - uid: pod-not-ready
         title: Pod Not Ready
         condition: C
@@ -345,8 +340,8 @@ groups:
           severity: warning
         isPaused: false
 
-      # PVC Almost Full – noDataState OK
-      # Query filters > 85%, threshold gt:0 fires on any returned series
+      # No data means no problem here. The query already filters > 85%, so
+      # threshold gt:0 fires on any returned series.
       - uid: pvc-almost-full
         title: PVC Almost Full
         condition: C
@@ -408,8 +403,8 @@ groups:
           severity: warning
         isPaused: false
 
-      # Node Not Ready – FIX: same `== 0` / threshold bug as pod-not-ready.
-      # noDataState: Alerting because missing node metrics may mean node is down.
+      # Same `== 0` / threshold pairing as pod-not-ready.
+      # noDataState Alerting: missing node metrics may mean the node is down.
       - uid: node-not-ready
         title: Node Not Ready
         condition: C
@@ -471,10 +466,10 @@ groups:
           severity: critical
         isPaused: false
 
-      # Node Flapping – a node that recovers inside Node Not Ready's 5m `for`
-      # never fires it, so repeated short outages are otherwise invisible.
-      # 6h window, not 1h: these arrive roughly hourly, so a 1h window sits
-      # under any threshold that still ignores a single blip.
+      # A node that recovers inside Node Not Ready's 5m `for` never fires it, so
+      # repeated short outages are otherwise invisible. 6h window, not 1h: these
+      # arrive roughly hourly, so a 1h window sits under any threshold that
+      # still ignores a single blip.
       - uid: node-flapping
         title: Node Flapping
         condition: C
@@ -536,8 +531,8 @@ groups:
           severity: critical
         isPaused: false
 
-      # Certificate Expiring Soon – noDataState OK (no cert-manager = no certs)
-      # Query returns seconds remaining (positive), threshold gt:0 fires correctly
+      # noDataState OK: no cert-manager means no certs. The query returns
+      # seconds remaining (positive), so threshold gt:0 fires correctly.
       - uid: cert-expiring
         title: Certificate Expiring Soon
         condition: C
@@ -599,13 +594,9 @@ groups:
           severity: warning
         isPaused: false
 
-      # Longhorn Disk Under Pressure – FIX:
-      #   1. `longhorn_disk_status` metric does not exist in Longhorn; replaced
-      #      with `longhorn_node_status{condition="schedulable"}` (the correct
-      #      Longhorn metric for disk schedulability).
-      #   2. Fixed the `== 0` / `gt:0` threshold bug – raw metric queried,
-      #      threshold now `lt:1` so it fires when value is 0 (not schedulable).
-      #   3. This also resolves the duplicate-labels-{} evaluation error.
+      # `longhorn_disk_status` does not exist; disk schedulability is exposed as
+      # `longhorn_node_status{condition="schedulable"}`. The raw metric is
+      # queried, so the threshold is `lt:1` to fire on 0 (not schedulable).
       - uid: longhorn-disk-pressure
         title: Longhorn Disk Under Pressure
         condition: C
@@ -667,9 +658,8 @@ groups:
           severity: critical
         isPaused: false
 
-      # Longhorn Volume Degraded – FIX: `!= 1` returned value 0 for Unknown state
-      # which `gt:0` missed. Raw metric now queried; threshold `gt:1` fires only
-      # for Degraded (2) and Faulted (3), not Unknown (0) or Healthy (1).
+      # Raw metric queried; threshold `gt:1` fires only for Degraded (2) and
+      # Faulted (3), not Unknown (0) or Healthy (1).
       - uid: longhorn-volume-degraded
         title: Longhorn Volume Degraded
         condition: C
@@ -731,8 +721,8 @@ groups:
           severity: warning
         isPaused: false
 
-      # Longhorn Node Storage High – noDataState OK, severity critical for email
-      # Query returns ratio > 0.80, threshold gt:0 fires correctly
+      # No data means no problem here, and severity critical also sends email.
+      # The query returns ratio > 0.80, so threshold gt:0 fires correctly.
       - uid: longhorn-node-storage-high
         title: Longhorn Node Storage High
         condition: C
@@ -794,7 +784,6 @@ groups:
           severity: critical
         isPaused: false
 
-      # Traefik 5xx Error Rate – service-level HTTP error ratio.
       - uid: traefik-high-5xx-rate
         title: Traefik High 5xx Error Rate
         condition: C
@@ -861,7 +850,6 @@ groups:
           severity: critical
         isPaused: false
 
-      # Traefik p95 Latency Warning – service-level p95 response time.
       # Excludes services with inherently slow backend operations:
       #   - jellyfin: HLS streaming segments (2-3s per chunk) and WebSockets
       #   - bazarr: external subtitle provider API calls (1-5s)
@@ -930,9 +918,8 @@ groups:
           severity: warning
         isPaused: true
 
-      # Traefik p95 Latency Critical – service-level p95 response time.
-      # Excludes services with inherently slow backend operations – see warning
-      # alert for the full rationale.
+      # Excludes services with inherently slow backend operations – see the
+      # warning alert for the full rationale.
       - uid: traefik-high-p95-latency-critical
         title: Traefik High p95 Latency (Critical)
         condition: C
@@ -994,7 +981,6 @@ groups:
           severity: critical
         isPaused: true
 
-      # Longhorn Volume Faulted – page on hard data-path failure.
       - uid: longhorn-volume-faulted
         title: Longhorn Volume Faulted
         condition: C
@@ -1056,7 +1042,6 @@ groups:
           severity: critical
         isPaused: false
 
-      # Longhorn Node Count Drop – compare current count to the 24h peak.
       - uid: longhorn-node-count-drop
         title: Longhorn Node Count Drop
         condition: C
@@ -1120,8 +1105,8 @@ groups:
           severity: critical
         isPaused: false
 
-      # Pod Storage I/O Errors – catches the app-visible symptom of broken PVCs
-      # before Kubernetes readiness necessarily flips.
+      # Catches the app-visible symptom of broken PVCs before Kubernetes
+      # readiness necessarily flips.
       - uid: pod-storage-io-errors
         title: Pod Storage I/O Errors
         condition: C
@@ -1193,8 +1178,8 @@ groups:
           severity: critical
         isPaused: false
 
-      # API Server etcd Corruption – explicit static pod log scrape is required
-      # on Talos because these logs are not captured by the generic pod job.
+      # Needs the explicit static-pod log scrape: on Talos these logs are not
+      # captured by the generic pod job.
       - uid: apiserver-etcd-corrupt
         title: API Server etcd Corruption
         condition: C
@@ -1282,7 +1267,6 @@ contactPoints:
           singleEmail: true
         disableResolveMessage: false
 
-# Custom notification templates
 templates:
   - orgId: 1
     name: discord_compact
@@ -1337,7 +1321,7 @@ policies:
     group_interval: 5m
     repeat_interval: 4h
     routes:
-      # Critical alerts also routed to email (continue=true so Discord fires too)
+      # continue=true so Discord still gets the critical alerts too.
       - receiver: Email
         object_matchers:
           - ["severity", "=", "critical"]

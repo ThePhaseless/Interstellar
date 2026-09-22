@@ -11,7 +11,7 @@ resource "random_password" "borg_passphrase" {
   special = false
 }
 
-# Hetzner Storage Box Password (must meet Hetzner policy: upper+lower+digit+special)
+# Hetzner's policy requires upper+lower+digit+special.
 resource "random_password" "storagebox_password" {
   length           = 32
   special          = true
@@ -59,7 +59,6 @@ resource "hcloud_storage_box" "backups" {
   }
 }
 
-# Bitwarden Secrets — BorgBackup
 resource "bitwarden-secrets_secret" "borg_ssh_private_key" {
   key        = "borg-ssh-private-key"
   value      = tls_private_key.borg_ssh_key.private_key_openssh

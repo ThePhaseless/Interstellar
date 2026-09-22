@@ -5,11 +5,8 @@ metadata:
   namespace: observability
   labels:
     app: talos-kmsg-shipper
-  # kube-linter exclusions for privileged-container and
-  # privilege-escalation-container are configured globally in
-  # .kube-linter.yaml — privileged is intentional and required to
-  # read /dev/kmsg on Talos v1.13.4 (SELinux blocks all unprivileged
-  # paths, including spc_t).
+  # kube-linter's privileged-container and privilege-escalation-container
+  # checks are excluded globally in .kube-linter.yaml.
 spec:
   selector:
     matchLabels:
@@ -18,12 +15,9 @@ spec:
     metadata:
       labels:
         app: talos-kmsg-shipper
-        # Used by the Promtail match stage below to add a kmsg_level label.
-        # The actual Loki label is set by the kubernetes-pods relabeling rules.
         source: talos-kmsg
     spec:
-      # Tolerate all taints so the shipper runs on every node, including
-      # control-plane nodes (which have NoSchedule by default).
+      # Run on every node, control-plane nodes (NoSchedule) included.
       tolerations:
         - effect: NoSchedule
           operator: Exists
@@ -31,55 +25,30 @@ spec:
           operator: Exists
       containers:
         - name: kmsg
-          # Alpine 3.20 ships busybox cat; image is small (~5 MB).
           image: alpine:3.24
           command:
             - sh
             - -c
             - |
-              # /dev/kmsg is the kernel ring buffer as a character device.
-              # cat blocks on read() when the buffer is empty and is woken
-              # on every new kernel log line; output goes to stdout and is
-              # captured by the CRI runtime, which Promtail's
-              # kubernetes-pods job picks up at
-              # /var/log/pods/observability_<pod>_<uid>/kmsg/*.log.
-              #
-              # First read dumps the existing buffer (one-time burst per
-              # pod start), then we tail new lines forever. This is the
-              # same data talosctl dmesg reads from the host.
+              # cat blocks on /dev/kmsg and is woken per kernel line; stdout is
+              # picked up by Promtail's kubernetes-pods job. The first read
+              # dumps the whole ring buffer, so every pod start bursts once.
               exec cat /dev/kmsg
           securityContext:
-            # /dev/kmsg is owned root:root mode 0444 on Talos with
-            # SELinux label device_t:s0. The SELinux policy on Talos
-            # does not allow container_t -> device_t transitions even
-            # with CAP_SYSLOG, and the spc_t (super-privileged container)
-            # type did not unlock it in v1.13.4 (Talos restricts spc_t
-            # to static pods). So we use a privileged container with
-            # no capability drops. This is the same pattern as the
-            # (now-removed) gpu-pm-fix and is the only path that
-            # actually works on Talos today.
-            #
-            # Note: we do NOT `capabilities.drop: [ALL]` here — doing so
-            # removes the implicit-privilege bit that `privileged: true`
-            # grants, and the cat fails with EPERM. The downside is that
-            # the container has full root on the host, so we keep the
-            # command a literal `cat /dev/kmsg` with no shell expansion
-            # and the readOnlyRootFilesystem for everything else.
-            #
-            # kube-linter: privileged warnings are suppressed globally
-            # in .kube-linter.yaml with a comment explaining the why.
-            # Note: Kubernetes requires allowPrivilegeEscalation=true
-            # when privileged=true, so we cannot set it to false.
+            # Talos' SELinux policy allows no container_t -> device_t
+            # transition to /dev/kmsg, not even with CAP_SYSLOG, and spc_t is
+            # restricted to static pods as of v1.13.4 — privileged is the only
+            # path that works. Do NOT add `capabilities.drop: [ALL]`: it strips
+            # the implicit-privilege bit and the cat fails with EPERM.
+            # allowPrivilegeEscalation cannot be false while privileged is true.
             privileged: true
             runAsUser: 0
             readOnlyRootFilesystem: true
           resources:
             requests:
-              # Idle CPU is near 0; small burst on each new kernel line.
+              # Idle CPU is near 0; it bursts only on a new kernel line.
               cpu: 5m
-              # 16 MiB is enough to buffer a few seconds of dmesg burst
-              # (e.g. boot or a crash dump). The Prometheus sidecar is
-              # the dominant memory consumer on this node, not us.
+              # Enough to buffer a few seconds of dmesg burst (boot, crash dump).
               memory: 16Mi
             limits:
               cpu: 50m
@@ -91,6 +60,5 @@ spec:
       volumes:
         - name: kmsg
           hostPath:
-            # /dev/kmsg is a character device; Talos always exposes it.
             path: /dev/kmsg
             type: CharDevice

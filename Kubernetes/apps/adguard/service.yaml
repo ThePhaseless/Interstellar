@@ -21,7 +21,7 @@ metadata:
   labels:
     app: adguard
   annotations:
-    # Request a specific IP from MetalLB pool for stable DNS
+    # Pinned so the DNS address is stable.
     metallb.io/loadBalancerIPs: "192.168.1.12"
 spec:
   type: LoadBalancer

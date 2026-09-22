@@ -10,13 +10,11 @@ locals {
   }
 }
 
-# Provider Configuration
 provider "proxmox" {
   endpoint = var.proxmox_endpoint
   insecure = true # Self-signed cert
 }
 
-# TalosOS ISO Image
 resource "proxmox_download_file" "talos_iso_base" {
   content_type = "iso"
   datastore_id = "local"
@@ -39,7 +37,6 @@ resource "proxmox_download_file" "talos_iso_gpu" {
   overwrite = true
 }
 
-# TalosOS VMs
 resource "proxmox_virtual_environment_vm" "talos" {
   for_each = var.nodes
 
@@ -96,13 +93,11 @@ resource "proxmox_virtual_environment_vm" "talos" {
     }
   }
 
-  # Boot from ISO for initial install
   cdrom {
     file_id   = each.value.gpu ? proxmox_download_file.talos_iso_gpu[0].id : proxmox_download_file.talos_iso_base.id
     interface = "ide0"
   }
 
-  # Network interface bridged directly to the home LAN
   network_device {
     bridge = var.proxmox_cluster_bridge_name
     model  = "virtio"
@@ -135,7 +130,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
     type    = "virtio"
   }
 
-  # Serial console for live debugging via qm terminal (all nodes)
+  # For live debugging via `qm terminal`.
   serial_device {
     device = "socket"
   }
@@ -159,7 +154,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
   }
 }
 
-# Outputs
 output "talos_node_ips" {
   description = "Discovered IP addresses of TalosOS nodes from Proxmox guest agent"
   value       = local.talos_node_ips

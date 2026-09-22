@@ -86,9 +86,9 @@ jobs:
         working-directory: Terraform
         id: plan
         run: |
-          # Remove proxmox resources from state so they are not destroyed
-          # This ensures that even if they depend on destroyed resources (like keys),
-          # they won't be touched because Terraform no longer tracks them.
+          # Forget the proxmox resources so they survive: dropping them from
+          # state means a dependency of theirs being destroyed cannot take
+          # them with it.
           resources=$(terraform state list)
           proxmox_resources=$(echo "$resources" | grep "proxmox" || true)
 
@@ -102,11 +102,9 @@ jobs:
             echo "No Proxmox resources found in state."
           fi
 
-          # Plan destroy for everything remaining in state
-          # This will include the state bucket itself if it is in the state
+          # This destroys the state bucket too, if it is in the state.
           echo "Planning destroy for remaining resources..."
 
-          # Check if there's anything left to destroy
           remaining=$(terraform state list)
           if [ -z "$remaining" ]; then
             echo "No resources left to destroy."

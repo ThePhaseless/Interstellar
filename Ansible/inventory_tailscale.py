@@ -44,7 +44,6 @@ GROUP_VARS: dict[str, dict[str, str]] = {
 }
 
 PERSONAL_HOSTNAMES = ("compute",)
-# ── End configuration ────────────────────────────────────────────────────────
 
 
 def tailscale_status() -> dict:
@@ -82,7 +81,6 @@ def build_inventory() -> dict:
         if not tags and not is_personal:
             continue
 
-        # Use the MagicDNS short name (strip trailing dot + tailnet suffix)
         dns_name: str = peer.get("DNSName", "")
         hostname = dns_name.split(".")[0] if dns_name else peer_hostname or "unknown"
         if not hostname:

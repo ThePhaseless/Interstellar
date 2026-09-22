@@ -1,10 +1,7 @@
 #!/bin/sh
-# Home backup orchestrator.
-#
-# AdGuard uses a ReadWriteOnce PVC, so the backup worker cannot mount it while
-# AdGuard is running. This orchestrator scales AdGuard down, creates a
-# short-lived Job that mounts the PVC and runs borg-backup.sh, waits for it to
-# finish, then scales AdGuard back up.
+# AdGuard's PVC is ReadWriteOnce, so the backup worker cannot mount it while
+# AdGuard is running. This scales AdGuard down, runs a short-lived Job that
+# mounts the PVC and runs borg-backup.sh, then scales AdGuard back up.
 set -eu
 
 info() { printf '\n%s %s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2; }

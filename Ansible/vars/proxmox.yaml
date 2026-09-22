@@ -1,6 +1,3 @@
-# Joined with commas at use: a folded scalar would splice in spaces, and the
-# mount module then sees opts that differ from fstab and tries to remount --
-# which fails, because knfsd holds the export busy.
 # Sized so a runaway grab cannot push the pool into the range where ZFS
 # write performance collapses; raise only alongside pool capacity.
 downloads_hdd_quota: 2T
@@ -15,6 +12,9 @@ fan_control_pwm2: 60
 # Reserved as growth room for the torrents already there.
 downloads_ssd_minfreespace: 75G
 
+# Joined with commas at use: a folded scalar would splice in spaces, and the
+# mount module then sees opts that differ from fstab and tries to remount --
+# which fails, because knfsd holds the export busy.
 downloads_pool_mount_opts:
   - category.create=ff
   - minfreespace=25G
@@ -43,18 +43,17 @@ nfs_exports:
   - path: /srv/downloads
     options: rw,sync,no_subtree_check,no_root_squash,fsid=72
 
-# Restrict NFS access to specific TalosOS node IPs (vmid-based: 192.168.1.<vmid>)
+# Node IPs are vmid-based: 192.168.1.<vmid>.
 nfs_allowed_hosts:
   - 127.0.0.1 # proxmox host itself (for health-check mounts)
   - 192.168.1.110 # talos-1
   - 192.168.1.111 # talos-2
   - 192.168.1.112 # talos-3
 
-# Shared runtime identity for media workloads (Sonarr/Radarr/Bazarr/qBittorrent).
+# Shared by Sonarr/Radarr/Bazarr/qBittorrent.
 media_runtime_uid: 1000
 media_runtime_gid: 1000
 
-# Library paths that should always be writable by the shared media UID/GID.
 media_managed_paths:
   - /Storage/Media/TVShows
   - /Storage/Media/Movies

@@ -8,9 +8,8 @@ resources:
   - bitwarden-store.yaml
   - bitwarden-store-generated.yaml
 
-# Bitwarden SDK server is bundled as a subchart
-# TLS certs must be created before deployment:
-#   ./scripts/generate-bitwarden-tls.sh
+# The bundled Bitwarden SDK subchart needs its TLS certs to exist before this
+# is applied: ./scripts/generate-bitwarden-tls.sh
 helmCharts:
   - name: external-secrets
     repo: https://charts.external-secrets.io

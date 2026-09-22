@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # Usage: ./scripts/setup-kubeconfig.sh
-# Sets up talosconfig (~/.talos/config) and kubeconfig (~/.kube/config)
-# by fetching the talosconfig from Bitwarden Secrets Manager
-# and generating kubeconfig via talosctl.
+# Writes ~/.talos/config from Bitwarden, then ~/.kube/config via talosctl.
 #
 # Prerequisites:
 #   - BWS_ACCESS_TOKEN set (or source scripts/setup-env.sh first)
@@ -54,7 +52,6 @@ if [[ -z "${BWS_ACCESS_TOKEN:-}" ]]; then
     exit 1
 fi
 
-# --- Talosconfig ---
 log_info "Fetching talosconfig from Bitwarden Secrets Manager..."
 
 talosconfig_value=$(
@@ -75,11 +72,9 @@ printf '%s\n' "$talosconfig_value" > "$TALOS_CONFIG"
 chmod 600 "$TALOS_CONFIG"
 log_success "Talosconfig written to ${TALOS_CONFIG}"
 
-# --- Extract node for kubeconfig generation ---
 bootstrap_node=$(talosctl config info --output json 2>/dev/null | jq -r '.nodes[0] // .endpoints[0] // empty' 2>/dev/null || true)
 
 if [[ -z "$bootstrap_node" ]]; then
-    # Fallback: parse endpoints directly from the YAML
     bootstrap_node=$(jq -r '.contexts | to_entries[0].value.endpoints[0] // empty' <<< "$(yq -o=json '.' "$TALOS_CONFIG" 2>/dev/null)" 2>/dev/null || true)
 fi
 
@@ -100,7 +95,6 @@ if command -v tailscale &>/dev/null; then
     fi
 fi
 
-# --- Resolve Tailscale IP ---
 if [[ -z "$talos_node" ]]; then
     if [[ -n "$bootstrap_node" ]]; then
         if [[ "$bootstrap_node" =~ \.ts\.net$ ]]; then
@@ -134,11 +128,10 @@ fi
 if [[ -z "$talos_ip" ]]; then
     talos_ip=$(getent hosts "$talos_node" 2>/dev/null | awk '{print $1}')
     if [[ -z "$talos_ip" ]]; then
-        talos_ip="$talos_node"  # Fallback: use the hostname directly
+        talos_ip="$talos_node"
     fi
 fi
 
-# --- Kubeconfig ---
 log_info "Generating kubeconfig via talosctl (node: ${talos_node}, ip: ${talos_ip})..."
 
 mkdir -p "$KUBE_DIR"
@@ -155,7 +148,6 @@ else
     exit 1
 fi
 
-# --- Verify ---
 log_info "Verifying cluster access..."
 
 if kubectl --kubeconfig "$KUBE_CONFIG" get nodes &>/dev/null; then

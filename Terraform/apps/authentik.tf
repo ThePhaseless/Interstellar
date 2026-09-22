@@ -10,7 +10,7 @@ data "authentik_certificate_key_pair" "default" {
   name = "authentik Self-signed Certificate"
 }
 
-# OAuth2 scope mappings (renamed in provider v2025.x)
+# Renamed in provider v2025.x.
 data "authentik_property_mapping_provider_scope" "oauth2" {
   managed_list = [
     "goauthentik.io/providers/oauth2/scope-openid",
@@ -185,10 +185,6 @@ resource "authentik_provider_proxy" "private" {
   refresh_token_validity = "days=30"
 }
 
-# Public: Any Google account — copyparty only.
-# MUST stay forward_single: two forward_domain providers sharing an external_host
-# can't be multiplexed by the outpost, so this zero-policy provider won every host
-# and the access policy never fired.
 # Off the shared private proxy so watchers reach Seerr without also reaching the
 # *arr stack and cluster tooling. forward_single for the reason on
 # authentik_provider_proxy.public.
@@ -205,6 +201,10 @@ resource "authentik_provider_proxy" "seerr" {
   refresh_token_validity = "days=30"
 }
 
+# Any Google account — copyparty only.
+# MUST stay forward_single: two forward_domain providers sharing an external_host
+# can't be multiplexed by the outpost, so this zero-policy provider won every host
+# and the access policy never fired.
 resource "authentik_provider_proxy" "public" {
   name               = "public-proxy"
   mode               = "forward_single"
@@ -229,8 +229,7 @@ resource "authentik_application" "private" {
 # There is no separate "public" application: Authentik forbids two applications
 # on one provider, so authentik_application.copyparty owns the public proxy.
 
-# Access policies. Membership is managed in the Authentik web UI — adding a
-# person to a group needs no Terraform change.
+# Group membership is managed in the Authentik web UI, not here.
 
 resource "authentik_policy_expression" "vips_or_admins" {
   name       = "vips-or-admins"
@@ -394,7 +393,6 @@ resource "authentik_policy_binding" "immich_access" {
 }
 
 # "watchers" → Jellyfin and Seerr login, "writers" → Copyparty upload, "photos" → Immich login.
-# Created empty; manage membership in the Authentik UI.
 
 resource "authentik_group" "watchers" {
   name  = "watchers"

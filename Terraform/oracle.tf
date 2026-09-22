@@ -2,8 +2,6 @@ provider "oci" {
   # Authentication handled by environment variables
 }
 
-# Data Sources
-
 data "oci_identity_availability_domains" "ads" {
   compartment_id = oci_identity_compartment.main.id
 }
@@ -36,9 +34,6 @@ data "oci_core_images" "ubuntu" {
   sort_order               = "DESC"
 }
 
-# Networking
-
-# VCN (Virtual Cloud Network)
 resource "oci_core_vcn" "main" {
   compartment_id = oci_identity_compartment.main.id
   display_name   = "interstellar-vcn"
@@ -74,7 +69,6 @@ resource "oci_core_security_list" "main" {
     protocol    = "all"
   }
 
-  # Ingress: SSH (conditional on oracle_ssh_public_access)
   # Only open during a Tailscale bootstrap run, and only to the caller's own
   # /32 — oracle_ssh_source_cidr is validated to /24-or-narrower and defaults to
   # a CIDR that reaches nothing. This list is attached to the subnet, so the
@@ -128,13 +122,10 @@ resource "oci_core_subnet" "main" {
   dns_label                  = "main"
 }
 
-# Compute Instance
-
 resource "tls_private_key" "oracle_ssh" {
   algorithm = "ED25519"
 }
 
-# Compute VPS (Remaining resources for general workloads)
 resource "oci_core_instance" "compute" {
   compartment_id      = oci_identity_compartment.main.id
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name

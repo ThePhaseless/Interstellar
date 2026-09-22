@@ -8,7 +8,6 @@ spec:
       apiURL: https://api.bitwarden.com
       identityURL: https://identity.bitwarden.com
       bitwardenServerSDKURL: https://bitwarden-sdk-server.external-secrets.svc.cluster.local:9998
-      # CA certificate for the SDK server TLS connection
       caProvider:
         type: Secret
         name: bitwarden-tls-certs
