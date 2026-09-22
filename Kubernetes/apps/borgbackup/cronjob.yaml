@@ -11,6 +11,8 @@ spec:
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 120
+      # Under Forbid, one hung run silently blocks every later backup.
+      activeDeadlineSeconds: 14400
       backoffLimit: 2
       template:
         spec:
