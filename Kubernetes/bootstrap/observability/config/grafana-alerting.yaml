@@ -596,6 +596,70 @@ groups:
           severity: warning
         isPaused: false
 
+      # 36h is one missed daily run plus margin. Scoped by name rather than
+      # all CronJobs: the suspended arr-coverage jobs have an arbitrarily old
+      # last success and would fire forever.
+      - uid: backup-stale
+        title: Backup Not Succeeding
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: mimir
+            model:
+              expr: (time() - kube_cronjob_status_last_successful_time{cronjob=~".*backup.*"}) / 3600 > 36
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              type: threshold
+        dashboardUid: ""
+        panelId: 0
+        noDataState: OK
+        execErrState: Error
+        for: 1h
+        annotations:
+          summary: "Backup {{ $labels.namespace }}/{{ $labels.cronjob }} has not succeeded in {{ with $values.B }}{{ printf \"%.0f\" .Value }}{{ end }}h"
+        labels:
+          severity: warning
+        isPaused: false
+
       # `longhorn_disk_status` does not exist; disk schedulability is exposed as
       # `longhorn_node_status{condition="schedulable"}`. The raw metric is
       # queried, so the threshold is `lt:1` to fire on 0 (not schedulable).
