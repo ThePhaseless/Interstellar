@@ -104,8 +104,6 @@ spec:
                     + external/public/safe
                     + external/public/safe/**
                     - external/public/**
-                - name: BORG_LEGACY_GLOBS
-                  value: "immich-*"
               volumeMounts:
                 - name: photos
                   mountPath: /photos
