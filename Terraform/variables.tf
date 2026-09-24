@@ -104,18 +104,27 @@ variable "talos_gpu_extensions" {
   ]
 }
 
-# renovate: datasource=github-releases depName=siderolabs/talos
+# Installed OS version: bumping it upgrades every node in place through talos_machine.
 variable "talos_version" {
   description = "TalosOS version"
+  type        = string
+  # renovate: datasource=github-releases depName=siderolabs/talos
+  default = "v1.13.9"
+}
+
+# Machine-config generation contract, not the installed OS; bumping it regenerates every
+# node's config, so change it deliberately rather than alongside talos_version.
+variable "talos_config_version" {
+  description = "Talos version the machine configuration is generated for"
   type        = string
   default     = "v1.13.9"
 }
 
-# renovate: datasource=github-releases depName=siderolabs/talos extractVersion=^v(?<version>.+)$ versioning=semver
 variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
-  default     = "1.36.3"
+  # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver extractVersion=^v(?<version>.+)$
+  default = "1.36.3"
 }
 
 variable "tf_state_bucket" {

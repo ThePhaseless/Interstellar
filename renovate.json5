@@ -64,6 +64,21 @@
       groupName: 'talos-cluster',
       groupSlug: 'talos-cluster',
     },
+    {
+      // Each Talos minor caps the Kubernetes minor it supports, and upgrade-k8s
+      // moves one minor at a time, so these wait for a human.
+      matchDatasources: [
+        'github-releases',
+      ],
+      matchPackageNames: [
+        'kubernetes/kubernetes',
+      ],
+      matchUpdateTypes: [
+        'minor',
+        'major',
+      ],
+      automerge: false,
+    },
   ],
   'pre-commit': {
     enabled: true,

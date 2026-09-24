@@ -206,6 +206,17 @@ main() {
 
     export KUBE_CONFIG_PATH="${KUBE_CONFIG_PATH:-$HOME/.kube/config}"
 
+    # talos_machine refreshes through the endpoint saved in state, so local runs must
+    # save the same Tailscale IPs CI uses or CI's next refresh cannot reach the nodes.
+    local talos_endpoints
+    talos_endpoints=$(eval "$(bash "${repo_root}/scripts/resolve-talos-api-endpoint.sh" --shell 2>/dev/null)" && printf '%s' "${TALOS_API_ENDPOINTS:-}")
+    if [[ -n "$talos_endpoints" ]]; then
+        export TF_VAR_talos_api_endpoints="$talos_endpoints"
+        log_success "Talos API endpoints resolved via Tailscale"
+    else
+        log_warn "Could not resolve Talos API endpoints via Tailscale"
+    fi
+
     log_success "Environment ready!"
 }
 
