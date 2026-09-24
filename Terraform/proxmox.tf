@@ -43,9 +43,10 @@ resource "proxmox_virtual_environment_vm" "talos" {
   vm_id       = each.value.vmid
   description = "TalosOS ${each.value.gpu ? "GPU " : ""}node for Kubernetes cluster"
 
-  machine    = "q35"
-  bios       = "ovmf"
-  boot_order = ["scsi0"]
+  machine = "q35"
+  bios    = "ovmf"
+  # Proxmox appends ide0 whenever the ISO is swapped, and undoing it can make the provider reboot every VM undrained.
+  boot_order = ["scsi0", "ide0"]
 
   operating_system {
     type = "l26"
