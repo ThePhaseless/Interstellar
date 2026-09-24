@@ -31,12 +31,18 @@ spec:
           args:
             - |
               CONFIG="/config/config.xml"
+              ALLOWED_HOSTS="radarr,radarr.media,radarr.media.svc,radarr.media.svc.cluster.local,radarr.nerine.dev"
               if [ ! -f "$CONFIG" ]; then
-                printf '<Config>\n  <AuthenticationMethod>External</AuthenticationMethod>\n  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>\n</Config>\n' > "$CONFIG"
+                printf '<Config>\n  <AuthenticationMethod>External</AuthenticationMethod>\n  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>\n  <AllowedHosts>%s</AllowedHosts>\n</Config>\n' "$ALLOWED_HOSTS" > "$CONFIG"
                 echo "Created config.xml with External auth"
               else
                 sed -i 's|<AuthenticationMethod>[^<]*</AuthenticationMethod>|<AuthenticationMethod>External</AuthenticationMethod>|' "$CONFIG"
                 sed -i 's|<AuthenticationRequired>[^<]*</AuthenticationRequired>|<AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>|' "$CONFIG"
+                if grep -q '<AllowedHosts>' "$CONFIG"; then
+                  sed -i "s|<AllowedHosts>[^<]*</AllowedHosts>|<AllowedHosts>$ALLOWED_HOSTS</AllowedHosts>|" "$CONFIG"
+                else
+                  sed -i "s|</Config>|  <AllowedHosts>$ALLOWED_HOSTS</AllowedHosts>\n</Config>|" "$CONFIG"
+                fi
                 echo "Updated config.xml auth settings"
               fi
           volumeMounts:
@@ -70,12 +76,19 @@ spec:
             httpGet:
               path: /ping
               port: http
+              # AllowedHosts rejects the pod IP that the kubelet sends as Host.
+              httpHeaders:
+                - name: Host
+                  value: localhost
             initialDelaySeconds: 60
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /ping
               port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
             initialDelaySeconds: 30
 
         - name: api-extractor

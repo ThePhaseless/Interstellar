@@ -42,7 +42,7 @@ spec:
             - name: LOG_FORMAT
               value: "json"
             - name: TZ
-              value: "UTC"
+              value: Europe/Warsaw
           ports:
             - name: smtp
               containerPort: 587

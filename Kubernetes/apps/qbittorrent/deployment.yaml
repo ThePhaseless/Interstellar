@@ -32,8 +32,6 @@ spec:
             - configMapRef:
                 name: media-runtime-config
           env:
-            - name: TZ
-              value: "UTC"
             - name: DOCKER_MODS
               value: ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest@sha256:7cf3996f8c405a42d37c34c37d8eed7cbb01ef7c698c7a8ec243f53bd4b480cc
           ports:

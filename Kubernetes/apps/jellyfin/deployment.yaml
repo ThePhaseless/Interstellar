@@ -33,6 +33,8 @@ spec:
           env:
             - name: JELLYFIN_PublishedServerUrl
               value: "https://watch.nerine.dev"
+            - name: TZ
+              value: Europe/Warsaw
           volumeMounts:
             - name: config
               mountPath: /config

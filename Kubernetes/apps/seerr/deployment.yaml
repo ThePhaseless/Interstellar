@@ -33,7 +33,7 @@ spec:
           image: ghcr.io/seerr-team/seerr:v3.4.1
           env:
             - name: TZ
-              value: "UTC"
+              value: Europe/Warsaw
             - name: LOG_LEVEL
               value: "info"
           ports:

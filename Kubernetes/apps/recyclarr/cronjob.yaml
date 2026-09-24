@@ -26,7 +26,7 @@ spec:
                 - recyclarr sync
               env:
                 - name: TZ
-                  value: "UTC"
+                  value: Europe/Warsaw
                 - name: SONARR_API_KEY
                   valueFrom:
                     secretKeyRef:

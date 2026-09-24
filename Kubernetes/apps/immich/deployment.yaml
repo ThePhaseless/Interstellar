@@ -53,7 +53,7 @@ spec:
           image: ghcr.io/immich-app/immich-server:v3.2.2
           env:
             - name: TZ
-              value: "UTC"
+              value: Europe/Warsaw
             - name: IMMICH_CONFIG_FILE
               value: "/immich-config/immich.config.json"
             - name: DB_HOSTNAME

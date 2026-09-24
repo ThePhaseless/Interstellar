@@ -21,7 +21,7 @@ spec:
           image: ghcr.io/manimatter/decluttarr:v2.1.0
           env:
             - name: TZ
-              value: "UTC"
+              value: Europe/Warsaw
             - name: SONARR_API_KEY
               valueFrom:
                 secretKeyRef:

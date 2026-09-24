@@ -24,8 +24,6 @@ spec:
         - name: immich-ml
           image: ghcr.io/immich-app/immich-machine-learning:v3.2.2-openvino
           env:
-            - name: TZ
-              value: "UTC"
             - name: MACHINE_LEARNING_REQUEST_THREADS
               value: "1"
             - name: MACHINE_LEARNING_MODEL_INTRA_OP_THREADS

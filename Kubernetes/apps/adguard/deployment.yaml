@@ -37,7 +37,7 @@ spec:
           image: adguard/adguardhome:v0.107.79
           env:
             - name: TZ
-              value: "UTC"
+              value: Europe/Warsaw
           ports:
             - name: http
               containerPort: 3000
