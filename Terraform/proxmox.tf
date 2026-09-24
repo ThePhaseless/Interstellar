@@ -22,6 +22,12 @@ resource "proxmox_download_file" "talos_iso_base" {
 
   url       = data.talos_image_factory_urls.base_image.urls.iso
   file_name = "talos-${var.talos_version}-extensions-${data.talos_image_factory_urls.base_image.schematic_id}.iso"
+
+  # The ISO only seeds a fresh install; talos_machine upgrades nodes from the installer image,
+  # so a bump keeps the existing ISO and a from-scratch deploy downloads the current version.
+  lifecycle {
+    ignore_changes = [url, file_name]
+  }
 }
 
 resource "proxmox_download_file" "talos_iso_gpu" {
@@ -33,6 +39,12 @@ resource "proxmox_download_file" "talos_iso_gpu" {
 
   url       = data.talos_image_factory_urls.gpu_image.urls.iso
   file_name = "talos-${var.talos_version}-gpu-extensions-${data.talos_image_factory_urls.gpu_image.schematic_id}.iso"
+
+  # The ISO only seeds a fresh install; talos_machine upgrades nodes from the installer image,
+  # so a bump keeps the existing ISO and a from-scratch deploy downloads the current version.
+  lifecycle {
+    ignore_changes = [url, file_name]
+  }
 }
 
 resource "proxmox_virtual_environment_vm" "talos" {
