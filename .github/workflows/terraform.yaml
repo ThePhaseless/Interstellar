@@ -416,6 +416,12 @@ jobs:
             -backend-config="namespace=${{ env.OCI_NAMESPACE }}"
         working-directory: ${{ env.TF_WORKING_DIR }}
 
+      # Talos stops Tailscale before apid during an upgrade reboot, so the provider's event
+      # stream dies without a FIN; at the 2h kernel default it outlives the 15m reboot wait.
+      # Drop once the talos provider embeds machinery >= v1.14.1 (siderolabs/talos bf31b2811).
+      - name: Shorten TCP keepalive
+        run: sudo sysctl -w net.ipv4.tcp_keepalive_time=30 net.ipv4.tcp_keepalive_intvl=10 net.ipv4.tcp_keepalive_probes=3
+
       - name: Terraform Apply
         # -parallelism=1 keeps talos_machine upgrades to one node at a time; see Terraform/talos.tf.
         run: terraform apply -auto-approve -lock-timeout=10m -parallelism=1 tfplan
