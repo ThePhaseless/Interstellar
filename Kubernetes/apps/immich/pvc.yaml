@@ -12,15 +12,44 @@ spec:
     requests:
       storage: 3Gi
 ---
+# Node-local, unreplicated: the pod is pinned to the GPU node anyway and the models
+# re-download, while a 1-replica Longhorn volume blocked draining that node.
+# The directory is the immich-ml-cache UserVolumeConfig in Terraform/talos.tf.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: immich-ml-local-cache
+spec:
+  capacity:
+    storage: 12Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: utilities
+    name: immich-ml-local-cache
+  local:
+    path: /var/mnt/immich-ml-cache
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: intel.feature.node.kubernetes.io/gpu
+              operator: In
+              values:
+                - "true"
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: immich-ml-cache
+  name: immich-ml-local-cache
   namespace: utilities
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: longhorn-cache
+  storageClassName: ""
+  volumeName: immich-ml-local-cache
   resources:
     requests:
       storage: 12Gi

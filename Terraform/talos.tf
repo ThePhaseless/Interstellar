@@ -185,6 +185,14 @@ data "talos_machine_configuration" "controlplane" {
       }
     }) : null,
 
+    # Backs the immich-ml-cache local PV; a directory on EPHEMERAL, so it survives reboots and upgrades but not a reinstall.
+    each.value.gpu ? yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "UserVolumeConfig"
+      name       = "immich-ml-cache"
+      volumeType = "directory"
+    }) : null,
+
     yamlencode({
       cluster = {
         allowSchedulingOnControlPlanes = true

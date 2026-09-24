@@ -62,7 +62,7 @@ spec:
       volumes:
         - name: cache
           persistentVolumeClaim:
-            claimName: immich-ml-cache
+            claimName: immich-ml-local-cache
 ---
 apiVersion: v1
 kind: Service
