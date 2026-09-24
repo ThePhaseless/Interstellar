@@ -9,29 +9,17 @@ permissions:
 concurrency:
   group: terraform-destroy
 
-env:
-  TF_VERSION: "latest"
-
 jobs:
   plan-destroy:
     runs-on: ubuntu-latest
     outputs:
       destroy_needed: ${{ steps.plan.outputs.destroy_needed }}
     env:
-      UV_LINK_MODE: copy
-      PM_PASS: ${{ secrets.PM_PASS }}
       TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
       TF_VAR_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
       TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
       TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
       TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
-      TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
-      TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
-      TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
-      OCI_user: ${{ secrets.TF_VAR_USER_OCID }}
-      OCI_tenancy: ${{ secrets.TF_VAR_TENANCY_OCID }}
       OCI_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
       OCI_region: ${{ secrets.TF_VAR_REGION }}
       OCI_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
@@ -59,8 +47,6 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Create OCI Private Key
         run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{
@@ -73,7 +59,6 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           tags: tag:ci
-          version: latest
           args: --accept-dns=false
 
       - name: Terraform Init
@@ -86,9 +71,7 @@ jobs:
         working-directory: Terraform
         id: plan
         run: |
-          # Forget the proxmox resources so they survive: dropping them from
-          # state means a dependency of theirs being destroyed cannot take
-          # them with it.
+          # Out of state, proxmox resources survive their dependencies' destroy.
           resources=$(terraform state list)
           proxmox_resources=$(echo "$resources" | grep "proxmox" || true)
 
@@ -138,22 +121,13 @@ jobs:
       url:
         https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id
         }}
-    # ⚠️ IMPORTANT: To enforce manual approval, go to Settings -> Environments -> server -> "Required reviewers" in your Repo.
+    # Approval gate: required reviewers on the "server" environment.
     env:
-      UV_LINK_MODE: copy
-      PM_PASS: ${{ secrets.PM_PASS }}
       TF_VAR_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
       TF_VAR_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
       TF_VAR_region: ${{ secrets.TF_VAR_REGION }}
       TF_VAR_tenancy_ocid: ${{ secrets.TF_VAR_TENANCY_OCID }}
       TF_VAR_user_ocid: ${{ secrets.TF_VAR_USER_OCID }}
-      TF_VAR_proxmox_host: ${{ secrets.TF_VAR_PROXMOX_HOST }}
-      TF_VAR_state_bucket_name: ${{ vars.TF_BUCKET_NAME }}
-      TF_VAR_ansible_bucket_name: ${{ vars.ANSIBLE_BUCKET_NAME }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
-      OCI_user: ${{ secrets.TF_VAR_USER_OCID }}
-      OCI_tenancy: ${{ secrets.TF_VAR_TENANCY_OCID }}
       OCI_fingerprint: ${{ secrets.TF_VAR_FINGERPRINT }}
       OCI_region: ${{ secrets.TF_VAR_REGION }}
       OCI_private_key_path: ${{ github.workspace }}/.private/oci_private_key.pem
@@ -183,8 +157,6 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Create OCI Private Key
         run: mkdir -p $(dirname ${OCI_private_key_path}) && echo "${{
@@ -196,7 +168,6 @@ jobs:
         with:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
-          version: latest
           args: --accept-dns=false
 
       - name: Terraform Init

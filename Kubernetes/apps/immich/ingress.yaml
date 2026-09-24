@@ -8,7 +8,6 @@ spec:
     - websecure
   routes:
     - match: Host(`photos.nerine.dev`)
-      kind: Rule
       services:
         - name: immich
           port: 3001

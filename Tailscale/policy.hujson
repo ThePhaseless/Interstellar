@@ -5,9 +5,7 @@
     "tag:proxmox":      ["tag:ci"],
     "tag:node":         ["tag:ci"],
     "tag:k8s-operator": ["tag:ci"],
-    // tag:ci is co-owner so the Terraform/CI identity can retag an existing
-    // proxy device in place; the operator only assigns tags at registration,
-    // and re-registering would change the device's IP and MagicDNS name.
+    // tag:ci co-owns so CI can retag a proxy in place (the operator only tags at registration); re-registering changes its IP and MagicDNS name.
     "tag:service":      ["tag:k8s-operator", "tag:ci"],
     "tag:minecraft":    ["tag:ci"],
   },

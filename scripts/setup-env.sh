@@ -38,7 +38,7 @@ fetch_bws_org_id() {
     local org_id
 
     org_id=$(
-        bws project list --output json --color no 2>/dev/null |
+        bws project list --color no 2>/dev/null |
             sanitize_json |
             jq -r '.[0].organizationId // empty'
     )
@@ -49,7 +49,6 @@ fetch_bws_org_id() {
     fi
 
     export BW_ORGANIZATION_ID="$org_id"
-    export BWS_ORGANIZATION_ID="$org_id"
 
     log_success "Bitwarden Organization ID set"
 }
@@ -66,7 +65,7 @@ fetch_and_export_secret() {
 
     if [[ -z "$value" || "$value" == "null" ]]; then
         value=$(
-            bws secret list --output json --color no 2>/dev/null |
+            bws secret list --color no 2>/dev/null |
                 sanitize_json |
                 jq -r --arg key "$bws_key" '.[] | select(.key == $key) | .value' 2>/dev/null
         )
@@ -103,13 +102,13 @@ setup_oci() {
     local oci_key_content
 
     oci_config_content=$(
-        bws secret list --output json --color no 2>/dev/null |
+        bws secret list --color no 2>/dev/null |
             sanitize_json |
             jq -r '.[] | select(.key == "oci-config") | .value' 2>/dev/null
     )
 
     oci_key_content=$(
-        bws secret list --output json --color no 2>/dev/null |
+        bws secret list --color no 2>/dev/null |
             sanitize_json |
             jq -r '.[] | select(.key == "oci-private-key") | .value' 2>/dev/null
     )
@@ -140,7 +139,6 @@ setup_oci() {
     OCI_REGION=$(grep '^region=' "$config_path" | cut -d= -f2 | tr -d ' "' || true)
     export OCI_REGION
 
-    export TF_VAR_oci_tenancy_ocid="$OCI_TENANCY_OCID"
     export OCI_PRIVATE_KEY="$oci_key_content"
 
     log_success "OCI configuration written"
@@ -174,10 +172,9 @@ main() {
     check_prerequisites || return 1
 
     export BW_ACCESS_TOKEN="$BWS_ACCESS_TOKEN"
-    export TF_VAR_bws_access_token="$BWS_ACCESS_TOKEN"
 
     log_info "Fetching Bitwarden secrets..."
-    SECRETS_JSON=$(bws secret list --output json --color no 2>/dev/null | sanitize_json)
+    SECRETS_JSON=$(bws secret list --color no 2>/dev/null | sanitize_json)
 
     if [[ -z "$SECRETS_JSON" || "$SECRETS_JSON" == "[]" ]]; then
         log_error "Bitwarden returned no secrets. Check your token."
@@ -188,12 +185,9 @@ main() {
     setup_oci
 
     fetch_batch \
-        "oci-namespace" "TF_VAR_oci_namespace" \
         "tailscale-oauth-client-id" "TF_VAR_tailscale_oauth_client_id" \
         "tailscale-oauth-secret" "TF_VAR_tailscale_oauth_secret" \
-        "tailscale-oracle-auth-key" "TAILSCALE_ORACLE_AUTH_KEY" \
         "cloudflare-api-token" "CLOUDFLARE_API_TOKEN" \
-        "cloudflare-zone-id" "TF_VAR_cloudflare_zone_id" \
         "hcloud-token" "HCLOUD_TOKEN"
 
     local px_user

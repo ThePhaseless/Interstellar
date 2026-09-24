@@ -1,5 +1,3 @@
-provider "talos" {}
-
 locals {
   talos_cluster_endpoint_host = var.cluster_vip
   talos_node_hostnames = {
@@ -9,20 +7,11 @@ locals {
     for node_name in local.talos_node_names : node_name => lookup(var.talos_api_endpoints, node_name, local.talos_node_ips[node_name])
   }
   talos_longhorn_data_disk_symlink = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
-  talos_node_is_gpu                = { for node_name, node in var.nodes : node_name => node.gpu }
   talos_bootstrap_node_name        = local.talos_node_names[0]
-  talos_bootstrap_node_ip          = local.talos_node_ips[local.talos_bootstrap_node_name]
   talos_bootstrap_node_endpoint    = local.talos_node_api_endpoints[local.talos_bootstrap_node_name]
 }
 
 resource "talos_machine_secrets" "cluster" {}
-
-data "talos_image_factory_extensions_versions" "base_extensions" {
-  talos_version = var.talos_version
-  exact_filters = {
-    names = distinct(var.talos_base_extensions)
-  }
-}
 
 resource "talos_image_factory_schematic" "base" {
   schematic = yamlencode({
@@ -38,13 +27,6 @@ data "talos_image_factory_urls" "base_image" {
   schematic_id  = talos_image_factory_schematic.base.id
   talos_version = var.talos_version
   platform      = "nocloud"
-}
-
-data "talos_image_factory_extensions_versions" "gpu_extensions" {
-  talos_version = var.talos_version
-  exact_filters = {
-    names = distinct(concat(var.talos_base_extensions, var.talos_gpu_extensions))
-  }
 }
 
 resource "talos_image_factory_schematic" "gpu" {
@@ -97,7 +79,7 @@ data "talos_machine_configuration" "controlplane" {
   kubernetes_version = var.kubernetes_version
 
   config_patches = compact([
-    # Use predictable hostname instead of machine-ID-derived random name
+    # auto must stay "off": the generated base sets auto: stable, which Talos rejects alongside a hostname.
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "HostnameConfig"
@@ -138,7 +120,7 @@ data "talos_machine_configuration" "controlplane" {
           interfaces = [
             {
               deviceSelector = {
-                busPath = "0*" # Match first PCI network device (virtio NIC)
+                busPath = "0*" # Matches every PCI NIC; safe only while each VM has one
               }
               dhcp      = false
               addresses = ["${local.talos_node_ips[each.key]}/24"]
@@ -158,7 +140,6 @@ data "talos_machine_configuration" "controlplane" {
         install = {
           disk  = "/dev/sda"
           image = each.value.gpu ? "factory.talos.dev/installer/${talos_image_factory_schematic.gpu.id}:${var.talos_version}" : "factory.talos.dev/installer/${talos_image_factory_schematic.base.id}:${var.talos_version}"
-          wipe  = false
         }
       }
     }),
@@ -211,8 +192,7 @@ data "talos_machine_configuration" "controlplane" {
           advertisedSubnets = [var.cluster_network]
         }
 
-        # Flannel alone silently ignores NetworkPolicy objects; this deploys
-        # kube-network-policies alongside it so they are actually enforced.
+        # Flannel alone ignores NetworkPolicy; this adds kube-network-policies to enforce it.
         network = {
           cni = {
             name = "flannel"

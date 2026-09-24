@@ -24,20 +24,20 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              SMTP='"notifications":{"smtp":{"enabled":true,"from":"Immich <noreply@nerine.dev>","replyTo":"","transport":{"host":"postfix.utilities.svc.cluster.local","port":587,"username":"","password":"","ignoreCert":true}}}'
-              ML='"machineLearning":{"clip":{"enabled":true,"modelName":"ViT-SO400M-16-SigLIP2-384__webli"},"facialRecognition":{"enabled":true,"modelName":"buffalo_l","minScore":0.7,"maxDistance":0.5,"minFaces":3}}'
+              SMTP='"notifications":{"smtp":{"enabled":true,"from":"Immich <noreply@nerine.dev>","transport":{"host":"postfix.utilities.svc.cluster.local","ignoreCert":true}}}'
+              ML='"machineLearning":{"clip":{"modelName":"ViT-SO400M-16-SigLIP2-384__webli"}}'
               if [ -f /secrets/oauth-client-id ] && [ -f /secrets/oauth-client-secret ]; then
                 CLIENT_ID=$(cat /secrets/oauth-client-id)
                 CLIENT_SECRET=$(cat /secrets/oauth-client-secret)
                 if [ -n "$CLIENT_ID" ] && [ -n "$CLIENT_SECRET" ]; then
-                  printf '{"oauth":{"enabled":true,"issuerUrl":"https://auth.nerine.dev/application/o/immich/","clientId":"%s","clientSecret":"%s","scope":"openid email profile","signingAlgorithm":"RS256","profileSigningAlgorithm":"none","storageLabelClaim":"preferred_username","buttonText":"Login with Authentik","autoRegister":true,"autoLaunch":true,"defaultStorageQuota":0},"passwordLogin":{"enabled":false},%s,%s}' "$CLIENT_ID" "$CLIENT_SECRET" "$SMTP" "$ML" > /immich-config/immich.config.json
+                  printf '{"oauth":{"enabled":true,"issuerUrl":"https://auth.nerine.dev/application/o/immich/","clientId":"%s","clientSecret":"%s","buttonText":"Login with Authentik","autoLaunch":true,"defaultStorageQuota":0},"passwordLogin":{"enabled":false},%s,%s}' "$CLIENT_ID" "$CLIENT_SECRET" "$SMTP" "$ML" > /immich-config/immich.config.json
                   echo "Immich OAuth config created (enabled) with SMTP and ML settings"
                 else
-                  printf '{"oauth":{"enabled":false},%s,%s}' "$SMTP" "$ML" > /immich-config/immich.config.json
+                  printf '{%s,%s}' "$SMTP" "$ML" > /immich-config/immich.config.json
                   echo "Warning: OAuth secrets empty, OAuth disabled (SMTP and ML enabled)"
                 fi
               else
-                printf '{"oauth":{"enabled":false},%s,%s}' "$SMTP" "$ML" > /immich-config/immich.config.json
+                printf '{%s,%s}' "$SMTP" "$ML" > /immich-config/immich.config.json
                 echo "Warning: OAuth secrets not found, OAuth disabled (SMTP and ML enabled)"
               fi
               chmod 600 /immich-config/immich.config.json
@@ -58,10 +58,6 @@ spec:
               value: "/immich-config/immich.config.json"
             - name: DB_HOSTNAME
               value: "localhost"
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_DATABASE_NAME
-              value: "immich"
             - name: DB_USERNAME
               value: "immich"
             - name: DB_PASSWORD
@@ -71,8 +67,6 @@ spec:
                   key: db-password
             - name: REDIS_HOSTNAME
               value: "localhost"
-            - name: REDIS_PORT
-              value: "6379"
             - name: IMMICH_MACHINE_LEARNING_URL
               value: "http://immich-ml.utilities.svc.cluster.local:3003"
             - name: IMMICH_HOST
@@ -104,13 +98,10 @@ spec:
               path: /api/server/ping
               port: http
             initialDelaySeconds: 30
-            periodSeconds: 10
 
         - name: postgres
           image: ghcr.io/immich-app/postgres:17-vectorchord0.3.0-pgvectors0.3.0
           env:
-            - name: POSTGRES_DB
-              value: "immich"
             - name: POSTGRES_USER
               value: "immich"
             - name: POSTGRES_PASSWORD
@@ -177,7 +168,6 @@ spec:
     kind: ClusterSecretStore
   target:
     name: immich-secrets
-    creationPolicy: Owner
   data:
     - secretKey: db-password
       remoteRef:

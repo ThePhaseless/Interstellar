@@ -11,13 +11,11 @@ links:
 
 caps:
   categorymappings:
-    # Anime
     - {id: 28, cat: TV/Anime, desc: "Anime/Anime"}
     - {id: 78, cat: TV/Anime, desc: "Anime/Dual Audio"}
     - {id: 79, cat: TV/Anime, desc: "Anime/Dubbed"}
     - {id: 80, cat: TV/Anime, desc: "Anime/Subbed"}
     - {id: 81, cat: TV/Anime, desc: "Anime/Raw"}
-    # Audio
     - {id: 22, cat: Audio/MP3, desc: "Music/MP3"}
     - {id: 23, cat: Audio/Lossless, desc: "Music/Lossless"}
     - {id: 24, cat: Audio, desc: "Music/DVD"}
@@ -30,7 +28,6 @@ caps:
     - {id: 60, cat: Audio, desc: "Music/Single"}
     - {id: 68, cat: Audio, desc: "Music/Concerts"}
     - {id: 69, cat: Audio, desc: "Music/AAC"}
-    # Movies
     - {id: 1, cat: Movies/DVD, desc: "Movies/DVD"}
     - {id: 2, cat: Movies/SD, desc: "Movies/Divx/Xvid"}
     - {id: 3, cat: Movies, desc: "Movies/SVCD/VCD"}
@@ -42,7 +39,6 @@ caps:
     - {id: 70, cat: Movies/HD, desc: "Movies/HEVC/x265"}
     - {id: 73, cat: Movies, desc: "Movies/Bollywood"}
     - {id: 76, cat: Movies/UHD, desc: "Movies/UHD"}
-    # TV
     - {id: 5, cat: TV, desc: "TV/DVD"}
     - {id: 6, cat: TV, desc: "TV/Divx/Xvid"}
     - {id: 7, cat: TV, desc: "TV/SVCD/VCD"}
@@ -51,14 +47,12 @@ caps:
     - {id: 74, cat: TV, desc: "TV/Cartoons"}
     - {id: 75, cat: TV/SD, desc: "TV/SD"}
     - {id: 9, cat: TV/Documentary, desc: "TV/Documentary"}
-    # Apps
     - {id: 18, cat: PC, desc: "Apps/PC Software"}
     - {id: 19, cat: PC/Mac, desc: "Apps/Mac"}
     - {id: 20, cat: PC, desc: "Apps/Linux"}
     - {id: 21, cat: PC, desc: "Apps/Other"}
     - {id: 56, cat: PC/Mobile-Android, desc: "Apps/Android"}
     - {id: 57, cat: PC/Mobile-iOS, desc: "Apps/iOS"}
-    # Games
     - {id: 10, cat: PC/Games, desc: "Games/PC Game"}
     - {id: 11, cat: Console/PS3, desc: "Games/PS2"}
     - {id: 12, cat: Console/PSP, desc: "Games/PSP"}
@@ -74,13 +68,11 @@ caps:
     - {id: 72, cat: Console/3DS, desc: "Games/3DS"}
     - {id: 77, cat: Console/PS4, desc: "Games/PS4"}
     - {id: 82, cat: Console/Other, desc: "Games/Switch"}
-    # XXX
     - {id: 48, cat: XXX/DVD, desc: "XXX/Video"}
     - {id: 49, cat: XXX/ImageSet, desc: "XXX/Picture"}
     - {id: 50, cat: XXX, desc: "XXX/Magazine"}
     - {id: 51, cat: XXX, desc: "XXX/Hentai"}
     - {id: 67, cat: XXX, desc: "XXX/Games"}
-    # Other
     - {id: 33, cat: Other, desc: "Other/Emulation"}
     - {id: 34, cat: Books, desc: "Other/Tutorial"}
     - {id: 35, cat: Other, desc: "Other/Sounds"}
@@ -147,7 +139,6 @@ settings:
       asc: asc
 
 download:
-  # the .torrent URL and magnet URI are on the details page
   selectors:
     - selector: ul li a[href^="{{ .Config.downloadlink }}"]
       attribute: href
@@ -156,7 +147,7 @@ download:
 
 search:
   paths:
-    # present first page of movies tv and music results if there are no search parms supplied (20 hits per page)
+    # keywordless requests (indexer tests) go to cat/, which byparr-proxy answers with stub rows
     - path: "{{ if and (.Keywords) (eq .Config.disablesort .False) }}sort-{{ else }}{{ end }}{{ if .Keywords }}search/{{ .Keywords }}{{ else }}cat/Movies{{ end }}{{ if and (.Keywords) (eq .Config.disablesort .False) }}/{{ .Config.sort }}/{{ .Config.type }}{{ else }}{{ end }}/1/"
     - path: "{{ if and (.Keywords) (eq .Config.disablesort .False) }}sort-{{ else }}{{ end }}{{ if .Keywords }}search/{{ .Keywords }}{{ else }}cat/TV{{ end }}{{ if and (.Keywords) (eq .Config.disablesort .False)) }}/{{ .Config.sort }}/{{ .Config.type }}{{ else }}{{ end }}/{{ if .Keywords }}2{{ else }}1{{ end }}/"
     - path: "{{ if and (.Keywords) (eq .Config.disablesort .False) }}sort-{{ else }}{{ end }}{{ if .Keywords }}search/{{ .Keywords }}{{ else }}cat/Music{{ end }}{{ if and (.Keywords) (eq .Config.disablesort .False) }}/{{ .Config.sort }}/{{ .Config.type }}{{ else }}{{ end }}/{{ if .Keywords }}3{{ else }}1{{ end }}/"
@@ -171,7 +162,6 @@ search:
 
   fields:
     title_default:
-      # the movies, tv and music pages abbreviate the title
       selector: td[class^="coll-1"] a[href^="/torrent/"]
     title_optional:
       # the movies, tv and music pages abbreviate the title so we process the href instead. #8137
@@ -183,7 +173,6 @@ search:
         - name: split
           args: ["/", 3]
     title:
-      # title_optional can be empty so use the title_default instead #8586
       text: "{{ if .Result.title_optional }}{{ .Result.title_optional }}{{ else }}{{ .Result.title_default }}{{ end }}"
       filters:
         - name: re_replace
@@ -216,7 +205,6 @@ search:
       selector: td[class^="coll-1"] a[href^="/sub/"]
       attribute: href
       filters:
-        # extract the third part
         - name: split
           args: ["/", 2]
     category:
@@ -228,7 +216,6 @@ search:
       # .torrent link is on the details page
       selector: td[class^="coll-1"] a[href^="/torrent/"]
       attribute: href
-    # dates come in three flavours:
     date_year:
       # (within this year) 7am Sep. 14th
       optional: true

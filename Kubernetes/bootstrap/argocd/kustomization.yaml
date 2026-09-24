@@ -18,7 +18,7 @@ helmCharts:
     includeCRDs: true
 
 patches:
-  # Enable insecure mode (TLS termination at Traefik)
+  # TLS terminates at Traefik.
   - target:
       kind: Deployment
       name: argocd-server

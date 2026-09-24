@@ -49,9 +49,6 @@ spec:
             - name: varlog
               mountPath: /var/log
               readOnly: true
-            - name: varlibdockercontainers
-              mountPath: /var/lib/docker/containers
-              readOnly: true
             - name: positions
               mountPath: /run/promtail
             - name: geoip
@@ -62,8 +59,7 @@ spec:
               cpu: 50m
               memory: 64Mi
             limits:
-              # Log shipping is bursty: average use is ~10m but spikes peg
-              # the limit, and throttling here delays log-based alerting.
+              # Log shipping is bursty, and throttling here delays log-based alerting.
               cpu: 500m
               memory: 256Mi
           securityContext:
@@ -80,9 +76,6 @@ spec:
         - name: varlog
           hostPath:
             path: /var/log
-        - name: varlibdockercontainers
-          hostPath:
-            path: /var/lib/docker/containers
         - name: positions
           emptyDir: {}
         - name: geoip
@@ -105,10 +98,6 @@ metadata:
 rules:
   - apiGroups: [""]
     resources:
-      - nodes
-      - nodes/proxy
-      - services
-      - endpoints
       - pods
     verbs: ["get", "watch", "list"]
 ---

@@ -5,8 +5,6 @@ metadata:
 spec:
   provider:
     bitwardensecretsmanager:
-      apiURL: https://api.bitwarden.com
-      identityURL: https://identity.bitwarden.com
       bitwardenServerSDKURL: https://bitwarden-sdk-server.external-secrets.svc.cluster.local:9998
       caProvider:
         type: Secret

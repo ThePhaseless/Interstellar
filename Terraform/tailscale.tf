@@ -5,8 +5,7 @@ provider "tailscale" {
   scopes              = ["devices:core", "auth_keys", "dns", "oauth_keys", "policy_file"]
 }
 
-# Applied first: the provider's OAuth client (tag:ci) needs its policy_file
-# scope in place before it can own and manage the other infrastructure tags.
+# Applied first: its tagOwners are what let the provider (tag:ci) assign the tags below.
 resource "tailscale_acl" "main" {
   acl = file("${path.module}/../Tailscale/policy.hujson")
 }
@@ -30,9 +29,6 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
     ignore_changes = [value]
   }
 }
-
-# The provider (tag:ci) owns every infrastructure tag via ACL tagOwners, so any
-# tag can be assigned here.
 
 locals {
   oauth_clients = {
@@ -76,15 +72,11 @@ resource "bitwarden-secrets_secret" "oauth_client_secret" {
   note       = "${each.value.description} OAuth client secret. Managed by Terraform."
 }
 
-# On first apply (before K8s bootstrap) no devices exist, so the filters below
-# return empty lists and dependent resources fall to count = 0 rather than
-# erroring on a chicken-and-egg dependency.
+# AdGuard only exists once the cluster has bootstrapped; until then the locals
+# below fall back to 1.1.1.1 and skip split DNS.
 data "tailscale_devices" "cluster" {}
 
 locals {
-  tailscale_magicdns_domain = trimsuffix(var.tailscale_magicdns_domain, ".")
-  adguard_tailscale_name    = "adguard.${local.tailscale_magicdns_domain}"
-
   # Match by hostname only — the device name may carry a uniqueness suffix.
   adguard_devices = [
     for d in data.tailscale_devices.cluster.devices : d
@@ -93,15 +85,14 @@ locals {
   tailscale_adguard_ip = try(local.adguard_devices[0].addresses[0], "1.1.1.1")
   adguard_exists       = length(local.adguard_devices) >= 1
 
-  infra_device_tags = ["tag:proxmox", "tag:node", "tag:oracle"]
+  infra_device_tags = ["tag:proxmox", "tag:node"]
   infra_devices = {
     for d in data.tailscale_devices.cluster.devices : d.name => d.id
     if length(setintersection(toset(d.tags), toset(local.infra_device_tags))) > 0
   }
 }
 
-# Key expiry for infrastructure nodes — headless nodes cannot answer a re-auth
-# prompt, so an expired key drops them off the tailnet.
+# Headless nodes cannot answer a re-auth prompt, so an expired key would drop them off the tailnet.
 resource "tailscale_device_key" "infra" {
   for_each = local.infra_devices
 
@@ -112,7 +103,6 @@ resource "tailscale_device_key" "infra" {
 # AdGuard is the only tailnet DNS resolver, so nerine.dev cannot resolve via
 # public DNS while a client is connected through Tailscale.
 resource "tailscale_dns_configuration" "cluster" {
-  magic_dns          = true
   override_local_dns = true
 
   nameservers {

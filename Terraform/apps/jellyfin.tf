@@ -21,9 +21,8 @@ resource "jellyfin_library" "tv_shows" {
 }
 
 resource "jellyfin_plugin_repository" "jellyfin_security" {
-  enabled = true
-  name    = "Jellyfin Security"
-  url     = local.jellyfin_security_plugin_repository_url
+  name = "Jellyfin Security"
+  url  = local.jellyfin_security_plugin_repository_url
 }
 
 resource "jellyfin_plugin" "jellyfin_security" {
@@ -35,10 +34,8 @@ resource "jellyfin_plugin" "jellyfin_security" {
   repository_url = local.jellyfin_security_plugin_repository_url
 }
 
-# Jellyfin loads plugin assemblies at startup, so a freshly installed version
-# is inert until the server restarts. jellyfin_plugin does not return until the
-# pinned version is on disk, so restarting on that version loads it rather than
-# the one it replaced.
+# Jellyfin loads plugins only at startup. jellyfin_plugin returns once the
+# pinned version is on disk, so this restart loads that version.
 resource "jellyfin_restart" "jellyfin_security" {
   triggers = {
     plugin_version = jellyfin_plugin.jellyfin_security.version
@@ -79,10 +76,8 @@ resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
       additional_allowed_cidrs    = ["192.168.0.0/16"]
 
       # Without this, omit_prompt_login lets the next sign-in back through
-      # with no credentials. Authentik requires id_token_hint for
-      # post_logout_redirect_uri, which the plugin does not retain, so
-      # omit rp_initiated_logout_redirect_uri to end the Authentik session
-      # and land on Authentik's sign-in page without tripping a 400.
+      # with no credentials. The redirect URI stays empty: Authentik 400s a
+      # post_logout_redirect_uri without id_token_hint, which the plugin lacks.
       rp_initiated_logout_enabled      = true
       rp_initiated_logout_redirect_uri = ""
     }

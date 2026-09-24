@@ -3,16 +3,11 @@ datasources:
   - name: Loki
     uid: loki
     type: loki
-    access: proxy
     url: http://loki.observability.svc.cluster.local:3100
-    isDefault: false
-    jsonData:
-      maxLines: 1000
 
   - name: Mimir
     uid: mimir
     type: prometheus
-    access: proxy
     url: http://mimir.observability.svc.cluster.local:9009/prometheus
     isDefault: true
     jsonData:

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Usage: ./scripts/generate-bitwarden-tls.sh
 
 set -euo pipefail
 

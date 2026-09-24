@@ -2,7 +2,7 @@ name: Ansible
 
 on:
   push:
-    branches: [main, migration]
+    branches: [main]
     paths:
       - "Ansible/setup-proxmox.yaml"
       - "Ansible/maintenance.yaml"
@@ -29,8 +29,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch')
+    if: github.ref == 'refs/heads/main'
     concurrency:
       group: ansible-deploy-main
 

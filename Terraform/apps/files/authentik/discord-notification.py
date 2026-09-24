@@ -79,7 +79,6 @@ if http.get("path"):
         {
             "name": "Request",
             "value": "{} {}".format(http.get("method") or "", http.get("path"))[:1024],
-            "inline": False,
         }
     )
 

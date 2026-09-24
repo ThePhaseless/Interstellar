@@ -77,7 +77,7 @@ resource "bitwarden-secrets_secret" "example_manual" {
 
 ## Naming
 
-- **Resources**: `kebab-case` (`interstellar-vcn`, `oracle-proxy`)
+- **Resources**: `kebab-case` (`interstellar-vcn`, `oracle-compute-vnic`)
 - **Locals**: `snake_case` (`talos_node_names`, `bitwarden_generated_project_id`)
 - **Bitwarden keys**: `kebab-case` (`sonarr-api-key`, `crowdsec-api-key`)
 - **Variables**: `snake_case` with descriptive `description` field

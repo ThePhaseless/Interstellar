@@ -21,7 +21,6 @@ resource "oci_objectstorage_bucket" "tf_state" {
   compartment_id = oci_identity_compartment.main.id
   name           = var.tf_state_bucket
   namespace      = data.oci_objectstorage_namespace.ns.namespace
-  access_type    = "NoPublicAccess"
   versioning     = "Enabled"
 }
 
@@ -69,10 +68,6 @@ resource "oci_core_security_list" "main" {
     protocol    = "all"
   }
 
-  # Only open during a Tailscale bootstrap run, and only to the caller's own
-  # /32 — oracle_ssh_source_cidr is validated to /24-or-narrower and defaults to
-  # a CIDR that reaches nothing. This list is attached to the subnet, so the
-  # rule reaches both VMs.
   dynamic "ingress_security_rules" {
     for_each = var.oracle_ssh_public_access ? [1] : []
     content {
@@ -88,7 +83,7 @@ resource "oci_core_security_list" "main" {
   }
 
   ingress_security_rules {
-    protocol    = "17" # UDP
+    protocol    = "17"
     source      = "0.0.0.0/0"
     description = "Tailscale WireGuard"
 
@@ -99,7 +94,7 @@ resource "oci_core_security_list" "main" {
   }
 
   ingress_security_rules {
-    protocol    = "17" # UDP
+    protocol    = "17"
     source      = "0.0.0.0/0"
     description = "Tailscale STUN"
 
@@ -144,10 +139,9 @@ resource "oci_core_instance" "compute" {
   }
 
   create_vnic_details {
-    subnet_id        = oci_core_subnet.main.id
-    assign_public_ip = true
-    display_name     = "oracle-compute-vnic"
-    hostname_label   = "compute"
+    subnet_id      = oci_core_subnet.main.id
+    display_name   = "oracle-compute-vnic"
+    hostname_label = "compute"
   }
 
   metadata = {

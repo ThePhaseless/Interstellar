@@ -4,7 +4,7 @@ FROM alpine/helm as helm
 FROM mcr.microsoft.com/devcontainers/base:latest
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY --from=golang:latest /usr/local/go /usr/local/go
-ENV PATH="/uv:/usr/local/go/bin:${PATH}"
+ENV PATH="/usr/local/go/bin:${PATH}"
 
 COPY --from=kubectl /opt/bitnami/kubectl/bin/kubectl /usr/local/bin/kubectl
 COPY --from=helm /bin/helm /usr/local/bin/helm

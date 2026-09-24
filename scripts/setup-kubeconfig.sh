@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
-# Usage: ./scripts/setup-kubeconfig.sh
 # Writes ~/.talos/config from Bitwarden, then ~/.kube/config via talosctl.
-#
-# Prerequisites:
-#   - BWS_ACCESS_TOKEN set (or source scripts/setup-env.sh first)
-#   - bws, jq, talosctl available in PATH
-#   - Node reachable via Tailscale MagicDNS
 
 set -euo pipefail
 
@@ -55,7 +49,7 @@ fi
 log_info "Fetching talosconfig from Bitwarden Secrets Manager..."
 
 talosconfig_value=$(
-    bws secret list --output json --color no 2>/dev/null |
+    bws secret list --color no 2>/dev/null |
         tr -cd '[:print:]\t\n' |
         jq -r '.[] | select(.key == "talosconfig") | .value' 2>/dev/null
 )

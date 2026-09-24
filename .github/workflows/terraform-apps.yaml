@@ -2,13 +2,13 @@ name: Terraform Apps
 
 on:
   push:
-    branches: [main, migration]
+    branches: [main]
     paths:
       - "Terraform/apps/**"
       - "scripts/port-forward-apps.sh"
       - ".github/workflows/terraform-apps.yaml"
   pull_request:
-    branches: [main, migration]
+    branches: [main]
     paths:
       - "Terraform/apps/**"
       - "scripts/port-forward-apps.sh"
@@ -16,7 +16,6 @@ on:
   workflow_dispatch:
 
 env:
-  TF_VERSION: "latest"
   TF_WORKING_DIR: "./Terraform/apps"
   TF_PLUGIN_CACHE_DIR: "${{ github.workspace }}/.terraform.d/plugin-cache-apps"
 
@@ -42,11 +41,10 @@ jobs:
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
             ${{ vars.BWS_ID_OCI_CONFIG }} > OCI_CONFIG
             ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
-            ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
 
       - name: Mask Bitwarden-fetched values
         run: |
-          for v in TS_CI_OAUTH_CLIENT_ID TS_CI_OAUTH_SECRET OCI_CONFIG OCI_PRIVATE_KEY OCI_NAMESPACE; do
+          for v in TS_CI_OAUTH_CLIENT_ID TS_CI_OAUTH_SECRET OCI_CONFIG OCI_PRIVATE_KEY; do
             [ -n "${!v:-}" ] && echo "::add-mask::${!v}"
           done
 
@@ -160,7 +158,6 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
-          terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false
 
       - name: Prepare Terraform Plugin Cache
@@ -176,7 +173,6 @@ jobs:
             ${{ runner.os }}-terraform-apps-
 
       - name: Terraform Format Check
-        id: fmt
         run: terraform fmt -check -recursive
         working-directory: ${{ env.TF_WORKING_DIR }}
         continue-on-error: true
@@ -199,20 +195,12 @@ jobs:
           fi
 
       - name: Terraform Init
-        id: init
         run: terraform init -input=false
         working-directory: ${{ env.TF_WORKING_DIR }}
-        env:
-          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
 
       - name: Terraform Validate
-        id: validate
         run: terraform validate -no-color
         working-directory: ${{ env.TF_WORKING_DIR }}
-        env:
-          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
 
       - name: Start App Port-Forwards
         run: |
@@ -253,9 +241,6 @@ jobs:
             echo "Terraform plan is empty. Skipping apply artifact generation."
           fi
         working-directory: ${{ env.TF_WORKING_DIR }}
-        env:
-          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
 
       - name: Encrypt Plan
         if: steps.plan.outputs.has_changes == 'true'
@@ -304,11 +289,10 @@ jobs:
             ${{ vars.BWS_ID_TS_CI_OAUTH_SECRET }} > TS_CI_OAUTH_SECRET
             ${{ vars.BWS_ID_OCI_CONFIG }} > OCI_CONFIG
             ${{ vars.BWS_ID_OCI_PRIVATE_KEY }} > OCI_PRIVATE_KEY
-            ${{ vars.BWS_ID_OCI_NAMESPACE }} > OCI_NAMESPACE
 
       - name: Mask Bitwarden-fetched values
         run: |
-          for v in TS_CI_OAUTH_CLIENT_ID TS_CI_OAUTH_SECRET OCI_CONFIG OCI_PRIVATE_KEY OCI_NAMESPACE; do
+          for v in TS_CI_OAUTH_CLIENT_ID TS_CI_OAUTH_SECRET OCI_CONFIG OCI_PRIVATE_KEY; do
             [ -n "${!v:-}" ] && echo "::add-mask::${!v}"
           done
 
@@ -425,7 +409,6 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
-          terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false
 
       - name: Prepare Terraform Plugin Cache
@@ -473,9 +456,6 @@ jobs:
       - name: Terraform Init
         run: terraform init -input=false
         working-directory: ${{ env.TF_WORKING_DIR }}
-        env:
-          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
 
       - name: Start App Port-Forwards
         run: |
@@ -499,9 +479,6 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve -lock-timeout=10m tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
-        env:
-          BW_ACCESS_TOKEN: ${{ env.BW_ACCESS_TOKEN }}
-          BW_ORGANIZATION_ID: ${{ env.BW_ORGANIZATION_ID }}
 
       - name: Stop App Port-Forwards
         if: always()

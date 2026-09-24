@@ -16,4 +16,3 @@ configMapGenerator:
     namespace: media
     files:
       - scripts/extract-api-key.sh
-      - scripts/configure-seerr.sh

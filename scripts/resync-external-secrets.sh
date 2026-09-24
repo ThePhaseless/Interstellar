@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-# Usage: ./scripts/resync-external-secrets.sh [namespace]
-#   [namespace]  Optional namespace to scope the resync (default: all namespaces)
-#
-# Forces all Bitwarden-backed ExternalSecrets to immediately re-fetch from
-# Bitwarden Secrets Manager by bumping a refresh annotation on each object.
+# Bumping an annotation forces each ExternalSecret to re-fetch from Bitwarden immediately.
 
 set -euo pipefail
 

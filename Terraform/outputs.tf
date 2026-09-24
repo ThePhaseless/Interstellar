@@ -5,13 +5,13 @@ output "cluster_name" {
 }
 
 output "cluster_endpoint" {
-  description = "Kubernetes API endpoint currently used by Terraform/Talos"
+  description = "Kubernetes API endpoint on the control-plane VIP"
   value       = "https://${local.talos_cluster_endpoint_host}:6443"
   sensitive   = true
 }
 
 output "cluster_nodes" {
-  description = "Map of cluster node names to discovered IPs"
+  description = "Map of cluster node names to their static LAN IPs"
   value       = local.talos_node_ips
   sensitive   = true
 }
@@ -30,7 +30,7 @@ output "access_instructions" {
        talosctl -n ${local.talos_node_names[0]}.${var.tailscale_magicdns_domain} kubeconfig ~/.kube/config
 
      3. Optional:
-       tailscale configure kubeconfig ${local.talos_node_names[0]}
+       tailscale configure kubeconfig talos-operator
 
      4. Verify:
        talosctl health --nodes ${join(",", [for node_name in local.talos_node_names : "${node_name}.${var.tailscale_magicdns_domain}"])}
@@ -38,7 +38,6 @@ output "access_instructions" {
 
      5. Endpoints:
        - API Server: ${local.talos_node_names[0]}.${var.tailscale_magicdns_domain}:6443
-       - Traefik: talos-traefik.${var.tailscale_magicdns_domain}
 
      6. Check Tailscale extension:
        talosctl -n ${local.talos_node_names[0]}.${var.tailscale_magicdns_domain} service ext-tailscale

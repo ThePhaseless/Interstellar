@@ -8,7 +8,6 @@ spec:
     - websecure
   routes:
     - match: Host(`traefik.nerine.dev`)
-      kind: Rule
       services:
         - name: api@internal
           kind: TraefikService

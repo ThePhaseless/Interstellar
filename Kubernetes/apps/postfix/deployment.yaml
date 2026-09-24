@@ -6,8 +6,6 @@ metadata:
   labels:
     app: postfix
 spec:
-  strategy:
-    type: RollingUpdate
   selector:
     matchLabels:
       app: postfix
@@ -35,13 +33,8 @@ spec:
                 secretKeyRef:
                   name: smtp-credentials
                   key: password
-            # Use port 587 with STARTTLS for OCI Email Delivery
-            - name: RELAYHOST_PORT
-              value: "587"
             - name: ALLOWED_SENDER_DOMAINS
               value: "nerine.dev"
-            - name: MYNETWORKS
-              value: "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.0/8"
             - name: HOSTNAME
               value: "mail.nerine.dev"
             - name: MESSAGE_SIZE_LIMIT
@@ -69,4 +62,3 @@ spec:
             tcpSocket:
               port: smtp
             initialDelaySeconds: 10
-            periodSeconds: 10

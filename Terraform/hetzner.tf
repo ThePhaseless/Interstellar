@@ -14,7 +14,6 @@ resource "random_password" "borg_passphrase" {
 # Hetzner's policy requires upper+lower+digit+special.
 resource "random_password" "storagebox_password" {
   length           = 32
-  special          = true
   override_special = "!@#$%&*"
   min_upper        = 2
   min_lower        = 2
@@ -31,16 +30,12 @@ resource "hcloud_storage_box" "backups" {
   access_settings = {
     ssh_enabled          = true
     reachable_externally = true
-    samba_enabled        = false
-    webdav_enabled       = false
     zfs_enabled          = true
   }
 
-  # Weekly rather than daily: the borg repo is the real backup, so snapshots
-  # exist to survive the repo itself being destroyed by a compromised client.
-  # A wider window matters more than granularity, and BX11 caps automatic
-  # snapshots at 10. day_of_week is 0=Sunday in the provider (the API uses
-  # 1=Monday, and the provider translates).
+  # Weekly: these only need to outlive a compromised client wiping the borg repo,
+  # so a wide window beats granularity; BX11 caps automatic snapshots at 10.
+  # day_of_week 0 is Sunday (the provider translates to the API's 1=Monday scale).
   snapshot_plan = {
     max_snapshots = 10
     minute        = 0

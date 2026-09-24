@@ -5,7 +5,6 @@ metadata:
 data:
   # Empty default: an Authentik user outside admins/vips gets no access at all.
   policy.default: ""
-  scopes: "[groups]"
   policy.csv: |
     g, admins, role:admin
     g, vips, role:readonly

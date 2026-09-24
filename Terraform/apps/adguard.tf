@@ -29,43 +29,36 @@ resource "adguard_user_rules" "nerine_dev_user_rules" {
 }
 
 resource "adguard_list_filter" "adguard_dns_filter" {
-  name    = "AdGuard DNS filter"
-  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt"
-  enabled = true
+  name = "AdGuard DNS filter"
+  url  = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt"
 }
 
 resource "adguard_list_filter" "adaway_default" {
-  name    = "AdAway Default Blocklist"
-  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt"
-  enabled = true
+  name = "AdAway Default Blocklist"
+  url  = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt"
 }
 
 resource "adguard_list_filter" "hagezi_normal" {
-  name    = "HaGeZi's Normal Blocklist"
-  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_34.txt"
-  enabled = true
+  name = "HaGeZi's Normal Blocklist"
+  url  = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_34.txt"
 }
 
 resource "adguard_list_filter" "steven_black" {
-  name    = "Steven Black's List"
-  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt"
-  enabled = true
+  name = "Steven Black's List"
+  url  = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt"
 }
 
 resource "adguard_list_filter" "oisd_big" {
-  name    = "OISD Blocklist Big"
-  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt"
-  enabled = true
+  name = "OISD Blocklist Big"
+  url  = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt"
 }
 
 resource "adguard_list_filter" "cert_polska" {
-  name    = "POL: CERT Polska List of malicious domains"
-  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_41.txt"
-  enabled = true
+  name = "POL: CERT Polska List of malicious domains"
+  url  = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_41.txt"
 }
 
 resource "adguard_list_filter" "polish_pihole" {
-  name    = "POL: Polish filters for Pi-hole"
-  url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_14.txt"
-  enabled = true
+  name = "POL: Polish filters for Pi-hole"
+  url  = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_14.txt"
 }

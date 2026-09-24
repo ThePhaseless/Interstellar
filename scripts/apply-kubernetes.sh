@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Usage: ./scripts/apply-kubernetes.sh <path>
-#   <path>  Path to a directory containing kustomization.yaml
 
 set -euo pipefail
 
@@ -34,7 +32,6 @@ for cmd in kubectl; do
     fi
 done
 
-KUSTOMIZE_CMD=""
 if command -v kustomize &>/dev/null; then
     KUSTOMIZE_CMD="kustomize build --enable-helm"
 else

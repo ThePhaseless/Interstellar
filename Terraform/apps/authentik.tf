@@ -10,7 +10,6 @@ data "authentik_certificate_key_pair" "default" {
   name = "authentik Self-signed Certificate"
 }
 
-# Renamed in provider v2025.x.
 data "authentik_property_mapping_provider_scope" "oauth2" {
   managed_list = [
     "goauthentik.io/providers/oauth2/scope-openid",
@@ -19,16 +18,13 @@ data "authentik_property_mapping_provider_scope" "oauth2" {
   ]
 }
 
-# Google OAuth enrollment creates users as "external" by default, which blocks
-# access to the Authentik admin interface, so this flow overrides the user_write
-# stage to set user_type=internal.
+# user_write creates "external" users by default, who cannot open the admin or user interface.
 
 resource "authentik_flow" "google_enrollment" {
-  name               = "google-source-enrollment"
-  title              = "Enroll via Google"
-  slug               = "google-source-enrollment"
-  designation        = "enrollment"
-  policy_engine_mode = "any"
+  name        = "google-source-enrollment"
+  title       = "Enroll via Google"
+  slug        = "google-source-enrollment"
+  designation = "enrollment"
 }
 
 resource "authentik_stage_user_write" "google_enrollment" {
@@ -46,11 +42,10 @@ resource "authentik_flow_stage_binding" "google_enrollment_write" {
 # properties are recomputed each login and discarded. The user_write below is what
 # persists them, which also refreshes name and email from Google on every sign-in.
 resource "authentik_flow" "google_source_auth" {
-  name               = "google-source-authentication"
-  title              = "Sign in with Google"
-  slug               = "google-source-authentication"
-  designation        = "authentication"
-  policy_engine_mode = "any"
+  name        = "google-source-authentication"
+  title       = "Sign in with Google"
+  slug        = "google-source-authentication"
+  designation = "authentication"
   # Matches the stock source-authentication flow this replaces; without it an
   # already-signed-in user can re-enter the login flow.
   authentication = "require_unauthenticated"
@@ -103,9 +98,8 @@ resource "authentik_source_oauth" "google" {
   consumer_key    = data.bitwarden-secrets_secret.google_oauth_client_id.value
   consumer_secret = data.bitwarden-secrets_secret.google_oauth_client_secret.value
 
-  promoted            = true
-  user_matching_mode  = "email_link"
-  group_matching_mode = "identifier"
+  promoted           = true
+  user_matching_mode = "email_link"
 
   property_mappings = [authentik_property_mapping_source_oauth.google_avatar.id]
 }
@@ -116,8 +110,8 @@ resource "authentik_system_settings" "default" {
   avatars = "attributes.avatar,gravatar,initials"
 }
 
-# The owner must have logged in via Google at least once. Until then the lookup
-# returns nothing and the group is created empty, filling in on the next apply.
+# Only seeds admins at creation (users is ignored after), so the owner must have
+# logged in via Google before the first apply or the group stays empty.
 data "authentik_users" "owner" {
   email = data.bitwarden-secrets_secret.owner_email.value
 }
@@ -132,9 +126,9 @@ resource "authentik_group" "admins" {
   }
 }
 
-# Trusted people. Every policy that accepts vips also accepts admins, so admins
-# are effectively a superset of vips without relying on Authentik group nesting
-# (the groups claim sent to Grafana/ArgoCD/Jellyfin lists direct memberships only).
+# Every policy that accepts vips also accepts admins, so admins are effectively a
+# superset of vips without relying on Authentik group nesting (the groups claim sent
+# to Grafana/ArgoCD/Jellyfin lists direct memberships only).
 resource "authentik_group" "vips" {
   name  = "vips"
   users = []
@@ -145,11 +139,10 @@ resource "authentik_group" "vips" {
 }
 
 resource "authentik_flow" "google_only_auth" {
-  name               = "google-only-authentication"
-  title              = "Sign in with Google"
-  slug               = "google-only-authentication"
-  designation        = "authentication"
-  policy_engine_mode = "any"
+  name        = "google-only-authentication"
+  title       = "Sign in with Google"
+  slug        = "google-only-authentication"
+  designation = "authentication"
 }
 
 resource "authentik_stage_identification" "google_only" {
@@ -181,8 +174,7 @@ resource "authentik_provider_proxy" "private" {
   external_host      = "https://auth.${var.authentik_domain}"
   cookie_domain      = var.authentik_domain
 
-  access_token_validity  = "hours=24"
-  refresh_token_validity = "days=30"
+  access_token_validity = "hours=24"
 }
 
 # Off the shared private proxy so watchers reach Seerr without also reaching the
@@ -197,14 +189,12 @@ resource "authentik_provider_proxy" "seerr" {
   # Authentik's API refuses to clear this; inert in forward_single mode.
   cookie_domain = var.authentik_domain
 
-  access_token_validity  = "hours=24"
-  refresh_token_validity = "days=30"
+  access_token_validity = "hours=24"
 }
 
-# Any Google account — copyparty only.
-# MUST stay forward_single: two forward_domain providers sharing an external_host
-# can't be multiplexed by the outpost, so this zero-policy provider won every host
-# and the access policy never fired.
+# Any Google account, copyparty only. MUST stay forward_single: the outpost cannot
+# multiplex two forward_domain providers sharing an external_host, so this one could
+# win every host and open the private services to any Google account.
 resource "authentik_provider_proxy" "public" {
   name               = "public-proxy"
   mode               = "forward_single"
@@ -214,8 +204,7 @@ resource "authentik_provider_proxy" "public" {
   # Authentik's API refuses to clear this; inert in forward_single mode.
   cookie_domain = var.authentik_domain
 
-  access_token_validity  = "hours=24"
-  refresh_token_validity = "days=30"
+  access_token_validity = "hours=24"
 }
 
 resource "authentik_application" "private" {
@@ -648,7 +637,7 @@ resource "authentik_stage_prompt_field" "username" {
   name      = "enrollment-field-username"
   field_key = "username"
   label     = "Username"
-  type      = "username" # Automatically validates for uniqueness
+  type      = "username"
   required  = true
 }
 
@@ -660,7 +649,7 @@ resource "authentik_stage_prompt" "google_enrollment_prompt" {
 resource "authentik_flow_stage_binding" "google_enrollment_prompt_binding" {
   target = authentik_flow.google_enrollment.uuid
   stage  = authentik_stage_prompt.google_enrollment_prompt.id
-  order  = 5 # Must run BEFORE the user_write stage (order 10)
+  order  = 5
 }
 
 resource "authentik_stage_user_login" "google_enrollment_login" {
@@ -670,7 +659,7 @@ resource "authentik_stage_user_login" "google_enrollment_login" {
 resource "authentik_flow_stage_binding" "google_enrollment_login_binding" {
   target = authentik_flow.google_enrollment.uuid
   stage  = authentik_stage_user_login.google_enrollment_login.id
-  order  = 20 # Must run AFTER the user_write stage (order 10)
+  order  = 20
 }
 
 resource "authentik_property_mapping_notification" "discord" {
@@ -682,9 +671,8 @@ resource "authentik_property_mapping_notification" "discord" {
 
 resource "authentik_event_transport" "discord" {
   name = "discord"
-  # Not webhook_slack: that payload carries only notification.body, which reads
-  # "Model created by <actor>" with no clue which account. Discord takes native
-  # payloads on the bare URL only — the /slack variant expects Slack-shaped ones.
+  # Not webhook_slack: its payload is only notification.body, which does not say which
+  # account changed. Native Discord payloads need the bare URL, not the /slack variant.
   mode                 = "webhook"
   webhook_url          = data.bitwarden-secrets_secret.discord_webhook_url.value
   webhook_mapping_body = authentik_property_mapping_notification.discord.id
@@ -717,9 +705,8 @@ locals {
     "password-set" = { action = "password_set", model = null, severity = "warning" }
     "login-failed" = { action = "login_failed", model = null, severity = "warning" }
 
-    # authentik's own default-notify-* rules cover these actions but set no
-    # destination group and leave destination_event_user false, so
-    # NotificationRule.destination_users() yields nobody and never sends.
+    # authentik's default-notify-* rules cover these actions but set no destination
+    # group and leave destination_event_user false, so they notify nobody.
     "config-error"               = { action = "configuration_error", model = null, severity = "alert" }
     "policy-exception"           = { action = "policy_exception", model = null, severity = "alert" }
     "property-mapping-exception" = { action = "property_mapping_exception", model = null, severity = "alert" }

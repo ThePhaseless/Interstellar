@@ -18,9 +18,8 @@ spec:
       labels:
         app: grafana
     spec:
-      # loki, mimir and grafana together saturate a node's virtio-scsi
-      # queue; co-located they push guest io pressure high enough for
-      # kubelet to miss heartbeats. Soft so they stay schedulable.
+      # Co-located, loki, mimir and grafana saturate the node's virtio-scsi
+      # queue until kubelet misses heartbeats. Soft so they stay schedulable.
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -52,8 +51,6 @@ spec:
               value: "true"
             - name: GF_AUTH_GENERIC_OAUTH_NAME
               value: "authentik"
-            - name: GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP
-              value: "true"
             - name: GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN
               value: "true"
             - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
@@ -74,12 +71,8 @@ spec:
               value: "http://authentik-server.authentik.svc.cluster.local/application/o/token/"
             - name: GF_AUTH_GENERIC_OAUTH_API_URL
               value: "http://authentik-server.authentik.svc.cluster.local/application/o/userinfo/"
-            - name: GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_PATH
-              value: "email"
             - name: GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH
               value: "preferred_username"
-            - name: GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH
-              value: "name"
             - name: GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH
               value: "groups"
             - name: GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP
@@ -90,12 +83,6 @@ spec:
               value: "https://auth.nerine.dev/application/o/grafana/end-session/"
             - name: GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
               value: "contains(groups[*], 'admins') && 'Admin' || contains(groups[*], 'Grafana Editors') && 'Editor' || 'Viewer'"
-            - name: GF_USERS_ALLOW_SIGN_UP
-              value: "true"
-            - name: GF_USERS_AUTO_ASSIGN_ORG
-              value: "true"
-            - name: GF_USERS_AUTO_ASSIGN_ORG_ROLE
-              value: "Viewer"
             - name: DISCORD_WEBHOOK_URL
               valueFrom:
                 secretKeyRef:
@@ -158,9 +145,7 @@ spec:
               path: /api/health
               port: http
             initialDelaySeconds: 15
-            periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 3
 
       volumes:
         - name: data
@@ -220,7 +205,6 @@ spec:
     - websecure
   routes:
     - match: Host(`grafana.nerine.dev`)
-      kind: Rule
       services:
         - name: grafana
           port: 3000

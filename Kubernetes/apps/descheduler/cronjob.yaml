@@ -9,8 +9,6 @@ spec:
   jobTemplate:
     spec:
       template:
-        metadata:
-          name: descheduler-pod
         spec:
           priorityClassName: system-cluster-critical
           containers:
@@ -35,7 +33,6 @@ spec:
               capabilities:
                 drop:
                   - ALL
-              privileged: false
               readOnlyRootFilesystem: true
               runAsNonRoot: true
           restartPolicy: "Never"

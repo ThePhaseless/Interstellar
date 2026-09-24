@@ -11,7 +11,6 @@ spec:
   suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       backoffLimit: 0
@@ -37,13 +36,8 @@ spec:
                   value: "http://radarr.media.svc.cluster.local:7878"
                 - name: PROWLARR_URL
                   value: "http://prowlarr.media.svc.cluster.local:9696"
-                # false grabs for real; true only reports what would have been grabbed.
                 - name: DRY_RUN
                   value: "false"
-                - name: MAX_BACKOFF_WAIT_SECONDS
-                  value: "3600"
-                - name: ITEM_DELAY_SECONDS
-                  value: "5"
                 - name: APP_API_KEY
                   valueFrom:
                     secretKeyRef:

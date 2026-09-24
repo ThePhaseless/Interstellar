@@ -1,7 +1,5 @@
-# secrets.externalSecret.name makes the chart skip generating
-# crowdsec-lapi-secrets. Its own version regenerates on every render, which is
-# perpetual ArgoCD drift; csLapiSecret/registrationToken come from an
-# ExternalSecret instead.
+# The chart's generated crowdsec-lapi-secrets changes on every render (perpetual
+# ArgoCD drift), so csLapiSecret/registrationToken come from an ExternalSecret.
 secrets:
   externalSecret:
     name: crowdsec-lapi-secrets
@@ -9,11 +7,6 @@ secrets:
 container_runtime: containerd
 
 lapi:
-  enabled: true
-  replicas: 1
-  strategy:
-    type: Recreate
-
   # docker_start.sh registers a bouncer per BOUNCER_KEY_* env var, so the
   # secret's key must be named BOUNCER_KEY_traefik.
   envFrom:
@@ -42,14 +35,8 @@ lapi:
       storageClassName: longhorn
       size: 100Mi
 
-  metrics:
-    enabled: true
-
 agent:
-  enabled: true
-
   acquisition:
-    # The public attack surface.
     - namespace: traefik
       podName: "traefik-*"
       program: traefik
@@ -70,15 +57,8 @@ agent:
       cpu: 500m
       memory: 256Mi
 
-  metrics:
-    enabled: true
-
 appsec:
   enabled: true
-  replicas: 1
-  strategy:
-    type: Recreate
-
   acquisitions:
     - appsec_configs:
         - crowdsecurity/appsec-default
@@ -104,28 +84,18 @@ appsec:
       cpu: 500m
       memory: 256Mi
 
-  metrics:
-    enabled: true
-
 config:
-  # Agent whitelist — prevents scenarios (http-dos, brute-force, etc.) from
-  # triggering for Tailscale direct traffic. The Tailscale operator uses L3
-  # DNAT (tailscale/tailscale#11024), so all Tailscale traffic appears as the
-  # ts-traefik pod IP. Without this whitelist, a burst of Tailscale requests
-  # would trigger http-dos and ban the pod IP, blocking ALL Tailscale users.
-  # The bouncer's clientTrustedIPs already bypasses these requests, but this
-  # whitelist prevents noise in alerts/metrics and defends against any future
-  # bouncer that doesn't trust the pod CIDR.
+  # The bouncer's clientTrustedIPs only skips enforcement; this stops pods and
+  # the LAN from raising alerts and decisions in the first place.
   postoverflows:
     s01-whitelist:
-      tailscale-dnat-whitelist.yaml: |
-        name: tailscale/dnat-pod-cidr
-        description: "Whitelist Tailscale direct traffic (appears as ts-traefik pod IP due to L3 DNAT)"
+      internal-whitelist.yaml: |
+        name: local/internal-sources
+        description: "Whitelist in-cluster and LAN sources"
         whitelist:
-          reason: "Tailscale direct access via k8s-operator L3 proxy (DNAT)"
+          reason: "Internal traffic"
           cidr:
             - "10.244.0.0/16"
-            - "100.64.0.0/10"
             - "192.168.1.0/24"
   config.yaml.local: |
     api:

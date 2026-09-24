@@ -8,7 +8,6 @@ spec:
     - websecure
   routes:
     - match: Host(`files.nerine.dev`)
-      kind: Rule
       services:
         - name: copyparty
           port: 3923

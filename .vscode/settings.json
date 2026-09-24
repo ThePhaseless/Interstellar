@@ -20,8 +20,7 @@
     "./scripts/lint-kubernetes.sh": true
   },
   "files.associations": {
-    "Ansible/**/*.yaml": "ansible",
-    "Config/Home/HomeAssistant/*.yaml": "home-assistant"
+    "Ansible/**/*.yaml": "ansible"
   },
   "json.schemaDownload.trustedDomains": {
     "https://docs.renovatebot.com/renovate-schema.json": true,
@@ -35,11 +34,10 @@
   "opentofu.experimentalFeatures.validateOnSave": true,
   "python.defaultInterpreterPath": "./.venv/bin/python",
   "python.terminal.activateEnvInCurrentTerminal": true,
-  "python.terminal.activateEnvironment": true,
   "vs-kubernetes": {
     "disable-linters": ["resource-limits"]
   },
-  "yaml.customTags": ["!env_var", "!ENV", "!include_dir_merge_named"],
+  "yaml.customTags": ["!env_var", "!ENV"],
   "yaml.schemas": {
     "kubernetes": "Kubernetes/bootstrap/observability/loki.yaml"
   }

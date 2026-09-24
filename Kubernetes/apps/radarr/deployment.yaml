@@ -49,9 +49,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: media-runtime-config
-          env:
-            - name: TZ
-              value: "UTC"
           ports:
             - name: http
               containerPort: 7878
@@ -80,7 +77,6 @@ spec:
               path: /ping
               port: http
             initialDelaySeconds: 30
-            periodSeconds: 10
 
         - name: api-extractor
           image: bitnami/kubectl:latest
@@ -143,7 +139,6 @@ spec:
         - name: scripts
           configMap:
             name: arr-scripts
-            defaultMode: 0755
         - name: downloads
           persistentVolumeClaim:
             claimName: downloads-pool-pvc

@@ -23,9 +23,7 @@ resource "cloudflare_dns_record" "caa" {
   comment = "Allow Let's Encrypt to issue certificates"
 }
 
-# A Records for the home ingress (Traefik behind the residential connection).
-# The residential IP is dynamic, so `content` is seeded here and then owned by
-# the in-cluster cloudflare-ddns Deployment; Terraform must not fight it.
+# `content` is only a seed: the residential IP is dynamic, so cloudflare-ddns owns it.
 resource "cloudflare_dns_record" "root" {
   zone_id = data.cloudflare_zone.main.id
   name    = var.cluster_domain

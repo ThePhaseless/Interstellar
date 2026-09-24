@@ -6,8 +6,6 @@
 # IDs, so deleting after re-auth can remove the machine that just joined.
 #
 # The devices API reports `online` as null, so staleness is judged on lastSeen.
-# The most recently seen record is always kept, and nothing is deleted without
-# --yes.
 
 set -euo pipefail
 
@@ -59,7 +57,7 @@ fi
 echo "Records claiming '${target}' (newest first):"
 echo "$matches" | jq -r '.[] | "  \(.short)  lastSeen=\(.lastSeen)  id=\(.id)"'
 
-# Keep index 0 (most recently seen). Everything older than the threshold is stale.
+# Keep index 0 (most recently seen).
 cutoff=$(date -u -d "${min_age_hours} hours ago" +%Y-%m-%dT%H:%M:%SZ)
 stale=$(echo "$matches" | jq -c --arg cutoff "$cutoff" '.[1:][] | select(.lastSeen < $cutoff)')
 

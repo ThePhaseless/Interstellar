@@ -1,7 +1,6 @@
 #!/bin/sh
 # AdGuard's PVC is ReadWriteOnce, so the backup worker cannot mount it while
-# AdGuard is running. This scales AdGuard down, runs a short-lived Job that
-# mounts the PVC and runs borg-backup.sh, then scales AdGuard back up.
+# AdGuard is running.
 set -eu
 
 info() { printf '\n%s %s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2; }
@@ -72,10 +71,8 @@ spec:
               readOnly: true
             - name: borg-ssh-key
               mountPath: /secrets/ssh
-              readOnly: true
             - name: backup-script
               mountPath: /scripts
-              readOnly: true
             - name: borg-cache
               mountPath: /root/.cache/borg
           resources:
@@ -96,7 +93,6 @@ spec:
         - name: backup-script
           configMap:
             name: home-backup-script
-            defaultMode: 0755
         - name: borg-cache
           emptyDir:
             sizeLimit: 2Gi

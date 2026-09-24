@@ -12,18 +12,13 @@
     "vscode": {
       "extensions": [
         "mads-hartmann.bash-ide-vscode",
-        "keesschollaart.vscode-home-assistant",
-        "fengtan.ldap-explorer",
         "ms-python.python",
         "redhat.ansible",
         "samuelcolvin.jinjahtml",
         "IkBenGeenRobot.ansible-variable-lookup",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
         "Tim-Koehler.helm-intellisense"
-      ],
-      "settings": {
-        "python.defaultInterpreterPath": "./.venv/bin/python"
-      }
+      ]
     }
   },
   "features": {

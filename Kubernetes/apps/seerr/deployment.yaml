@@ -5,8 +5,6 @@ metadata:
   namespace: media
   labels:
     app: seerr
-  annotations:
-    reloader.stakater.com/auto: "true"
 spec:
   strategy:
     type: Recreate
@@ -33,9 +31,6 @@ spec:
       containers:
         - name: seerr
           image: ghcr.io/seerr-team/seerr:v3.4.1
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
           env:
             - name: TZ
               value: "UTC"
@@ -65,7 +60,6 @@ spec:
               path: /
               port: http
             initialDelaySeconds: 30
-            periodSeconds: 10
 
       volumes:
         - name: config

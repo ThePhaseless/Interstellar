@@ -6,5 +6,3 @@ metadata:
 spec:
   ipAddressPools:
     - cluster-pool
-  # Advertise on all interfaces
-  interfaces: []

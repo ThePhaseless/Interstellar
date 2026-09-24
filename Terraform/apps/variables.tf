@@ -58,35 +58,33 @@ variable "byparr_url" {
   default     = "http://byparr.media.svc.cluster.local:8191"
 }
 
-# Locally: run ./scripts/port-forward-apps.sh to forward services to localhost.
-# In CI: override with TF_VAR_* env vars pointing to Tailscale MagicDNS names.
 variable "sonarr_provider_url" {
   type        = string
-  description = "Sonarr URL reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  description = "Sonarr URL reachable from Terraform (localhost via scripts/port-forward-apps.sh)"
   default     = "http://localhost:8989"
 }
 
 variable "radarr_provider_url" {
   type        = string
-  description = "Radarr URL reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  description = "Radarr URL reachable from Terraform (localhost via scripts/port-forward-apps.sh)"
   default     = "http://localhost:7878"
 }
 
 variable "prowlarr_provider_url" {
   type        = string
-  description = "Prowlarr URL reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  description = "Prowlarr URL reachable from Terraform (localhost via scripts/port-forward-apps.sh)"
   default     = "http://localhost:9696"
 }
 
 variable "adguard_provider_url" {
   type        = string
-  description = "AdGuard Home host:port reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  description = "AdGuard Home host:port reachable from Terraform (localhost via scripts/port-forward-apps.sh)"
   default     = "localhost:3000"
 }
 
 variable "jellyfin_provider_url" {
   type        = string
-  description = "Jellyfin URL reachable from Terraform (localhost via port-forward, or Tailscale in CI)"
+  description = "Jellyfin URL reachable from Terraform (localhost via scripts/port-forward-apps.sh)"
   default     = "http://localhost:8096"
 }
 
@@ -116,7 +114,7 @@ variable "bitwarden_prowlarr_api_key_name" {
 
 variable "authentik_provider_url" {
   type        = string
-  description = "Authentik URL reachable from Terraform (via Tailscale MagicDNS)"
+  description = "Authentik URL reachable from Terraform (localhost via scripts/port-forward-apps.sh)"
   default     = "http://localhost:9000"
 }
 

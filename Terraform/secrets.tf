@@ -4,8 +4,7 @@ resource "random_password" "crowdsec_bouncer_key" {
 }
 
 resource "random_password" "grafana_admin_password" {
-  length  = 32
-  special = true
+  length = 32
 }
 
 resource "random_password" "immich_db_password" {
@@ -45,11 +44,9 @@ resource "bitwarden-secrets_secret" "crowdsec_api_key" {
   note       = "CrowdSec bouncer API key for Traefik plugin. Managed by Terraform."
 }
 
-# CrowdSec requires CS_LAPI_SECRET >= 64 chars (JWT secret, see
-# pkg/apiserver/middlewares/v1/jwt.go: l < 64 -> "not strong enough")
+# CrowdSec rejects a CS_LAPI_SECRET under 64 chars (pkg/apiserver/middlewares/v1/jwt.go).
 resource "random_password" "crowdsec_lapi_secret" {
-  length  = 64
-  special = true
+  length = 64
 }
 
 resource "random_password" "crowdsec_lapi_registration_token" {
@@ -57,8 +54,8 @@ resource "random_password" "crowdsec_lapi_registration_token" {
   special = false
 }
 
-# Rotate by re-applying: agents auto-register with the new token, and the
-# bouncer uses its own key.
+# Rotate with -replace on the random_passwords: agents re-register with the
+# new token and the bouncer uses its own key.
 resource "bitwarden-secrets_secret" "crowdsec_lapi_secret" {
   key        = "crowdsec-lapi-secret"
   value      = random_password.crowdsec_lapi_secret.result
@@ -194,10 +191,6 @@ resource "bitwarden-secrets_secret" "authentik_bootstrap_token" {
   project_id = local.bitwarden_generated_project_id
   note       = "Authentik API bootstrap token for Terraform provider authentication. Managed by Terraform."
 }
-
-# Shared by Authentik, Grafana and Immich. The OAuth client is created by hand
-# in the GCP Console and these placeholders are then overwritten by hand in
-# Bitwarden — see SETUP.md.
 
 resource "bitwarden-secrets_secret" "google_oauth_client_id" {
   key        = "google-oauth-client-id"

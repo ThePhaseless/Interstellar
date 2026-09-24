@@ -23,9 +23,6 @@ helmCharts:
     valuesInline:
       deployment:
         revisionHistoryLimit: 1
-        podAnnotations:
-          prometheus.io/scrape: "true"
-          prometheus.io/port: "8080"
         initContainers:
           - name: fix-acme-permissions
             image: busybox:1.38-musl@sha256:32b5cdad7cce41dfd53d0ae06baebcf8357a147ee7694dc706911c373bc30c37
@@ -52,11 +49,6 @@ helmCharts:
       podSecurityContext:
         fsGroup: 65532
 
-      securityContext:
-        capabilities:
-          add:
-            - NET_BIND_SERVICE
-
       resources:
         requests:
           cpu: 100m
@@ -73,13 +65,11 @@ helmCharts:
                 to: websecure
                 scheme: https
                 permanent: true
-                priority: 10
         websecure:
           http:
             middlewares:
               - "traefik-security-headers@kubernetescrd"
             tls:
-              enabled: true
               certResolver: letsencrypt
               options: "nerine-tls@kubernetescrd"
               domains:
@@ -97,9 +87,6 @@ helmCharts:
       providers:
         kubernetesCRD:
           allowCrossNamespace: true
-          allowExternalNameServices: true
-        kubernetesIngress:
-          allowExternalNameServices: true
 
       log:
         format: json
@@ -154,26 +141,6 @@ helmCharts:
         - name: crowdsec-secrets
           mountPath: /secrets/crowdsec
           readOnly: true
-
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: traefik
-                    app.kubernetes.io/instance: traefik
-                topologyKey: kubernetes.io/hostname
-
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: traefik
-              app.kubernetes.io/instance: traefik
 
 patches:
   - path: backup-common.yaml

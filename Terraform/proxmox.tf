@@ -22,7 +22,6 @@ resource "proxmox_download_file" "talos_iso_base" {
 
   url       = data.talos_image_factory_urls.base_image.urls.iso
   file_name = "talos-${var.talos_version}-extensions-${data.talos_image_factory_urls.base_image.schematic_id}.iso"
-  overwrite = true
 }
 
 resource "proxmox_download_file" "talos_iso_gpu" {
@@ -34,7 +33,6 @@ resource "proxmox_download_file" "talos_iso_gpu" {
 
   url       = data.talos_image_factory_urls.gpu_image.urls.iso
   file_name = "talos-${var.talos_version}-gpu-extensions-${data.talos_image_factory_urls.gpu_image.schematic_id}.iso"
-  overwrite = true
 }
 
 resource "proxmox_virtual_environment_vm" "talos" {
@@ -65,10 +63,8 @@ resource "proxmox_virtual_environment_vm" "talos" {
   }
 
   efi_disk {
-    datastore_id      = var.vm_os_datastore_id
-    file_format       = "raw"
-    type              = "4m"
-    pre_enrolled_keys = false
+    datastore_id = var.vm_os_datastore_id
+    type         = "4m"
   }
 
   disk {
@@ -100,7 +96,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   network_device {
     bridge = var.proxmox_cluster_bridge_name
-    model  = "virtio"
   }
 
   initialization {
@@ -127,20 +122,14 @@ resource "proxmox_virtual_environment_vm" "talos" {
   agent {
     enabled = true
     timeout = "60s"
-    type    = "virtio"
   }
 
   # For live debugging via `qm terminal`.
-  serial_device {
-    device = "socket"
-  }
+  serial_device {}
 
   lifecycle {
-    # cdrom is deliberately NOT ignored: file_name carries talos_version, and
-    # proxmox_download_file replaces the ISO in place on a version bump. Ignoring
-    # it leaves the VM pointing at a filename that no longer exists, which
-    # Proxmox only refuses at boot -- so the cluster comes back down at the next
-    # reboot, long after the change that caused it.
+    # cdrom is deliberately not ignored: the ISO is replaced on each talos_version
+    # bump, and a stale reference only fails at the next reboot.
     ignore_changes = [
       efi_disk,
       initialization,
@@ -152,19 +141,4 @@ resource "proxmox_virtual_environment_vm" "talos" {
       error_message = "Set either data_disk_file_id (preserve existing data) or data_disk_size (create new data disk), not both."
     }
   }
-}
-
-output "talos_node_ips" {
-  description = "Discovered IP addresses of TalosOS nodes from Proxmox guest agent"
-  value       = local.talos_node_ips
-  sensitive   = true
-}
-
-output "proxmox_vm_os_datastore_details" {
-  description = "Configured Proxmox datastore for Talos VM OS disks"
-  value = {
-    configured_id = var.vm_os_datastore_id
-    node_name     = var.proxmox_node
-  }
-  sensitive = true
 }

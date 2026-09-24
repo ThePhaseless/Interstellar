@@ -1,27 +1,13 @@
 """
-byparr-proxy: tiny HTTP server that fronts an upstream site via Byparr.
+byparr-proxy: fronts an upstream indexer site via Byparr.
 
-Prowlarr/Jackett talk to us in plain HTTP; we ask Byparr to fetch from the
-real upstream and return its solved body directly. Prowlarr never sees a
-Cloudflare challenge, so it never triggers its cookie-replay path -- which
-is the path that modern Cloudflare detects and blocks.
+Prowlarr gets Byparr's solved body directly, so it never sees a Cloudflare
+challenge and never triggers its cookie-replay path, which modern Cloudflare
+detects and blocks.
 
-Configuration is via environment variables:
-  UPSTREAM    base URL of the indexer, e.g. https://1337x.to (no trailing slash)
-  BYPARR      Byparr /v1 endpoint, e.g. http://byparr:8191/v1
-  TIMEOUT_MS  per-request timeout passed to Byparr (default 120000)
-  PORT        local listen port (default 8888)
-  LOG_LEVEL   DEBUG, INFO, WARNING, ERROR (default INFO)
-  CACHE_TTL_S TTL for successful response cache, in seconds (default 3600)
-  STUB_CAT_PATHS  if truthy (default), /cat/... paths (indexer test
-                  endpoints) skip Byparr and return a synthetic results
-                  page with one fake row per major category family.
-                  Cloudflare's protection on the category browse pages
-                  is significantly more aggressive than on keyword
-                  search, so probing them through Byparr flaps the
-                  indexer health even when real searches work fine.
-                  Set to "false" / "0" to disable and route /cat/...
-                  through Byparr like everything else.
+/cat/ paths (indexer tests) get a synthetic results page unless STUB_CAT_PATHS
+is false: Cloudflare guards the category pages far harder than keyword search,
+so probing them through Byparr flaps indexer health while real searches work.
 """
 import json
 import logging
@@ -51,17 +37,12 @@ SKIP_EXT = re.compile(
     re.IGNORECASE,
 )
 
-# Indexer "test" and "browse" endpoints in the cardigann definition all live
-# under /cat/<Category>/<page>/. Real keyword searches go to /search/ or
-# /sort-search/, so this regex isolates the test traffic.
+# Only the Cardigann definitions' keywordless (test/browse) requests hit /cat/.
 CAT_PATH = re.compile(r"^/cat/", re.IGNORECASE)
 
-# Fake rows -- one per major category family -- so every *arr app finds a
-# matching row when filtering by its configured category set. Sonarr filters
-# to TV, Radarr to Movies, Lidarr to Audio, etc.; a single-category stub
-# fails their tests with "no results in the configured categories".
-# 0 seeders ensures nothing ever grabs these synthetic entries, and the
-# titles are obviously fake if they leak into a Prowlarr browse view.
+# One row per major category family, because each *arr app's indexer test
+# filters to its own categories and fails when none match. 0 seeders keeps
+# anything from grabbing these rows.
 _STUB_CATEGORIES = [
     (42, "Movies/HD"),
     (41, "TV/HD"),
@@ -90,10 +71,8 @@ def _build_stub_body():
             f'<td class="coll-5 user">byparr-proxy</td>'
             f'</tr>'
         )
-    # EZTV-compatible table as well: its Cardigann definition parses
-    # table.forum_header_border rows with magnets (td:nth-child(2..6)), so the
-    # 1337x-style rows above match nothing there. These rows carry magnets and
-    # the same sentinel titles/0 seeders, keeping EZTV health checks green.
+    # eztv-byparr.yml only parses magnet rows in table.forum_header_border,
+    # which the 1337x-style rows above never match.
     eztv_rows = []
     for cat_id, label in _STUB_CATEGORIES:
         eztv_rows.append(
@@ -147,21 +126,18 @@ class _Pending:
         self.error = None
 
 
-# Cache successful upstream responses for CACHE_TTL_S. Sonarr/Radarr/Prowlarr
-# poll the same indexer-test endpoints (e.g. /cat/TV/1/) on independent
-# schedules; without this, each poll triggers a full Cloudflare solve and
-# the bursts cause Byparr to 408 on queued requests.
+# Sonarr/Radarr/Prowlarr send identical requests on independent schedules;
+# uncached, each one costs a full Cloudflare solve and the bursts make Byparr
+# 408 queued requests.
 _cache = {}          # path -> (expires_at_monotonic, status, body)
 _inflight = {}       # path -> _Pending
 _state_lock = threading.Lock()
-# Byparr drives a real browser, so it effectively serializes. Holding this
-# while calling Byparr keeps a burst from sharing a single maxTimeout window
-# across N concurrent requests (which is what caused the 408s).
+# Byparr drives a real browser and effectively serializes; without this lock a
+# burst shares one maxTimeout window across N requests and Byparr 408s them.
 _byparr_lock = threading.Lock()
 
 
 def _fetch_from_byparr(rid, target):
-    """Call Byparr and return (status, body). Raises on failure."""
     payload = json.dumps({
         "cmd": "request.get",
         "url": target,
@@ -305,12 +281,9 @@ class Handler(BaseHTTPRequestHandler):
             return None, None, None, byparr_elapsed
 
         byparr_elapsed = time.monotonic() - byparr_start
-        # Treat a body with no torrent rows as "empty" and skip caching it.
-        # Empty pages happen when the search legitimately has no matches,
-        # when Cloudflare served a challenge page instead of the real
-        # content, or on transient upstream errors. None of these should
-        # be pinned for an hour. Detection is content-based: the /torrent/
-        # link prefix that every result row carries.
+        # Never cache a page without result rows: it may be a real no-match, a
+        # Cloudflare challenge page or a transient upstream error. Every result
+        # row carries a /torrent/ link.
         has_results = b"/torrent/" in body
         with _state_lock:
             _inflight.pop(path, None)

@@ -1,12 +1,10 @@
 apiVersion: 1
 groups:
-  - orgId: 1
-    name: Infrastructure Alerts
+  - name: Infrastructure Alerts
     folder: Alerts
     interval: 1m
     rules:
-      # No data means no problem here, and severity critical also sends email.
-      # The query already filters > 80, so threshold gt:0 fires on any series.
+      # Pre-filtered to > 80: no data is healthy and gt:0 fires on any series.
       - uid: high-cpu
         title: High CPU Usage
         condition: C
@@ -14,51 +12,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 5m
@@ -66,9 +37,7 @@ groups:
           summary: "CPU usage on {{ with $labels.instance }}{{ reReplaceAll \":[0-9]+$\" \"\" . }}{{ end }} is at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% (threshold: 80%)"
         labels:
           severity: critical
-        isPaused: false
 
-      # No data means no problem here, and severity critical also sends email.
       - uid: high-memory
         title: High Memory Usage
         condition: C
@@ -76,51 +45,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 5m
@@ -128,12 +70,9 @@ groups:
           summary: "Memory usage on {{ with $labels.instance }}{{ reReplaceAll \":[0-9]+$\" \"\" . }}{{ end }} is at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% (threshold: 85%)"
         labels:
           severity: critical
-        isPaused: false
 
-      # Any restart in 10m is abnormal here, so this is > 0 rather than > 5.
-      # It deliberately catches the crash-and-recover case that never reaches
-      # CrashLoopBackOff; the sustained case is covered by pod-crashloopbackoff
-      # below. Keep this at warning so a single transient restart does not page.
+      # Any restart is abnormal; pod-crashloopbackoff covers the sustained case.
+      # Warning so a single transient restart does not page.
       - uid: pod-crashloop
         title: Container Restarting
         condition: C
@@ -141,71 +80,34 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 600
-              to: 0
             datasourceUid: mimir
             model:
               expr: increase(kube_pod_container_status_restarts_total[10m]) > 0
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 600
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 600
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
-        for: 0s
         annotations:
           summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} restarted {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.0f\" .Value }}{{ end }}{{ end }} times in 10m"
         labels:
           severity: warning
-        isPaused: false
 
-      # "Restarted recently AND currently not ready" is the durable signal for a
-      # pod that cannot stay up. Deliberately NOT built on
-      # kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}:
-      # that series only exists during the backoff window, a crashing container
-      # alternates between terminated and waiting, and it was verified absent
-      # from Mimir even while a pod was actively crash-looping.
-      # The `and on(namespace,pod)` is what keeps completed Job pods out — they
-      # are not ready but never restart.
-      # This catches the case the restart-rate alert alone misses: once kubelet
-      # backoff reaches its 5m cap a crashing container only accrues ~2 restarts
-      # per 10m, so a rate threshold goes quiet precisely when it is most broken.
+      # Not built on kube_pod_container_status_waiting_reason (CrashLoopBackOff):
+      # that series exists only during each backoff window and was absent from
+      # Mimir mid crash loop. Requiring a restart excludes completed Job pods.
       - uid: pod-crashloopbackoff
         title: Pod Crash Looping
         condition: C
@@ -213,54 +115,27 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: |
                 max by (namespace, pod) (increase(kube_pod_container_status_restarts_total[15m])) > 0
                 and on(namespace, pod)
                 (max by (namespace, pod) (kube_pod_status_ready{condition="true"}) == 0)
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 2m
@@ -268,9 +143,7 @@ groups:
           summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping - it restarted recently and is still not ready"
         labels:
           severity: critical
-        isPaused: false
 
-      # The kube_pod_owner join excludes Job-owned pods.
       # Uses `== bool 0` so not-ready pods evaluate to 1 and threshold `gt:0` works.
       - uid: pod-not-ready
         title: Pod Not Ready
@@ -279,7 +152,6 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: |
@@ -290,47 +162,21 @@ groups:
                 (kube_pod_status_phase{phase="Pending"} == 1 or kube_pod_status_phase{phase="Running"} == 1))
                 unless on(pod, namespace)
                 (max by(pod, namespace) (kube_pod_container_status_waiting_reason{reason=~"ContainerCreating|ImagePullBackOff|ErrImagePull"}))
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 5m
@@ -338,10 +184,8 @@ groups:
           summary: Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.owner_kind }}) is not ready
         labels:
           severity: warning
-        isPaused: false
 
-      # No data means no problem here. The query already filters > 85%, so
-      # threshold gt:0 fires on any returned series.
+      # Pre-filtered to > 85%: no data is healthy and gt:0 fires on any series.
       - uid: pvc-almost-full
         title: PVC Almost Full
         condition: C
@@ -349,51 +193,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 85
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 5m
@@ -401,9 +218,7 @@ groups:
           summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% capacity (threshold: 85%)"
         labels:
           severity: warning
-        isPaused: false
 
-      # Same `== 0` / threshold pairing as pod-not-ready.
       # noDataState Alerting: missing node metrics may mean the node is down.
       - uid: node-not-ready
         title: Node Not Ready
@@ -412,51 +227,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: kube_node_status_condition{condition="Ready",status="true"}
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [1]
                     type: lt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: Alerting
         execErrState: Error
         for: 5m
@@ -464,14 +252,10 @@ groups:
           summary: Node {{ $labels.node }} is not ready
         labels:
           severity: critical
-        isPaused: false
 
-      # A node that recovers inside Node Not Ready's 5m `for` never fires it, so
-      # repeated short outages are otherwise invisible. 6h window, not 1h: these
-      # arrive roughly hourly, so a 1h window sits under any threshold that
-      # still ignores a single blip. Keep relativeTimeRange short despite the 6h
-      # range vector: `> 2` drops the healthy points, so a 6h `from` lets the
-      # `last` reducer latch onto a flap from hours ago and fire for 12h.
+      # Catches short outages that recover inside Node Not Ready's 5m `for`.
+      # 6h so flaps an hour apart still exceed `> 2`. Keep relativeTimeRange
+      # short: `> 2` drops healthy points, so `last` would latch onto old flaps.
       - uid: node-flapping
         title: Node Flapping
         condition: C
@@ -479,51 +263,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 600
-              to: 0
             datasourceUid: mimir
             model:
               expr: changes(kube_node_status_condition{condition="Ready",status="true"}[6h]) > 2
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 600
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 600
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 5m
@@ -531,10 +288,9 @@ groups:
           summary: Node {{ $labels.node }} has flapped Ready repeatedly in the last 6 hours
         labels:
           severity: critical
-        isPaused: false
 
-      # noDataState OK: no cert-manager means no certs. The query returns
-      # seconds remaining (positive), so threshold gt:0 fires correctly.
+      # noDataState OK: no cert-manager means no series. The query returns days
+      # remaining, so gt:0 fires for unexpired certs under 14 days.
       - uid: cert-expiring
         title: Certificate Expiring Soon
         condition: C
@@ -542,51 +298,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 14
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 1h
@@ -594,7 +323,6 @@ groups:
           summary: "Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }} days"
         labels:
           severity: warning
-        isPaused: false
 
       # 36h is one missed daily run plus margin. Scoped by name rather than
       # all CronJobs: the suspended arr-coverage jobs have an arbitrarily old
@@ -606,51 +334,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: (time() - kube_cronjob_status_last_successful_time{cronjob=~".*backup.*"}) / 3600 > 36
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 1h
@@ -658,11 +359,7 @@ groups:
           summary: "Backup {{ $labels.namespace }}/{{ $labels.cronjob }} has not succeeded in {{ with $values.B }}{{ printf \"%.0f\" .Value }}{{ end }}h"
         labels:
           severity: warning
-        isPaused: false
 
-      # `longhorn_disk_status` does not exist; disk schedulability is exposed as
-      # `longhorn_node_status{condition="schedulable"}`. The raw metric is
-      # queried, so the threshold is `lt:1` to fire on 0 (not schedulable).
       - uid: longhorn-disk-pressure
         title: Longhorn Disk Under Pressure
         condition: C
@@ -670,51 +367,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: longhorn_node_status{condition="schedulable"}
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [1]
                     type: lt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 5m
@@ -722,10 +392,8 @@ groups:
           summary: Longhorn node {{ $labels.node }} is not schedulable (disk pressure)
         labels:
           severity: critical
-        isPaused: false
 
-      # Raw metric queried; threshold `gt:1` fires only for Degraded (2) and
-      # Faulted (3), not Unknown (0) or Healthy (1).
+      # gt:1 fires only for Degraded (2) and Faulted (3), not Unknown (0) or Healthy (1).
       - uid: longhorn-volume-degraded
         title: Longhorn Volume Degraded
         condition: C
@@ -733,51 +401,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: longhorn_volume_robustness
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [1]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 5m
@@ -785,10 +426,8 @@ groups:
           summary: Longhorn volume {{ $labels.pvc }} in {{ $labels.pvc_namespace }} is {{ $labels.state }}
         labels:
           severity: warning
-        isPaused: false
 
-      # No data means no problem here, and severity critical also sends email.
-      # The query returns ratio > 0.80, so threshold gt:0 fires correctly.
+      # Pre-filtered to > 80%: no data is healthy and gt:0 fires on any series.
       - uid: longhorn-node-storage-high
         title: Longhorn Node Storage High
         condition: C
@@ -796,51 +435,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: (longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes) * 100 > 80
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 10m
@@ -848,7 +460,6 @@ groups:
           summary: "Longhorn node {{ $labels.node }} storage at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% (threshold: 80%)"
         labels:
           severity: critical
-        isPaused: false
 
       - uid: traefik-high-5xx-rate
         title: Traefik High 5xx Error Rate
@@ -857,7 +468,6 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: |
@@ -866,47 +476,21 @@ groups:
                   /
                   clamp_min(sum by(service) (rate(traefik_service_requests_total[5m])), 0.001)
                 ) * 100 > 5
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 5m
@@ -914,15 +498,9 @@ groups:
           summary: "Traefik service {{ with $labels.service }}{{ reReplaceAll \"-[0-9a-f]+@kubernetescrd$\" \"\" . }}{{ end }} 5xx rate at {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.1f\" .Value }}{{ end }}{{ end }}% (threshold: 5%)"
         labels:
           severity: critical
-        isPaused: false
 
-      # Excludes services with inherently slow backend operations:
-      #   - jellyfin: HLS streaming segments (2-3s per chunk) and WebSockets
-      #   - bazarr: external subtitle provider API calls (1-5s)
-      #   - sonarr/radarr/prowlarr: indexer queries and library scans
-      #   - seerr: TMDb search API calls
-      #   - authentik: OAuth flows and database queries
-      #   - qbittorrent: torrent API operations
+      # Excluded services are slow by design: HLS streaming and WebSockets,
+      # indexer, subtitle and TMDb lookups, OAuth flows, torrent API calls.
       - uid: traefik-high-p95-latency-warning
         title: Traefik High p95 Latency (Warning)
         condition: C
@@ -930,51 +508,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*|.*bazarr.*|.*sonarr.*|.*radarr.*|.*prowlarr.*|.*seerr.*|.*authentik.*|.*qbittorrent.*"}[5m]))) * 1000 > 750
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 10m
@@ -984,8 +535,7 @@ groups:
           severity: warning
         isPaused: true
 
-      # Excludes services with inherently slow backend operations – see the
-      # warning alert for the full rationale.
+      # Same exclusions as the warning rule.
       - uid: traefik-high-p95-latency-critical
         title: Traefik High p95 Latency (Critical)
         condition: C
@@ -993,51 +543,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service!~".*jellyfin.*|.*bazarr.*|.*sonarr.*|.*radarr.*|.*prowlarr.*|.*seerr.*|.*authentik.*|.*qbittorrent.*"}[5m]))) * 1000 > 1500
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 10m
@@ -1054,51 +577,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: mimir
             model:
               expr: longhorn_volume_state{state="faulted"} == 1
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 1m
@@ -1106,7 +602,6 @@ groups:
           summary: Longhorn volume {{ $labels.pvc }} in {{ $labels.pvc_namespace }} is faulted
         labels:
           severity: critical
-        isPaused: false
 
       - uid: longhorn-node-count-drop
         title: Longhorn Node Count Drop
@@ -1115,51 +610,24 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 86400
-              to: 0
             datasourceUid: mimir
             model:
               expr: max_over_time((min(longhorn_node_count_total))[24h:1m]) - min(longhorn_node_count_total)
-              intervalMs: 1000
-              maxDataPoints: 43200
           - refId: B
-            relativeTimeRange:
-              from: 86400
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 86400
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         # NoData means the datasource is not answering, not that a
         # Longhorn node vanished.
         noDataState: OK
@@ -1169,10 +637,8 @@ groups:
           summary: Longhorn node count dropped below its 24h peak
         labels:
           severity: critical
-        isPaused: false
 
-      # Catches the app-visible symptom of broken PVCs before Kubernetes
-      # readiness necessarily flips.
+      # Catches the app-visible symptom of broken PVCs before readiness flips.
       - uid: pod-storage-io-errors
         title: Pod Storage I/O Errors
         condition: C
@@ -1180,61 +646,27 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: loki
             model:
-              datasource:
-                type: loki
-                uid: loki
-              editorMode: code
-              # longhorn-manager re-emits historical engine logs when instance
-              # diagnostics are requested, so old error text arrives with a
-              # current ingest time. Volume health is covered by the metric
-              # based Longhorn rules instead.
+              # longhorn-manager re-emits old engine logs with a current ingest
+              # time; the metric-based Longhorn rules cover volume health.
               expr: 'sum by(namespace, pod) (count_over_time({namespace=~"media|utilities|home|longhorn-system", pod!~"longhorn-manager.*"} |~ "Read-only file system|Input/output error|I/O error" [5m]))'
-              intervalMs: 1000
-              maxDataPoints: 43200
               queryType: range
-              refId: A
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [3]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
         for: 1m
@@ -1242,7 +674,6 @@ groups:
           summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} logged {{ with $values.B }}{{ if and (eq .Value .Value) (gt .Value 0.0) }}{{ printf \"%.0f\" .Value }}{{ end }}{{ end }} storage I/O error lines in 5m"
         labels:
           severity: critical
-        isPaused: false
 
       # Needs the explicit static-pod log scrape: on Talos these logs are not
       # captured by the generic pod job.
@@ -1253,89 +684,49 @@ groups:
           - refId: A
             relativeTimeRange:
               from: 300
-              to: 0
             datasourceUid: loki
             model:
-              datasource:
-                type: loki
-                uid: loki
-              editorMode: code
               expr: 'sum(count_over_time({job="kube-system-static-pods", namespace="kube-system", component="kube-apiserver"} |= "etcdserver: corrupt cluster" [5m]))'
-              intervalMs: 1000
-              maxDataPoints: 43200
               queryType: range
-              refId: A
           - refId: B
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: A
               reducer: last
               type: reduce
           - refId: C
-            relativeTimeRange:
-              from: 300
-              to: 0
             datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params: [0]
                     type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: [B]
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
               expression: B
-              intervalMs: 1000
-              maxDataPoints: 43200
               type: threshold
-        dashboardUid: ""
-        panelId: 0
         noDataState: OK
         execErrState: Error
-        for: 0s
         annotations:
           summary: kube-apiserver is logging etcd corruption errors
         labels:
           severity: critical
-        isPaused: false
 
 contactPoints:
-  - orgId: 1
-    name: Discord
+  - name: Discord
     receivers:
       - uid: discord-webhook
         type: discord
         settings:
           url: ${DISCORD_WEBHOOK_URL}
           message: '{{ template "discord_compact" . }}'
-        disableResolveMessage: false
-  - orgId: 1
-    name: Email
+  - name: Email
     receivers:
       - uid: email-alerts
         type: email
         settings:
           addresses: admin@nerine.dev
-          singleEmail: true
-        disableResolveMessage: false
 
 templates:
-  - orgId: 1
-    name: discord_compact
+  - name: discord_compact
     template: |
       {{ define "discord_compact" -}}
       {{- if .Alerts.Firing -}}
@@ -1378,20 +769,14 @@ templates:
       {{- end }}
 
 policies:
-  - orgId: 1
-    receiver: Discord
+  - receiver: Discord
     group_by:
       - grafana_folder
       - alertname
-    group_wait: 30s
-    group_interval: 5m
-    repeat_interval: 4h
     routes:
       # continue=true so Discord still gets the critical alerts too.
       - receiver: Email
         object_matchers:
           - ["severity", "=", "critical"]
-        group_wait: 30s
-        group_interval: 5m
         repeat_interval: 12h
         continue: true

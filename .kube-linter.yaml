@@ -2,20 +2,17 @@ checks:
   exclude:
     # Third-party images don't support read-only root filesystems
     - "no-read-only-root-fs"
-    # Many images require root (Grafana, Loki, *arr apps, etc.)
+    # Many images require root (*arr apps, etc.)
     - "run-as-non-root"
-    # Init containers/sidecars don't need resource limits
+    # Init containers and several workloads (e.g. Jellyfin) run without CPU/memory limits
     - "unset-cpu-requirements"
     - "unset-memory-requirements"
     # We intentionally use both ttlSecondsAfterFinished and history limits for defense-in-depth
     - "job-ttl-seconds-after-finished"
     # ServiceAccount in common/ kustomize base - linter can't resolve cross-references
     - "non-existent-service-account"
-    # talos-kmsg-shipper is privileged by design: /dev/kmsg on Talos has
-    # SELinux label device_t:s0, and the SELinux policy blocks every
-    # non-privileged path we tried (CAP_SYSLOG alone, spc_t type). The
-    # DaemonSet documents the why in its securityContext comment; if you
-    # add another privileged pod, document it there too.
+    # talos-kmsg-shipper needs privileged for /dev/kmsg (see its securityContext); justify any
+    # other privileged pod there too, since this exclusion is global.
     - "privileged-container"
     - "privilege-escalation-container"
 

@@ -8,7 +8,6 @@ spec:
     - websecure
   routes:
     - match: Host(`dns.nerine.dev`)
-      kind: Rule
       services:
         - name: adguard
           port: 3000

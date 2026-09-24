@@ -8,7 +8,6 @@ spec:
     - websecure
   routes:
     - match: Host(`sonarr.nerine.dev`)
-      kind: Rule
       services:
         - name: sonarr
           port: 8989

@@ -43,7 +43,6 @@ variable "nodes" {
   default = {
     "talos-1" = {
       vmid           = 110
-      vcpus          = 4
       memory         = 16384
       data_disk_size = 120
       gpu            = true
@@ -99,10 +98,8 @@ variable "talos_gpu_extensions" {
   default = [
     "siderolabs/mei",
     "siderolabs/xe",
-    # The xe driver loads DMC firmware from the legacy i915/bmg_dmc.bin path,
-    # which the Talos xe extension does not ship, so runtime PM is hard-disabled
-    # (~9W GPU idle floor) without this. Remove once the upstream PR to
-    # siderolabs/extensions (drm/xe/pkg.yaml) merges.
+    # xe loads DMC firmware from i915/bmg_dmc.bin, which the xe extension lacks; without
+    # it runtime PM stays off (~9W idle). Drop once siderolabs/extensions drm/xe ships it.
     "siderolabs/i915",
   ]
 }
@@ -145,18 +142,13 @@ variable "kubernetes_api_host" {
   default     = null
 }
 
-# Steady state is Tailscale-only SSH, so this stays false in every committed
-# tfvars. Flip it on by hand only for as long as it takes to enroll a VM that is
-# not on the tailnet yet, then flip it back off.
 variable "oracle_ssh_public_access" {
   description = "Temporarily open public SSH (port 22) to the Oracle VPS instances so a not-yet-enrolled VM can be reached for Tailscale bootstrap. Leave false outside of a bootstrap run."
   type        = bool
   default     = false
 }
 
-# Paired with oracle_ssh_public_access, and deliberately fails closed: the
-# default reaches nothing, so forgetting to pass an address costs you a failed
-# bootstrap rather than an internet-facing sshd. Pass your own egress IP as /32.
+# Fails closed: the default reaches nothing, so a forgotten address breaks bootstrap instead of exposing sshd.
 variable "oracle_ssh_source_cidr" {
   description = "Source CIDR allowed to reach port 22 while oracle_ssh_public_access is true. Scope this to the caller's own address."
   type        = string

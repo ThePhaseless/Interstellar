@@ -8,31 +8,12 @@ spec:
   plugin:
     crowdsec-bouncer:
       enabled: true
-      logLevel: INFO
-      updateIntervalSeconds: 60
-      updateMaxFailure: 0
-      defaultDecisionSeconds: 60
-      httpTimeoutSeconds: 10
-      # Stream mode: requests hit a local cache refreshed every 60s.
       crowdsecMode: stream
-      crowdsecLapiScheme: http
       crowdsecLapiHost: crowdsec-service.crowdsec.svc.cluster.local:8080
       crowdsecLapiKeyFile: /secrets/crowdsec/crowdsecLapiKey
-      # Trusted networks — bypass ALL checks (bans, rate limiting, AppSec WAF).
-      # The Tailscale operator uses L3 DNAT and does NOT forward the real client
-      # IP (tailscale/tailscale#11024), so Tailscale traffic arrives as the
-      # ts-traefik pod IP and only the pod CIDR matches it.
-      # LAN and Tailscale are the only sources today, so the bouncer inspects
-      # nothing in practice. It stays wired up so a future public entrypoint
-      # re-arms it — whatever terminates that traffic must pass the real
-      # client IP through.
+      # Trusted networks bypass ALL checks, including the AppSec WAF.
       clientTrustedIPs:
-        - "192.168.1.0/24" # Home LAN (direct access, bypasses Tailscale)
-        - "10.244.0.0/16" # Pod CIDR — matches ts-traefik DNAT'd Tailscale traffic
-      forwardedHeadersCustomName: X-Forwarded-For
-      forwardedHeadersTrustedIPs:
-        - "10.244.0.0/16"
+        - "192.168.1.0/24"
+        - "10.244.0.0/16" # In-cluster callers, e.g. Jellyfin reaching Authentik via hostAliases
       crowdsecAppsecEnabled: true
       crowdsecAppsecHost: crowdsec-appsec-service.crowdsec.svc.cluster.local:7422
-      crowdsecAppsecFailureBlock: true
-      crowdsecAppsecUnreachableBlock: true

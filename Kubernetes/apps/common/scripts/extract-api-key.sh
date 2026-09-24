@@ -1,5 +1,4 @@
 #!/bin/bash
-# Usage: extract-api-key.sh <app-name> <config-path>
 
 set -euo pipefail
 

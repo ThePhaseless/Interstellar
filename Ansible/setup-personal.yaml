@@ -1,12 +1,7 @@
 ---
-# Personal devices — run this from your own machine, never from CI.
-#
-#   ansible-playbook setup-personal.yaml
-#
-# CI authenticates as tag:ci, and the policy gives that tag no route to an
-# untagged device, so a CI run would only ever report 'unreachable'. Tailscale
-# enrolment is absent here because untagged keys are issued to people, so
-# enrolling one is a browser login.
+# Run from your own machine, never from CI: the policy gives tag:ci no route to
+# an untagged device. Tailscale enrolment is absent because untagged keys are
+# issued to people, so enrolling one is a browser login.
 - name: Configure unattended upgrades on personal devices
   hosts: personal
   become: true

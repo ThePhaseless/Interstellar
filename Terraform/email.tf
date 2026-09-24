@@ -36,7 +36,6 @@ resource "cloudflare_dns_record" "dkim" {
   content = trimsuffix(oci_email_dkim.main.cname_record_value, ".")
   type    = "CNAME"
   ttl     = 300
-  proxied = false
   comment = "OCI Email Delivery DKIM verification record"
 }
 

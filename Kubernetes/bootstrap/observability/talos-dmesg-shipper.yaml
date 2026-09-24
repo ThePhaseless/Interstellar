@@ -5,8 +5,6 @@ metadata:
   namespace: observability
   labels:
     app: talos-kmsg-shipper
-  # kube-linter's privileged-container and privilege-escalation-container
-  # checks are excluded globally in .kube-linter.yaml.
 spec:
   selector:
     matchLabels:
@@ -17,7 +15,6 @@ spec:
         app: talos-kmsg-shipper
         source: talos-kmsg
     spec:
-      # Run on every node, control-plane nodes (NoSchedule) included.
       tolerations:
         - effect: NoSchedule
           operator: Exists
@@ -30,9 +27,8 @@ spec:
             - sh
             - -c
             - |
-              # cat blocks on /dev/kmsg and is woken per kernel line; stdout is
-              # picked up by Promtail's kubernetes-pods job. The first read
-              # dumps the whole ring buffer, so every pod start bursts once.
+              # cat never hits EOF on /dev/kmsg and starts from the oldest record,
+              # so every pod start re-ships the whole ring buffer once.
               exec cat /dev/kmsg
           securityContext:
             # Talos' SELinux policy allows no container_t -> device_t
@@ -42,13 +38,10 @@ spec:
             # the implicit-privilege bit and the cat fails with EPERM.
             # allowPrivilegeEscalation cannot be false while privileged is true.
             privileged: true
-            runAsUser: 0
             readOnlyRootFilesystem: true
           resources:
             requests:
-              # Idle CPU is near 0; it bursts only on a new kernel line.
               cpu: 5m
-              # Enough to buffer a few seconds of dmesg burst (boot, crash dump).
               memory: 16Mi
             limits:
               cpu: 50m

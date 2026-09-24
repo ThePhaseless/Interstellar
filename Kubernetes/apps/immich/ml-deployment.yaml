@@ -26,8 +26,6 @@ spec:
           env:
             - name: TZ
               value: "UTC"
-            - name: MACHINE_LEARNING_CACHE_FOLDER
-              value: "/cache"
             - name: MACHINE_LEARNING_REQUEST_THREADS
               value: "1"
             - name: MACHINE_LEARNING_MODEL_INTRA_OP_THREADS
@@ -62,7 +60,6 @@ spec:
               path: /ping
               port: http
             initialDelaySeconds: 60
-            periodSeconds: 10
 
       volumes:
         - name: cache

@@ -12,7 +12,6 @@ data:
     profiles:
       - name: LowNodeUtilization
         pluginConfig:
-        - name: "DefaultEvictor"
         - name: "LowNodeUtilization"
           args:
             thresholds:

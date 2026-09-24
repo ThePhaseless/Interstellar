@@ -99,10 +99,8 @@ ${node_line}
               readOnly: true
             - name: borg-ssh-key
               mountPath: /secrets/ssh
-              readOnly: true
             - name: backup-script
               mountPath: /scripts
-              readOnly: true
             - name: borg-cache
               mountPath: /root/.cache/borg
           resources:
@@ -123,7 +121,6 @@ ${node_line}
         - name: backup-script
           configMap:
             name: media-backup-script
-            defaultMode: 0755
         - name: borg-cache
           emptyDir:
             sizeLimit: 2Gi

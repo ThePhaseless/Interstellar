@@ -1,12 +1,7 @@
-# Alloy scrapes via pod annotation, not a ServiceMonitor.
-kubeRBACProxy:
-  enabled: false
-
 # Alloy discovers the pods directly, so no Service is needed.
 service:
   enabled: false
 
-# Must run on control-plane nodes too.
 tolerations:
   - effect: NoSchedule
     operator: Exists
@@ -25,9 +20,7 @@ resources:
     cpu: 100m
     memory: 128Mi
 
-# Disable collectors that don't exist on Talos VMs
 extraArgs:
-  - --no-collector.wifi
   - --no-collector.btrfs
   - --no-collector.infiniband
   - --no-collector.ipvs

@@ -1,24 +1,5 @@
 #!/bin/sh
-# Drives `borg create` / `borg prune` / `borg compact` against one shared repo.
-#
-# Required env (from borg-secrets): BORG_PASSPHRASE, BORG_REPO, BORG_SERVER_HOST.
-# BORG_BACKUP_TARGETS takes one `prefix:path1 path2 ...` per line, so a single
-# CronJob can back up several targets in one run.
-#
-# Optional env:
-#   BORG_LEGACY_GLOBS     — space-separated extra `--glob-archives` patterns to
-#                           keep pruning (for archive families renamed or split
-#                           away). Example: "immich-*"
-#   BORG_EXCLUDES         — space-separated extra exclude patterns applied to
-#                           every target in this CronJob.
-#   BORG_PATTERNS         — newline-separated `--patterns-from` lines (sh: style,
-#                           first match wins). Unlike BORG_EXCLUDES this supports
-#                           `+` include prefixes, e.g. "back up only X/safe under
-#                           X": "+ X/safe + X/safe/** - X/**". Patterns match the
-#                           archived paths, so no leading slash: the target
-#                           /photos is archived as "photos/...".
-#
-# The pod must also mount /root/.cache/borg as an emptyDir for the borg cache.
+# BORG_PATTERNS (--patterns-from) takes `+` re-includes, which BORG_EXCLUDES (--exclude-from) cannot.
 set -eu
 
 info() { printf '\n%s %s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2; }
@@ -38,7 +19,6 @@ chmod 700 ~/.ssh
 cp /secrets/ssh/id_ed25519 ~/.ssh/id_ed25519
 chmod 600 ~/.ssh/id_ed25519
 ssh-keyscan -p 23 "$BORG_SERVER_HOST" >>~/.ssh/known_hosts 2>/dev/null
-chmod 644 ~/.ssh/known_hosts
 
 cat >~/.ssh/config <<EOF
 Host ${BORG_SERVER_HOST}
@@ -50,18 +30,11 @@ Host ${BORG_SERVER_HOST}
 EOF
 chmod 600 ~/.ssh/config
 
-export BORG_RSH="ssh -p 23 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30"
-
-# Every backup CronJob shares one repo, so an overrunning job holds the lock
-# while the next one starts. Borg's default wait is 1s, which turns that
-# overlap into a failed Job even though the archive itself succeeded.
-export BORG_LOCK_WAIT="${BORG_LOCK_WAIT:-1800}"
-
 BORG_USER=$(echo "$BORG_REPO" | sed -n 's|ssh://\([^@]*\)@.*|\1|p')
 BORG_PATH=$(echo "$BORG_REPO" | sed -n 's|.*:23/\./||p')
 BORG_DIR=$(dirname "$BORG_PATH")
 info "Ensuring remote backup directory exists (user: ${BORG_USER})..."
-ssh -p 23 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new "${BORG_USER}@${BORG_SERVER_HOST}" "mkdir -p ${BORG_DIR}" 2>/dev/null || true
+ssh "${BORG_USER}@${BORG_SERVER_HOST}" "mkdir -p ${BORG_DIR}" 2>/dev/null || true
 
 info "Checking borg repository..."
 if ! borg info "$BORG_REPO" >/dev/null 2>&1; then
@@ -108,7 +81,7 @@ while IFS= read -r target; do
         --list \
         --stats \
         --show-rc \
-        --compression zstd,3 \
+        --compression zstd \
         --exclude-caches \
         --exclude '*.tmp' \
         --exclude '*.log' \
@@ -182,9 +155,7 @@ if [ "$GLOBAL" -eq 0 ]; then
     info "Backup, Prune, and Compact finished successfully"
 elif [ "$GLOBAL" -eq 1 ]; then
     info "Backup, Prune, and/or Compact finished with warnings"
-    # borg exits 1 when a file changed or vanished mid-read, which a live data
-    # directory does constantly (Loki rotates its WAL as we read). The archive is
-    # still complete, so propagating it would only fail a good backup.
+    # borg exits 1 when live data (Loki's WAL) changes or vanishes mid-read; the archive is still complete.
     GLOBAL=0
 else
     info "Backup, Prune, and/or Compact finished with errors"

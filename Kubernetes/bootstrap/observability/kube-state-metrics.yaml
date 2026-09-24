@@ -114,7 +114,6 @@ spec:
         prometheus.io/port: "8080"
     spec:
       serviceAccountName: kube-state-metrics
-      automountServiceAccountToken: true
       containers:
         - name: kube-state-metrics
           image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0

@@ -6,7 +6,6 @@ metadata:
   labels:
     app: cloudflare-ddns
 spec:
-  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -32,10 +31,6 @@ spec:
                   key: api-token
             - name: IP4_DOMAINS
               value: "nerine.dev,*.nerine.dev"
-            # Traefik terminates TLS and CrowdSec/allowlists match on the real
-            # client IP, which the Cloudflare proxy would replace with its own.
-            - name: PROXIED
-              value: "false"
             - name: IP6_PROVIDER
               value: "none"
             - name: TTL
@@ -44,10 +39,6 @@ spec:
             # run logs a mismatch warning.
             - name: RECORD_COMMENT
               value: "Home Traefik ingress - value maintained by cloudflare-ddns"
-            - name: UPDATE_CRON
-              value: "@every 5m"
-            - name: TZ
-              value: "UTC"
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

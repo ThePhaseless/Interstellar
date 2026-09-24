@@ -40,10 +40,8 @@ radarr:
           - name: WEBRip-480p
           - name: DVD
           - name: SDTV
-        # Large negative: never reject on CF score. Negative-scored "unwanted"
-        # CFs (LQ, x265-HD, BR-DISK, 3D, Extras, AV1) only rank releases lower;
-        # they don't filter them out, so old/niche movies are never left
-        # without a grab. TRaSH's default (0) still rejects any negative total.
+        # TRaSH's 0 rejects any negative total, leaving old/niche movies whose
+        # only releases hit "unwanted" CFs (LQ, x265-HD, 3D, ...) ungrabbed.
         min_format_score: -1000000
         reset_unmatched_scores:
           enabled: true
@@ -57,9 +55,8 @@ radarr:
         assign_scores_to:
           - trash_id: d1d310673359205736b4b84acd5ea8c8 # Remux 2160p (Combined)
             score: 100
-      # Hard ban, not a penalty: this sits below min_format_score
-      # (-1000000), so an upscaled release is rejected outright instead of
-      # being outranked. The guide's own -10000 only demotes it.
+      # Below min_format_score, so upscaled releases are rejected outright; the
+      # guide's -10000 would only demote them.
       - trash_ids:
           - bfd8eb01832d646a0a89c4deb46f8564 # Upscaled
         assign_scores_to:

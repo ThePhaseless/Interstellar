@@ -61,7 +61,6 @@ spec:
             httpGet:
               path: /ready
               port: http
-            periodSeconds: 10
             timeoutSeconds: 10
             failureThreshold: 6
           readinessProbe:
@@ -75,7 +74,6 @@ spec:
             httpGet:
               path: /ready
               port: http
-            periodSeconds: 10
             timeoutSeconds: 10
             failureThreshold: 60
 
@@ -97,8 +95,5 @@ spec:
     - name: http
       port: 9009
       targetPort: http
-    - name: grpc
-      port: 9095
-      targetPort: grpc
   selector:
     app: mimir

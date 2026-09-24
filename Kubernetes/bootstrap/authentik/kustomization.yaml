@@ -16,21 +16,10 @@ helmCharts:
     namespace: authentik
     valuesInline:
       authentik:
-        secret_key: "" # Set via AUTHENTIK_SECRET_KEY env var from secret
-        log_level: info
-        error_reporting:
-          enabled: false
         postgresql:
-          password: "" # Set via AUTHENTIK_POSTGRESQL__PASSWORD env var from secret
           host: authentik-postgresql.authentik.svc.cluster.local
         email:
           host: "postfix.utilities.svc.cluster.local"
-          port: 587
-          username: ""
-          password: ""
-          use_tls: false
-          use_ssl: false
-          timeout: 30
           from: "noreply@nerine.dev"
 
       global:
@@ -52,8 +41,6 @@ helmCharts:
                 key: authentik-bootstrap-token
 
       server:
-        ingress:
-          enabled: false # Using Traefik IngressRoute instead
         livenessProbe:
           timeoutSeconds: 10
           periodSeconds: 20
@@ -102,7 +89,3 @@ helmCharts:
             enabled: true
             size: 5Gi
             storageClass: longhorn
-
-      # Required by the embedded outpost.
-      serviceAccount:
-        create: true

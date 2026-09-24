@@ -9,7 +9,6 @@ spec:
     - websecure
   routes:
     - match: Host(`auth.nerine.dev`)
-      kind: Rule
       services:
         - name: authentik-server
           port: 80
@@ -33,7 +32,6 @@ spec:
     - websecure
   routes:
     - match: Host(`nerine.dev`)
-      kind: Rule
       services:
         - name: noop@internal
           kind: TraefikService
@@ -49,8 +47,6 @@ spec:
         sans:
           - "*.nerine.dev"
 ---
-# The embedded outpost's forward-auth flow needs this callback path on every
-# subdomain; priority 15 puts it ahead of the application routes.
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -61,7 +57,6 @@ spec:
     - websecure
   routes:
     - match: PathPrefix(`/outpost.goauthentik.io/`)
-      kind: Rule
       priority: 15
       services:
         - name: authentik-server

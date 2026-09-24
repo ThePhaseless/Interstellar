@@ -16,10 +16,3 @@ helmCharts:
     includeCRDs: true
     valuesInline:
       postDeleteCleanup: false
-      master:
-        replicaCount: 1
-      worker:
-        tolerations:
-          - effect: NoSchedule
-            key: node-role.kubernetes.io/control-plane
-            operator: Exists

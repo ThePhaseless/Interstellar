@@ -7,7 +7,6 @@ spec:
   schedule: "0 3 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 120
@@ -26,7 +25,6 @@ spec:
                   echo "$(date) Starting Immich PostgreSQL dump..."
                   pg_dump \
                     -h immich.utilities.svc.cluster.local \
-                    -p 5432 \
                     -U immich \
                     -d immich \
                     -Fc \
@@ -52,7 +50,6 @@ spec:
                   echo "$(date) Starting Authentik PostgreSQL dump..."
                   pg_dump \
                     -h authentik-postgresql.authentik.svc.cluster.local \
-                    -p 5432 \
                     -U authentik \
                     -d authentik \
                     -Fc \
@@ -119,10 +116,8 @@ spec:
                   readOnly: true
                 - name: borg-ssh-key
                   mountPath: /secrets/ssh
-                  readOnly: true
                 - name: backup-script
                   mountPath: /scripts
-                  readOnly: true
                 - name: borg-cache
                   mountPath: /root/.cache/borg
               resources:
@@ -152,7 +147,6 @@ spec:
             - name: backup-script
               configMap:
                 name: borgbackup-script
-                defaultMode: 0755
             - name: borg-cache
               emptyDir:
                 sizeLimit: 2Gi

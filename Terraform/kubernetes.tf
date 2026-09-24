@@ -11,7 +11,7 @@ resource "kubernetes_namespace_v1" "external_secrets" {
   }
 
   lifecycle {
-    # Argo CD mutates namespace labels/annotations; don't churn Terraform plans.
+    # Argo CD also manages this namespace's labels and annotations.
     ignore_changes = [
       metadata[0].annotations,
       metadata[0].labels,

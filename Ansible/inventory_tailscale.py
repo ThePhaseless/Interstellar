@@ -1,22 +1,8 @@
 #!/usr/bin/env python3
-"""Dynamic Ansible inventory from Tailscale network status.
+"""Dynamic Ansible inventory built from 'tailscale status --json'.
 
-Queries 'tailscale status --json' and maps Tailscale device tags to
-Ansible host groups.  Each device's first Tailscale IPv4 address is
-used as ansible_host so connections work from anywhere on the tailnet
-(including GitHub Actions runners).
-
-Tag → Group mapping (configure TAG_GROUP_MAP below):
-    tag:proxmox  → proxmox
-    (untagged)   → personal, for hosts named in PERSONAL_HOSTNAMES
-    tag:node     → cluster
-    tag:cluster  → cluster   (legacy fallback during migration)
-
-Only machines already on the tailnet appear here.
-
-Usage:
-    ansible-inventory -i inventory_tailscale.py --list
-    ansible-playbook -i inventory_tailscale.py playbook.yaml
+Each device's first Tailscale IPv4 address is used as ansible_host so connections
+work from anywhere on the tailnet, including GitHub Actions runners.
 """
 
 from __future__ import annotations
@@ -28,14 +14,12 @@ import sys
 TAG_GROUP_MAP: dict[str, list[str]] = {
     "tag:proxmox": ["proxmox"],
     "tag:node": ["cluster"],
-    "tag:cluster": ["cluster"],
 }
 
 GLOBAL_HOST_VARS: dict[str, str] = {
     "ansible_user": "root",
 }
 
-# Per-group variable overrides (merged on top of GLOBAL_HOST_VARS)
 GROUP_VARS: dict[str, dict[str, str]] = {
     "personal": {
         "ansible_user": "ubuntu",
@@ -47,7 +31,6 @@ PERSONAL_HOSTNAMES = ("compute",)
 
 
 def tailscale_status() -> dict:
-    """Run 'tailscale status --json' and return parsed JSON."""
     result = subprocess.run(
         ["tailscale", "status", "--json"],
         capture_output=True,
@@ -58,7 +41,6 @@ def tailscale_status() -> dict:
 
 
 def first_ipv4(ips: list[str]) -> str | None:
-    """Return the first IPv4 address from a list of IPs."""
     for ip in ips:
         if "." in ip:
             return ip
@@ -66,13 +48,11 @@ def first_ipv4(ips: list[str]) -> str | None:
 
 
 def build_inventory() -> dict:
-    """Build Ansible inventory dict from Tailscale status."""
     status = tailscale_status()
     peers: dict = status.get("Peer", {})
 
     groups: dict[str, list[str]] = {}
     hostvars: dict[str, dict] = {}
-    peer_hostnames: dict[str, str] = {}
 
     for peer in peers.values():
         tags: list[str] = peer.get("Tags", [])
@@ -117,7 +97,6 @@ def build_inventory() -> dict:
 
         if matched:
             hostvars[hostname] = host_vars
-            peer_hostnames[hostname] = peer_hostname or hostname
 
     inventory: dict = {"_meta": {"hostvars": hostvars}}
     for group, hosts in groups.items():
@@ -127,7 +106,6 @@ def build_inventory() -> dict:
 
 
 def main() -> None:
-    """Entry point – supports --list and --host flags."""
     if len(sys.argv) == 2 and sys.argv[1] == "--list":
         print(json.dumps(build_inventory(), indent=2))
     elif len(sys.argv) == 3 and sys.argv[1] == "--host":

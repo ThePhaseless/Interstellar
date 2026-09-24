@@ -5,7 +5,6 @@ metadata:
 spec:
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 120
@@ -53,7 +52,6 @@ spec:
             - name: backup-script
               configMap:
                 name: crowdsec-backup-script
-                defaultMode: 0755
             - name: borg-cache
               emptyDir:
                 sizeLimit: 2Gi

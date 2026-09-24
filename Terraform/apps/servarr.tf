@@ -140,10 +140,9 @@ resource "terraform_data" "prowlarr_reject_blocklisted_hashes" {
 }
 
 # doNotPrefer takes proper/repack out of the revision gate that vetoes any
-# same-quality upgrade, and lets the Repack/Proper custom formats (5/6/7, from
-# the TRaSH profiles Recyclarr syncs) rank it as part of the total score
-# instead. Every attribute below is required by the provider, so the rest
-# mirror the live config rather than expressing an intent.
+# same-quality upgrade, leaving the Recyclarr-synced Repack/Proper custom
+# formats to rank it by score. The provider requires every attribute, so the
+# rest mirror the live config rather than expressing an intent.
 resource "radarr_media_management" "movies" {
   download_propers_and_repacks = "doNotPrefer"
 

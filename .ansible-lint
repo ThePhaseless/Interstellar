@@ -1,4 +1,3 @@
-# Ansible Lint Configuration
 profile: basic
 
 exclude_paths:
@@ -7,9 +6,7 @@ exclude_paths:
   - .private/
 
 skip_list:
-  - galaxy[no-changelog]
   - role-name # Linter incorrectly treats Ansible/ directory as a role
 
 warn_list:
   - experimental
-  - fqcn[deep]

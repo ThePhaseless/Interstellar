@@ -20,12 +20,9 @@ version_ge() {
 }
 
 if ! command -v kube-linter &>/dev/null; then
-    export PATH="/home/vscode/go/bin:${PATH}"
-    if ! command -v kube-linter &>/dev/null; then
-        echo -e "${RED}Error: kube-linter not found in PATH${NC}"
-        echo "Run 'mise install' to install the pinned repository toolchain."
-        exit 1
-    fi
+    echo -e "${RED}Error: kube-linter not found in PATH${NC}"
+    echo "Run 'mise install' to install the pinned repository toolchain."
+    exit 1
 fi
 
 echo -e "${GREEN}Kubernetes manifest lint${NC}"
@@ -104,8 +101,7 @@ echo ""
 
 LINT_RESULT=0
 echo "${YAML_FILES}" | xargs kube-linter lint \
-    ${CONFIG_ARG} \
-    --format=plain ||
+    ${CONFIG_ARG} ||
     LINT_RESULT=$?
 
 echo ""

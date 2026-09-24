@@ -51,7 +51,6 @@ spec:
               path: /
               port: http
             initialDelaySeconds: 5
-            periodSeconds: 10
 
       volumes:
         - name: config-template

@@ -1,18 +1,11 @@
 general:
-  log_level: INFO
-  test_run: false
   timer: 10
   protected_tag: "dont_delete"
 
-job_defaults:
-  max_strikes: 3
-
 jobs:
-  # A transient storage fault errors a torrent rather than slowing it: ENOSPC
-  # on a full branch, or ESTALE when a fileid changes under the NFS client.
-  # Those episodes have lasted over two hours, and at the 30-minute default
-  # both jobs delete a half-finished download and blocklist its release.
-  # Timer is 10 minutes, so 18 strikes is three hours.
+  # Storage faults (ENOSPC on a full branch, ESTALE from the NFS client) error
+  # torrents for over two hours, and without max_strikes these jobs delete on
+  # first sight. 18 strikes on the 10-minute timer is three hours.
   remove_failed_downloads:
     max_strikes: 18
   remove_failed_imports:
@@ -24,10 +17,8 @@ jobs:
   remove_orphans:
     max_strikes: 3
   # A 50 GiB remux on a small swarm swings either side of min_speed for long
-  # stretches; at the default 3 strikes it is deleted after 30 minutes and its
-  # release blocklisted, burning a good source that would have finished.
+  # stretches; the default 3 strikes deletes and blocklists it after 30 minutes.
   remove_slow:
-    min_speed: 100
     max_strikes: 12
   remove_stalled:
     max_strikes: 9

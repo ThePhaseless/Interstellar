@@ -26,17 +26,10 @@ spec:
           env:
             - name: UPSTREAM
               value: https://eztvx.to
-            - name: BYPARR
-              value: http://byparr:8191/v1
-            - name: TIMEOUT_MS
-              value: "120000"
-            - name: PORT
-              value: "8888"
           volumeMounts:
             - name: script
               mountPath: /app/byparr-proxy.py
               subPath: byparr-proxy.py
-              readOnly: true
           resources:
             requests:
               cpu: 50m

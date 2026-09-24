@@ -11,7 +11,6 @@ spec:
   suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       backoffLimit: 0
@@ -37,15 +36,9 @@ spec:
                   value: "http://sonarr.media.svc.cluster.local:8989"
                 - name: PROWLARR_URL
                   value: "http://prowlarr.media.svc.cluster.local:9696"
-                # The script refuses DRY_RUN for sonarr: its interactive-search
-                # endpoint needs a season or episode, so there is no series-wide
-                # non-grabbing lookup.
+                # Must stay false: the script refuses DRY_RUN for sonarr.
                 - name: DRY_RUN
                   value: "false"
-                - name: MAX_BACKOFF_WAIT_SECONDS
-                  value: "3600"
-                - name: ITEM_DELAY_SECONDS
-                  value: "5"
                 - name: APP_API_KEY
                   valueFrom:
                     secretKeyRef:

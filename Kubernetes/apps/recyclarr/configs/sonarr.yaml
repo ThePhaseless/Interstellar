@@ -22,9 +22,9 @@ sonarr:
       - trash_id: c4cadd6b35b95f62c3d47a408e53e2f7 # WEB-2160p (Combined)
         reset_unmatched_scores:
           enabled: true
+        min_format_score: -1000000
         # Best-first preference; lower qualities stay allowed as fallbacks so
         # old/niche shows with limited availability still get grabbed.
-        min_format_score: -1000000
         qualities:
           - name: Bluray-2160p Remux
           - name: Bluray-2160p
@@ -52,8 +52,8 @@ sonarr:
       - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
         reset_unmatched_scores:
           enabled: true
-        # Large negative (override guide's 100): never filter out niche/old
-        # anime with limited release quality; negative CFs only rank lower.
+        # Overrides the guide's 100, which rejects old/niche anime whose only
+        # releases score below it.
         min_format_score: -1000000
         # Full guide quality set (guide allows down to SDTV because anime
         # availability is limited), best-first.
@@ -95,10 +95,9 @@ sonarr:
         assign_scores_to:
           - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
             score: 7
-      # Hard ban, not a penalty: this sits below min_format_score (-1000000),
-      # so an upscaled release is rejected outright instead of being
-      # outranked. The guide's own -10000 only demotes it, and the anime
-      # profile does not score it at all.
+      # Below min_format_score, so upscaled releases are rejected outright; the
+      # guide's -10000 would only demote them, and the anime profile does not
+      # score them at all.
       - trash_ids:
           - 23297a736ca77c0fc8e70f8edd7ee56c # Upscaled
         assign_scores_to:

@@ -18,8 +18,7 @@ caps:
 
 search:
   paths:
-    # Keywordless (health checks) goes to the proxy's /cat/ stub so tests pass
-    # without triggering a Cloudflare solve; real searches still use /search/.
+    # Keywordless requests (health checks) hit byparr-proxy's /cat/ stub, so they pass without a Cloudflare solve.
     - path: "{{ if .Keywords }}search/{{ .Keywords }}{{ else }}cat/TV{{ end }}"
 
   keywordsfilters:
@@ -33,9 +32,6 @@ search:
       args: [" ", "-"]
     - name: replace
       args: ["&", ""]
-
-  headers:
-    cookie: ["sort_no=100; q_filter=all; q_filter_web=on; q_filter_reality=on; q_filter_x265=on; layout=def_wlinks"] # show 100 results for keywordless search and show links in results
 
   rows:
     # only use latest added torrents table for keywordless search to avoid duplicates, some torrents don't have any download links so skip them
@@ -78,4 +74,3 @@ search:
       text: 0
     uploadvolumefactor:
       text: 1
-# engine n/a

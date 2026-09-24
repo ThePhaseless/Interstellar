@@ -67,7 +67,6 @@ spec:
               path: /
               port: http
             initialDelaySeconds: 30
-            periodSeconds: 10
 
       volumes:
         - name: scripts

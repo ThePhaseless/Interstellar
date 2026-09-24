@@ -127,10 +127,8 @@ spec:
     requests:
       storage: 256Gi
 ---
-# Incomplete torrents write out-of-order pieces across dozens of files at once.
-# On the RAIDZ1 HDDs that pattern measured 32-37 ms await and kept libtorrent's
-# write queue full, which throttles every peer at once. This is a separate NVMe
-# pool so only completed files land on the spindles, as one sequential move.
+# Superseded by downloads-pool-nfs-pv and mounted by nothing; pending retirement
+# per docs/ssd-download-pool.md.
 apiVersion: v1
 kind: PersistentVolume
 metadata:

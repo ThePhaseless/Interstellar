@@ -8,7 +8,6 @@ spec:
     - websecure
   routes:
     - match: Host(`add.nerine.dev`)
-      kind: Rule
       services:
         - name: seerr
           port: 5055

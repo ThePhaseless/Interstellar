@@ -7,7 +7,6 @@ spec:
   schedule: "30 4 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 120
@@ -22,31 +21,9 @@ spec:
             - name: borgbackup
               image: alpine:3.24
               command: ["/bin/sh", "/scripts/home-backup.sh"]
-              env:
-                - name: BORG_PASSPHRASE
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: passphrase
-                - name: BORG_REPO
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: repo-url
-                - name: BORG_SERVER_HOST
-                  valueFrom:
-                    secretKeyRef:
-                      name: borg-secrets
-                      key: server-host
-                - name: BORG_BACKUP_TARGETS
-                  value: |
-                    home:/adguard
-                - name: BORG_EXCLUDES
-                  value: "/adguard/work/data/querylog.json*"
               volumeMounts:
                 - name: backup-script
                   mountPath: /scripts
-                  readOnly: true
               resources:
                 requests: { cpu: 100m, memory: 128Mi }
                 limits: { cpu: 500m, memory: 512Mi }
@@ -54,4 +31,3 @@ spec:
             - name: backup-script
               configMap:
                 name: home-backup-script
-                defaultMode: 0755

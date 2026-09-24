@@ -18,8 +18,6 @@ helmCharts:
     namespace: external-secrets
     valuesInline:
       installCRDs: false
-      serviceAccount:
-        create: true
       replicaCount: 2
       resources:
         requests:

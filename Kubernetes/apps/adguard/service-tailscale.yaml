@@ -11,8 +11,6 @@ metadata:
 spec:
   type: LoadBalancer
   loadBalancerClass: tailscale
-  # Preserve client Tailscale IPs for per-device stats
-  externalTrafficPolicy: Local
   selector:
     app: adguard
   ports:
@@ -23,8 +21,5 @@ spec:
     - name: dns-tcp
       port: 53
       targetPort: dns-tcp
-  # Deliberately DNS-only: the web UI reaches the tailnet through Traefik and
-  # Authentik, never directly. A :443 -> targetPort http mapping here would put
-  # the admin UI on the tailnet with no forward-auth in front of it, and it
-  # served no DoH anyway (AdGuard's tls.enabled is false, so the proxy carried
-  # plain HTTP on 443 and /dns-query returned 404).
+  # Deliberately DNS-only: a web port here would put the admin UI on the
+  # tailnet without Authentik forward-auth in front of it.

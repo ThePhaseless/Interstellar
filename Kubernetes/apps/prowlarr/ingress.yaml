@@ -8,7 +8,6 @@ spec:
     - websecure
   routes:
     - match: Host(`prowlarr.nerine.dev`)
-      kind: Rule
       services:
         - name: prowlarr
           port: 9696

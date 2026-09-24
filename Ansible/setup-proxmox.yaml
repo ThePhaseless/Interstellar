@@ -19,7 +19,6 @@
     - name: Install NFS kernel server
       ansible.builtin.apt:
         name: nfs-kernel-server
-        state: present
         update_cache: true
 
     - name: Ensure export directories exist
@@ -57,9 +56,7 @@
         fi
 
         touch "$MARKER"
-      args:
-        executable: /bin/bash
-      changed_when: false # idempotent: chown/chmod are no-ops on already-correct files
+      changed_when: false
       loop: "{{ media_managed_paths }}"
 
     - name: Configure NFS exports
@@ -71,7 +68,6 @@
           {{ nfs_allowed_hosts
              | map('regex_replace', '$', '(' ~ (item.options | default(nfs_default_export_options)) ~ ')')
              | join(' ') }}
-        state: present
       loop: "{{ nfs_exports }}"
       notify: Re-export NFS shares
 
@@ -112,7 +108,6 @@
     - name: Verify test mounts have content access
       ansible.builtin.command:
         cmd: "ls /mnt/nfs-test-{{ idx }}"
-      register: mount_ls
       changed_when: false
       loop: "{{ nfs_exports }}"
       loop_control:
@@ -143,7 +138,6 @@
           - hdparm
           - hd-idle
           - rfkill
-        state: present
         update_cache: true
       tags:
         - power
@@ -155,20 +149,14 @@
         content: |
           CPU_ENERGY_PERF_POLICY_ON_AC=balance_power
           CPU_BOOST_ON_AC=0
-          CPU_ENERGY_PERF_POLICY_ON_BAT=balance_power
           SATA_LINKPWR_ON_AC=min_power
           AHCI_RUNTIME_PM_ON_AC=auto
-          AHCI_RUNTIME_PM_TIMEOUT=15
-          WIFI_PWR_OFF_ON_AC=1
           RUNTIME_PM_ON_AC=auto
-          USB_AUTOSUSPEND=1
       notify: Restart TLP
       tags:
         - power
 
-    # hwmon indices are assignment order, not identity - a reboot can leave the
-    # old index pointing at an nvme sensor, and the unit then fails silently
-    # with the fans back on automatic. Resolve the controller by name.
+    # hwmon indices can change across reboots, so resolve the controller by name.
     - name: Configure manual fan control
       ansible.builtin.copy:
         dest: /etc/systemd/system/fan-control.service
@@ -177,7 +165,6 @@
           [Unit]
           Description=Manual fan speed control
           After=multi-user.target
-          Before=power-tuning.service
 
           [Service]
           Type=oneshot
@@ -220,9 +207,8 @@
         dest: /etc/default/hd-idle
         mode: "0644"
         content: |
-          # defaults file for hd-idle
           START_HD_IDLE=true
-          # Spin down all SATA disks after 10 minutes of inactivity (use -c ata for SATA, not -c scsi).
+          # -c ata, not -c scsi: scsi never spins SATA disks down.
           HD_IDLE_OPTS="-i 600 -c ata"
       notify: Restart hd-idle
       tags:
@@ -330,7 +316,7 @@
     - name: Disable atime on Storage pool (stop reads from writing)
       ansible.builtin.command:
         cmd: zfs set atime=off Storage
-      changed_when: false # idempotent: zfs set is a no-op if already set
+      changed_when: false
       tags:
         - power
 
@@ -340,7 +326,7 @@
     - name: Enable zero-block elision on the NVMe pool root
       ansible.builtin.command:
         cmd: zfs set compression=zle ssdstage
-      changed_when: false # idempotent: zfs set is a no-op if already set
+      changed_when: false
       tags:
         - storage
 
@@ -366,7 +352,7 @@
     - name: Enforce sync and compression on the download datasets
       ansible.builtin.command:
         cmd: zfs set sync=disabled compression=zle {{ item }}
-      changed_when: false # idempotent: zfs set is a no-op if already set
+      changed_when: false
       loop:
         - ssdstage/dl
         - Storage/dl
@@ -379,21 +365,18 @@
     - name: Cap the HDD download dataset so it cannot fill the pool
       ansible.builtin.command:
         cmd: zfs set quota={{ downloads_hdd_quota }} Storage/dl
-      changed_when: false # idempotent: zfs set is a no-op if already set
+      changed_when: false
       tags:
         - storage
 
     - name: Install mergerfs for the download pool
       ansible.builtin.apt:
         name: mergerfs
-        state: present
       tags:
         - storage
 
     # NC keeps the legacy branch writable for torrents already seeding there
-    # while excluding it from new files; moveonenospc relocates a torrent that
-    # outgrows the NVMe mid-download -- as a dense copy, which is why both
-    # datasets carry compression (see the zfs tasks above).
+    # while excluding it from new files.
     - name: Mount the download pool union
       ansible.posix.mount:
         path: /srv/downloads
@@ -463,7 +446,6 @@
           PasswordAuthentication no
           AllowTcpForwarding no
           X11Forwarding no
-          ClientAliveCountMax 2
           LogLevel VERBOSE
       notify: Restart SSH
       tags:
@@ -479,30 +461,21 @@
       ansible.builtin.systemd:
         name: sshd
         state: restarted
-      tags:
-        - ssh
     - name: Reload sysctl
       ansible.builtin.command:
         cmd: sysctl --system
       changed_when: true
-      tags:
-        - exit-node
-        - tailscale
 
     - name: Restart TLP
       ansible.builtin.systemd:
         name: tlp
         state: restarted
-      tags:
-        - power
 
     - name: Reload systemd and restart powertop
       ansible.builtin.systemd:
         name: powertop-auto-tune
         state: restarted
         daemon_reload: true
-      tags:
-        - power
 
     - name: Reload systemd and restart fan control
       ansible.builtin.systemd:
@@ -510,27 +483,18 @@
         state: restarted
         enabled: true
         daemon_reload: true
-      tags:
-        - power
 
     - name: Restart hd-idle
       ansible.builtin.systemd:
         name: hd-idle
         state: restarted
-      tags:
-        - power
 
     - name: Refresh Proxmox boot
       ansible.builtin.command:
         cmd: proxmox-boot-tool refresh
       changed_when: true
-      tags:
-        - power
-        - aspm
 
     - name: Update initramfs and refresh Proxmox boot
       ansible.builtin.command:
         cmd: sh -c 'update-initramfs -u && proxmox-boot-tool refresh'
       changed_when: true
-      tags:
-        - power

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Usage: ./scripts/port-forward-apps.sh
 set -euo pipefail
 
 SERVICES=(

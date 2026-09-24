@@ -5,11 +5,9 @@ metadata:
   namespace: media
   labels:
     app: jellyfin
-  annotations:
-    reloader.stakater.com/auto: "true"
 spec:
   strategy:
-    type: Recreate # GPU can't be shared
+    type: Recreate
   selector:
     matchLabels:
       app: jellyfin
@@ -46,7 +44,6 @@ spec:
             requests:
               cpu: 500m
               memory: 2Gi
-              gpu.intel.com/xe: "1"
             limits:
               gpu.intel.com/xe: "1"
           # /health answers from Kestrel directly, so it stays 200 while a
@@ -59,13 +56,11 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 5
-            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
               port: http
             initialDelaySeconds: 10
-            periodSeconds: 10
 
       volumes:
         - name: config

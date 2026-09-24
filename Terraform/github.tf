@@ -14,7 +14,6 @@ locals {
     "TS_OAUTH_SECRET"        = bitwarden-secrets_secret.tailscale_oauth_secret.id
     "TS_CI_OAUTH_CLIENT_ID"  = bitwarden-secrets_secret.oauth_client_id["ci"].id
     "TS_CI_OAUTH_SECRET"     = bitwarden-secrets_secret.oauth_client_secret["ci"].id
-    "PROXMOX_API_TOKEN"      = bitwarden-secrets_secret.proxmox_api_token.id
     "HCLOUD_TOKEN"           = bitwarden-secrets_secret.hcloud_token.id
     "ORACLE_SSH_PRIVATE_KEY" = bitwarden-secrets_secret.oracle_ssh_private_key.id
     "GH_APP_ID"              = bitwarden-secrets_secret.gh_app_id.id
@@ -27,24 +26,6 @@ resource "github_actions_variable" "bws_id" {
   repository    = local.github_repo_name
   variable_name = "BWS_ID_${each.key}"
   value         = each.value
-}
-
-resource "github_actions_variable" "proxmox_user" {
-  repository    = local.github_repo_name
-  variable_name = "PROXMOX_USER"
-  value         = bitwarden-secrets_secret.proxmox_user.value
-}
-
-resource "github_actions_variable" "proxmox_token_id" {
-  repository    = local.github_repo_name
-  variable_name = "PROXMOX_TOKEN_ID"
-  value         = bitwarden-secrets_secret.proxmox_token_id.value
-}
-
-resource "github_actions_variable" "tailscale_magicdns_domain" {
-  repository    = local.github_repo_name
-  variable_name = "TAILSCALE_MAGICDNS_DOMAIN"
-  value         = var.tailscale_magicdns_domain
 }
 
 resource "github_actions_secret" "proxmox_token" {

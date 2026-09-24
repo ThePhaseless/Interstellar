@@ -49,9 +49,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: media-runtime-config
-          env:
-            - name: TZ
-              value: "UTC"
           ports:
             - name: http
               containerPort: 9696
@@ -60,7 +57,6 @@ spec:
               mountPath: /config
             - name: custom-definitions
               mountPath: /config/Definitions/Custom
-              readOnly: true
           resources:
             requests:
               cpu: 50m
@@ -78,7 +74,6 @@ spec:
               path: /ping
               port: http
             initialDelaySeconds: 30
-            periodSeconds: 10
 
         - name: api-extractor
           image: bitnami/kubectl:latest
@@ -141,7 +136,6 @@ spec:
         - name: scripts
           configMap:
             name: arr-scripts
-            defaultMode: 0755
         - name: custom-definitions
           configMap:
             name: prowlarr-custom-definitions

@@ -2,13 +2,13 @@ name: Kubernetes Lint
 
 on:
   push:
-    branches: [main, migration]
+    branches: [main]
     paths:
       - "Kubernetes/**"
       - ".kube-linter.yaml"
       - ".github/workflows/kubernetes-lint.yaml"
   pull_request:
-    branches: [main, migration]
+    branches: [main]
     paths:
       - "Kubernetes/**"
       - ".kube-linter.yaml"
