@@ -109,7 +109,7 @@ variable "talos_version" {
   description = "TalosOS version"
   type        = string
   # renovate: datasource=github-releases depName=siderolabs/talos
-  default = "v1.13.9"
+  default = "1.14.1"
 }
 
 # Machine-config generation contract, not the installed OS; bumping it regenerates every
@@ -124,7 +124,7 @@ variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
   # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver extractVersion=^v(?<version>.+)$
-  default = "1.36.3"
+  default = "1.37.1"
 }
 
 variable "tf_state_bucket" {
