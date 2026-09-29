@@ -1,1 +1,2 @@
 a.raised.emby-button{padding:.9em 1em;color:inherit!important}.disclaimerContainer{display:block}
+div:has(> a[href*="/Oidc/Login/"])::before{content:"⚠ Authentik sign-in requires Remember Me";display:block;margin:1em 0 -.3em;padding:.55em 1em;border-radius:.2em;font-size:.9em;font-weight:600;text-align:center;color:var(--jf-palette-warning-main,#ffa726);background:color-mix(in srgb,var(--jf-palette-warning-main,#ffa726) 14%,transparent);border:1px solid color-mix(in srgb,var(--jf-palette-warning-main,#ffa726) 45%,transparent)}

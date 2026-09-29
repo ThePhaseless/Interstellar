@@ -30,13 +30,18 @@ resource "jellyfin_plugin" "jellyfin_security" {
   # Pinned rather than omitted because the attribute is UseStateForUnknown, so
   # an omitted version resolves "latest" once at create and never again.
   # renovate: datasource=custom.jellyfin-security-manifest depName=JellyfinSecurity versioning=loose
-  version        = "2.6.3.0"
+  version        = "2.6.3.1"
   repository_url = local.jellyfin_security_plugin_repository_url
 }
 
 # Jellyfin loads plugins only at startup. jellyfin_plugin returns once the
 # pinned version is on disk, so this restart loads that version.
 resource "jellyfin_restart" "jellyfin_security" {
+  # Intro Skipper's Jellyfin 12 build exits the process on an in-process
+  # restart, so the pod comes back through the kubelet and the startup probe,
+  # which takes longer than the default 120s.
+  timeout = 300
+
   triggers = {
     plugin_version = jellyfin_plugin.jellyfin_security.version
   }
@@ -104,6 +109,10 @@ resource "jellyfin_system_configuration" "this" {
   # Authentik-provisioned users have no Jellyfin password, so Quick Connect is
   # their only way to authenticate Seerr against Jellyfin.
   quick_connect_available = true
+
+  # Every write sends each known attribute, so leaving this unmanaged would let
+  # a stale state value re-enable the legacy auth Jellyfin 12 turned off.
+  enable_legacy_authorization = false
 }
 
 # Separate from the key the provider itself authenticates with, so revoking
