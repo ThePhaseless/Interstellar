@@ -20,12 +20,13 @@
     'jellyfin-security-manifest': {
       defaultRegistryUrlTemplate: 'https://raw.githubusercontent.com/ZL154/JellyfinSecurity/main/manifest.json',
       format: 'json',
-      // Upstream publishes each release twice, once per Jellyfin ABI, and the
-      // Jellyfin 12 build sorts above its 10.11 twin under loose versioning.
-      // The server silently declines a newer-ABI plugin, so `jellyfin_plugin`
-      // times out rather than erroring. Raise to 11/12 when the server moves.
+      // Upstream publishes each release twice, once per Jellyfin ABI (10.11 and
+      // 12). A server older than a build's targetAbi answers its install with a
+      // 404, and `jellyfin_plugin` replaces destroy-first, so a mismatched pin
+      // uninstalls the working build before failing. Keep this major in step
+      // with the jellyfin/jellyfin image, in the same commit as the pin.
       transformTemplates: [
-        '{"releases": [$[0].versions[$split(targetAbi, ".")[0] = "10"].{"version": version}]}',
+        '{"releases": [$[0].versions[$split(targetAbi, ".")[0] = "12"].{"version": version}]}',
       ],
     },
   },
@@ -52,6 +53,16 @@
         'minor',
         'patch',
       ],
+    },
+    {
+      // Jellyfin releases run database migrations with no downgrade path, so
+      // each one waits for a backup and a manual merge, outside the group.
+      matchPackageNames: [
+        'jellyfin/jellyfin',
+      ],
+      groupName: 'Jellyfin',
+      groupSlug: 'jellyfin',
+      automerge: false,
     },
     {
       matchDatasources: [
