@@ -13,7 +13,7 @@ talosctl = "1.14.1"
 bitwarden-secrets-manager = "2.1.0"
 jq = "1.8.2"
 ripgrep = "15.2.0"
-yq = "4.53.6"
+yq = "4.54.1"
 
 [settings]
 python.uv_venv_auto = "create|source"
