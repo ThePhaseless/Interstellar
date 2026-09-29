@@ -95,8 +95,7 @@ resource "jellyfin_networking_configuration" "this" {
 }
 
 resource "jellyfin_branding_configuration" "this" {
-  custom_css       = file("${path.module}/files/jellyfin/branding/custom.css")
-  login_disclaimer = file("${path.module}/files/jellyfin/branding/disclaimer.html")
+  custom_css = file("${path.module}/files/jellyfin/branding/custom.css")
 }
 
 resource "jellyfin_encoding_configuration" "this" {

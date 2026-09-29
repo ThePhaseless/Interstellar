@@ -1,2 +1,2 @@
 a.raised.emby-button{padding:.9em 1em;color:inherit!important}.disclaimerContainer{display:block}
-.loginDisclaimer:has(.loginNote){width:100%;max-width:54em}.loginNote{padding:1em 1.2em;border-radius:.2em;background:var(--jf-palette-action-hover,rgba(255,255,255,.08));text-align:left}.loginDisclaimer .loginNote .loginNoteTitle{display:flex;align-items:center;gap:.4em;margin:0 0 .5em;font-size:1em;text-align:left}.loginNote ul{margin:.5em 0 0;padding-left:1.2em}.loginNote li{margin:.2em 0}
+div:has(> a[href*="/Oidc/Login/"])::before{content:"Sent back here after signing in? Clear this site's data once.";display:block;margin:1em 0 -.5em;font-size:.85em;text-align:center;color:var(--jf-palette-text-secondary,rgba(255,255,255,.7))}
