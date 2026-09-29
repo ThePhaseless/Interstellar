@@ -109,7 +109,7 @@ variable "talos_version" {
   description = "TalosOS version"
   type        = string
   # renovate: datasource=github-releases depName=siderolabs/talos
-  default = "v1.14.1"
+  default = "1.14.2"
 }
 
 # Machine-config generation contract, not the installed OS; bumping it regenerates every
