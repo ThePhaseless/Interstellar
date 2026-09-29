@@ -71,8 +71,10 @@ groups:
         labels:
           severity: critical
 
-      # Any restart is abnormal; pod-crashloopbackoff covers the sustained case.
-      # Warning so a single transient restart does not page.
+      # One restart is tolerated: a single etcd stall restarts every
+      # leader-election client once. The threshold is >= 2, not > 1, because
+      # increase() extrapolates and a lone restart can read as ~1.1.
+      # pod-crashloopbackoff covers the sustained case.
       - uid: pod-crashloop
         title: Container Restarting
         condition: C
@@ -82,7 +84,7 @@ groups:
               from: 600
             datasourceUid: mimir
             model:
-              expr: increase(kube_pod_container_status_restarts_total[10m]) > 0
+              expr: increase(kube_pod_container_status_restarts_total[10m]) >= 2
           - refId: B
             datasourceUid: __expr__
             model:
@@ -94,7 +96,7 @@ groups:
             model:
               conditions:
                 - evaluator:
-                    params: [0]
+                    params: [1]
                     type: gt
               expression: B
               type: threshold
