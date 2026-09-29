@@ -27,15 +27,13 @@ resource "jellyfin_plugin_repository" "jellyfin_security" {
 
 resource "jellyfin_plugin" "jellyfin_security" {
   name = "Jellyfin Security"
-  # Pinned rather than omitted because the attribute is UseStateForUnknown, so
-  # an omitted version resolves "latest" once at create and never again.
-  # renovate: datasource=custom.jellyfin-security-manifest depName=JellyfinSecurity versioning=loose
-  version        = "2.6.3.1"
+  # Unpinned: Jellyfin's own plugin auto-update installs the newest build for
+  # the running server's ABI, and each refresh adopts the installed version.
   repository_url = local.jellyfin_security_plugin_repository_url
 }
 
-# Jellyfin loads plugins only at startup. jellyfin_plugin returns once the
-# pinned version is on disk, so this restart loads that version.
+# Jellyfin loads plugins only at startup, so a version change, including one
+# Jellyfin's auto-update installed, restarts it to load that build.
 resource "jellyfin_restart" "jellyfin_security" {
   # Intro Skipper's Jellyfin 12 build exits the process on an in-process
   # restart, so the pod comes back through the kubelet and the startup probe,

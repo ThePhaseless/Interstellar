@@ -14,22 +14,6 @@
       '/(^|/)Kubernetes/.+\\.ya?ml$/',
     ],
   },
-  // Four-segment assembly versions: Jellyfin resolves a plugin install against
-  // this manifest, not against the three-segment git tags the releases carry.
-  customDatasources: {
-    'jellyfin-security-manifest': {
-      defaultRegistryUrlTemplate: 'https://raw.githubusercontent.com/ZL154/JellyfinSecurity/main/manifest.json',
-      format: 'json',
-      // Upstream publishes each release twice, once per Jellyfin ABI (10.11 and
-      // 12). A server older than a build's targetAbi answers its install with a
-      // 404, and `jellyfin_plugin` replaces destroy-first, so a mismatched pin
-      // uninstalls the working build before failing. Keep this major in step
-      // with the jellyfin/jellyfin image, in the same commit as the pin.
-      transformTemplates: [
-        '{"releases": [$[0].versions[$split(targetAbi, ".")[0] = "12"].{"version": version}]}',
-      ],
-    },
-  },
   packageRules: [
     {
       description: 'Ignore broken and legacy LinuxServer qBittorrent tags',
