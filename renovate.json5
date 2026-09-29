@@ -55,16 +55,6 @@
       ],
     },
     {
-      // Jellyfin releases run database migrations with no downgrade path, so
-      // each one waits for a backup and a manual merge, outside the group.
-      matchPackageNames: [
-        'jellyfin/jellyfin',
-      ],
-      groupName: 'Jellyfin',
-      groupSlug: 'jellyfin',
-      automerge: false,
-    },
-    {
       matchDatasources: [
         'github-releases',
       ],
