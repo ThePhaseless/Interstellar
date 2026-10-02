@@ -1,6 +1,9 @@
 {
-  // Owners implicitly own every tag, so only automation tags need listing.
+  // A tag must be listed here to exist. tag:ci is Terraform's API identity, which can only apply tags it owns.
   "tagOwners": {
+    // Never an acls src beyond DNS: the owner's "*:*" reaches these devices, but they reach none of the owner's.
+    "tag:secured":      ["tag:ci"],
+    "tag:untrusted":    ["tag:ci"],
     "tag:ci":           ["tag:ci"],
     "tag:proxmox":      ["tag:ci"],
     "tag:node":         ["tag:ci"],
@@ -8,6 +11,7 @@
     // tag:ci co-owns so CI can retag a proxy in place (the operator only tags at registration); re-registering changes its IP and MagicDNS name.
     "tag:service":      ["tag:k8s-operator", "tag:ci"],
     "tag:minecraft":    ["tag:ci"],
+    "tag:homeassistant": ["tag:ci"],
   },
 
   "acls": [
@@ -15,6 +19,12 @@
       "action": "accept",
       "src":    ["autogroup:owner"],
       "dst":    ["*:*"]
+    },
+
+    {
+      "action": "accept",
+      "src":    ["tag:homeassistant"],
+      "dst":    ["autogroup:member:*"]
     },
 
     // Tailscale requires this network rule alongside the matching ssh rule below.
@@ -76,7 +86,7 @@
     // accepts tailnet DNS needs this or it loses resolution entirely.
     {
       "action": "accept",
-      "src":    ["autogroup:owner", "tag:ci"],
+      "src":    ["autogroup:owner", "tag:ci", "tag:secured", "tag:untrusted", "tag:homeassistant"],
       "dst":    ["tag:service:53"]
     },
 
@@ -93,7 +103,7 @@
     {
       "action": "accept",
       "src":    ["autogroup:owner"],
-      "dst":    ["tag:proxmox", "tag:node", "tag:minecraft"],
+      "dst":    ["tag:proxmox", "tag:node", "tag:minecraft", "tag:secured", "tag:untrusted", "tag:homeassistant"],
       "users":  ["autogroup:nonroot", "root"]
     },
 
