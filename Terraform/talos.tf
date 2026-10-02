@@ -237,6 +237,25 @@ data "talos_machine_configuration" "controlplane" {
   ])
 }
 
+# The default provider's credentials come from talos_cluster_kubeconfig, which waits on every
+# node, so the upgrade gates between nodes use credentials minted from the secrets instead.
+ephemeral "talos_cluster_kubeconfig" "gate" {
+  cluster_name    = var.cluster_name
+  endpoint        = "https://${coalesce(var.kubernetes_api_host, var.cluster_vip)}:6443"
+  machine_secrets = talos_machine_secrets.cluster.machine_secrets
+}
+
+provider "restful" {
+  base_url = "https://${coalesce(var.kubernetes_api_host, var.cluster_vip)}:6443"
+  client = {
+    certificates = [{
+      certificate = base64decode(ephemeral.talos_cluster_kubeconfig.gate.kubernetes_client_configuration.client_certificate)
+      key         = base64decode(ephemeral.talos_cluster_kubeconfig.gate.kubernetes_client_configuration.client_key)
+    }]
+    root_ca_certificates = [base64decode(ephemeral.talos_cluster_kubeconfig.gate.kubernetes_client_configuration.ca_certificate)]
+  }
+}
+
 ephemeral "talos_cluster_kubeconfig" "drain" {
   for_each = var.nodes
 
@@ -245,22 +264,63 @@ ephemeral "talos_cluster_kubeconfig" "drain" {
   machine_secrets = talos_machine_secrets.cluster.machine_secrets
 }
 
-# Upgrades reboot the node and for_each cannot chain instances, so applies that bump
-# talos_version must run with -parallelism=1 or all three control planes reboot at once.
-resource "talos_machine" "controlplane" {
-  for_each = var.nodes
+# One module call per node because for_each cannot chain instances: each upgrade waits for
+# the previous node, and a node added to var.nodes needs its own call here.
+module "talos_1" {
+  source = "./modules/talos-node"
 
+  node                  = local.talos_node_ips["talos-1"]
+  endpoint              = local.talos_node_api_endpoints["talos-1"]
+  image                 = local.talos_installer_images["talos-1"]
+  machine_configuration = data.talos_machine_configuration.controlplane["talos-1"].machine_configuration
+  drain_kubeconfig      = ephemeral.talos_cluster_kubeconfig.drain["talos-1"].kubeconfig_raw
   client_configuration  = talos_machine_secrets.cluster.client_configuration
-  machine_configuration = data.talos_machine_configuration.controlplane[each.key].machine_configuration
-  node                  = local.talos_node_ips[each.key]
-  endpoint              = local.talos_node_api_endpoints[each.key]
-  image                 = local.talos_installer_images[each.key]
-
-  drain_on_upgrade                = true
-  kubeconfig_wo                   = ephemeral.talos_cluster_kubeconfig.drain[each.key].kubeconfig_raw
-  ignore_kubernetes_upgrade_drift = true
+  upgrade_gate          = var.talos_upgrade_gates
 
   depends_on = [proxmox_virtual_environment_vm.talos]
+}
+
+module "talos_2" {
+  source = "./modules/talos-node"
+
+  node                  = local.talos_node_ips["talos-2"]
+  endpoint              = local.talos_node_api_endpoints["talos-2"]
+  image                 = local.talos_installer_images["talos-2"]
+  machine_configuration = data.talos_machine_configuration.controlplane["talos-2"].machine_configuration
+  drain_kubeconfig      = ephemeral.talos_cluster_kubeconfig.drain["talos-2"].kubeconfig_raw
+  client_configuration  = talos_machine_secrets.cluster.client_configuration
+  upgrade_gate          = var.talos_upgrade_gates
+
+  depends_on = [proxmox_virtual_environment_vm.talos, module.talos_1]
+}
+
+module "talos_3" {
+  source = "./modules/talos-node"
+
+  node                  = local.talos_node_ips["talos-3"]
+  endpoint              = local.talos_node_api_endpoints["talos-3"]
+  image                 = local.talos_installer_images["talos-3"]
+  machine_configuration = data.talos_machine_configuration.controlplane["talos-3"].machine_configuration
+  drain_kubeconfig      = ephemeral.talos_cluster_kubeconfig.drain["talos-3"].kubeconfig_raw
+  client_configuration  = talos_machine_secrets.cluster.client_configuration
+  upgrade_gate          = var.talos_upgrade_gates
+
+  depends_on = [proxmox_virtual_environment_vm.talos, module.talos_2]
+}
+
+moved {
+  from = talos_machine.controlplane["talos-1"]
+  to   = module.talos_1.talos_machine.this
+}
+
+moved {
+  from = talos_machine.controlplane["talos-2"]
+  to   = module.talos_2.talos_machine.this
+}
+
+moved {
+  from = talos_machine.controlplane["talos-3"]
+  to   = module.talos_3.talos_machine.this
 }
 
 resource "talos_cluster" "cluster" {
@@ -270,7 +330,7 @@ resource "talos_cluster" "cluster" {
   control_plane_nodes  = [for node_name in local.talos_node_names : local.talos_node_ips[node_name]]
   kubernetes_version   = var.kubernetes_version
 
-  depends_on = [talos_machine.controlplane]
+  depends_on = [module.talos_1, module.talos_2, module.talos_3]
 }
 
 removed {

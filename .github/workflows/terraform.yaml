@@ -239,6 +239,8 @@ jobs:
   apply:
     name: Apply
     runs-on: ubuntu-latest
+    # Bounds the Longhorn upgrade gates, which poll without a timeout of their own.
+    timeout-minutes: 180
     needs: plan
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' &&
       needs.plan.outputs.has_changes == 'true'
@@ -423,8 +425,7 @@ jobs:
         run: sudo sysctl -w net.ipv4.tcp_keepalive_time=30 net.ipv4.tcp_keepalive_intvl=10 net.ipv4.tcp_keepalive_probes=3
 
       - name: Terraform Apply
-        # -parallelism=1 keeps talos_machine upgrades to one node at a time; see Terraform/talos.tf.
-        run: terraform apply -auto-approve -lock-timeout=10m -parallelism=1 tfplan
+        run: terraform apply -auto-approve -lock-timeout=10m tfplan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}

@@ -113,6 +113,14 @@ variable "talos_version" {
   default = "v1.14.2"
 }
 
+# Gates need a running Kubernetes API with Longhorn, so building a cluster from nothing
+# needs -var talos_upgrade_gates=false.
+variable "talos_upgrade_gates" {
+  description = "Before each node installs a new Talos image, wait until every attached Longhorn volume is healthy"
+  type        = bool
+  default     = true
+}
+
 # Machine-config generation contract, not the installed OS; bumping it regenerates every
 # node's config, so change it deliberately rather than alongside talos_version.
 variable "talos_config_version" {
