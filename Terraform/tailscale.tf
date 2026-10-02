@@ -85,14 +85,16 @@ locals {
   tailscale_adguard_ip = try(local.adguard_devices[0].addresses[0], "1.1.1.1")
   adguard_exists       = length(local.adguard_devices) >= 1
 
-  infra_device_tags = ["tag:proxmox", "tag:node"]
+  infra_device_tags = ["tag:proxmox", "tag:node", "tag:homeassistant", "tag:untrusted"]
   infra_devices = {
     for d in data.tailscale_devices.cluster.devices : d.name => d.id
     if length(setintersection(toset(d.tags), toset(local.infra_device_tags))) > 0
   }
 }
 
-# Headless nodes cannot answer a re-auth prompt, so an expired key would drop them off the tailnet.
+# An expired key drops a device off the tailnet until someone logs in on it: headless nodes
+# cannot, and an untrusted friend's laptop must stay reachable for remote recovery. Logging a
+# tagged device back in as a user also strips its tag.
 resource "tailscale_device_key" "infra" {
   for_each = local.infra_devices
 
