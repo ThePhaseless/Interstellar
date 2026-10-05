@@ -10,9 +10,9 @@ url = "https://github.com/bitwarden/sdk-sm/releases/download/bws-v2.1.0/bws-aarc
 url_api = "https://api.github.com/repos/bitwarden/sdk-sm/releases/assets/426507287"
 
 [tools.bitwarden-secrets-manager."platforms.linux-arm64-musl"]
-checksum = "sha256:eb0f1ae61d1c3b74244d2841233276e05c77e8be4da197ed90fc6248387005e1"
-url = "https://github.com/bitwarden/sdk-sm/releases/download/bws-v2.1.0/bws-aarch64-unknown-linux-musl-2.1.0.zip"
-url_api = "https://api.github.com/repos/bitwarden/sdk-sm/releases/assets/426507265"
+checksum = "sha256:18253757286e119d450133a87eb463bf8c1ce418ce24c834f4f250d60cba6f9e"
+url = "https://github.com/bitwarden/sdk-sm/releases/download/bws-v2.1.0/bws-aarch64-unknown-linux-gnu-2.1.0.zip"
+url_api = "https://api.github.com/repos/bitwarden/sdk-sm/releases/assets/426507287"
 
 [tools.bitwarden-secrets-manager."platforms.linux-x64"]
 checksum = "sha256:ba8233c3a4aee5d43e3c73bbd04d99e9bc5aba13bbbfd06d89b073abe732b860"
@@ -20,9 +20,9 @@ url = "https://github.com/bitwarden/sdk-sm/releases/download/bws-v2.1.0/bws-x86_
 url_api = "https://api.github.com/repos/bitwarden/sdk-sm/releases/assets/426507282"
 
 [tools.bitwarden-secrets-manager."platforms.linux-x64-musl"]
-checksum = "sha256:f59ee150e42b82128d437087e9bac920053c6bfddcb960d20ce9386e5ac9bba6"
-url = "https://github.com/bitwarden/sdk-sm/releases/download/bws-v2.1.0/bws-x86_64-unknown-linux-musl-2.1.0.zip"
-url_api = "https://api.github.com/repos/bitwarden/sdk-sm/releases/assets/426507255"
+checksum = "sha256:ba8233c3a4aee5d43e3c73bbd04d99e9bc5aba13bbbfd06d89b073abe732b860"
+url = "https://github.com/bitwarden/sdk-sm/releases/download/bws-v2.1.0/bws-x86_64-unknown-linux-gnu-2.1.0.zip"
+url_api = "https://api.github.com/repos/bitwarden/sdk-sm/releases/assets/426507282"
 
 [tools.bitwarden-secrets-manager."platforms.macos-arm64"]
 checksum = "sha256:9cb1c1c6e6164d83b2e339883ba02b4cbb37188ce9a484b1ce8249443163e066"
@@ -239,38 +239,38 @@ version = "3.14.8"
 backend = "core:python"
 
 [tools.python."platforms.linux-arm64"]
-checksum = "sha256:d922413468a276e69a132b79fb7493faa46ef2e85b1a29844d3af1f7710ab5bd"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.14.7+20260924-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:ece2bf3d4b47c80c2403c5f32fa51a9458abaee93c10def8acafb5f45163e77d"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.14.8+20261003-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-arm64-musl"]
-checksum = "sha256:db650a9719bacd8a7c43c7c0f3024eda6feb2042f596f0b3143c4d23b90df9e4"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.14.7+20260924-aarch64-unknown-linux-musl-install_only_stripped.tar.gz"
+checksum = "sha256:03267c0737a0a54572024a935579ffce26ebb5ba8a5089645ddae29d97ac6312"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.14.8+20261003-aarch64-unknown-linux-musl-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64"]
-checksum = "sha256:bd0d0568ccded07bbf1c87727230dc5dd0187e706a87da23c4de78388a229b78"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.14.7+20260924-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:d9ec7a6935ade8b671a57ebaf111083d7314eab8dae5071d167054dadd2b97d6"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.14.8+20261003-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64-musl"]
-checksum = "sha256:8ea6ca8a46e2e0b824a29ddaf208388dea7ede6808d8ceccd02b547882c92b3a"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.14.7+20260924-x86_64-unknown-linux-musl-install_only_stripped.tar.gz"
+checksum = "sha256:c1a91a426d70208a478c1b73c1348955a702de2da0308de89672c1f3972eaa70"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.14.8+20261003-x86_64-unknown-linux-musl-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-arm64"]
-checksum = "sha256:f0fb6b233971672dd7add4efa90f8c209a63253e457ffabd0148b9f734638319"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.14.7+20260924-aarch64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:ed14e9042f36c0aa18383f5d9729bcbf17847e842666a793b5a5a5d8505c0ca1"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.14.8+20261003-aarch64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-x64"]
-checksum = "sha256:82745f483d2bcf39ade058ec0dbd44659d583454ea9c4562b66dae7d718ae100"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.14.7+20260924-x86_64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:08310045a2611bad730d7c1a01e847a1ea729d9dcfe29110ca67cbdf3998bb54"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.14.8+20261003-x86_64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.windows-x64"]
-checksum = "sha256:1493fc4185edf84bbd4305c15c5fbac2d4fcd4ddd7eb6273903669a5d3106178"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.14.7+20260924-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+checksum = "sha256:10e5705e44938ee78de35c62b30fdfe2945b53438343d04c0f53548cdd8e91b6"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.14.8+20261003-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [[tools.ripgrep]]
@@ -283,9 +283,9 @@ url = "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15
 url_api = "https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/478119579"
 
 [tools.ripgrep."platforms.linux-arm64-musl"]
-checksum = "sha256:800b1e7206afe799dfb5a6901f23147cfaabe0e52210538100f61e86e1740915"
-url = "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-aarch64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/478120060"
+checksum = "sha256:a740b91c82eaf9914cfedd353572f2791cbe0162c84101ee0951058f4dcbc90d"
+url = "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/478119579"
 
 [tools.ripgrep."platforms.linux-x64"]
 checksum = "sha256:33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c"
@@ -317,24 +317,45 @@ version = "1.14.2"
 backend = "aqua:siderolabs/talos"
 
 [tools.talosctl."platforms.linux-arm64"]
+checksum = "sha256:5b7119f9cc68c1e6dcd394564208a9ae417c5cc9e8e2585fa173082e53f5e6d7"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.2/talosctl-linux-arm64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/599059725"
 provenance = "cosign"
 
 [tools.talosctl."platforms.linux-arm64-musl"]
+checksum = "sha256:5b7119f9cc68c1e6dcd394564208a9ae417c5cc9e8e2585fa173082e53f5e6d7"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.2/talosctl-linux-arm64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/599059725"
 provenance = "cosign"
 
 [tools.talosctl."platforms.linux-x64"]
+checksum = "sha256:c6c9552b0e5f767352c595fa1c0af4f186f697488646872955057d23990a66c4"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.2/talosctl-linux-amd64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/599059721"
 provenance = "cosign"
 
 [tools.talosctl."platforms.linux-x64-musl"]
+checksum = "sha256:c6c9552b0e5f767352c595fa1c0af4f186f697488646872955057d23990a66c4"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.2/talosctl-linux-amd64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/599059721"
 provenance = "cosign"
 
 [tools.talosctl."platforms.macos-arm64"]
+checksum = "sha256:4b509e96912278f2af58dc0005be5252124bcba4b87a7f877674160bbf000b6f"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.2/talosctl-darwin-arm64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/599059741"
 provenance = "cosign"
 
 [tools.talosctl."platforms.macos-x64"]
+checksum = "sha256:250525ff19b32ebf25e90d8943d88870f40f39618007fcba70b524efa5549a0c"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.2/talosctl-darwin-amd64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/599059728"
 provenance = "cosign"
 
 [tools.talosctl."platforms.windows-x64"]
+checksum = "sha256:0f0b6fc765f78a78161f01c70f044c73e70536b772fd0ea023918849e9744998"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.2/talosctl-windows-amd64.exe"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/599059709"
 provenance = "cosign"
 
 [[tools.terraform]]
