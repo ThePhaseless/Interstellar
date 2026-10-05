@@ -97,6 +97,15 @@ config:
           cidr:
             - "10.244.0.0/16"
             - "192.168.1.0/24"
+      # LAN clients that resolve *.nerine.dev publicly arrive through the router's
+      # hairpin NAT as the home public IP, which is dynamic, hence the DDNS lookup.
+      home-ip-whitelist.yaml: |
+        name: local/home-ip
+        description: "Whitelist the home public IP"
+        whitelist:
+          reason: "Home public IP"
+          expression:
+            - evt.Overflow.Alert.Source.IP in LookupHost("nerine.dev")
   config.yaml.local: |
     api:
       server:

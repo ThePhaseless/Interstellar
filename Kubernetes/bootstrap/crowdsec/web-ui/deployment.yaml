@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crowdsec-web-ui
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: crowdsec-web-ui
+  template:
+    metadata:
+      labels:
+        app: crowdsec-web-ui
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+
+      # LAPI answers 403 to re-registering an existing machine.
+      initContainers:
+        - name: register-machine
+          image: curlimages/curl:8.22.0
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              creds="\"machine_id\":\"$MACHINE_ID\",\"password\":\"$PASSWORD\""
+              curl -fsS -o /dev/null -H 'Content-Type: application/json' \
+                -d "{$creds}" "$LAPI_URL/v1/watchers/login" && exit 0
+              curl -fsS -H 'Content-Type: application/json' \
+                -d "{$creds,\"registration_token\":\"$REGISTRATION_TOKEN\"}" \
+                "$LAPI_URL/v1/watchers"
+          env:
+            - name: LAPI_URL
+              value: http://crowdsec-service:8080
+            - name: MACHINE_ID
+              value: crowdsec-web-ui
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: crowdsec-web-ui-secrets
+                  key: password
+            - name: REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: crowdsec-lapi-secrets
+                  key: registrationToken
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+
+      containers:
+        - name: crowdsec-web-ui
+          image: ghcr.io/theduffman85/crowdsec-web-ui:2026.10.1
+          env:
+            - name: CONFIG_INSTANCE_LAPI_URL
+              value: http://crowdsec-service:8080
+            - name: CONFIG_INSTANCE_LAPI_AUTH_USERNAME
+              value: crowdsec-web-ui
+            - name: CONFIG_INSTANCE_LAPI_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: crowdsec-web-ui-secrets
+                  key: password
+            # Authentik forward-auth (bans.nerine.dev) is the only login.
+            - name: CONFIG_AUTH_ENABLED
+              value: "false"
+          ports:
+            - name: http
+              containerPort: 3000
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 10
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: crowdsec-web-ui-data

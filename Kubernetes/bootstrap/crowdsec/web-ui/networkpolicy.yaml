@@ -1,0 +1,17 @@
+# The web UI's own login is off, so anything that reaches it can lift bans; only
+# Traefik, which applies Authentik forward-auth, may.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: crowdsec-web-ui-allow-traefik
+spec:
+  podSelector:
+    matchLabels:
+      app: crowdsec-web-ui
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - {port: 3000}

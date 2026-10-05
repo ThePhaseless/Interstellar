@@ -8,6 +8,7 @@ resources:
   - externalsecret.yaml
   - backup-externalsecret.yaml
   - backup-cronjob.yaml
+  - web-ui
 
 helmCharts:
   - name: crowdsec
