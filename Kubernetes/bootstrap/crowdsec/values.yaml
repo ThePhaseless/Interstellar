@@ -76,8 +76,8 @@ appsec:
     prometheus.io/scrape: "true"
     prometheus.io/port: "6060"
 
-  # Each in-flight body (up to the bouncer's 10 MB) costs ~165 MiB; 256Mi
-  # OOMed under parallel uploads, and the bouncer then 403s external traffic.
+  # One in-flight upload lifts RSS from 42 to ~230 MiB, +15-40 per extra one;
+  # 256Mi OOMed at 4, and the bouncer then 403s external traffic.
   resources:
     requests:
       cpu: 100m
