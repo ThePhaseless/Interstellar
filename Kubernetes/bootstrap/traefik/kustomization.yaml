@@ -76,9 +76,10 @@ helmCharts:
                 - main: "nerine.dev"
                   sans:
                     - "*.nerine.dev"
+          # Off on purpose: QUIC uploads ran 2.5x slower than HTTP/2 and cost
+          # ~15x the CPU per byte (see Kubernetes/AGENTS.md Key Gotchas).
           http3:
-            enabled: true
-            advertisedPort: 443
+            enabled: false
       service:
         spec:
           loadBalancerIP: 192.168.1.11
