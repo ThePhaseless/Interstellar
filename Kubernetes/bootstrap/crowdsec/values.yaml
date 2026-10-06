@@ -76,13 +76,15 @@ appsec:
     prometheus.io/scrape: "true"
     prometheus.io/port: "6060"
 
+  # Each in-flight body (up to the bouncer's 10 MB) costs ~165 MiB; 256Mi
+  # OOMed under parallel uploads, and the bouncer then 403s external traffic.
   resources:
     requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      cpu: 500m
+      cpu: 100m
       memory: 256Mi
+    limits:
+      cpu: "2"
+      memory: 1536Mi
 
 config:
   parsers:
