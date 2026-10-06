@@ -85,6 +85,20 @@ appsec:
       memory: 256Mi
 
 config:
+  parsers:
+    s02-enrich:
+      # Jellyfin Enhanced fetches one /jellyseerr and one /tmdb URL per poster
+      # while scrolling. Their bare numeric TMDB IDs satisfy http-dos-random-uri's
+      # "6-char uppercase filename" test, so a single user browsing trips its
+      # 30-request bucket within seconds.
+      jellyfin-enhanced-whitelist.yaml: |
+        name: local/jellyfin-enhanced-whitelist
+        description: "Whitelist Jellyfin Enhanced per-poster lookups"
+        filter: "evt.Meta.service == 'http' && evt.Meta.log_type == 'http_access-log'"
+        whitelist:
+          reason: "Jellyfin Enhanced metadata lookups"
+          expression:
+            - evt.Meta.target_fqdn == 'watch.nerine.dev' && evt.Meta.http_verb == 'GET' && evt.Meta.http_path matches '^/JellyfinEnhanced/(jellyseerr|tmdb)/(movie|tv)/[0-9]+$'
   # The bouncer's clientTrustedIPs only skips enforcement; this stops pods and
   # the LAN from raising alerts and decisions in the first place.
   postoverflows:
