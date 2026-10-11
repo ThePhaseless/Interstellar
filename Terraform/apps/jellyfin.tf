@@ -1,11 +1,21 @@
 locals {
   jellyfin_security_plugin_repository_url = "https://raw.githubusercontent.com/ZL154/JellyfinSecurity/main/manifest.json"
+
+  # Artwork, NFOs and trickplay go to /config (Longhorn, SSD) instead of next
+  # to the media, so browsing never has to spin up the HDD pool behind /media.
+  # Existing NFOs are still read; only Jellyfin's own writes move.
+  jellyfin_media_library_options = {
+    save_local_metadata       = false
+    metadata_savers           = []
+    save_trickplay_with_media = false
+  }
 }
 
 resource "jellyfin_library" "movies" {
   collection_type = "movies"
   name            = "Movies"
   paths           = ["/media/Movies"]
+  library_options = local.jellyfin_media_library_options
 }
 
 resource "jellyfin_library" "collections" {
@@ -18,6 +28,7 @@ resource "jellyfin_library" "tv_shows" {
   collection_type = "tvshows"
   name            = "TV Shows"
   paths           = ["/media/TVShows"]
+  library_options = local.jellyfin_media_library_options
 }
 
 resource "jellyfin_plugin_repository" "jellyfin_security" {

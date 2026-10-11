@@ -43,6 +43,11 @@ spec:
               mountPath: /config
             - name: cache
               mountPath: /cache
+            # Resized posters outlive the pod, so a reschedule does not
+            # re-read every original and the cache keeps off the HDD pool.
+            - name: config
+              mountPath: /cache/images
+              subPath: image-cache
             - name: media
               mountPath: /media
           resources:
