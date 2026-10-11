@@ -15,10 +15,19 @@ spec:
         app: byparr
     spec:
       shareProcessNamespace: true
+      # Firefox is launched per solve and writes ~77 MB of throwaway profile
+      # and temp data each time (ThePhaseless/Byparr#414). Keep /tmp and
+      # /dev/shm in RAM so that churn never reaches the node's SSD. /cache
+      # must stay on the image: it holds the baked-in Firefox binary.
       volumes:
         - name: dshm
           emptyDir:
-            sizeLimit: 1Gi
+            medium: Memory
+            sizeLimit: 512Mi
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 512Mi
       containers:
         - name: byparr
           image: ghcr.io/thephaseless/byparr:3.0.4
@@ -47,10 +56,14 @@ spec:
           volumeMounts:
             - name: dshm
               mountPath: /dev/shm
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 100m
               memory: 512Mi
             limits:
               cpu: "1"
-              memory: 2Gi
+              # tmpfs pages count against this limit, so it covers both
+              # in-memory volumes on top of the browser itself.
+              memory: 3Gi
