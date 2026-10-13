@@ -36,6 +36,8 @@
       matchUpdateTypes: [
         'minor',
         'patch',
+        'digest',
+        'pinDigest',
       ],
     },
     {
