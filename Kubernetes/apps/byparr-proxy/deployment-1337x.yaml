@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: byparr-proxy
-          image: python:3.14-slim
+          image: python:3.15-slim
           command: ["python", "-u", "/app/byparr-proxy.py"]
           ports:
             - name: http
