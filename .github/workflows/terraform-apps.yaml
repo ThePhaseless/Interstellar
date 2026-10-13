@@ -111,7 +111,7 @@ jobs:
           echo "ip=$TALOS_API_IP" >> "$GITHUB_OUTPUT"
 
       - name: Setup kubectl
-        uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d # v5
+        uses: azure/setup-kubectl@bda439f5f36b99b262ebdcd3613869bddb064c8e # v5
 
       - name: Setup talosctl
         run: |
@@ -252,7 +252,7 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
 
       - name: Upload Terraform Plan
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: steps.plan.outputs.has_changes == 'true'
         with:
           name: tfplan-apps
@@ -359,7 +359,7 @@ jobs:
           echo "ip=$TALOS_API_IP" >> "$GITHUB_OUTPUT"
 
       - name: Setup kubectl
-        uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d # v5
+        uses: azure/setup-kubectl@bda439f5f36b99b262ebdcd3613869bddb064c8e # v5
 
       - name: Setup talosctl
         run: |
@@ -424,7 +424,7 @@ jobs:
             ${{ runner.os }}-terraform-apps-
 
       - name: Download Terraform Plan
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: tfplan-apps
           path: ${{ env.TF_WORKING_DIR }}
