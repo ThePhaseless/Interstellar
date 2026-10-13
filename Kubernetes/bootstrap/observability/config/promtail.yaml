@@ -45,6 +45,14 @@ scrape_configs:
     pipeline_stages:
       - cri: {}
 
+      # Talos runs this flannel sidecar at --v=2, which logs every evaluated
+      # connection plus a hex dump of its payload (~11 GB/day, mostly
+      # qBittorrent). Keep warnings, errors and denials only.
+      - match:
+          selector: '{namespace="kube-system", container="kube-network-policies"} !~ "^[WEF][0-9]{4} |Packet denied|not allowed to be connected"'
+          action: drop
+          drop_counter_reason: kube_network_policies_verbose
+
       - match:
           selector: '{namespace="traefik", container="traefik"}'
           stages:

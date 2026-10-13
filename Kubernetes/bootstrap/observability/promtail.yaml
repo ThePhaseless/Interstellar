@@ -3,6 +3,8 @@ kind: DaemonSet
 metadata:
   name: promtail
   namespace: observability
+  annotations:
+    reloader.stakater.com/auto: "true"
   labels:
     app: promtail
 spec:
