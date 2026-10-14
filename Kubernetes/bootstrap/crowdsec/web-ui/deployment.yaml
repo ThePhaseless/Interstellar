@@ -24,7 +24,7 @@ spec:
       # LAPI answers 403 to re-registering an existing machine.
       initContainers:
         - name: register-machine
-          image: curlimages/curl:8.22.0
+          image: curlimages/curl:8.23.0
           command:
             - sh
             - -c
