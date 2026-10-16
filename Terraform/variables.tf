@@ -110,7 +110,7 @@ variable "talos_version" {
   type        = string
   # extractVersion keeps the "v": factory.talos.dev installer tags are v-prefixed.
   # renovate: datasource=github-releases depName=siderolabs/talos extractVersion=^(?<version>v.+)$
-  default = "v1.14.3"
+  default = "v1.14.4"
 }
 
 # Gates need a running Kubernetes API with Longhorn, so building a cluster from nothing
