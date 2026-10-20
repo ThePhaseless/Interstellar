@@ -2,7 +2,7 @@ min_version = "2026.4.28"
 
 [tools]
 python = "3.15.0"
-uv = "0.13.1"
+uv = "0.13.4"
 terraform = "1.16.6"
 kubectl = "1.37.1"
 kustomize = "latest"
