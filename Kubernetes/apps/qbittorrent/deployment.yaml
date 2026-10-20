@@ -18,7 +18,7 @@ spec:
     spec:
       initContainers:
         - name: config-init
-          image: linuxserver/qbittorrent:5.1.4
+          image: linuxserver/qbittorrent:5.3.0
           command: ["/scripts/config-init.sh"]
           volumeMounts:
             - name: config
@@ -27,7 +27,7 @@ spec:
               mountPath: /scripts
       containers:
         - name: qbittorrent
-          image: linuxserver/qbittorrent:5.1.4
+          image: linuxserver/qbittorrent:5.3.0
           envFrom:
             - configMapRef:
                 name: media-runtime-config
