@@ -303,6 +303,47 @@
         - power
         - disks
 
+    # Postfix is off, so smartd and ZED would mail into the void; post straight
+    # to Discord instead, which keeps host alerts independent of the cluster.
+    - name: Require the Discord webhook for host alerts
+      ansible.builtin.assert:
+        that: lookup('ansible.builtin.env', 'DISCORD_WEBHOOK_URL') | length > 0
+        fail_msg: DISCORD_WEBHOOK_URL is unset; run `source scripts/setup-env.sh` first
+        quiet: true
+      tags:
+        - alerts
+
+    - name: Store the Discord webhook for host alerts
+      ansible.builtin.copy:
+        dest: /etc/discord-webhook-url
+        mode: "0600"
+        content: "{{ lookup('ansible.builtin.env', 'DISCORD_WEBHOOK_URL') }}\n"
+      no_log: true
+      tags:
+        - alerts
+
+    - name: Send smartd warnings to Discord
+      ansible.builtin.copy:
+        dest: /etc/smartmontools/run.d/20discord
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          msg=$(printf '**%s: smartd %s on %s**\n%s' "$(hostname)" "$SMARTD_FAILTYPE" "$SMARTD_DEVICESTRING" "$SMARTD_MESSAGE")
+          jq -n --arg c "$msg" '{content: $c[0:2000]}' |
+            curl -fsS --max-time 10 -H 'Content-Type: application/json' --data-binary @- "$(cat /etc/discord-webhook-url)"
+      tags:
+        - alerts
+
+    # Discord's /slack endpoint accepts the Slack payload ZED sends natively.
+    - name: Send ZFS events to Discord
+      ansible.builtin.lineinfile:
+        path: /etc/zfs/zed.d/zed.rc
+        regexp: '^#?ZED_SLACK_WEBHOOK_URL='
+        line: 'ZED_SLACK_WEBHOOK_URL="$(cat /etc/discord-webhook-url)/slack"'
+      notify: Restart ZED
+      tags:
+        - alerts
+
     - name: Configure kernel cmdline for ASPM
       ansible.builtin.copy:
         dest: /etc/kernel/cmdline
@@ -484,6 +525,11 @@
         state: restarted
         enabled: true
         daemon_reload: true
+
+    - name: Restart ZED
+      ansible.builtin.systemd:
+        name: zfs-zed
+        state: restarted
 
     - name: Restart hd-idle
       ansible.builtin.systemd:

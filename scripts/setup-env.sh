@@ -188,7 +188,8 @@ main() {
         "tailscale-oauth-client-id" "TF_VAR_tailscale_oauth_client_id" \
         "tailscale-oauth-secret" "TF_VAR_tailscale_oauth_secret" \
         "cloudflare-api-token" "CLOUDFLARE_API_TOKEN" \
-        "hcloud-token" "HCLOUD_TOKEN"
+        "hcloud-token" "HCLOUD_TOKEN" \
+        "discord-webhook-url" "DISCORD_WEBHOOK_URL"
 
     local px_user
     local px_token_id
