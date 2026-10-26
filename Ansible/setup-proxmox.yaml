@@ -151,6 +151,7 @@
           CPU_BOOST_ON_AC=0
           SATA_LINKPWR_ON_AC=min_power
           AHCI_RUNTIME_PM_ON_AC=auto
+          DISK_DEVICES=""
           RUNTIME_PM_ON_AC=auto
       notify: Restart TLP
       tags:
