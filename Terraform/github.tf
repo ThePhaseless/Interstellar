@@ -18,6 +18,7 @@ locals {
     "ORACLE_SSH_PRIVATE_KEY" = bitwarden-secrets_secret.oracle_ssh_private_key.id
     "GH_APP_ID"              = bitwarden-secrets_secret.gh_app_id.id
     "GH_APP_PRIVATE_KEY"     = bitwarden-secrets_secret.gh_app_private_key.id
+    "DISCORD_WEBHOOK_URL"    = bitwarden-secrets_secret.discord_webhook_url.id
   }
 }
 
