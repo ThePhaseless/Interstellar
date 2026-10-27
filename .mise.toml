@@ -1,15 +1,15 @@
 min_version = "2026.4.28"
 
 [tools]
-python = "3.15.1"
-uv = "0.13.5"
+python = "3.15.2"
+uv = "0.13.6"
 terraform = "1.17.0"
 kubectl = "1.37.1"
 kustomize = "latest"
 helm = "4.3.1"
 kube-linter = "0.8.3"
 tflint = "0.65.0"
-talosctl = "1.14.4"
+talosctl = "1.14.5"
 bitwarden-secrets-manager = "2.1.0"
 jq = "1.8.2"
 ripgrep = "15.2.0"
