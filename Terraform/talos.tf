@@ -253,6 +253,14 @@ provider "restful" {
       key         = base64decode(ephemeral.talos_cluster_kubeconfig.gate.kubernetes_client_configuration.client_key)
     }]
     root_ca_certificates = [base64decode(ephemeral.talos_cluster_kubeconfig.gate.kubernetes_client_configuration.ca_certificate)]
+    # base_url can be the node that was just upgraded: its apiserver refuses connections, then
+    # answers 429 while its watch cache warms up. Retry (transport errors included) for ~10 min.
+    retry = {
+      status_codes    = [429, 500, 502, 503, 504]
+      count           = 30
+      wait_in_sec     = 5
+      max_wait_in_sec = 30
+    }
   }
 }
 
