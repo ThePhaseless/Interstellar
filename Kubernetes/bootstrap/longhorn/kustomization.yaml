@@ -28,6 +28,10 @@ helmCharts:
         # The default, but keep it explicit: Longhorn never resets a Setting
         # whose key is dropped from this list, so omitting it pins any old value.
         engineReplicaTimeout: 8
+        # Every volume has 3 replicas on 3 nodes with hard anti-affinity, so
+        # this only blocks a drain while the other replicas are unhealthy; the
+        # eviction policies could never place the evicted replicas.
+        nodeDrainPolicy: block-if-contains-last-replica
       persistence:
         defaultDataLocality: best-effort
 
