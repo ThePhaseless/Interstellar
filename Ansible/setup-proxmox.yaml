@@ -344,6 +344,86 @@
       tags:
         - alerts
 
+    - name: Install socat for serial console logging
+      ansible.builtin.apt:
+        name: socat
+      tags:
+        - serial-logger
+
+    - name: Install VM serial console logger
+      ansible.builtin.copy:
+        dest: /usr/local/bin/vm-serial-logger.sh
+        mode: "0755"
+        content: |
+          #!/bin/bash
+          # Persistent serial console logger for Proxmox VM
+          VMID=$1
+          SOCKET="/var/run/qemu-server/${VMID}.serial0"
+          LOGFILE="/var/log/vm-${VMID}-serial.log"
+
+          [ -z "$VMID" ] && echo "Usage: $0 <vmid>" && exit 1
+
+          while [ ! -S "$SOCKET" ]; do sleep 1; done
+
+          # Read from socket, prepend timestamp, append to log
+          socat UNIX-CONNECT:"$SOCKET" STDOUT | while IFS= read -r line; do
+              echo "[$(date +%Y-%m-%d\ %H:%M:%S)] $line" >> "$LOGFILE"
+          done
+      notify: Restart serial console loggers
+      tags:
+        - serial-logger
+
+    - name: Configure serial console logger units
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/vm-{{ item }}-serial-logger.service"
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Serial console logger for VM {{ item }}
+          After=pve-guests.target
+          Wants=pve-guests.target
+
+          [Service]
+          Type=simple
+          ExecStart=/usr/local/bin/vm-serial-logger.sh {{ item }}
+          Restart=always
+          RestartSec=5
+          StandardOutput=journal
+
+          [Install]
+          WantedBy=multi-user.target
+      loop: "{{ serial_logger_vmids }}"
+      notify: Restart serial console loggers
+      tags:
+        - serial-logger
+
+    - name: Enable serial console loggers
+      ansible.builtin.systemd:
+        name: "vm-{{ item }}-serial-logger"
+        enabled: true
+        state: started
+        daemon_reload: true
+      loop: "{{ serial_logger_vmids }}"
+      tags:
+        - serial-logger
+
+    - name: Rotate serial console logs
+      ansible.builtin.copy:
+        dest: /etc/logrotate.d/vm-serial-logs
+        mode: "0644"
+        content: |
+          /var/log/vm-*-serial.log {
+              weekly
+              rotate 4
+              compress
+              delaycompress
+              missingok
+              notifempty
+              copytruncate
+          }
+      tags:
+        - serial-logger
+
     - name: Configure kernel cmdline for ASPM
       ansible.builtin.copy:
         dest: /etc/kernel/cmdline
@@ -530,6 +610,13 @@
       ansible.builtin.systemd:
         name: zfs-zed
         state: restarted
+
+    - name: Restart serial console loggers
+      ansible.builtin.systemd:
+        name: "vm-{{ item }}-serial-logger"
+        state: restarted
+        daemon_reload: true
+      loop: "{{ serial_logger_vmids }}"
 
     - name: Restart hd-idle
       ansible.builtin.systemd:
