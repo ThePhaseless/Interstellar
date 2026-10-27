@@ -24,7 +24,7 @@ terraform {
     }
     jellyfin = {
       source  = "ThePhaseless/jellyfin"
-      version = "0.7.0"
+      version = "0.8.0"
     }
     bitwarden-secrets = {
       source  = "bitwarden/bitwarden-secrets"
