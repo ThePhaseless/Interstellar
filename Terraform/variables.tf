@@ -133,7 +133,7 @@ variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
   # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver extractVersion=^v(?<version>.+)$
-  default = "1.37.1"
+  default = "1.37.2"
 }
 
 variable "tf_state_bucket" {
