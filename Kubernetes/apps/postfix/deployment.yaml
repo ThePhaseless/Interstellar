@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: postfix
-          image: boky/postfix:5.1.0
+          image: boky/postfix:5.2.0
           env:
             - name: RELAYHOST
               valueFrom:
