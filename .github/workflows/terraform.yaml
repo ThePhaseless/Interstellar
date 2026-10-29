@@ -92,7 +92,7 @@ jobs:
           echo "TF_VAR_hcloud_token=$HCLOUD_TOKEN" >> $GITHUB_ENV
 
       - name: Connect to Tailscale
-        uses: tailscale/github-action@99a8333667fff04fdd6cffb46dfd409f8329a7bf # v4
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4
         with:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
@@ -309,7 +309,7 @@ jobs:
           echo "TF_VAR_hcloud_token=$HCLOUD_TOKEN" >> $GITHUB_ENV
 
       - name: Connect to Tailscale
-        uses: tailscale/github-action@99a8333667fff04fdd6cffb46dfd409f8329a7bf # v4
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4
         with:
           oauth-client-id: ${{ env.TS_CI_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ env.TS_CI_OAUTH_SECRET }}
