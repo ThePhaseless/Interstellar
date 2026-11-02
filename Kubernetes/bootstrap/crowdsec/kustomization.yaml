@@ -25,6 +25,9 @@ patches:
     target:
       kind: CronJob
       labelSelector: backup=borg
+  - path: register-once-patch.yaml
+    target:
+      name: crowdsec-(agent|appsec)
   - target:
       kind: Deployment
     patch: |-

@@ -1,0 +1,10 @@
+# A pod keeps its name across a node reboot and reruns its init containers, but LAPI
+# already holds that machine name and answers 403 "user already exist", so the pod never
+# starts. The credentials from the first run are still in the emptyDir; reuse them.
+# The test op fails the build if a chart bump changes the script, so this gets re-checked.
+- op: test
+  path: /spec/template/spec/initContainers/0/command/2
+  value: 'until nc "$LAPI_HOST" "$LAPI_PORT" -z; do echo waiting for lapi to start; sleep 5; done; ln -s /staging/etc/crowdsec /etc/crowdsec && cscli lapi register --machine "$USERNAME" -u "$LAPI_URL" --token "$REGISTRATION_TOKEN" && cp /etc/crowdsec/local_api_credentials.yaml /tmp_config/local_api_credentials.yaml'
+- op: replace
+  path: /spec/template/spec/initContainers/0/command/2
+  value: 'until nc "$LAPI_HOST" "$LAPI_PORT" -z; do echo waiting for lapi to start; sleep 5; done; [ -s /tmp_config/local_api_credentials.yaml ] && exit 0; ln -s /staging/etc/crowdsec /etc/crowdsec && cscli lapi register --machine "$USERNAME" -u "$LAPI_URL" --token "$REGISTRATION_TOKEN" && cp /etc/crowdsec/local_api_credentials.yaml /tmp_config/local_api_credentials.yaml'
