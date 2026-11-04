@@ -102,17 +102,16 @@ spec:
     matchExpressions:
       - key: app
         operator: In
-        values: [byparr, byparr-proxy, byparr-proxy-eztv]
+        values: [byparr]
   ingress:
     - from:
         - podSelector:
             matchExpressions:
               - key: app
                 operator: In
-                values: [prowlarr, sonarr, radarr, byparr-proxy, byparr-proxy-eztv]
+                values: [prowlarr, sonarr, radarr]
       ports:
         - {port: 8191}
-        - {port: 8888}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

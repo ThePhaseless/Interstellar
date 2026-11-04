@@ -19,7 +19,6 @@ resources:
   - recyclarr/
   - arr-coverage-search/
   - byparr/
-  - byparr-proxy/
 
   - postfix/
   - copyparty/

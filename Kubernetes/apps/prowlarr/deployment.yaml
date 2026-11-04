@@ -39,17 +39,9 @@ spec:
                 sed -i 's|<AuthenticationRequired>[^<]*</AuthenticationRequired>|<AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>|' "$CONFIG"
                 echo "Updated config.xml auth settings"
               fi
-              # Copied rather than mounted: the image's init chowns /config
-              # recursively and logs an error per file on a read-only mount.
-              rm -rf /config/Definitions/Custom
-              mkdir -p /config/Definitions/Custom
-              cp /custom-definitions/*.yml /config/Definitions/Custom/
           volumeMounts:
             - name: config
               mountPath: /config
-            - name: custom-definitions
-              mountPath: /custom-definitions
-              readOnly: true
 
       containers:
         - name: prowlarr
@@ -142,6 +134,3 @@ spec:
         - name: scripts
           configMap:
             name: arr-scripts
-        - name: custom-definitions
-          configMap:
-            name: prowlarr-custom-definitions
