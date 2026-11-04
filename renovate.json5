@@ -3,21 +3,13 @@
   extends: [
     'local>ThePhaseless/renovate-config',
   ],
-  kubernetes: {
-    managerFilePatterns: [
-      '/(^|/)Kubernetes/.+\\.ya?ml$/',
-    ],
-  },
   packageRules: [
     {
-      description: 'Ignore broken and legacy LinuxServer qBittorrent tags',
-      matchManagers: [
-        'kubernetes',
-      ],
+      description: 'LinuxServer once published the Ubuntu base version (20.04.1) as a tag',
       matchPackageNames: [
         'linuxserver/qbittorrent',
       ],
-      allowedVersions: '!/^(20\\.|5\\.2\\.)/',
+      allowedVersions: '!/^20\\./',
     },
     {
       matchDatasources: [
@@ -44,19 +36,6 @@
         'major',
       ],
       automerge: false,
-    },
-  ],
-  customManagers: [
-    {
-      customType: 'regex',
-      managerFilePatterns: [
-        '/\\.tf$/',
-      ],
-      matchStrings: [
-        '# renovate: datasource=(?<datasource>[^:]+?) depName=(?<depName>.+?)( versioning=(?<versioning>.+?))?( extractVersion=(?<extractVersion>.+?))?( registryUrl=(?<registryUrl>.+?))?\\s.+?[:=]\\s*["\']?(?<currentValue>.+?)["\']?\\s',
-      ],
-      versioningTemplate: '{{#if versioning}}{{{versioning}}}{{else}}semver-coerced{{/if}}',
-      extractVersionTemplate: '{{#if extractVersion}}{{{extractVersion}}}{{else}}^v?(?<version>.+)${{/if}}',
     },
   ],
 }
