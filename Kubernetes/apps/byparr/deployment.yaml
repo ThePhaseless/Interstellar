@@ -34,6 +34,12 @@ spec:
           ports:
             - name: http
               containerPort: 8191
+          # Byparr opens its port only after fetching the GeoIP database and
+          # egress IP at start, so an open port means ready to solve.
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
           env:
             - name: PROXY_SERVER
               valueFrom:
