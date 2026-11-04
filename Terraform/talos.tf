@@ -43,7 +43,9 @@ data "talos_image_factory_urls" "base_image" {
 resource "talos_image_factory_schematic" "gpu" {
   schematic = yamlencode({
     customization = {
-      extraKernelArgs = ["video=efifb:off", "xe.disable_display=1", "console=ttyS0"]
+      # fbcon=map:9 points fbcon at a framebuffer that never exists, so it leaves simpledrm
+      # alone: on this VM fbcon's damage worker can spin one vCPU at 100% and starve etcd.
+      extraKernelArgs = ["video=efifb:off", "xe.disable_display=1", "console=ttyS0", "fbcon=map:9"]
       systemExtensions = {
         officialExtensions = distinct(concat(var.talos_base_extensions, var.talos_gpu_extensions))
       }
