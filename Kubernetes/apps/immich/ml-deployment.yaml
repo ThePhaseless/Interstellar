@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: immich-ml
-          image: ghcr.io/immich-app/immich-machine-learning:v3.3.6-openvino
+          image: ghcr.io/immich-app/immich-machine-learning:v3.3.6-openvino@sha256:035c30de002da9d4d4ae3872107bb9d8e195ead1c1f9fd470a2b0149ed37aec1
           env:
             - name: MACHINE_LEARNING_REQUEST_THREADS
               value: "1"
