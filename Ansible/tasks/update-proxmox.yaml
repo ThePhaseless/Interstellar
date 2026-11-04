@@ -1,7 +1,14 @@
-- name: Update packages
-  changed_when: true
+- name: Refresh package lists
+  changed_when: false
   ansible.builtin.command:
-    cmd: pveupdate && pveupgrade
+    cmd: pveupdate
+
+# pveupgrade only wraps `apt-get dist-upgrade` and has no -y, so without a TTY it aborts
+# at the confirmation prompt; the apt module runs the same dist-upgrade non-interactively.
+- name: Upgrade packages
+  ansible.builtin.apt:
+    upgrade: dist
+    lock_timeout: 300
 
 - name: Get reboot-required file status
   ansible.builtin.stat:
