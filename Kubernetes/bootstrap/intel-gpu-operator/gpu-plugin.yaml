@@ -18,7 +18,7 @@ spec:
         intel.feature.node.kubernetes.io/gpu: "true"
       initContainers:
         - name: init-device-check
-          image: busybox:1.38
+          image: busybox:1.38@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
           command: ["sh", "-c", "ls /dev/dri/ && echo 'GPU device found'"]
           volumeMounts:
             - name: devfs
@@ -26,7 +26,7 @@ spec:
               readOnly: true
       containers:
         - name: gpu-plugin
-          image: intel/intel-gpu-plugin:0.37.1
+          image: intel/intel-gpu-plugin:0.37.1@sha256:004641b2547d58f1eadce58473fa160ad71377de1eb588cf1f82832387bf3e33
           args:
             - -shared-dev-num=5
             - -allocation-policy=balanced

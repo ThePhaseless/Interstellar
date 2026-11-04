@@ -24,7 +24,7 @@ spec:
       # LAPI answers 403 to re-registering an existing machine.
       initContainers:
         - name: register-machine
-          image: curlimages/curl:8.23.0
+          image: curlimages/curl:8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93
           command:
             - sh
             - -c
@@ -61,7 +61,7 @@ spec:
 
       containers:
         - name: crowdsec-web-ui
-          image: ghcr.io/theduffman85/crowdsec-web-ui:2026.11.3
+          image: ghcr.io/theduffman85/crowdsec-web-ui:2026.11.4@sha256:2415750a09ec56faf40bd63e914bd1227d9b2f5e94e34c2cdba112966c0b28d8
           env:
             - name: CONFIG_INSTANCE_LAPI_URL
               value: http://crowdsec-service:8080
