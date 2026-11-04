@@ -19,7 +19,7 @@ spec:
       serviceAccountName: promtail
       initContainers:
         - name: download-geoip
-          image: busybox:1.38
+          image: busybox:1.38@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
           command:
             - sh
             - -c
@@ -37,7 +37,7 @@ spec:
 
       containers:
         - name: promtail
-          image: grafana/promtail:3.6.11
+          image: grafana/promtail:3.6.11@sha256:a761cb834cfaeee29745440d4884d6748f0a08d8f68928db1d707018c1dcfbe9
           args:
             - -config.file=/etc/promtail/promtail.yaml
           env:

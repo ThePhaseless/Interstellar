@@ -20,7 +20,7 @@ spec:
 
       initContainers:
         - name: build-oauth-config
-          image: busybox:1.38
+          image: busybox:1.38@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -128,7 +128,7 @@ spec:
               memory: 2Gi
 
         - name: redis
-          image: redis:8-alpine
+          image: redis:8-alpine@sha256:21090af93f8324db2f0f0f4f38a7c60369d47d917e000c3423d89d2ae2883537
           ports:
             - name: redis
               containerPort: 6379

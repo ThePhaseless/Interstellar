@@ -18,7 +18,7 @@ spec:
           restartPolicy: OnFailure
           initContainers:
             - name: pg-dump-immich
-              image: postgres:18-alpine
+              image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
               command: ["/bin/sh", "-c"]
               args:
                 - |
@@ -43,7 +43,7 @@ spec:
                 requests: { cpu: 100m, memory: 256Mi }
                 limits: { cpu: 1000m, memory: 1Gi }
             - name: pg-dump-authentik
-              image: postgres:18-alpine
+              image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
               command: ["/bin/sh", "-c"]
               args:
                 - |
@@ -69,7 +69,7 @@ spec:
                 limits: { cpu: 500m, memory: 512Mi }
           containers:
             - name: borgbackup
-              image: alpine:3.24
+              image: alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
               command: ["/bin/sh", "/scripts/borg-backup.sh"]
               env:
                 - name: BORG_PASSPHRASE
