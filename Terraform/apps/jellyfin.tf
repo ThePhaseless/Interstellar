@@ -77,7 +77,7 @@ resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
       preset                      = "authentik"
       discovery_url               = "https://auth.${var.authentik_domain}/application/o/jellyfin/.well-known/openid-configuration"
       client_id                   = data.bitwarden-secrets_secret.jellyfin_oauth_client_id.value
-      scopes                     = ["openid", "profile", "email", "groups"]
+      scopes                      = ["openid", "profile", "email", "groups"]
       allowed_groups              = ["watchers", "vips", "admins"]
       admin_groups                = ["admins"]
       allow_admin_group_elevation = true
