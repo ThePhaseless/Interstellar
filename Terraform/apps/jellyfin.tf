@@ -77,8 +77,7 @@ resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
       preset                      = "authentik"
       discovery_url               = "https://auth.${var.authentik_domain}/application/o/jellyfin/.well-known/openid-configuration"
       client_id                   = data.bitwarden-secrets_secret.jellyfin_oauth_client_id.value
-      client_secret               = data.bitwarden-secrets_secret.jellyfin_oauth_client_secret.value
-      scopes                      = ["openid", "profile", "email", "groups"]
+      scopes                     = ["openid", "profile", "email", "groups"]
       allowed_groups              = ["watchers", "vips", "admins"]
       admin_groups                = ["admins"]
       allow_admin_group_elevation = true
@@ -96,6 +95,12 @@ resource "jellyfin_security_plugin_configuration" "jellyfin_security" {
       rp_initiated_logout_redirect_uri = ""
     }
   ]
+
+  # Write-only: never stored in state. Bump the version to resend a rotated secret.
+  oidc_client_secrets_wo = {
+    authentik = data.bitwarden-secrets_secret.jellyfin_oauth_client_secret.value
+  }
+  oidc_client_secrets_wo_version = 1
 }
 
 resource "jellyfin_networking_configuration" "this" {
