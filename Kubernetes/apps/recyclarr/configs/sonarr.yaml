@@ -8,6 +8,25 @@ sonarr:
 
     quality_definition:
       type: series
+      # The guide's minimums reject legitimate x265 encodes (a 1080p BluRay
+      # season pack at 16 MB/min against a 50.4 floor), and for old shows those
+      # are often the only releases with live seeders. Quality, CF score and
+      # upgrades still pick the best version. Remux floors stay, because a
+      # small "remux" is mislabelled and would sit at the top tier blocking
+      # every upgrade.
+      qualities:
+        - { name: HDTV-720p, min: 0 }
+        - { name: HDTV-1080p, min: 0 }
+        - { name: HDTV-2160p, min: 0 }
+        - { name: WEBRip-720p, min: 0 }
+        - { name: WEBRip-1080p, min: 0 }
+        - { name: WEBRip-2160p, min: 0 }
+        - { name: WEBDL-720p, min: 0 }
+        - { name: WEBDL-1080p, min: 0 }
+        - { name: WEBDL-2160p, min: 0 }
+        - { name: Bluray-720p, min: 0 }
+        - { name: Bluray-1080p, min: 0 }
+        - { name: Bluray-2160p, min: 0 }
 
     media_naming:
       series: jellyfin-tvdb

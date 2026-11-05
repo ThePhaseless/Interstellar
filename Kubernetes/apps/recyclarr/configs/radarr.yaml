@@ -14,6 +14,22 @@ radarr:
 
     quality_definition:
       type: movie
+      # Same reasoning as sonarr.yaml: the guide's minimums reject legitimate
+      # x265 encodes; Remux floors stay so a mislabelled small "remux" cannot
+      # take the top tier and block upgrades.
+      qualities:
+        - { name: HDTV-720p, min: 0 }
+        - { name: HDTV-1080p, min: 0 }
+        - { name: HDTV-2160p, min: 0 }
+        - { name: WEBRip-720p, min: 0 }
+        - { name: WEBRip-1080p, min: 0 }
+        - { name: WEBRip-2160p, min: 0 }
+        - { name: WEBDL-720p, min: 0 }
+        - { name: WEBDL-1080p, min: 0 }
+        - { name: WEBDL-2160p, min: 0 }
+        - { name: Bluray-720p, min: 0 }
+        - { name: Bluray-1080p, min: 0 }
+        - { name: Bluray-2160p, min: 0 }
 
     quality_profiles:
       - trash_id: d1d310673359205736b4b84acd5ea8c8 # Remux 2160p (Combined)
