@@ -41,6 +41,10 @@ spec:
               port: http
             periodSeconds: 5
           env:
+            # shareProcessNamespace makes the pause container PID 1, so tini
+            # must register as a subreaper to adopt orphaned browser processes.
+            - name: TINI_SUBREAPER
+              value: "1"
             - name: PROXY_SERVER
               valueFrom:
                 secretKeyRef:
