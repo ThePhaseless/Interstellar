@@ -22,7 +22,8 @@ data:
       and obj.metadata.namespace == "argocd" then
       if obj.status ~= nil and obj.status.resources ~= nil then
         for _, resource in ipairs(obj.status.resources) do
-          if not (resource.hook == true and resource.requiresPruning == true) then
+          -- Anything awaiting prune is removed by this sync; counting it would fail the sync before the prune runs.
+          if resource.requiresPruning ~= true then
             if resource.status ~= nil and resource.status ~= "Synced" then
               hs.status = "Degraded"
               hs.message = resource.kind .. "/" .. resource.name .. " is " .. resource.status
