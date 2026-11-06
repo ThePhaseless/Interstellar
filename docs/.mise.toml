@@ -1,0 +1,16 @@
+[tools]
+tinytex = "2026.10"
+
+[tasks.thesis-deps]
+description = "Install the LaTeX packages the thesis needs into TinyTeX"
+run = [
+  "tlmgr update --self",
+  "tlmgr install tocbibind polski hyphen-polish doi multibib",
+  # tlmgr does not rebuild the format, so polski would not find the Polish hyphenation patterns
+  "fmtutil-sys --byfmt pdflatex",
+]
+
+[tasks.thesis]
+description = "Build docs/thesis/main.pdf"
+dir = "{{config_root}}/thesis"
+run = "pdflatex main && bibtex main && pdflatex main && pdflatex main"
