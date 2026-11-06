@@ -1,0 +1,61 @@
+\documentclass{SGGW-thesis}
+
+% Flagi typu pracy - ustaw jedną
+\INZYNIERSKAtrue
+%\LICENCJACKAtrue
+%\MAGISTERSKAtrue
+
+% Flagi wydziału - ustaw jedną
+%\WIItrue
+\WZIMtrue
+
+\title{Projekt i implementacja zautomatyzowanego\\środowiska Homelab z~wykorzystaniem\\Infrastructure as Code w~procesie częściowej\\repatriacji usług chmurowych}
+\Etitle{Design and Implementation of an Automated Homelab Environment\\Using Infrastructure as Code in the Partial Repatriation of Cloud Services}
+\author{Jakub Orchowski}
+\date{2027}
+\album{000000} % TODO: numer albumu
+\thesis{Praca dyplomowa na kierunku:}
+\course{Informatyka}
+\promotor{Artura Krupy} % TODO: dopisz tytuł naukowy w dopełniaczu, np. "dra inż.\ Artura Krupy"
+\pworkplace{Instytut Informatyki Technicznej\\Katedra Sztucznej Inteligencji}
+
+\usepackage{multibib}
+\newcites{gsi}{Narzędzia generatywnej sztucznej inteligencji}
+\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage[labelformat=simple,labelfont=bf,font=normalsize]{subcaption}\renewcommand\thesubfigure{\alph{subfigure}}
+\graphicspath{{obrazy/}}
+
+\begin{document}
+\maketitle
+\statementpage
+\abstractpage
+{Projekt i implementacja zautomatyzowanego środowiska Homelab z~wykorzystaniem Infrastructure as Code w~procesie częściowej repatriacji usług chmurowych}
+{TODO: streszczenie po polsku.}
+{Infrastructure as Code, homelab, repatriacja chmury, Kubernetes, Terraform, GitOps}
+{Design and Implementation of an Automated Homelab Environment Using Infrastructure as Code in the Partial Repatriation of Cloud Services}
+{TODO: abstract in English.}
+{Infrastructure as Code, homelab, cloud repatriation, Kubernetes, Terraform, GitOps}
+\tableofcontents
+
+\include{rozdzialy/wstep}
+\include{rozdzialy/technologie}
+\include{rozdzialy/projekt}
+\include{rozdzialy/implementacja}
+\include{rozdzialy/odtwarzanie}
+\include{rozdzialy/koszty}
+\include{rozdzialy/podsumowanie}
+
+\bibliographystyle{SGGW-thesis}
+\bibliography{bibliografia}
+
+% Odkomentuj po pierwszym \citegsi{...} (pozycje GSI też trzymaj w bibliografia.bib).
+% Bez żadnego \citegsi BibTeX zgłasza błąd dla pliku gsi.aux.
+%\bibliographystylegsi{SGGW-thesis}
+%\bibliographygsi{bibliografia}
+
+\beforelastpage
+
+\end{document}
