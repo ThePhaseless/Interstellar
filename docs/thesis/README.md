@@ -4,12 +4,11 @@ Wzór: [lchmiel/SGGW-Thesis-LaTeX](https://github.com/lchmiel/SGGW-Thesis-LaTeX)
 
 Budowanie:
 
-TinyTeX instaluje mise z `docs/.mise.toml`:
+TinyTeX razem z potrzebnymi pakietami LaTeX-a instaluje mise z `docs/.mise.toml`:
 
 ```bash
 cd docs
 mise trust && mise install
-mise run thesis-deps   # raz na maszynę: pakiety LaTeX-a
 mise run thesis        # buduje thesis/main.pdf
 ```
 

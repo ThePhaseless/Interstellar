@@ -1,14 +1,7 @@
 [tools]
-tinytex = "2026.10"
-
-[tasks.thesis-deps]
-description = "Install the LaTeX packages the thesis needs into TinyTeX"
-run = [
-  "tlmgr update --self",
-  "tlmgr install tocbibind polski hyphen-polish doi multibib",
-  # tlmgr does not rebuild the format, so polski would not find the Polish hyphenation patterns
-  "fmtutil-sys --byfmt pdflatex",
-]
+# postinstall: LaTeX packages the SGGW class needs on top of TinyTeX; fmtutil because tlmgr
+# does not rebuild the format, so polski would not find the Polish hyphenation patterns
+tinytex = { version = "2026.10", postinstall = "tlmgr update --self && tlmgr install tocbibind polski hyphen-polish doi multibib && fmtutil-sys --byfmt pdflatex" }
 
 [tasks.thesis]
 description = "Build docs/thesis/main.pdf"
