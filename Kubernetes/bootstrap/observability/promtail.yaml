@@ -29,7 +29,9 @@ spec:
               MONTH=$(date +%m)
               URL="https://download.db-ip.com/free/dbip-city-lite-${YEAR}-${MONTH}.mmdb.gz"
               echo "Downloading GeoIP database from ${URL}"
-              wget -q "${URL}" -O /geoip/db.mmdb.gz && gunzip -f /geoip/db.mmdb.gz
+              # separate lines: set -e ignores a failure on the left of &&, so a DNS miss at boot exited 0
+              wget -q "${URL}" -O /geoip/db.mmdb.gz
+              gunzip -f /geoip/db.mmdb.gz
               echo "GeoIP database ready: $(ls -la /geoip/db.mmdb)"
           volumeMounts:
             - name: geoip
