@@ -3,6 +3,8 @@
 set -eu
 
 info() { printf '\n%s %s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2; }
+# All backup jobs share one repo and borg 1.4 waits 1s for its lock (there is no env var for it), so an overrunning job fails the next one.
+borg() { command borg --lock-wait 3600 "$@"; }
 
 : "${BORG_PASSPHRASE:?BORG_PASSPHRASE required}"
 : "${BORG_REPO:?BORG_REPO required}"
