@@ -51,7 +51,7 @@ spec:
 
       containers:
         - name: sonarr
-          image: linuxserver/sonarr:4.0.20@sha256:386c962ee6e260e3a5656b25df2ed056bcc9b6410e197d075f9547fd14c23bca
+          image: linuxserver/sonarr:4.0.20@sha256:673dc4609a5672bc8e46069c86ffcea283a86b48d34a6c93d8da8c24a1b87571
           envFrom:
             - configMapRef:
                 name: media-runtime-config
