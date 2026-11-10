@@ -1,7 +1,7 @@
 {
   // A tag must be listed here to exist. tag:ci is Terraform's API identity, which can only apply tags it owns.
   "tagOwners": {
-    // Never an acls src beyond DNS: the owner's "*:*" reaches these devices, but they reach none of the owner's.
+    // Never an acls src beyond DNS and compute:22: the owner's "*:*" reaches these devices, but they reach no other device of the owner's.
     "tag:secured":      ["tag:ci"],
     "tag:untrusted":    ["tag:ci"],
     "tag:ci":           ["tag:ci"],
@@ -14,11 +14,23 @@
     "tag:homeassistant": ["tag:ci"],
   },
 
+  // compute is untagged (owner's personal device), so a host alias is the only way to target it alone.
+  "hosts": {
+    "compute": "100.110.162.118",
+  },
+
   "acls": [
     {
       "action": "accept",
       "src":    ["autogroup:owner"],
       "dst":    ["*:*"]
+    },
+
+    // The one exception to tag:secured reaching nothing: plain ssh into compute.
+    {
+      "action": "accept",
+      "src":    ["tag:secured"],
+      "dst":    ["compute:22"]
     },
 
     {
