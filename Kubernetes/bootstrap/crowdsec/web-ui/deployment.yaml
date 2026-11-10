@@ -61,7 +61,7 @@ spec:
 
       containers:
         - name: crowdsec-web-ui
-          image: ghcr.io/theduffman85/crowdsec-web-ui:2026.11.5@sha256:8bb448c5c9d9991750dd9e967f3c079782a0bfe8ad1737b87a981ecc1f944a5b
+          image: ghcr.io/theduffman85/crowdsec-web-ui:2026.11.7@sha256:fd41bee026dcf544e0a3150ce262de2b17f8ff2ec344040bc2c2383f88f12351
           env:
             - name: CONFIG_INSTANCE_LAPI_URL
               value: http://crowdsec-service:8080
