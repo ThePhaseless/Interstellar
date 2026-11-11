@@ -124,6 +124,21 @@ sonarr:
             score: -10000000
           - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
             score: -10000000
+      # Old shows survive mostly as x265 season packs while their single-episode
+      # x264 releases are dead; the guide's -10000 made every x264 single beat
+      # a live pack of the same quality, and Sonarr compares CF score before
+      # episode count. Unpenalised, with packs scored above the guide's 10, the
+      # pack wins at equal quality and a better quality still wins outright.
+      - trash_ids:
+          - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
+        assign_scores_to:
+          - trash_id: c4cadd6b35b95f62c3d47a408e53e2f7 # WEB-2160p (Combined)
+            score: 0
+      - trash_ids:
+          - 3bc5f395426614e155e585a2f056cdf1 # Season Pack
+        assign_scores_to:
+          - trash_id: c4cadd6b35b95f62c3d47a408e53e2f7 # WEB-2160p (Combined)
+            score: 100
 
     custom_format_groups:
       add:
