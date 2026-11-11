@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: qbittorrent
   namespace: media
+  annotations:
+    reloader.stakater.com/auto: "false" # opt out of autoReloadAll: a restart interrupts downloads and shutdown can hang on the NFS share
   labels:
     app: qbittorrent
 spec:

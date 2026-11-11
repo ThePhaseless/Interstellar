@@ -12,3 +12,13 @@ helmCharts:
     version: 2.2.19
     releaseName: reloader
     namespace: reloader
+    valuesInline:
+      reloader:
+        autoReloadAll: true
+        # On reload Reloader recreates a Job and fires a CronJob run: a script edit would
+        # kill a running borg backup (stale repo lock) or start one off schedule.
+        ignoreJobs: true
+        ignoreCronJobs: true
+        # tailscale: each proxy mounts the state Secret it rewrites on start (restart loop).
+        # kube-system: Talos owns those workloads; CoreDNS hot-reloads its Corefile.
+        ignoreNamespaces: kube-system,tailscale
