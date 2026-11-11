@@ -71,6 +71,9 @@ updates = {
     # The .!qB rename on completion changes the inode mergerfs derives from the
     # path; the NFS client marks it stale, and enough of those wedge the node.
     'Session\\AddExtensionToIncompleteFiles': 'false',
+    # Same inode change: deselecting files in a pack moves them into .unwanted
+    # while the torrent holds them open, and every write then fails ESTALE.
+    'Session\\UseUnwantedFolder': 'false',
     # Legacy writes one .fastresume file per torrent; SQLite is a
     # single transaction, so the 30s resume-data budget is never
     # the thing that runs out.
