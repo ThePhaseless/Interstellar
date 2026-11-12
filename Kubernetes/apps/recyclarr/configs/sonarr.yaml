@@ -44,25 +44,29 @@ sonarr:
         min_format_score: -1000000
         # Best-first preference; lower qualities stay allowed as fallbacks so
         # old/niche shows with limited availability still get grabbed.
+        # WEB-DL and WEBRip share one group per resolution, as in the guide's
+        # profile: within a group the quality ties and the CF score decides,
+        # which is what lets the Season Pack score below pick a WEBRip pack
+        # over WEB-DL singles.
         qualities:
           - name: Bluray-2160p Remux
           - name: Bluray-2160p
-          - name: WEBDL-2160p
-          - name: WEBRip-2160p
+          - name: WEB 2160p
+            qualities: [WEBDL-2160p, WEBRip-2160p]
           - name: Bluray-1080p Remux
           - name: Bluray-1080p
-          - name: WEBDL-1080p
-          - name: WEBRip-1080p
+          - name: WEB 1080p
+            qualities: [WEBDL-1080p, WEBRip-1080p]
           - name: HDTV-2160p
           - name: HDTV-1080p
           - name: Bluray-720p
-          - name: WEBDL-720p
-          - name: WEBRip-720p
+          - name: WEB 720p
+            qualities: [WEBDL-720p, WEBRip-720p]
           - name: HDTV-720p
           - name: Bluray-576p
           - name: Bluray-480p
-          - name: WEBDL-480p
-          - name: WEBRip-480p
+          - name: WEB 480p
+            qualities: [WEBDL-480p, WEBRip-480p]
           - name: DVD
           - name: SDTV
         upgrade:
@@ -124,11 +128,21 @@ sonarr:
             score: -10000000
           - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
             score: -10000000
-      # Old shows survive mostly as x265 season packs while their single-episode
-      # x264 releases are dead; the guide's -10000 made every x264 single beat
-      # a live pack of the same quality, and Sonarr compares CF score before
-      # episode count. Unpenalised, with packs scored above the guide's 10, the
-      # pack wins at equal quality and a better quality still wins outright.
+      # Season packs over singles. Old shows survive as live season packs
+      # (mostly x265) while many single-episode releases are dead. Sonarr
+      # grabs the best-ranked release first and skips everything overlapping
+      # it, so one better-scored single (WEB Tier groups score 1650-1775)
+      # pushed the pack out and the season came in as singles; the dead ones
+      # left gaps, and Sonarr v4 then rejects a pack for a part-filled season
+      # unless it upgrades every episode on disk (UpgradeDiskSpecification).
+      # A pack above every tier wins at equal quality, and also counts as an
+      # upgrade for a part-filled season, so it fills the gaps by replacing
+      # the season. The guide's -10000 for x265 is dropped for the same
+      # reason. Cost: a pack beats a better WEB-DL single of the same
+      # resolution, and season searches swap single-episode seasons for packs.
+      # Sonarr v5 fixes the gap case properly with Season Pack Upgrade = Any
+      # (accept a pack when any episode is missing); once v5 is stable, set
+      # that and bring this score back toward the guide's 10.
       - trash_ids:
           - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
         assign_scores_to:
@@ -138,7 +152,7 @@ sonarr:
           - 3bc5f395426614e155e585a2f056cdf1 # Season Pack
         assign_scores_to:
           - trash_id: c4cadd6b35b95f62c3d47a408e53e2f7 # WEB-2160p (Combined)
-            score: 100
+            score: 2000
 
     custom_format_groups:
       add:
