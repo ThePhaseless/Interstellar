@@ -313,82 +313,82 @@ url = "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15
 url_api = "https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/478119643"
 
 [[tools.talosctl]]
-version = "1.14.5"
+version = "1.14.6"
 backend = "aqua:siderolabs/talos"
 
 [tools.talosctl."platforms.linux-arm64"]
-checksum = "sha256:dfd3aa33c3159810e216fc39afb685d4d120c8f2728e017d8c7f7635d3139382"
-url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-linux-arm64"
-url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/678470937"
+checksum = "sha256:fd22e0678d783105646d824c23ee45cf7a57f737edae274ca41376d03a4def65"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.6/talosctl-linux-arm64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/736672986"
 provenance = "cosign"
 
 [tools.talosctl."platforms.linux-arm64-musl"]
-checksum = "sha256:dfd3aa33c3159810e216fc39afb685d4d120c8f2728e017d8c7f7635d3139382"
-url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-linux-arm64"
-url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/678470937"
+checksum = "sha256:fd22e0678d783105646d824c23ee45cf7a57f737edae274ca41376d03a4def65"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.6/talosctl-linux-arm64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/736672986"
 provenance = "cosign"
 
 [tools.talosctl."platforms.linux-x64"]
-checksum = "sha256:ff432b68986709e6b69c563a08a2ced4232d5196b0dccd6d2e783e9d714d7d7d"
-url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-linux-amd64"
-url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/678470893"
+checksum = "sha256:11acde7f7578ffe9cbe6fb8349b34595065f597de0842615982e350b365de987"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.6/talosctl-linux-amd64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/736672969"
 provenance = "cosign"
 
 [tools.talosctl."platforms.linux-x64-musl"]
-checksum = "sha256:ff432b68986709e6b69c563a08a2ced4232d5196b0dccd6d2e783e9d714d7d7d"
-url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-linux-amd64"
-url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/678470893"
+checksum = "sha256:11acde7f7578ffe9cbe6fb8349b34595065f597de0842615982e350b365de987"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.6/talosctl-linux-amd64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/736672969"
 provenance = "cosign"
 
 [tools.talosctl."platforms.macos-arm64"]
-checksum = "sha256:c865077bdfc99c38d70b377708682eec1a8febab987f0623206e7139d9013096"
-url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-darwin-arm64"
-url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/678470890"
+checksum = "sha256:dd290798702d60ce8c1f59f4c223d5bdbc9c0638db45a9827d7f6cb4bd4a3f39"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.6/talosctl-darwin-arm64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/736672987"
 provenance = "cosign"
 
 [tools.talosctl."platforms.macos-x64"]
-checksum = "sha256:cf994f2f9b3b24941f331124bade278eb6bd84e9f2c2b1bb0cfb5f7cb49db13c"
-url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-darwin-amd64"
-url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/678470940"
+checksum = "sha256:cb460e388de00628d7d42beb6ca037603025195c05115de9ec25442a870aa1ed"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.6/talosctl-darwin-amd64"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/736672964"
 provenance = "cosign"
 
 [tools.talosctl."platforms.windows-x64"]
-checksum = "sha256:45b25be0ceef02b55110a2858f2fcc4e2f711f8b3dcd64bbc3c842d45adfd696"
-url = "https://github.com/siderolabs/talos/releases/download/v1.14.5/talosctl-windows-amd64.exe"
-url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/678470928"
+checksum = "sha256:5bd12fdf298fc4bd7bbcdf207d0ca200c620f9c169be31663ebca5f8a81a2d6b"
+url = "https://github.com/siderolabs/talos/releases/download/v1.14.6/talosctl-windows-amd64.exe"
+url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/736673004"
 provenance = "cosign"
 
 [[tools.terraform]]
-version = "1.17.1"
+version = "1.17.2"
 backend = "aqua:hashicorp/terraform"
 
 [tools.terraform."platforms.linux-arm64"]
-checksum = "sha256:988e950a1c23058093b0e66ab2d5fb53fc18345ecfbd5871acf51dbac9325edd"
-url = "https://releases.hashicorp.com/terraform/1.17.1/terraform_1.17.1_linux_arm64.zip"
+checksum = "sha256:858e08c181a76b6b223e8c767a8e983922eebe2d062db949a2de66ce040c368c"
+url = "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_linux_arm64.zip"
 
 [tools.terraform."platforms.linux-arm64-musl"]
-checksum = "sha256:988e950a1c23058093b0e66ab2d5fb53fc18345ecfbd5871acf51dbac9325edd"
-url = "https://releases.hashicorp.com/terraform/1.17.1/terraform_1.17.1_linux_arm64.zip"
+checksum = "sha256:858e08c181a76b6b223e8c767a8e983922eebe2d062db949a2de66ce040c368c"
+url = "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_linux_arm64.zip"
 
 [tools.terraform."platforms.linux-x64"]
-checksum = "sha256:4638628058e71a55212b1c563712eac03b902128f40740f3dc8174df12135061"
-url = "https://releases.hashicorp.com/terraform/1.17.1/terraform_1.17.1_linux_amd64.zip"
+checksum = "sha256:e6f16b2f0b137ee5729caa8c4e79a3bae4ee261acd198a1fcfa8584a6296605b"
+url = "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_linux_amd64.zip"
 
 [tools.terraform."platforms.linux-x64-musl"]
-checksum = "sha256:4638628058e71a55212b1c563712eac03b902128f40740f3dc8174df12135061"
-url = "https://releases.hashicorp.com/terraform/1.17.1/terraform_1.17.1_linux_amd64.zip"
+checksum = "sha256:e6f16b2f0b137ee5729caa8c4e79a3bae4ee261acd198a1fcfa8584a6296605b"
+url = "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_linux_amd64.zip"
 
 [tools.terraform."platforms.macos-arm64"]
-checksum = "sha256:b1ecb3fe0d0a0290c1ab6f83d967d43f25da05d0b671ee0fb355252268dce95a"
-url = "https://releases.hashicorp.com/terraform/1.17.1/terraform_1.17.1_darwin_arm64.zip"
+checksum = "sha256:da0c7ef278a911347862758e7573a5907365e66485c2637cf5c217c5e227992e"
+url = "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_darwin_arm64.zip"
 
 [tools.terraform."platforms.macos-x64"]
-checksum = "sha256:fde92387cf9c0de74255003c85291f8fbede54585c10d0635ca7a43633d4d171"
-url = "https://releases.hashicorp.com/terraform/1.17.1/terraform_1.17.1_darwin_amd64.zip"
+checksum = "sha256:66b472dcc36cf770d83757ed4d002c476174842c05c68637b40a7e99519cf3e1"
+url = "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_darwin_amd64.zip"
 
 [tools.terraform."platforms.windows-x64"]
-checksum = "sha256:a3b71365cff94c0f978cf75d86addb075ea1bb6409055ea0ab359bf057d7898a"
-url = "https://releases.hashicorp.com/terraform/1.17.1/terraform_1.17.1_windows_amd64.zip"
+checksum = "sha256:2244b7a379ea8c4b224a2eab411b7288f41ef36316fca27ae4b51b1cf2a53024"
+url = "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_windows_amd64.zip"
 
 [[tools.tflint]]
 version = "0.66.0"
