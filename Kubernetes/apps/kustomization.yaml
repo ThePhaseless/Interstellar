@@ -22,6 +22,7 @@ resources:
 
   - postfix/
   - copyparty/
+  - clips-sftp/
   - immich/
   - adguard/
   - cloudflare-ddns/

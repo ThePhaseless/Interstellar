@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: utilities
+
+# Own directory: copyparty's kustomization stamps app: copyparty onto selectors,
+# so its Service would select this pod.
+resources:
+  - externalsecret.yaml
+  - pvc.yaml
+  - deployment.yaml
+
+labels:
+  - pairs:
+      app: clips-sftp
+    includeSelectors: true

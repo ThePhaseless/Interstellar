@@ -1,0 +1,107 @@
+# SFTP into personal-pvc public/clips over Tailscale SSH: `sftp clips@files` from an owner device.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clips-sftp
+  namespace: utilities
+  labels:
+    app: clips-sftp
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # RWO state PVC
+  selector:
+    matchLabels:
+      app: clips-sftp
+  template:
+    metadata:
+      labels:
+        app: clips-sftp
+    spec:
+      # The SFTP user runs inside this container and could download the token.
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      containers:
+        - name: tailscale
+          image: ghcr.io/tailscale/tailscale:v1.104.4@sha256:ed6480b33c6eb67c9cbd203ed42b9fb57e361986725b6856def71b7a3d9e276c
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              # sftp-only: nologin refuses shells/commands; tailscaled serves SFTP in-process as this user.
+              id clips >/dev/null 2>&1 || adduser -D -H -h /clips -s /sbin/nologin -u 1000 clips
+              chown 1000:1000 /clips
+              exec /usr/local/bin/containerboot
+          env:
+            # Not the raw key: the SFTP process inherits tailscaled's env and could read /proc/self/environ.
+            - name: TS_AUTHKEY
+              value: file:/etc/tailscale-auth/authkey
+            - name: TS_HOSTNAME
+              value: files
+            - name: TS_STATE_DIR
+              value: /var/lib/tailscale
+            # Must be explicitly empty: containerboot defaults to Secret state in Kubernetes.
+            - name: TS_KUBE_SECRET
+              value: ""
+            - name: TS_AUTH_ONCE
+              value: "true"
+            - name: TS_USERSPACE
+              value: "true"
+            - name: TS_EXTRA_ARGS
+              value: --ssh
+            - name: TS_ENABLE_HEALTH_CHECK
+              value: "true"
+            # No -L/-R pivot into the cluster network.
+            - name: TS_SSH_DISABLE_FORWARDING
+              value: "true"
+            - name: TS_SSH_DISABLE_PTY
+              value: "true"
+            - name: TZ
+              value: UTC
+          ports:
+            - name: health
+              containerPort: 9002
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              # SETUID/SETGID: drop to clips; KILL: end that user's session; CHOWN: start-up chown.
+              add: [CHOWN, KILL, SETGID, SETUID]
+          volumeMounts:
+            - name: state
+              mountPath: /var/lib/tailscale
+            - name: clips
+              mountPath: /clips
+              subPath: public/clips
+            - name: authkey
+              mountPath: /etc/tailscale-auth
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 5
+      volumes:
+        - name: state
+          persistentVolumeClaim:
+            claimName: clips-sftp-state
+        - name: clips
+          persistentVolumeClaim:
+            claimName: personal-pvc
+        - name: authkey
+          secret:
+            secretName: clips-sftp-tailscale
+            defaultMode: 0400
