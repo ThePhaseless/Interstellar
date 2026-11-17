@@ -90,18 +90,12 @@ spec:
                 - name: BORG_BACKUP_TARGETS
                   value: |
                     utilities:/photos /external /db-dump /authentik-dump
-                # Root /external paths are the layout before private/members/public;
-                # kept so a rollback that moves the files back stays excluded.
+                # .hist: copyparty index; encoded-video/library: Immich leftovers in private/.
                 - name: BORG_EXCLUDES
                   value: |
                     /photos/thumbs /photos/encoded-video /photos/backups
-                    /external/upload /external/encoded-video /external/backups
-                    /external/immich.dump /external/authentik.dump /external/db-dump
-                    /external/library /external/.hist
-                    /external/private/encoded-video /external/private/backups
-                    /external/private/immich.dump /external/private/authentik.dump
-                    /external/private/db-dump /external/private/library
-                    /external/private/.hist /external/members/.hist
+                    /external/.hist /external/members/.hist /external/private/.hist
+                    /external/private/encoded-video /external/private/library
                 - name: BORG_PATTERNS
                   value: |
                     + external/public/safe

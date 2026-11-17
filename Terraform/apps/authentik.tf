@@ -220,12 +220,15 @@ resource "authentik_provider_proxy" "public" {
 
   access_token_validity = "hours=24"
 
-  # Anonymous read on copyparty's public volume. An allowlisted request reaches copyparty
+  # Anonymous read on copyparty's /public volume. An allowlisted request reaches copyparty
   # with no identity, because Traefik deletes client X-authentik-* headers; copyparty's
   # ACLs do the rest. A logged-in user still gets headers here. Segments starting with
   # "." are excluded so a decoded ".." never matches. join(), not a heredoc: a blank
-  # line compiles to "", which matches every path.
+  # line compiles to "", which matches every path. The /personal/public entry keeps old
+  # links anonymous until both deploys land; the copyparty-old-urls redirect answers those
+  # paths before forward-auth, so drop it in a later change.
   skip_path_regex = join("\n", [
+    "^/public(/([^/.][^/]*)?)*$",
     "^/personal/public(/([^/.][^/]*)?)*$",
     "^/\\.cpr(/[^/.][^/]*)+$",
   ])
