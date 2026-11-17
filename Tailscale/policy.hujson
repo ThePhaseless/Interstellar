@@ -12,6 +12,7 @@
     "tag:service":      ["tag:k8s-operator", "tag:ci"],
     "tag:minecraft":    ["tag:ci"],
     "tag:homeassistant": ["tag:ci"],
+    "tag:files":        ["tag:ci"],
   },
 
   "acls": [
@@ -119,6 +120,14 @@
       "src":    ["tag:ci"],
       "dst":    ["tag:proxmox"],
       "users":  ["autogroup:nonroot", "root"]
+    },
+
+    // SFTP-only drop box: root and every other user are deliberately left out.
+    {
+      "action": "accept",
+      "src":    ["autogroup:owner"],
+      "dst":    ["tag:files"],
+      "users":  ["clips"]
     }
   ],
 
@@ -147,7 +156,7 @@
   // Key expiry is set by tailscale_device_key.infra in Terraform/tailscale.tf.
   "nodeAttrs": [
     {
-      "target": ["tag:node", "tag:service", "tag:proxmox"],
+      "target": ["tag:node", "tag:service", "tag:proxmox", "tag:files"],
       "attr":   ["funnel:deny"]
     }
   ],

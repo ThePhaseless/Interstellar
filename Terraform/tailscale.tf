@@ -30,6 +30,27 @@ resource "bitwarden-secrets_secret" "tailscale_auth_key" {
   }
 }
 
+# Used only on first enrolment: the clips-sftp pod keeps its state on a PVC and sets TS_AUTH_ONCE.
+resource "tailscale_tailnet_key" "files" {
+  depends_on    = [tailscale_acl.main]
+  reusable      = true
+  preauthorized = true
+  expiry        = 7776000 # 90 days in seconds
+  tags          = ["tag:files"]
+  description   = "copyparty clips SFTP pod auth key"
+}
+
+resource "bitwarden-secrets_secret" "tailscale_files_auth_key" {
+  key        = "tailscale-files-auth-key"
+  value      = tailscale_tailnet_key.files.key
+  project_id = local.bitwarden_generated_project_id
+  note       = "Tailscale auth key for the clips-sftp pod. Managed by Terraform."
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
 locals {
   oauth_clients = {
     ci = {
@@ -85,7 +106,7 @@ locals {
   tailscale_adguard_ip = try(local.adguard_devices[0].addresses[0], "1.1.1.1")
   adguard_exists       = length(local.adguard_devices) >= 1
 
-  infra_device_tags = ["tag:proxmox", "tag:node", "tag:homeassistant", "tag:untrusted"]
+  infra_device_tags = ["tag:proxmox", "tag:node", "tag:homeassistant", "tag:untrusted", "tag:files"]
   infra_devices = {
     for d in data.tailscale_devices.cluster.devices : d.name => d.id
     if length(setintersection(toset(d.tags), toset(local.infra_device_tags))) > 0
