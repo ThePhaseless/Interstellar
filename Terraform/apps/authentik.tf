@@ -219,6 +219,16 @@ resource "authentik_provider_proxy" "public" {
   cookie_domain = var.authentik_domain
 
   access_token_validity = "hours=24"
+
+  # Anonymous read on copyparty's public volume. An allowlisted request reaches copyparty
+  # with no identity, because Traefik deletes client X-authentik-* headers; copyparty's
+  # ACLs do the rest. A logged-in user still gets headers here. Segments starting with
+  # "." are excluded so a decoded ".." never matches. join(), not a heredoc: a blank
+  # line compiles to "", which matches every path.
+  skip_path_regex = join("\n", [
+    "^/personal/public(/([^/.][^/]*)?)*$",
+    "^/\\.cpr(/[^/.][^/]*)+$",
+  ])
 }
 
 resource "authentik_application" "private" {
