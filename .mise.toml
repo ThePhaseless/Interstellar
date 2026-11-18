@@ -2,11 +2,11 @@ min_version = "2026.4.28"
 
 [tools]
 python = "3.15.2"
-uv = "0.13.7"
+uv = "0.13.8"
 terraform = "1.17.2"
 kubectl = "1.37.2"
 kustomize = "latest"
-helm = "4.3.1"
+helm = "4.3.2"
 kube-linter = "0.8.3"
 tflint = "0.66.0"
 talosctl = "1.14.6"
