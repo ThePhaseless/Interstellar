@@ -35,7 +35,7 @@ spec:
         runAsGroup: 10001
       containers:
         - name: mimir
-          image: grafana/mimir:3.2.5@sha256:245ce851e2f5d27db6bd37720d9ab12bcb017f4b4e20340d9b58266435dbe4b6
+          image: grafana/mimir:3.2.6@sha256:32d79dc873a804d4dbf2724afcbb7b141553b5ed9118f9295972c4bb2982d6fd
           args:
             - -config.file=/etc/mimir/mimir.yaml
           ports:
