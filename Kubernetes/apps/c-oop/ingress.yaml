@@ -1,0 +1,40 @@
+# Public with no login on purpose: the app has no accounts and keeps nothing.
+# A room is a secret in the link's fragment, which never reaches the server.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: c-oop
+  namespace: utilities
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`c-oop.nerine.dev`)
+      services:
+        - name: c-oop
+          port: 8080
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+        - name: c-oop-per-ip
+          namespace: utilities
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"
+---
+# public-chain caps a host at 500 requests in flight, and an open signaling socket holds one for
+# as long as it lives. Without a cap per address one visitor could take all of them. 150 leaves
+# room for a classroom behind one address: a socket each, plus about 20 files on a first load.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: c-oop-per-ip
+  namespace: utilities
+spec:
+  inFlightReq:
+    amount: 150
+    sourceCriterion:
+      ipStrategy: {}

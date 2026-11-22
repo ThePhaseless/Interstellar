@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: c-oop
+  namespace: utilities
+  labels:
+    app: c-oop
+spec:
+  # One replica: browsers of a room find each other through the signaling
+  # relay, which lives in this process's memory.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: c-oop
+  template:
+    metadata:
+      labels:
+        app: c-oop
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: c-oop
+          image: ghcr.io/thephaseless/c-oop:1.0.0@sha256:ce7cd600f3f4741f178fd3da0cdaaa7eb4bd114dd4b494ce14fe04653693092a
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          # Traefik keeps sending to the old pod for a moment after it is told to stop.
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

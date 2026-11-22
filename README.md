@@ -112,6 +112,7 @@ flowchart TB
 | AdGuard Home   | Authentik | Ad blocking; DNS served over Tailscale |
 | Postfix        | Internal  | Outbound mail relay                   |
 | Cloudflare DDNS| Internal  | Keeps the public A records current    |
+| c-oop          | Public    | Shared C++ editor, no login           |
 
 ### Infrastructure
 

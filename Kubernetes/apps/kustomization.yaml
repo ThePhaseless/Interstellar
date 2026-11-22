@@ -26,6 +26,7 @@ resources:
   - immich/
   - adguard/
   - cloudflare-ddns/
+  - c-oop/
 
   - networkpolicies/
 

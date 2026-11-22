@@ -17,7 +17,7 @@ spec:
     matchExpressions:
       - key: app
         operator: In
-        values: [copyparty, immich]
+        values: [copyparty, immich, c-oop]
   ingress:
     - from:
         - namespaceSelector:
@@ -27,6 +27,7 @@ spec:
         # Container ports, not Service ports: immich's Service publishes 3001.
         - {port: 3923} # copyparty
         - {port: 2283} # immich
+        - {port: 8080} # c-oop
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
