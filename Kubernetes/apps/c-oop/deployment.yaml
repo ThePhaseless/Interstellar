@@ -25,7 +25,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: c-oop
-          image: ghcr.io/thephaseless/c-oop:1.0.0@sha256:ce7cd600f3f4741f178fd3da0cdaaa7eb4bd114dd4b494ce14fe04653693092a
+          image: ghcr.io/thephaseless/c-oop:1.0.1@sha256:a1b6069a83f0dc3ac6968d57bf418881975228bae36d87e5a4cb75c57c4d8aa6
           ports:
             - name: http
               containerPort: 8080
