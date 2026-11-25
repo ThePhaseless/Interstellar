@@ -206,6 +206,20 @@ resource "authentik_provider_proxy" "crowdsec" {
   access_token_validity = "hours=24"
 }
 
+# Off the shared private proxy, which also admits vips: only admins may print
+# and scan. forward_single for the reason on authentik_provider_proxy.public.
+resource "authentik_provider_proxy" "pagewire" {
+  name               = "pagewire-proxy"
+  mode               = "forward_single"
+  authorization_flow = data.authentik_flow.default-authorization-flow.id
+  invalidation_flow  = data.authentik_flow.default-invalidation-flow.id
+  external_host      = "https://print.${var.authentik_domain}"
+  # Authentik's API refuses to clear this; inert in forward_single mode.
+  cookie_domain = var.authentik_domain
+
+  access_token_validity = "hours=24"
+}
+
 # Any Google account, copyparty only. MUST stay forward_single: the outpost cannot
 # multiplex two forward_domain providers sharing an external_host, so this one could
 # win every host and open the private services to any Google account.
@@ -293,6 +307,7 @@ resource "authentik_outpost" "embedded" {
     authentik_provider_proxy.public.id,
     authentik_provider_proxy.seerr.id,
     authentik_provider_proxy.crowdsec.id,
+    authentik_provider_proxy.pagewire.id,
   ]
   config = jsonencode({
     authentik_host                 = "https://auth.${var.authentik_domain}/"
@@ -621,6 +636,22 @@ resource "authentik_application" "crowdsec" {
 
 resource "authentik_policy_binding" "crowdsec_access" {
   target = authentik_application.crowdsec.uuid
+  group  = authentik_group.admins.id
+  order  = 0
+}
+
+resource "authentik_application" "pagewire" {
+  name              = "Pagewire"
+  slug              = "pagewire"
+  protocol_provider = authentik_provider_proxy.pagewire.id
+  meta_description  = "Prints and scans on the Samsung printer"
+  meta_launch_url   = "https://print.${var.authentik_domain}"
+  # selfh.st has no printer icon; dashboard-icons does.
+  meta_icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/printer.svg"
+}
+
+resource "authentik_policy_binding" "pagewire_access" {
+  target = authentik_application.pagewire.uuid
   group  = authentik_group.admins.id
   order  = 0
 }

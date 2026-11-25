@@ -147,6 +147,9 @@ resource "proxmox_virtual_environment_vm" "talos" {
       efi_disk,
       initialization,
       tags,
+      # Ansible passes the Pagewire printer to talos-2 as raw `usb0: host=` (Ansible/setup-proxmox.yaml).
+      # Proxmox allows raw host= only for root@pam, so this API token can neither manage nor remove it.
+      usb,
     ]
 
     precondition {
