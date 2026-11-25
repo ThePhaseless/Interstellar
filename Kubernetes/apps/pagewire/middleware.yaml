@@ -1,0 +1,10 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: scan-to-print
+  namespace: printing
+spec:
+  redirectRegex:
+    regex: "^https?://scan\\.nerine\\.dev/(.*)"
+    replacement: "https://print.nerine.dev/${1}"
+    permanent: true

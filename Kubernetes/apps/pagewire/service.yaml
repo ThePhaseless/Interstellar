@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pagewire
+  namespace: printing
+spec:
+  type: ClusterIP
+  selector:
+    app: pagewire
+  ports:
+    # Web UI and API, behind Traefik and Authentik.
+    - name: http
+      port: 8080
+      targetPort: http
+    # Agent reports from the device pod only; never route the ingress here.
+    - name: internal
+      port: 8081
+      targetPort: internal

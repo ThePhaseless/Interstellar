@@ -62,3 +62,9 @@ media_managed_paths:
   - /Storage/Media/Movies
   - /Storage/Media/Downloads
   - /ssdstage/downloads
+
+# Pagewire's printer (Samsung SCX-4300 Series), passed through raw to this VM
+# (talos-2). The ID must match the --device arg in
+# Kubernetes/bootstrap/generic-device-plugin/daemonset.yaml.
+printer_vmid: 111
+printer_usb_id: "04e8:342e"

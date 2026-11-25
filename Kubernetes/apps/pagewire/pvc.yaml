@@ -1,0 +1,33 @@
+# Both claims are ReadWriteOnce: the config watcher relies on inotify, which only sees
+# changes on a volume mounted from a single node (network RWX file systems miss them).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pagewire-data
+  namespace: printing
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 2Gi
+---
+# Vendor blobs (for example the HP plug-in). Mounted by every probe and usb device pod
+# that pagewire renders, not by the control plane: the agent container read-write, to
+# download vendor archives and show their licence text before you accept; fetch-blobs
+# read-write; the driver and scanner containers read-only. It must be mountable on the
+# node with the USB printer (Longhorn RWO attaches on any node). The name is the
+# --blob-pvc default.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pagewire-blobs
+  namespace: printing
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi

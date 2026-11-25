@@ -5,3 +5,4 @@ resources:
   - media.yaml
   - utilities.yaml
   - home.yaml
+  - printing.yaml

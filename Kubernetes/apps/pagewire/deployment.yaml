@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # PAGEWIRE_K8S_OWNER below must name this Deployment: it owns the device pod.
+  name: pagewire
+  namespace: printing
+  labels:
+    app: pagewire
+  annotations:
+    # pagewire watches its config file itself; a restart is never needed.
+    reloader.stakater.com/auto: "false"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # the data volume is ReadWriteOnce
+  selector:
+    matchLabels:
+      app: pagewire
+  template:
+    metadata:
+      labels:
+        app: pagewire
+    spec:
+      serviceAccountName: pagewire
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        # The name is load-bearing: the control plane reads the image of the container
+        # named "pagewire" in this Deployment and runs the device pod's probe, agent
+        # and fetch-blobs containers from it. Renaming it falls back to a registry tag.
+        - name: pagewire
+          # Exception to the tag@digest rule until Pagewire's first release: the device
+          # and driver images float on main too, so all of them run one agent protocol.
+          # The Pagewire packageRule in renovate.json5 keeps Renovate from pinning a digest
+          # here. After the release, pin <version>@sha256:<digest>, drop imagePullPolicy:
+          # Always, add PAGEWIRE_IMAGE_OVERRIDES for the device and driver images, and
+          # remove that packageRule.
+          image: ghcr.io/thephaseless/pagewire:main
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: internal
+              containerPort: 8081
+          env:
+            # Must equal <--domain>/<device name> in
+            # Kubernetes/bootstrap/generic-device-plugin/daemonset.yaml.
+            - name: PAGEWIRE_USB_RESOURCE
+              value: devic.es/printer
+            - name: PAGEWIRE_K8S_OWNER
+              value: pagewire
+            # Other Host headers get 421, which blocks DNS rebinding.
+            - name: PAGEWIRE_ALLOWED_HOSTS
+              value: print.nerine.dev
+            - name: TZ
+              value: Europe/Warsaw
+            # No GOMEMLIMIT: pagewire sets the Go memory limit to 80% of
+            # resources.limits.memory, read from the cgroup. Setting GOMEMLIMIT overrides that.
+            # PAGEWIRE_PROXY_SECRET stays unset: Traefik could add it only from a plaintext
+            # Middleware in git; the NetworkPolicy limits 8080 to the traefik namespace.
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pagewire-data
+        - name: tmp
+          emptyDir: {}

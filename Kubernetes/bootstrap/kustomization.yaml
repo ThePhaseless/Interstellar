@@ -6,6 +6,7 @@ resources:
   - longhorn/
   - external-secrets/
   - intel-gpu-operator/
+  - generic-device-plugin/
   - traefik/
   - crowdsec/
   - tailscale-operator/

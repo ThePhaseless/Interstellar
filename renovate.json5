@@ -5,6 +5,13 @@
   ],
   packageRules: [
     {
+      description: 'Pagewire floats on main with its device and driver images until its first release; remove this rule when Kubernetes/apps/pagewire/deployment.yaml pins <version>@sha256',
+      matchPackageNames: [
+        'ghcr.io/thephaseless/pagewire',
+      ],
+      enabled: false,
+    },
+    {
       description: 'LinuxServer once published the Ubuntu base version (20.04.1) as a tag',
       matchPackageNames: [
         'linuxserver/qbittorrent',

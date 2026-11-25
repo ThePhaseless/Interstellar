@@ -1,0 +1,50 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: printing
+spec:
+  podSelector: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik
+  namespace: printing
+# Pagewire has no login; only Traefik, which applies Authentik forward-auth,
+# may reach its web UI and API.
+spec:
+  podSelector:
+    matchLabels:
+      app: pagewire
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - { port: 8080 }
+---
+# Agent reports. The agent runs in the hostNetwork device pod, so its traffic
+# carries a node address and no pod identity. With Flannel, host-to-ClusterIP
+# traffic usually leaves through flannel.1/cni0 with a 10.244.x source; the LAN
+# range covers a node-IP source. Port 8081 also requires the bearer token in
+# Secret pagewire-agent-token.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-pagewire-agent
+  namespace: printing
+spec:
+  podSelector:
+    matchLabels:
+      app: pagewire
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 192.168.1.0/24
+        - ipBlock:
+            cidr: 10.244.0.0/16
+      ports:
+        - { port: 8081 }

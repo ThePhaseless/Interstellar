@@ -1,0 +1,43 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pagewire
+  namespace: printing
+# Every rule names its objects except pods. The "pagewire" resourceName is the owner
+# Deployment: if you change PAGEWIRE_K8S_OWNER, change it here too (two rules).
+# internal/backend/k8s/policy_test.go checks every client call against this file.
+rules:
+  # Owner lookup of this control plane's own Deployment (PAGEWIRE_K8S_OWNER), and
+  # reads of the device Deployment.
+  - apiGroups: [apps]
+    resources: [deployments]
+    resourceNames: [pagewire, pagewire-device]
+    verbs: [get]
+  # The device Deployment. Server-side apply is a PATCH by name that may create
+  # the object, so it needs both patch and create on that name.
+  - apiGroups: [apps]
+    resources: [deployments]
+    resourceNames: [pagewire-device]
+    verbs: [create, patch, delete]
+  # The device Deployment, ConfigMap and token Secret set blockOwnerDeletion in their
+  # ownerReference to the owner Deployment, which needs update on its finalizers.
+  - apiGroups: [apps]
+    resources: [deployments/finalizers]
+    resourceNames: [pagewire]
+    verbs: [update]
+  # The device ConfigMap (ipp-usb, SANE and AirSane settings), server-side applied.
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [pagewire-device]
+    verbs: [get, create, patch, delete]
+  # The agent token Secret, server-side applied by name.
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [pagewire-agent-token]
+    verbs: [get, create, patch]
+  # Device pods get generated names, so these cannot be scoped by resourceNames.
+  # Observe and RestartPod list them by label; RestartPod deletes them one by one by
+  # name, so neither deletecollection nor get or watch is granted.
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [list, delete]

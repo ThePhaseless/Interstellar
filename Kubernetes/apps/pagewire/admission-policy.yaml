@@ -1,0 +1,80 @@
+# The printing namespace runs at the privileged Pod Security level because the device
+# pod needs hostNetwork, so this policy is the only guard there. Pods may use
+# hostNetwork, but not privileged containers, hostPath volumes, hostPID, hostIPC,
+# added capabilities or allowPrivilegeEscalation: true. Every container must drop
+# ALL capabilities (no NET_RAW on the node's network), and neither the pod nor a
+# container may set an Unconfined seccomp or AppArmor profile. It covers containers,
+# initContainers and ephemeralContainers (kubectl debug needs --profile=restricted).
+# Needs Kubernetes 1.30 or later. ArgoCD applies it from this directory. kustomize
+# v5.8.3 adds no namespace to these cluster-scoped kinds; older builds (kubectl's
+# v5.8.1) stamp namespace: printing, which the API server drops.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: pagewire-host-network-only
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods, pods/ephemeralcontainers]
+  variables:
+    - name: containers
+      expression: object.spec.containers
+    - name: initContainers
+      expression: "has(object.spec.initContainers) ? object.spec.initContainers : []"
+    - name: ephemeralContainers
+      expression: "has(object.spec.ephemeralContainers) ? object.spec.ephemeralContainers : []"
+  validations:
+    - expression: "!has(object.spec.hostPID) || !object.spec.hostPID"
+      message: hostPID is not allowed
+    - expression: "!has(object.spec.hostIPC) || !object.spec.hostIPC"
+      message: hostIPC is not allowed
+    - expression: "!has(object.spec.volumes) || object.spec.volumes.all(v, !has(v.hostPath))"
+      message: hostPath volumes are not allowed
+    - expression: >-
+        variables.containers.all(c, !has(c.securityContext) || !has(c.securityContext.privileged) || !c.securityContext.privileged) &&
+        variables.initContainers.all(c, !has(c.securityContext) || !has(c.securityContext.privileged) || !c.securityContext.privileged) &&
+        variables.ephemeralContainers.all(c, !has(c.securityContext) || !has(c.securityContext.privileged) || !c.securityContext.privileged)
+      message: privileged containers are not allowed
+    - expression: >-
+        variables.containers.all(c, !has(c.securityContext) || !has(c.securityContext.allowPrivilegeEscalation) || !c.securityContext.allowPrivilegeEscalation) &&
+        variables.initContainers.all(c, !has(c.securityContext) || !has(c.securityContext.allowPrivilegeEscalation) || !c.securityContext.allowPrivilegeEscalation) &&
+        variables.ephemeralContainers.all(c, !has(c.securityContext) || !has(c.securityContext.allowPrivilegeEscalation) || !c.securityContext.allowPrivilegeEscalation)
+      message: allowPrivilegeEscalation must not be true
+    - expression: >-
+        variables.containers.all(c, !has(c.securityContext) || !has(c.securityContext.capabilities) || !has(c.securityContext.capabilities.add) || size(c.securityContext.capabilities.add) == 0) &&
+        variables.initContainers.all(c, !has(c.securityContext) || !has(c.securityContext.capabilities) || !has(c.securityContext.capabilities.add) || size(c.securityContext.capabilities.add) == 0) &&
+        variables.ephemeralContainers.all(c, !has(c.securityContext) || !has(c.securityContext.capabilities) || !has(c.securityContext.capabilities.add) || size(c.securityContext.capabilities.add) == 0)
+      message: added capabilities are not allowed
+    - expression: >-
+        variables.containers.all(c, has(c.securityContext) && has(c.securityContext.capabilities) && has(c.securityContext.capabilities.drop) && 'ALL' in c.securityContext.capabilities.drop) &&
+        variables.initContainers.all(c, has(c.securityContext) && has(c.securityContext.capabilities) && has(c.securityContext.capabilities.drop) && 'ALL' in c.securityContext.capabilities.drop) &&
+        variables.ephemeralContainers.all(c, has(c.securityContext) && has(c.securityContext.capabilities) && has(c.securityContext.capabilities.drop) && 'ALL' in c.securityContext.capabilities.drop)
+      message: containers must drop ALL capabilities
+    - expression: >-
+        !(has(object.spec.securityContext) && has(object.spec.securityContext.seccompProfile) && object.spec.securityContext.seccompProfile.type == 'Unconfined') &&
+        variables.containers.all(c, !(has(c.securityContext) && has(c.securityContext.seccompProfile) && c.securityContext.seccompProfile.type == 'Unconfined')) &&
+        variables.initContainers.all(c, !(has(c.securityContext) && has(c.securityContext.seccompProfile) && c.securityContext.seccompProfile.type == 'Unconfined')) &&
+        variables.ephemeralContainers.all(c, !(has(c.securityContext) && has(c.securityContext.seccompProfile) && c.securityContext.seccompProfile.type == 'Unconfined'))
+      message: Unconfined seccomp profiles are not allowed
+    - expression: >-
+        !(has(object.spec.securityContext) && has(object.spec.securityContext.appArmorProfile) && object.spec.securityContext.appArmorProfile.type == 'Unconfined') &&
+        variables.containers.all(c, !(has(c.securityContext) && has(c.securityContext.appArmorProfile) && c.securityContext.appArmorProfile.type == 'Unconfined')) &&
+        variables.initContainers.all(c, !(has(c.securityContext) && has(c.securityContext.appArmorProfile) && c.securityContext.appArmorProfile.type == 'Unconfined')) &&
+        variables.ephemeralContainers.all(c, !(has(c.securityContext) && has(c.securityContext.appArmorProfile) && c.securityContext.appArmorProfile.type == 'Unconfined'))
+      message: Unconfined AppArmor profiles are not allowed
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: pagewire-host-network-only
+spec:
+  policyName: pagewire-host-network-only
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: printing

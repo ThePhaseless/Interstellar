@@ -74,7 +74,7 @@ flowchart TB
 | Node    | vCPU | RAM  | Role                   | Special         |
 | ------- | ---- | ---- | ---------------------- | --------------- |
 | talos-1 | 8    | 16GB | Control Plane + Worker | GPU passthrough |
-| talos-2 | 8    | 16GB | Control Plane + Worker | —               |
+| talos-2 | 8    | 16GB | Control Plane + Worker | USB printer     |
 | talos-3 | 8    | 16GB | Control Plane + Worker | —               |
 
 ### Oracle VPS
@@ -113,6 +113,7 @@ flowchart TB
 | Postfix        | Internal  | Outbound mail relay                   |
 | Cloudflare DDNS| Internal  | Keeps the public A records current    |
 | c-oop          | Public    | Shared C++ editor, no login           |
+| Pagewire       | Admins    | Print and scan on the USB printer at print.nerine.dev (scan.nerine.dev redirects there) |
 
 ### Infrastructure
 
@@ -126,6 +127,7 @@ flowchart TB
 | External Secrets   | Bitwarden integration          |
 | Tailscale Operator | Tailnet DNS + cluster access   |
 | Reloader           | Auto-reload on config changes  |
+| USB Device Plugin  | Exposes USB devices to pods    |
 
 ## 📂 Repository Structure
 

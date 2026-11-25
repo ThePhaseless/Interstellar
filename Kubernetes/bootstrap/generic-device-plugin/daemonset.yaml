@@ -1,0 +1,69 @@
+# squat/generic-device-plugin exposes the USB printer as the extended resource
+# devic.es/printer. Based on the upstream manifest at release 0.2.0.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: generic-device-plugin
+  namespace: kube-system
+  labels:
+    app: generic-device-plugin
+  annotations:
+    ignore-check.kube-linter.io/privileged-container: "The plugin must be privileged to discover and hand out the host's USB device nodes."
+    ignore-check.kube-linter.io/sensitive-host-mounts: "The plugin scans the host's /dev for the USB device it exposes."
+spec:
+  selector:
+    matchLabels:
+      app: generic-device-plugin
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: generic-device-plugin
+    spec:
+      priorityClassName: system-node-critical
+      tolerations:
+        - operator: Exists
+          effect: NoExecute
+        - operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: generic-device-plugin
+          image: squat/generic-device-plugin:0.2.0@sha256:66c8d5c270eb2b721f1064c549b9b7898152a6d2f0163380a5d37dc7636c20ff
+          args:
+            # The resource name is <domain>/<device name>. 0.2.0 changed the default
+            # domain from squat.ai to devic.es; it is passed explicitly so the name stays
+            # devic.es/printer on any version.
+            # devic.es/printer must match PAGEWIRE_USB_RESOURCE in Kubernetes/apps/pagewire/deployment.yaml.
+            - --domain=devic.es
+            # count 3 lets the one printer be allocated three times at once: the device
+            # pod requests devic.es/printer in each USB container (the probe init
+            # container, plus ipp-usb, or the printer app and AirSane). The probe pod
+            # pagewire runs before a printer is configured requests it too, so with the
+            # printer unplugged that pod stays Pending.
+            # The vendor:product must match printer_usb_id in Ansible/vars/proxmox.yaml.
+            - '--device={"name":"printer","groups":[{"count":3,"usb":[{"vendor":"04e8","product":"342e"}]}]}'
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 10Mi
+            limits:
+              cpu: 50m
+              memory: 20Mi
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+            - name: dev
+              mountPath: /dev
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+        - name: dev
+          hostPath:
+            path: /dev

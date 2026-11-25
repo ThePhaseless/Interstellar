@@ -27,6 +27,7 @@ resources:
   - adguard/
   - cloudflare-ddns/
   - c-oop/
+  - pagewire/
 
   - networkpolicies/
 

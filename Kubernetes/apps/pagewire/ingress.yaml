@@ -1,0 +1,36 @@
+# Pagewire has no login of its own: the authentik middleware is the only access control.
+# Authentik admits only the admins group (provider pagewire-proxy in Terraform/apps/authentik.tf).
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pagewire
+  namespace: printing
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`print.nerine.dev`)
+      services:
+        - name: pagewire
+          port: 8080
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+        - name: authentik
+          namespace: traefik
+    # Old host: redirect only. noop@internal, not pagewire, so this route can never
+    # reach the app without the authentik middleware.
+    - match: Host(`scan.nerine.dev`)
+      services:
+        - name: noop@internal
+          kind: TraefikService
+      middlewares:
+        - name: public-chain
+          namespace: traefik
+        - name: scan-to-print
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: nerine.dev
+        sans:
+          - "*.nerine.dev"

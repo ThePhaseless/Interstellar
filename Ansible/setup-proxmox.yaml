@@ -424,6 +424,29 @@
       tags:
         - serial-logger
 
+    # Raw host= passthrough, not a Proxmox USB mapping: a mapping refuses to
+    # start the VM while the printer is off, and QEMU attaches a raw host=
+    # device whenever it appears. Terraform ignores usb on the Talos VMs.
+    - name: Read the printer VM's config
+      ansible.builtin.command:
+        cmd: qm config {{ printer_vmid }}
+      register: printer_vm_config
+      changed_when: false
+      check_mode: false
+      tags:
+        - printer
+
+    # qm set on a running VM unplugs and replugs the device, so set it only when
+    # missing. qm config includes pending changes, so a change still waiting
+    # for a VM restart also counts as set.
+    - name: Pass the Pagewire printer through to talos-2
+      ansible.builtin.command:
+        cmd: qm set {{ printer_vmid }} --usb0 host={{ printer_usb_id }}
+      when: "('usb0: host=' ~ printer_usb_id) not in printer_vm_config.stdout_lines"
+      changed_when: true
+      tags:
+        - printer
+
     - name: Configure kernel cmdline for ASPM
       ansible.builtin.copy:
         dest: /etc/kernel/cmdline

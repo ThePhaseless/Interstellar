@@ -18,7 +18,7 @@ Optional files: `ingress.yaml` (Traefik IngressRoute), `pvc.yaml`, `externalsecr
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: media # media | utilities | home
+namespace: media # media | utilities | home | printing
 
 resources:
   - deployment.yaml
