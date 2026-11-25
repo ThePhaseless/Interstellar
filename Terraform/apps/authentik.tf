@@ -206,8 +206,8 @@ resource "authentik_provider_proxy" "crowdsec" {
   access_token_validity = "hours=24"
 }
 
-# Off the shared private proxy, which also admits vips: only admins may print
-# and scan. forward_single for the reason on authentik_provider_proxy.public.
+# Its own provider for print.nerine.dev, open to vips and admins (the
+# vips_or_admins policy). forward_single for the reason on authentik_provider_proxy.public.
 resource "authentik_provider_proxy" "pagewire" {
   name               = "pagewire-proxy"
   mode               = "forward_single"
@@ -652,7 +652,7 @@ resource "authentik_application" "pagewire" {
 
 resource "authentik_policy_binding" "pagewire_access" {
   target = authentik_application.pagewire.uuid
-  group  = authentik_group.admins.id
+  policy = authentik_policy_expression.vips_or_admins.id
   order  = 0
 }
 

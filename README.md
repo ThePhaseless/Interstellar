@@ -113,7 +113,7 @@ flowchart TB
 | Postfix        | Internal  | Outbound mail relay                   |
 | Cloudflare DDNS| Internal  | Keeps the public A records current    |
 | c-oop          | Public    | Shared C++ editor, no login           |
-| Pagewire       | Admins    | Print and scan on the USB printer at print.nerine.dev (scan.nerine.dev redirects there) |
+| Pagewire       | Authentik | Print and scan on the USB printer at print.nerine.dev (scan.nerine.dev redirects there) |
 
 ### Infrastructure
 
