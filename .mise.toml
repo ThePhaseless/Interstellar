@@ -12,7 +12,7 @@ tflint = "0.66.0"
 talosctl = "1.14.6"
 bitwarden-secrets-manager = "2.1.0"
 jq = "1.8.2"
-ripgrep = "15.2.0"
+ripgrep = "16.0.0"
 yq = "4.54.3"
 
 [settings]
