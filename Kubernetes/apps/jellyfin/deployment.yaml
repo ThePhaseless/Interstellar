@@ -32,6 +32,10 @@ spec:
       containers:
         - name: jellyfin
           image: jellyfin/jellyfin:12.4@sha256:fea863d0cd9ec445985d9c75fc6ed64e38a1d2766cf0c250a33d553f4fc1b771
+          # Runs as root and saves artwork/NFO into the media folders; umask 002
+          # keeps them group-writable for the uid/gid 1000 media apps (the setgid
+          # library folders give them gid 1000). Same binary as the image entrypoint.
+          command: ["/bin/sh", "-c", "umask 002 && exec /jellyfin/jellyfin"]
           ports:
             - name: http
               containerPort: 8096
