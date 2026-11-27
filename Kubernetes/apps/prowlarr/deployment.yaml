@@ -45,7 +45,7 @@ spec:
 
       containers:
         - name: prowlarr
-          image: linuxserver/prowlarr:2.7.0@sha256:6660787a99b2e58203539583663c973b48979fc00ff2cb78dc0ea17429e1f6ef
+          image: linuxserver/prowlarr:3.1.0@sha256:2806c9b763810589c42157730d547c293639e55c7610e9f5069314854639ec48
           envFrom:
             - configMapRef:
                 name: media-runtime-config
