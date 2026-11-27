@@ -92,7 +92,7 @@ Bez tych odpowiedzi nie da się zamknąć rozdziałów 5 i 6 albo podjąć decyz
 - [ ] Co skłoniło do przejścia z k3s w LXC na Talosa w VM (awaria, wydajność, utrzymanie, GPU, GitOps)? Czy było jakieś zdarzenie w grudniu 2025? Dlaczego Talos, a nie np. k3s w VM z Ubuntu, Flatcar albo RKE2, i czy porównywałeś je przed migracją? (historia/03, technologie/01)
   Odpowiedź:
 
-- [ ] Co obsługiwało usługi od 2025-12-17 (commit `bc91666` usunął kod k3s z repo) do przejęcia ruchu przez Talosa? Czy stary k3s działał dalej bez kodu w repo? Kiedy Talos zaczął obsługiwać ruch produkcyjny: 2026-02-01, w trakcie lutego czy dopiero po scaleniu gałęzi 2026-02-26? (historia/04, technologie/01)
+- [ ] Co obsługiwało usługi w okresie przejściowym? Commit `bc91666` (2025-12-17) usunął kod k3s tylko na gałęzi migracyjnej, a na `main` kod został do scalenia `327eff3` (2026-02-26). Czy stary k3s działał do tego czasu? Kiedy Talos zaczął obsługiwać ruch produkcyjny: 2026-02-01, w trakcie lutego czy dopiero po scaleniu gałęzi 2026-02-26? (historia/04, technologie/01)
   Odpowiedź:
 
 - [ ] Dlaczego trzy węzły control-plane na jednym hoście, a nie jeden węzeł: rolling upgrade, nauka HA, repliki Longhorna? (technologie/01)
