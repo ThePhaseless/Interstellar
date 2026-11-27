@@ -33,6 +33,8 @@ spec:
               mountPath: /personal
             - name: media
               mountPath: /media
+            - name: downloads
+              mountPath: /downloads
           resources:
             requests:
               cpu: 10m
@@ -62,3 +64,6 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: media-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pool-pvc

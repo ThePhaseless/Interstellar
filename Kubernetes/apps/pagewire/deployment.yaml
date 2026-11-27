@@ -91,11 +91,16 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+            - name: scans
+              mountPath: /data/scans
             - name: tmp
               mountPath: /tmp
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: pagewire-data
+        - name: scans
+          persistentVolumeClaim:
+            claimName: pagewire-scans
         - name: tmp
           emptyDir: {}

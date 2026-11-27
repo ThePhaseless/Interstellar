@@ -196,6 +196,40 @@ spec:
     requests:
       storage: 4Ti
 ---
+# Same union for copyparty (files.nerine.dev); a PV binds one PVC, so utilities
+# needs its own.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: downloads-pool-nfs-pv-utilities
+spec:
+  capacity:
+    storage: 4Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: REPLACED_BY_KUSTOMIZE
+    path: /srv/downloads
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: downloads-pool-pvc
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: downloads-pool-nfs-pv-utilities
+  resources:
+    requests:
+      storage: 4Ti
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:

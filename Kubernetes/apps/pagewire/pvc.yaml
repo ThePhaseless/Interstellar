@@ -31,3 +31,38 @@ spec:
   resources:
     requests:
       storage: 1Gi
+---
+# Stored scans, mounted over /data/scans so they land in the media library
+# (files.nerine.dev /media/Scans) instead of the 2Gi config volume. Pagewire
+# runs as 65532, so the directory on carbon must be owned by that uid.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: scans-nfs-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.2
+    - noatime
+  nfs:
+    server: REPLACED_BY_KUSTOMIZE
+    path: /Storage/Media/Scans
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pagewire-scans
+  namespace: printing
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: scans-nfs-pv
+  resources:
+    requests:
+      storage: 100Gi
