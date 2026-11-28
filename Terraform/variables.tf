@@ -110,7 +110,7 @@ variable "talos_version" {
   type        = string
   # extractVersion keeps the "v": factory.talos.dev installer tags are v-prefixed.
   # renovate: datasource=github-releases depName=siderolabs/talos extractVersion=^(?<version>v.+)$
-  default = "v1.14.6"
+  default = "v1.14.7"
 }
 
 # Gates need a running Kubernetes API with Longhorn, so building a cluster from nothing
@@ -133,7 +133,7 @@ variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
   # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver extractVersion=^v(?<version>.+)$
-  default = "1.37.2"
+  default = "1.37.3"
 }
 
 variable "tf_state_bucket" {
