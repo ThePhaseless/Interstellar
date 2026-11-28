@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: bazarr
-          image: linuxserver/bazarr:1.6.2@sha256:832820dec70bce9e912c6eee7a95baf6551e03dbc63325a7208daaa455423752
+          image: linuxserver/bazarr:1.6.2@sha256:b3db4247d3afa0c68bc5aa311bedd67b1caf4b3eabc3a85577682970435d5013
           envFrom:
             - configMapRef:
                 name: media-runtime-config
